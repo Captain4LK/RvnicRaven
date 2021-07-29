@@ -80,6 +80,14 @@ const char *HLH_strgen_get_error();
 #include <string.h>
 #include <stdint.h>
 
+#ifndef HLH_ERROR_FAIL
+#define HLH_ERROR_FAIL(X) do { goto HLH_err; } while(0)
+#endif
+
+#ifndef HLH_ERROR_CHECK
+#define HLH_ERROR_CHECK(X,Y) do { if(!(X)) HLH_ERROR_FAIL(Y); } while(0)
+#endif
+
 #ifndef HLH_STRGEN_MALLOC
 #define HLH_STRGEN_MALLOC malloc
 #endif
