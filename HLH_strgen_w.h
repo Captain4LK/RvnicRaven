@@ -43,10 +43,26 @@ typedef struct
 }HLH_strgen;
 
 //Create a new, empty model
+//Returns pointer to new model or NULL on failure
+//Possible errors (only reported if HLH_error is used too):
+//    HLH_ERROR_FAIL_MALLOC
+//    HLH_ERROR_ARG_OOR
+//
+//Parameters:
+//    uint32_t order - how many characters to consider for choosing next character
+//                     higher values result in strings being less random and more similar to input strings
+//                     order >= 1
 HLH_strgen *HLH_strgen_new(uint32_t order);
 
 //Destroy a model
-void HLH_strgen_destroy(HLH_strgen *str);
+//Returns 0 on success or 1 on failure
+//Possible errors (only reported if HLH_error is used too):
+//    HLH_ERROR_ARG_NULL
+//
+//Parameters:
+//    HLH_strgen *str - the model to be freed
+//                      str != NULL
+int HLH_strgen_destroy(HLH_strgen *str);
 
 //Parse a file and add every line to the model
 void HLH_strgen_add_file(HLH_strgen *str, FILE *f);
@@ -58,16 +74,23 @@ int HLH_strgen_add_string(HLH_strgen *str, const wchar_t *s);
 wchar_t *HLH_strgen_generate(HLH_strgen *str);
 
 //Write a model to disk
-void HLH_strgen_model_save(const HLH_strgen *str, FILE *f);
+//Returns 0 on success or 1 on failure
+//Possible errors (only reported if HLH_error is used too):
+//    HLH_ERROR_FAIL_FWRITE
+//    HLH_ERROR_ARG_NULL
+//
+//Parameters:
+//    HLH_strgen *str - the model to be written to disk
+//                      str != NULL
+//    FILE *f - file to write model to
+//              f != NULL
+int HLH_strgen_model_save(const HLH_strgen *str, FILE *f);
 
 //Read a model from disk
 HLH_strgen *HLH_strgen_model_load(FILE *f);
 
 //Read a model from memory buffer
 HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length);
-
-//Returns the last error as a string
-const char *HLH_strgen_get_error();
 
 #endif
 
@@ -141,21 +164,38 @@ typedef struct
 
 HLH_strgen *HLH_strgen_new(uint32_t order)
 {
-   HLH_strgen *str = HLH_STRGEN_MALLOC(sizeof(*str));
-   if(str==NULL)
-      return NULL;
+   HLH_strgen *str = NULL;
+
+   HLH_ERROR_CHECK(order!=0,0x100);
+
+   str = HLH_STRGEN_MALLOC(sizeof(*str));
+   HLH_ERROR_CHECK(str!=NULL,0x001);
+   memset(str,0,sizeof(*str));
 
    str->order = order;
    HLH_dyn_array_init(HLH_strgen_entry,&str->chain,HLH_SIZE);
+   HLH_ERROR_CHECK(str->chain.data!=NULL,0x001);
    HLH_dyn_array_init(uint32_t,&str->chain_start,HLH_SIZE);
+   HLH_ERROR_CHECK(str->chain_start.data!=NULL,0x001);
 
    return str;
+
+HLH_err:
+
+   if(str!=NULL)
+   {
+      HLH_dyn_array_free(HLH_strgen_entry,&str->chain);
+      HLH_dyn_array_free(uint32_t,&str->chain_start);
+
+      free(str);
+   }
+
+   return NULL;
 }
 
-void HLH_strgen_destroy(HLH_strgen *str)
+int HLH_strgen_destroy(HLH_strgen *str)
 {
-   if(str==NULL)
-      return;
+   HLH_ERROR_CHECK(str!=NULL,0x101);
 
    for(unsigned i = 0;i<str->chain.used;i++)
    {
@@ -167,6 +207,12 @@ void HLH_strgen_destroy(HLH_strgen *str)
    HLH_dyn_array_free(HLH_strgen_entry,&str->chain);
    HLH_dyn_array_free(uint32_t,&str->chain_start);
    HLH_STRGEN_FREE(str);
+
+   return 0;
+
+HLH_err:
+
+   return 1;
 }
 
 void HLH_strgen_add_file(HLH_strgen *str, FILE *f)
@@ -363,27 +409,36 @@ static wchar_t HLH_strgen_prefix_choose_random(HLH_strgen_dyn_array suffixes)
 }
 
 //TODO: handle big/little endian
-void HLH_strgen_model_save(const HLH_strgen *str, FILE *f)
+int HLH_strgen_model_save(const HLH_strgen *str, FILE *f)
 {
-   fwrite(&str->order,sizeof(uint32_t),1,f);
-   fwrite(&str->chain_start.used,sizeof(str->chain_start.used),1,f);
+   HLH_ERROR_CHECK(str!=NULL,0x101);
+   HLH_ERROR_CHECK(f!=NULL,0x101);
+
+   HLH_ERROR_CHECK(fwrite(&str->order,sizeof(uint32_t),1,f)==1,0x003);
+   HLH_ERROR_CHECK(fwrite(&str->chain_start.used,sizeof(str->chain_start.used),1,f)==1,0x003);
    for(unsigned i = 0;i<str->chain_start.used;i++)
-      fwrite(&HLH_dyn_array_element(uint32_t,&str->chain_start,i),sizeof(uint32_t),1,f);
-   fwrite(&str->chain.used,sizeof(str->chain.used),1,f);
+      HLH_ERROR_CHECK(fwrite(&HLH_dyn_array_element(uint32_t,&str->chain_start,i),sizeof(uint32_t),1,f)==1,0x003);
+   HLH_ERROR_CHECK(fwrite(&str->chain.used,sizeof(str->chain.used),1,f)==1,0x003);
    for(unsigned i = 0;i<str->chain.used;i++)
    {
       const HLH_strgen_entry *e = &HLH_dyn_array_element(HLH_strgen_entry,&str->chain,i);
-      fwrite(&e->prefix.used,sizeof(e->prefix.used),1,f);
+      HLH_ERROR_CHECK(fwrite(&e->prefix.used,sizeof(e->prefix.used),1,f)==1,0x003);
       for(unsigned j = 0;j<e->prefix.used;j++)
-         fwrite(&HLH_dyn_array_element(wchar_t,&e->prefix,j),sizeof(wchar_t),1,f);
-      fwrite(&e->suffix.used,sizeof(e->suffix.used),1,f);
+         HLH_ERROR_CHECK(fwrite(&HLH_dyn_array_element(wchar_t,&e->prefix,j),sizeof(wchar_t),1,f)==1,0x003);
+      HLH_ERROR_CHECK(fwrite(&e->suffix.used,sizeof(e->suffix.used),1,f)==1,0x003);
       for(unsigned j = 0;j<e->suffix.used;j++)
       {
          const HLH_strgen_suffix *s = &HLH_dyn_array_element(HLH_strgen_suffix,&e->suffix,j);
-         fwrite(&s->entry,sizeof(s->entry),1,f);
-         fwrite(&s->weight,sizeof(s->weight),1,f);
+         HLH_ERROR_CHECK(fwrite(&s->entry,sizeof(s->entry),1,f)==1,0x003);
+         HLH_ERROR_CHECK(fwrite(&s->weight,sizeof(s->weight),1,f)==1,0x003);
       }
    }
+
+   return 0;
+
+HLH_err:
+
+   return 1;
 }
 
 HLH_strgen *HLH_strgen_model_load(FILE *f)

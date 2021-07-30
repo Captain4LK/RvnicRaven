@@ -43,6 +43,8 @@ int main()
 
    //Create a new, empty second order markov chain
    HLH_strgen *str = HLH_strgen_new(2);
+   if(str==NULL)
+      puts(HLH_error_get_string());
 
    //Open a file and add its contents to the markov chain
    //The file used in this case is a list of some roman emperors
@@ -56,8 +58,10 @@ int main()
    //This can be skipped since it only is here for validation 
    //purposes
    f = fopen("test.bin","wb");
-   HLH_strgen_model_save(str,f);
-   HLH_strgen_destroy(str);
+   if(HLH_strgen_model_save(str,f))
+      puts(HLH_error_get_string());
+   if(HLH_strgen_destroy(str))
+      puts(HLH_error_get_string());
    if(f!=NULL)
       fclose(f);
 
@@ -85,7 +89,8 @@ int main()
    }
 
    //Free the markov chain 
-   HLH_strgen_destroy(str);
+   if(HLH_strgen_destroy(str))
+      puts(HLH_error_get_string());
 
    return 0;
 }

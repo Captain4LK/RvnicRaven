@@ -20,7 +20,12 @@
 
 typedef enum
 {
-   HLH_ERROR_NONE = 0,
+   HLH_ERROR_NONE = 0x000,              //No error encountered
+   HLH_ERROR_FAIL_MALLOC = 0x001,       //malloc() failed, out of memory
+   HLH_ERROR_FAIL_REALLOC = 0x002,      //realloc() failed, out of memory
+   HLH_ERROR_FAIL_FWRITE = 0x003,       //fwrite() failed
+   HLH_ERROR_ARG_OOR = 0x100,           //argument outside expected range
+   HLH_ERROR_ARG_NULL = 0x101,          //argument NULL 
 }HLH_error;
 
 void HLH_error_set(const char *file, int line, int reason);
@@ -34,7 +39,7 @@ const char *HLH_error_get_string();
 #undef HLH_ERROR_FAIL
 #undef HLH_ERROR_CHECK
 
-#define HLH_ERROR_FAIL(X) do { HLH_set_error(__FILE__,__LINE__,(X)); goto HLH_err; } while(0)
+#define HLH_ERROR_FAIL(X) do { HLH_error_set(__FILE__,__LINE__,(X)); goto HLH_err; } while(0)
 
 #define HLH_ERROR_CHECK(X,Y) do { if(!(X)) HLH_ERROR_FAIL(Y); } while(0)
 
@@ -54,12 +59,22 @@ static char HLH_error_string[512];
 
 void HLH_error_set(const char *file, int line, int reason)
 {
+   //This makes it possible to error out but not set the error variable
+   //This can be used in case a function A calls a function B that errors out
+   //and you want A to fail without overriding the error set by B
+   if(reason==0x000)
+      return;
+
    HLH_error_file = file;
    HLH_error_line = line;
 
    switch(reason)
    {
-   case 0: HLH_error_reason = HLH_ERROR_NONE; break;
+   case 0x001: HLH_error_reason = HLH_ERROR_FAIL_MALLOC; break;
+   case 0x002: HLH_error_reason = HLH_ERROR_FAIL_REALLOC; break;
+   case 0x003: HLH_error_reason = HLH_ERROR_FAIL_FWRITE; break;
+   case 0x100: HLH_error_reason = HLH_ERROR_ARG_OOR; break;
+   case 0x101: HLH_error_reason = HLH_ERROR_ARG_NULL; break;
    }
 }
 
@@ -80,6 +95,11 @@ const char *HLH_error_get_string()
    switch(HLH_error_reason)
    {
    case HLH_ERROR_NONE: break; //Handled above
+   case HLH_ERROR_FAIL_MALLOC: desc = "malloc() failed, out of memory"; break;
+   case HLH_ERROR_FAIL_REALLOC: desc = "realloc() failed, out of memory"; break;
+   case HLH_ERROR_FAIL_FWRITE: desc = "fwrite() failed"; break;
+   case HLH_ERROR_ARG_OOR: desc = "argument out of expected range"; break;
+   case HLH_ERROR_ARG_NULL: desc = "argument NULL where non-NULL was expected"; break;
    }
 
    snprintf(HLH_error_string,512,"(%s:%d): %s",HLH_error_file,HLH_error_line,desc);
