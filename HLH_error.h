@@ -26,6 +26,7 @@ typedef enum
    HLH_ERROR_FAIL_FWRITE = 0x003,       //fwrite() failed
    HLH_ERROR_ARG_OOR = 0x100,           //argument outside expected range
    HLH_ERROR_ARG_NULL = 0x101,          //argument NULL 
+   HLH_ERROR_BUFFER_SHORT = 0x200,      //buffer short
 }HLH_error;
 
 void HLH_error_set(const char *file, int line, int reason);
@@ -75,6 +76,7 @@ void HLH_error_set(const char *file, int line, int reason)
    case 0x003: HLH_error_reason = HLH_ERROR_FAIL_FWRITE; break;
    case 0x100: HLH_error_reason = HLH_ERROR_ARG_OOR; break;
    case 0x101: HLH_error_reason = HLH_ERROR_ARG_NULL; break;
+   case 0x200: HLH_error_reason = HLH_ERROR_BUFFER_SHORT; break;
    }
 }
 
@@ -100,6 +102,7 @@ const char *HLH_error_get_string()
    case HLH_ERROR_FAIL_FWRITE: desc = "fwrite() failed"; break;
    case HLH_ERROR_ARG_OOR: desc = "argument out of expected range"; break;
    case HLH_ERROR_ARG_NULL: desc = "argument NULL where non-NULL was expected"; break;
+   case HLH_ERROR_BUFFER_SHORT: desc = "buffer too short"; break;
    }
 
    snprintf(HLH_error_string,512,"(%s:%d): %s",HLH_error_file,HLH_error_line,desc);

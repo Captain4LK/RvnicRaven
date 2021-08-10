@@ -90,6 +90,19 @@ int HLH_strgen_model_save(const HLH_strgen *str, FILE *f);
 HLH_strgen *HLH_strgen_model_load(FILE *f);
 
 //Read a model from memory buffer
+//Returns pointer to loaded model or NULL on failure
+//Possible errors (only reported if HLH_error is used too):
+//    HLH_ERROR_FAIL_MALLOC
+//    HLH_ERROR_FAIL_REALLOC
+//    HLH_ERROR_ARG_NULL
+//    HLH_ERROR_ARG_OOR
+//    HLH_ERROR_BUFFER_SHORT
+//
+//Parameters:
+//    uint8_t *data - memory buffer to read model from
+//                    data != NULL
+//    unsigned length - size of buffer data points to
+//                      length > 0
 HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length);
 
 #endif
@@ -139,8 +152,8 @@ HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length);
 #define HLH_dyn_array_element(type, array, index) \
    (((type *)((HLH_strgen_dyn_array *)(array)->data))[index])
 
-#define HLH_READ(m,p,l,t) \
-   (((p)+sizeof(t)<=(l))?(*((t *)(m+p))):((t)0)); (p)+=sizeof(t)
+#define HLH_READ(v,m,p,l,t) \
+   do { HLH_ERROR_CHECK((p)+sizeof(t)<=(l),0x200); (v) = (*((t *)((m)+(p)))); (p)+=sizeof(t); } while(0)
 
 #define HLH_EXPAND 128
 #define HLH_SIZE 128
@@ -470,47 +483,78 @@ HLH_strgen *HLH_strgen_model_load(FILE *f)
 HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length)
 {
    unsigned pos = 0;
-   uint32_t order = HLH_READ(data,pos,length,uint32_t);
+   uint32_t order = 0;
+   uint32_t used = 0;
+   HLH_strgen *str = NULL;
+   HLH_strgen_entry e = {0};
 
-   HLH_strgen *str = HLH_strgen_new(order);
-   if(str==NULL)
-      return NULL;
+   HLH_ERROR_CHECK(data!=NULL,0x101);
+   HLH_ERROR_CHECK(length>0,0x100);
 
-   uint32_t used = HLH_READ(data,pos,length,uint32_t);
+   HLH_READ(order,data,pos,length,uint32_t);
+
+   str = HLH_strgen_new(order);
+   HLH_ERROR_CHECK(str!=NULL,0x000);
+
+   HLH_READ(used,data,pos,length,uint32_t);
    for(unsigned i = 0;i<used;i++)
    {
-      uint32_t val = HLH_READ(data,pos,length,uint32_t);
+      uint32_t val = 0;
+
+      HLH_READ(val,data,pos,length,uint32_t);
       HLH_dyn_array_add(uint32_t,&str->chain_start,HLH_EXPAND,val);
+      HLH_ERROR_CHECK(str->chain_start.data!=NULL,0x002);
    }
 
-   used = HLH_READ(data,pos,length,uint32_t);
+   HLH_READ(used,data,pos,length,uint32_t);
    for(unsigned i = 0;i<used;i++)
    {
-      HLH_strgen_entry e = {0};
-      HLH_dyn_array_init(char,&e.prefix,HLH_SIZE);
-      HLH_dyn_array_init(HLH_strgen_suffix,&e.suffix,HLH_SIZE);
+      e = (HLH_strgen_entry){0};
+      uint32_t e_used = 0;
 
-      uint32_t e_used = HLH_READ(data,pos,length,uint32_t); 
+      HLH_dyn_array_init(char,&e.prefix,HLH_SIZE);
+      HLH_ERROR_CHECK(e.prefix.data!=NULL,0x001);
+      HLH_dyn_array_init(HLH_strgen_suffix,&e.suffix,HLH_SIZE);
+      HLH_ERROR_CHECK(e.suffix.data!=NULL,0x001);
+
+      HLH_READ(e_used,data,pos,length,uint32_t); 
       for(unsigned j = 0;j<e_used;j++)
       {
-         wchar_t val = HLH_READ(data,pos,length,wchar_t);
+         wchar_t val = 0;
+         HLH_READ(val,data,pos,length,wchar_t);
          HLH_dyn_array_add(wchar_t,&e.prefix,HLH_EXPAND,val);
+         HLH_ERROR_CHECK(e.prefix.data!=NULL,0x002);
       }
 
-      e_used = HLH_READ(data,pos,length,uint32_t); 
+      HLH_READ(e_used,data,pos,length,uint32_t); 
       for(unsigned j = 0;j<e_used;j++)
       {
          HLH_strgen_suffix s = {0};
-         s.entry = HLH_READ(data,pos,length,wchar_t);
-         s.weight = HLH_READ(data,pos,length,uint32_t);
+         HLH_READ(s.entry,data,pos,length,wchar_t);
+         HLH_READ(s.weight,data,pos,length,uint32_t);
 
          HLH_dyn_array_add(HLH_strgen_suffix,&e.suffix,HLH_EXPAND,s);
+         HLH_ERROR_CHECK(e.suffix.data!=NULL,0x002);
       }
 
       HLH_dyn_array_add(HLH_strgen_entry,&str->chain,HLH_EXPAND,e);
+      HLH_ERROR_CHECK(str->chain.data!=NULL,0x002);
    }
 
    return str;
+
+HLH_err:
+
+   if(str!=NULL)
+      HLH_strgen_destroy(str);
+
+   if(e.prefix.data!=NULL)
+      HLH_dyn_array_free(char,&e.prefix);
+
+   if(e.suffix.data!=NULL)
+      HLH_dyn_array_free(HLH_strgen_suffix,&e.suffix);
+
+   return NULL;
 }
 
 #undef HLH_dyn_array_init
