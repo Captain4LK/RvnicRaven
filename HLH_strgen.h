@@ -75,9 +75,31 @@ int HLH_strgen_destroy(HLH_strgen *str);
 void HLH_strgen_add_file(HLH_strgen *str, FILE *f);
 
 //Add a null terminated string to the model,
+//Returns 0 on success or 1 on failure
+//Possible errors (only reported if HLH_error is used too):
+//    HLH_ERROR_FAIL_MALLOC
+//    HLH_ERROR_FAIL_REALLOC
+//    HLH_ERROR_ARG_NULL
+//    HLH_ERRROR_ARG_OOR
+//
+//Parameters:
+//    HLH_strgen *str - model to add string to
+//                      str != NULL
+//    const char *s - string to add to model
+//                    str != NULL
+//                    strlen(s)+1 >= str->order
 int HLH_strgen_add_string(HLH_strgen *str, const char *s);
 
 //Generate a string, must be free()'d by user
+//Returns pointer to generated string or NULL on failure
+//Possible errors (only reported if HLH_error is used too):
+//    HLH_ERROR_FAIL_MALLOC
+//    HLH_ERROR_FAIL_REALLOC
+//    HLH_ERROR_ARG_NULL
+//
+//Parameters:
+//    HLH_strgen *str - the model to generate a string from 
+//                      str != NULL
 char *HLH_strgen_generate(HLH_strgen *str);
 
 //Write a model to disk
@@ -94,6 +116,20 @@ char *HLH_strgen_generate(HLH_strgen *str);
 int HLH_strgen_model_save(const HLH_strgen *str, FILE *f);
 
 //Read a model from disk
+//Returns pointer to loaded model or NULL on failure
+//Possible errors (only reported if HLH_error is used too):
+//    HLH_ERROR_FAIL_MALLOC
+//    HLH_ERROR_FAIL_REALLOC
+//    HLH_ERROR_FAIL_FWRITE
+//    HLH_ERROR_FAIL_FSEEK
+//    HLH_ERROR_FAIL_FTELL
+//    HLH_ERROR_ARG_NULL
+//    HLH_ERROR_ARG_OOR
+//    HLH_ERROR_BUFFER_SHORT
+//
+//Parameters:
+//    FILE *f - file to read model from
+//                    f != NULL
 HLH_strgen *HLH_strgen_model_load(FILE *f);
 
 //Read a model from memory buffer
@@ -148,13 +184,38 @@ HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length);
 #endif
 
 #define HLH_dyn_array_init(type, array, space) \
-   do { ((HLH_strgen_dyn_array *)(array))->size = (space); ((HLH_strgen_dyn_array *)(array))->used = 0; ((HLH_strgen_dyn_array *)(array))->data = HLH_STRGEN_MALLOC(sizeof(type)*(((HLH_strgen_dyn_array *)(array))->size)); } while(0)
+   do\
+   {\
+      ((HLH_strgen_dyn_array *)(array))->size = (space);\
+      ((HLH_strgen_dyn_array *)(array))->used = 0;\
+      ((HLH_strgen_dyn_array *)(array))->data = HLH_STRGEN_MALLOC(sizeof(type)*(((HLH_strgen_dyn_array *)(array))->size));\
+      HLH_ERROR_CHECK(((HLH_strgen_dyn_array *)(array))->data!=NULL,0x001);\
+   }while(0)
 
 #define HLH_dyn_array_free(type, array) \
    do { if(((HLH_strgen_dyn_array *)(array))->data!=NULL) { HLH_STRGEN_FREE(((HLH_strgen_dyn_array *)(array))->data); ((HLH_strgen_dyn_array *)(array))->data = NULL; ((HLH_strgen_dyn_array *)(array))->used = 0; ((HLH_strgen_dyn_array *)(array))->size = 0; }} while(0)
 
 #define HLH_dyn_array_add(type, array, grow, element) \
-   do { ((type *)((HLH_strgen_dyn_array *)(array)->data))[((HLH_strgen_dyn_array *)(array))->used] = (element); ((HLH_strgen_dyn_array *)(array))->used++; if(((HLH_strgen_dyn_array *)(array))->used==((HLH_strgen_dyn_array *)(array))->size) { ((HLH_strgen_dyn_array *)(array))->size+=grow; ((HLH_strgen_dyn_array *)(array))->data = HLH_STRGEN_REALLOC(((HLH_strgen_dyn_array *)(array))->data,sizeof(type)*(((HLH_strgen_dyn_array *)(array))->size)); } } while(0)
+   do\
+   {  \
+      void *HLH_strgen_mem_old = ((HLH_strgen_dyn_array *)(array))->data;\
+      if(((HLH_strgen_dyn_array *)(array))->used==((HLH_strgen_dyn_array *)(array))->size)\
+      {\
+         ((HLH_strgen_dyn_array *)(array))->size+=grow;\
+         ((HLH_strgen_dyn_array *)(array))->data = HLH_STRGEN_REALLOC(((HLH_strgen_dyn_array *)(array))->data,sizeof(type)*(((HLH_strgen_dyn_array *)(array))->size));\
+      }\
+      if(((HLH_strgen_dyn_array *)(array))->data==NULL)\
+      {\
+         ((HLH_strgen_dyn_array *)(array))->size-=grow;\
+         ((HLH_strgen_dyn_array *)(array))->data = HLH_strgen_mem_old;\
+         HLH_ERROR_CHECK(0,0x002);\
+      }\
+      else\
+      {\
+         ((type *)((HLH_strgen_dyn_array *)(array)->data))[((HLH_strgen_dyn_array *)(array))->used] = (element);\
+         ((HLH_strgen_dyn_array *)(array))->used++;\
+      }\
+   }while(0)
 
 #define HLH_dyn_array_element(type, array, index) \
    (((type *)((HLH_strgen_dyn_array *)(array)->data))[index])
@@ -165,7 +226,7 @@ HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length);
 #define HLH_EXPAND 128
 #define HLH_SIZE 128
 
-static void HLH_strgen_entry_add(HLH_strgen *str, HLH_strgen_dyn_array prefix, char suffix, int start);
+static int HLH_strgen_entry_add(HLH_strgen *str, HLH_strgen_dyn_array prefix, char suffix, int start);
 static int HLH_strgen_read_line(FILE *f, HLH_strgen_dyn_array *line);
 static char HLH_strgen_prefix_choose_random(HLH_strgen_dyn_array suffixes);
 static int HLH_strgen_prefix_find(HLH_strgen *str, HLH_strgen_dyn_array prefix);
@@ -194,9 +255,7 @@ HLH_strgen *HLH_strgen_new(uint32_t order)
 
    str->order = order;
    HLH_dyn_array_init(HLH_strgen_entry,&str->chain,HLH_SIZE);
-   HLH_ERROR_CHECK(str->chain.data!=NULL,0x001);
    HLH_dyn_array_init(uint32_t,&str->chain_start,HLH_SIZE);
-   HLH_ERROR_CHECK(str->chain_start.data!=NULL,0x001);
 
    return str;
 
@@ -207,7 +266,7 @@ HLH_err:
       HLH_dyn_array_free(HLH_strgen_entry,&str->chain);
       HLH_dyn_array_free(uint32_t,&str->chain_start);
 
-      free(str);
+      HLH_STRGEN_FREE(str);
    }
 
    return NULL;
@@ -252,20 +311,26 @@ void HLH_strgen_add_file(HLH_strgen *str, FILE *f)
    while(status);
 
    HLH_dyn_array_free(char,&line);
+
+HLH_err:
+
+   return;
 }
 
 int HLH_strgen_add_string(HLH_strgen *str, const char *s)
 {
    unsigned max = strlen(s)+1;
-   if(max<str->order)
-      return 0;
+   HLH_strgen_dyn_array prefix = {0};
+
+   HLH_ERROR_CHECK(str!=NULL,0x101);
+   HLH_ERROR_CHECK(s!=NULL,0x101);
+   HLH_ERROR_CHECK(max>=str->order,0x100);
 
    for(unsigned i = 0;i<max;i++)
    {
       if(i+str->order+1>max)
          continue;
 
-      HLH_strgen_dyn_array prefix;
       HLH_dyn_array_init(char,&prefix,str->order);
 
       for(unsigned j = i;j<i+str->order;j++)
@@ -278,13 +343,25 @@ int HLH_strgen_add_string(HLH_strgen *str, const char *s)
       HLH_strgen_entry_add(str,prefix,suffix,i==0);
 
       HLH_dyn_array_free(char,&prefix);
+      prefix.data = NULL;
    }
+
+   return 0;
+
+HLH_err:
+
+   if(prefix.data!=NULL)
+      HLH_dyn_array_free(char,&prefix);
 
    return 1;
 }
 
-static void HLH_strgen_entry_add(HLH_strgen *str, HLH_strgen_dyn_array prefix, char suffix, int start)
+static int HLH_strgen_entry_add(HLH_strgen *str, HLH_strgen_dyn_array prefix, char suffix, int start)
 {
+   HLH_strgen_entry entry = {0};
+
+   HLH_ERROR_CHECK(str!=NULL,0x101);
+
    for(unsigned i = 0;i<str->chain.used;i++)
    {
       HLH_strgen_entry *entry = &HLH_dyn_array_element(HLH_strgen_entry,&str->chain,i);
@@ -319,11 +396,10 @@ static void HLH_strgen_entry_add(HLH_strgen *str, HLH_strgen_dyn_array prefix, c
             HLH_dyn_array_add(HLH_strgen_suffix,&entry->suffix,HLH_EXPAND,suff);
          }
 
-         return;
+         return 0;
       }
    }
 
-   HLH_strgen_entry entry = {0};
    HLH_dyn_array_init(char,&entry.prefix,HLH_SIZE);
    for(unsigned i = 0;i<prefix.used;i++)
       HLH_dyn_array_add(char,&entry.prefix,HLH_EXPAND,HLH_dyn_array_element(char,&prefix,i));
@@ -334,6 +410,12 @@ static void HLH_strgen_entry_add(HLH_strgen *str, HLH_strgen_dyn_array prefix, c
 
    if(start)
       HLH_dyn_array_add(uint32_t,&str->chain_start,HLH_EXPAND,str->chain.used-1);
+
+   return 0;
+
+HLH_err:
+
+   return 1;
 }
 
 static int HLH_strgen_read_line(FILE *f, HLH_strgen_dyn_array *line)
@@ -353,16 +435,24 @@ static int HLH_strgen_read_line(FILE *f, HLH_strgen_dyn_array *line)
    HLH_dyn_array_add(char,line,HLH_EXPAND,'\0');
    
    return 1;
+
+HLH_err:
+
+   return 0;
 }
 
 char *HLH_strgen_generate(HLH_strgen *str)
 {
-   HLH_strgen_dyn_array last_arr;
-   HLH_strgen_dyn_array sentence;
+   HLH_strgen_dyn_array last_arr = {0};
+   HLH_strgen_dyn_array sentence = {0};
+   char *last = NULL;
+
+   HLH_ERROR_CHECK(str!=NULL,0x101);
+
    HLH_dyn_array_init(char,&last_arr,str->order);
-   HLH_dyn_array_init(char,&sentence,HLH_SIZE);
    last_arr.used = str->order;
-   char *last = (char *)last_arr.data;
+   last = (char *)last_arr.data;
+   HLH_dyn_array_init(char,&sentence,HLH_SIZE);
 
    //Generate starting words
    uint32_t prefix = HLH_dyn_array_element(uint32_t,&str->chain_start,HLH_STRGEN_RAND()%str->chain_start.used);
@@ -377,21 +467,34 @@ char *HLH_strgen_generate(HLH_strgen *str)
    {
       e = &HLH_dyn_array_element(HLH_strgen_entry,&str->chain,HLH_strgen_prefix_find(str,last_arr));
       prefix = HLH_strgen_prefix_choose_random(e->suffix);
-      if(prefix!='\0')
-         HLH_dyn_array_add(char,&sentence,HLH_EXPAND,prefix);
+
+      HLH_dyn_array_add(char,&sentence,HLH_EXPAND,prefix);
+
       for(unsigned i = 0;i<str->order-1;i++)
          last[i] = last[i+1];
       last[str->order-1] = prefix;
    }
 
-   HLH_dyn_array_add(char,&sentence,HLH_EXPAND,'\0');
    HLH_dyn_array_free(char,&last_arr);
 
    return (char *)sentence.data;
+
+HLH_err:
+   
+   if(last_arr.data!=NULL)
+      HLH_dyn_array_free(char,&last_arr);
+
+   if(sentence.data!=NULL)
+      HLH_dyn_array_free(char,&sentence);
+
+   return NULL;
 }
 
 static int HLH_strgen_prefix_find(HLH_strgen *str, HLH_strgen_dyn_array prefix)
 {
+   //Should never happen, but check it anyways
+   HLH_ERROR_CHECK(str!=NULL,0x000);
+
    for(unsigned i = 0;i<str->chain.used;i++)
    {
       HLH_strgen_entry *entry = &HLH_dyn_array_element(HLH_strgen_entry,&str->chain,i);
@@ -410,22 +513,33 @@ static int HLH_strgen_prefix_find(HLH_strgen *str, HLH_strgen_dyn_array prefix)
          return i;
    }
 
+HLH_err:
+
    return -1;
 }
 
 static char HLH_strgen_prefix_choose_random(HLH_strgen_dyn_array suffixes)
 {
-   HLH_strgen_dyn_array entries;
+   HLH_strgen_dyn_array entries = {0};
    HLH_dyn_array_init(char,&entries,HLH_SIZE);
 
    for(unsigned i = 0;i<suffixes.used;i++)
+   {
       for(unsigned j = 0;j<HLH_dyn_array_element(HLH_strgen_suffix,&suffixes,i).weight;j++)
          HLH_dyn_array_add(char,&entries,HLH_EXPAND,HLH_dyn_array_element(HLH_strgen_suffix,&suffixes,i).entry);
+   }
 
    char result = HLH_dyn_array_element(char,&entries,HLH_STRGEN_RAND()%entries.used);
    HLH_dyn_array_free(char,&entries);
 
    return result;
+
+HLH_err:
+
+   if(entries.data!=NULL)
+      HLH_dyn_array_free(char,&entries);
+
+   return '\0';
 }
 
 //TODO: handle big/little endian
@@ -463,27 +577,38 @@ HLH_err:
 
 HLH_strgen *HLH_strgen_model_load(FILE *f)
 {
-   if(f==NULL)
-      return NULL;
+   HLH_strgen *out = NULL;
+   int size = 0;
+   uint8_t *buffer = NULL;
 
-   unsigned size = 0;
-   fseek(f,0,SEEK_END);
+   HLH_ERROR_CHECK(f!=NULL,0x101);
+
+   HLH_ERROR_CHECK(fseek(f,0,SEEK_END)==0,0x004);
    size = ftell(f);
-   fseek(f,0,SEEK_SET);
+   HLH_ERROR_CHECK(size!=EOF,0x005);
+   HLH_ERROR_CHECK(fseek(f,0,SEEK_SET)==0,0x004);
 
-   uint8_t *buffer = HLH_STRGEN_MALLOC(size+1);
-   if(buffer==NULL)
-      return NULL;
+   buffer = HLH_STRGEN_MALLOC(size+1);
+   HLH_ERROR_CHECK(buffer!=NULL,0x001);
 
-   fread(buffer,size,1,f);
+   HLH_ERROR_CHECK(fread(buffer,size,1,f)==1,0x003);
+
    //Not necessary
    buffer[size] = '\0';
 
-   HLH_strgen *out = HLH_strgen_model_load_mem(buffer,size);
+   out = HLH_strgen_model_load_mem(buffer,size);
+   HLH_ERROR_CHECK(out!=NULL,0x000);
 
-   free(buffer);
+   HLH_STRGEN_FREE(buffer);
 
    return out;
+
+HLH_err:
+
+   if(buffer!=NULL)
+      HLH_STRGEN_FREE(buffer);
+
+   return NULL;
 }
 
 //TODO: handle big/little endian
@@ -510,7 +635,6 @@ HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length)
 
       HLH_READ(val,data,pos,length,uint32_t);
       HLH_dyn_array_add(uint32_t,&str->chain_start,HLH_EXPAND,val);
-      HLH_ERROR_CHECK(str->chain_start.data!=NULL,0x002);
    }
 
    HLH_READ(used,data,pos,length,uint32_t);
@@ -520,9 +644,7 @@ HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length)
       uint32_t e_used = 0;
 
       HLH_dyn_array_init(char,&e.prefix,HLH_SIZE);
-      HLH_ERROR_CHECK(e.prefix.data!=NULL,0x001);
       HLH_dyn_array_init(HLH_strgen_suffix,&e.suffix,HLH_SIZE);
-      HLH_ERROR_CHECK(e.suffix.data!=NULL,0x001);
 
       HLH_READ(e_used,data,pos,length,uint32_t); 
       for(unsigned j = 0;j<e_used;j++)
@@ -530,7 +652,6 @@ HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length)
          char val = 0;
          HLH_READ(val,data,pos,length,char);
          HLH_dyn_array_add(char,&e.prefix,HLH_EXPAND,val);
-         HLH_ERROR_CHECK(e.prefix.data!=NULL,0x002);
       }
 
       HLH_READ(e_used,data,pos,length,uint32_t); 
@@ -541,11 +662,9 @@ HLH_strgen *HLH_strgen_model_load_mem(const uint8_t *data, unsigned length)
          HLH_READ(s.weight,data,pos,length,uint32_t);
 
          HLH_dyn_array_add(HLH_strgen_suffix,&e.suffix,HLH_EXPAND,s);
-         HLH_ERROR_CHECK(e.suffix.data!=NULL,0x002);
       }
 
       HLH_dyn_array_add(HLH_strgen_entry,&str->chain,HLH_EXPAND,e);
-      HLH_ERROR_CHECK(str->chain.data!=NULL,0x002);
    }
 
    return str;

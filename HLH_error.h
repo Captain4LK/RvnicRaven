@@ -24,6 +24,8 @@ typedef enum
    HLH_ERROR_FAIL_MALLOC = 0x001,       //malloc() failed, out of memory
    HLH_ERROR_FAIL_REALLOC = 0x002,      //realloc() failed, out of memory
    HLH_ERROR_FAIL_FWRITE = 0x003,       //fwrite() failed
+   HLH_ERROR_FAIL_FSEEK = 0x004,        //fseek() failed
+   HLH_ERROR_FAIL_FTELL = 0x005,        //ftell() failed
    HLH_ERROR_ARG_OOR = 0x100,           //argument outside expected range
    HLH_ERROR_ARG_NULL = 0x101,          //argument NULL 
    HLH_ERROR_BUFFER_SHORT = 0x200,      //buffer short
@@ -74,6 +76,8 @@ void HLH_error_set(const char *file, int line, int reason)
    case 0x001: HLH_error_reason = HLH_ERROR_FAIL_MALLOC; break;
    case 0x002: HLH_error_reason = HLH_ERROR_FAIL_REALLOC; break;
    case 0x003: HLH_error_reason = HLH_ERROR_FAIL_FWRITE; break;
+   case 0x004: HLH_error_reason = HLH_ERROR_FAIL_FSEEK; break;
+   case 0x005: HLH_error_reason = HLH_ERROR_FAIL_FTELL; break;
    case 0x100: HLH_error_reason = HLH_ERROR_ARG_OOR; break;
    case 0x101: HLH_error_reason = HLH_ERROR_ARG_NULL; break;
    case 0x200: HLH_error_reason = HLH_ERROR_BUFFER_SHORT; break;
@@ -100,6 +104,8 @@ const char *HLH_error_get_string()
    case HLH_ERROR_FAIL_MALLOC: desc = "malloc() failed, out of memory"; break;
    case HLH_ERROR_FAIL_REALLOC: desc = "realloc() failed, out of memory"; break;
    case HLH_ERROR_FAIL_FWRITE: desc = "fwrite() failed"; break;
+   case HLH_ERROR_FAIL_FSEEK: desc = "fseek() failed"; break;
+   case HLH_ERROR_FAIL_FTELL: desc = "ftell() failed"; break;
    case HLH_ERROR_ARG_OOR: desc = "argument out of expected range"; break;
    case HLH_ERROR_ARG_NULL: desc = "argument NULL where non-NULL was expected"; break;
    case HLH_ERROR_BUFFER_SHORT: desc = "buffer too short"; break;
