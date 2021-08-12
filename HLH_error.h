@@ -31,8 +31,22 @@ typedef enum
    HLH_ERROR_BUFFER_SHORT = 0x200,      //buffer short
 }HLH_error;
 
-void HLH_error_set(const char *file, int line, int reason);
+//Set the current error
+//Parameters:
+//    const char *file - name of the file the error occurred in
+//                       usually set using __FILE__
+//                       file != NULL
+//    unsigned line - line the error occurred in
+//                    usually set using __LINE__
+//    unsigned reason - reason for error
+//                      integer codes can be read from switch statement
+//                      in implementation
+void HLH_error_set(const char *file, unsigned line, unsigned reason);
 
+//Clear all errors
+void HLH_error_clear();
+
+//Returns the last error as a enum
 HLH_error HLH_error_get();
 
 //Returns the last error as a string, 
@@ -56,11 +70,11 @@ const char *HLH_error_get_string();
 #include <string.h>
 
 static const char *HLH_error_file = NULL;
-static int HLH_error_line = 0;
+static unsigned HLH_error_line = 0;
 static HLH_error HLH_error_reason = 0;
-static char HLH_error_string[512];
+static char HLH_error_string[512] = "";
 
-void HLH_error_set(const char *file, int line, int reason)
+void HLH_error_set(const char *file, unsigned line, unsigned reason)
 {
    //This makes it possible to error out but not set the error variable
    //This can be used in case a function A calls a function B that errors out
@@ -82,6 +96,14 @@ void HLH_error_set(const char *file, int line, int reason)
    case 0x101: HLH_error_reason = HLH_ERROR_ARG_NULL; break;
    case 0x200: HLH_error_reason = HLH_ERROR_BUFFER_SHORT; break;
    }
+}
+
+void HLH_error_clear()
+{
+   HLH_error_reason = HLH_ERROR_NONE;
+   HLH_error_file = NULL;
+   HLH_error_line = 0;
+   HLH_error_string[0] = '\0';
 }
 
 HLH_error HLH_error_get()
@@ -111,7 +133,7 @@ const char *HLH_error_get_string()
    case HLH_ERROR_BUFFER_SHORT: desc = "buffer too short"; break;
    }
 
-   snprintf(HLH_error_string,512,"(%s:%d): %s",HLH_error_file,HLH_error_line,desc);
+   snprintf(HLH_error_string,512,"(%s:%u): %s",HLH_error_file,HLH_error_line,desc);
    return HLH_error_string;
 }
 

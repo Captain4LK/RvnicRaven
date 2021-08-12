@@ -56,7 +56,8 @@ int main()
    //The file used in this case is a list of some roman emperors
    //Latin names work especially well with markov chains
    FILE *f = fopen("emperors.txt","rb");
-   HLH_strgen_add_file(str,f);
+   if(HLH_strgen_add_file(str,f))
+      puts(HLH_error_get_string());
    if(f!=NULL)
       fclose(f);
 
@@ -76,6 +77,8 @@ int main()
    //purposes
    f = fopen("test.bin","rb");
    str = HLH_strgen_model_load(f);
+   if(str==NULL)
+      puts(HLH_error_get_string());
    if(f!=NULL)
       fclose(f);
 
@@ -88,10 +91,12 @@ int main()
    {
       wchar_t *s = HLH_strgen_generate(str);
       if(s!=NULL)
-      {
          wprintf(L"%ls\n",s);
+      else
+         puts(HLH_error_get_string());
+
+      if(s!=NULL)
          free(s);
-      }
    }
 
    //Free the markov chain 
