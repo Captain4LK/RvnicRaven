@@ -6,6 +6,7 @@ single-file public domain (CC0) libraries for C
 |---|---|---|
 |[HLH_strgen](HLH_strgen.h)|Markov chain-based procedural string (names etc.) generation|1.0|
 |[HLH_strgen_w](HLH_strgen_w.h)|wchar version of HLH_strgen|1.0|
+|[HLH_math](HLH_math.h)|floating point math, vector and matrix math|wip|
 |[HLH_error](HLH_error.h)|Error reporting extension, adds error codes and error strings to the other HLH libraries|1.0|
 
 # Features
