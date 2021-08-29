@@ -21,6 +21,7 @@
 typedef struct { float x,y; }HLH_vec2;
 typedef struct { float x,y,z; }HLH_vec3;
 typedef struct { float x,y,z,w; }HLH_vec4;
+typedef struct { float nums[4][4]; }HLH_mat4;
 
 //Utility
 float HLH_to_radians(float degrees);
@@ -80,6 +81,16 @@ float    HLH_mag4(HLH_vec4 a);
 float    HLH_magmag4(HLH_vec4 a);
 HLH_vec4 HLH_norm4(HLH_vec4 a);
 HLH_vec4 HLH_lerp4(HLH_vec4 a, HLH_vec4 b, float t);
+
+//4x4 matrix math
+HLH_mat4 HLH_ident4x4();
+HLH_mat4 HLH_mul4x4(HLH_mat4 a, HLH_mat4 b);
+HLH_mat4 HLH_scale4x4(HLH_vec3 v);
+HLH_mat4 HLH_transpose4x4(HLH_mat4 a);
+HLH_mat4 HLH_translate4x4(HLH_vec3 pos);
+HLH_mat4 HLH_rotate4x4(HLH_vec3 axis, float angle);
+HLH_mat4 HLH_perspective4x4(float fov, float aspect, float n, float f);
+HLH_mat4 HLH_look_at4x4(HLH_vec3 eye, HLH_vec3 focus, HLH_vec3 up);
 
 #endif
 
@@ -352,6 +363,146 @@ HLH_vec4 HLH_lerp4(HLH_vec4 a, HLH_vec4 b, float t)
                       HLH_lerp(a.y,b.y,t),
                       HLH_lerp(a.z,b.z,t),
                       HLH_lerp(a.w,b.w,t));
+}
+
+HLH_mat4 HLH_ident4x4()
+{
+   return HLH_scale4x4(HLH_vector3(1.0f,1.0f,1.0f));
+}
+
+HLH_mat4 HLH_mul4x4(HLH_mat4 a, HLH_mat4 b)
+{
+   HLH_mat4 out = {0};
+   int k,r,c;
+
+   for(c = 0;c<4;c++)
+   {
+      for(r = 0;r<4;r++)
+      {
+         out.nums[c][r] = 0.0f;
+         for(k = 0;k<4;k++)
+            out.nums[c][r]+=a.nums[k][r]*b.nums[c][k];
+      }
+   }
+
+   return out;
+}
+
+HLH_mat4 HLH_scale4x4(HLH_vec3 v)
+{
+   HLH_mat4 out = {0};
+
+   out.nums[0][0] = v.x;
+   out.nums[1][1] = v.y;
+   out.nums[2][2] = v.z;
+   out.nums[3][3] = 1.0;
+
+   return out;
+}
+
+HLH_mat4 HLH_transpose4x4(HLH_mat4 a)
+{
+   HLH_mat4 out;
+
+   for(int c = 0;c<4;c++)
+      for(int r = 0;r<4;r++)
+         out.nums[r][c] = a.nums[c][r];
+
+   return out;
+}
+
+HLH_mat4 HLH_translate4x4(HLH_vec3 pos)
+{
+   HLH_mat4 out = HLH_ident4x4();
+
+   out.nums[3][0] = pos.x;
+   out.nums[3][1] = pos.y;
+   out.nums[3][2] = pos.z;
+
+   return out;
+}
+
+HLH_mat4 HLH_rotate4x4(HLH_vec3 axis, float angle)
+{
+   HLH_mat4 out = HLH_ident4x4();
+   float c,s;
+   HLH_vec3 t;
+
+   c = cosf(angle);
+   s = sinf(angle);
+
+   axis = HLH_norm3(axis);
+   t = HLH_mul3_f(axis,1.0f-c);
+
+   out.nums[0][0] = c*t.x*axis.x;
+   out.nums[0][1] = t.x*axis.y+s*axis.z;
+   out.nums[0][2] = t.x*axis.z-s*axis.y;
+   out.nums[0][3] = 0.0f;
+
+   out.nums[1][0] = t.y*axis.x-s*axis.z;
+   out.nums[1][1] = c+t.y*axis.y;
+   out.nums[1][2] = t.y*axis.z+s*axis.x;
+   out.nums[1][3] = 0.0f;
+
+   out.nums[2][0] = t.z*axis.x+s*axis.y;
+   out.nums[2][1] = t.z*axis.y-s*axis.x;
+   out.nums[2][2] = c+t.z*axis.z;
+   out.nums[2][3] = 0.0f;
+
+   return out;
+}
+
+HLH_mat4 HLH_perspective4x4(float fov, float aspect, float n, float f)
+{
+   HLH_mat4 out = {0};
+
+   float a = 1.0f/tanf(fov*0.5f);
+
+   out.nums[0][0] = a/aspect;
+   out.nums[0][1] = 0.0f;
+   out.nums[0][2] = 0.0f;
+   out.nums[0][3] = 0.0f;
+
+   out.nums[1][0] = 0.0f;
+   out.nums[1][1] = a;
+   out.nums[1][2] = 0.0f;
+   out.nums[1][3] = 0.0f;
+
+   out.nums[2][0] = 0.0f;
+   out.nums[2][1] = 0.0f;
+   out.nums[2][2] = (f+n)/(n-f);
+   out.nums[2][3] = -1.0f;
+
+   out.nums[3][0] = 0.0f;
+   out.nums[3][1] = 0.0f;
+   out.nums[3][2] = ((2.0f*f*n)/(n-f));
+   out.nums[3][3] = 0.0f;
+
+   return out;
+}
+
+HLH_mat4 HLH_look_at4x4(HLH_vec3 eye, HLH_vec3 focus, HLH_vec3 up)
+{
+   HLH_mat4 out = {0};
+   HLH_vec3 forward = HLH_norm3(HLH_sub3(eye,focus));
+   HLH_vec3 right = HLH_cross3(HLH_norm3(up),forward);
+   up = HLH_cross3(forward,right);
+
+   out.nums[0][0] = right.x;
+   out.nums[0][1] = right.y;
+   out.nums[0][2] = right.z;
+   out.nums[1][0] = up.x;
+   out.nums[1][1] = up.y;
+   out.nums[1][2] = up.z;
+   out.nums[2][0] = forward.x;
+   out.nums[2][1] = forward.y;
+   out.nums[2][2] = forward.z;
+
+   out.nums[3][0] = eye.x;
+   out.nums[3][1] = eye.y;
+   out.nums[3][2] = eye.z;
+
+   return out;
 }
 
 #endif
