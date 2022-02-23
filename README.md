@@ -4,17 +4,8 @@ single-file public domain (CC0) libraries for C
 
 |library|description|latest version|
 |---|---|---|
-|[HLH_strgen](HLH_strgen.h)|Markov chain-based procedural string (names etc.) generation|1.0|
-|[HLH_strgen_w](HLH_strgen_w.h)|wchar version of HLH_strgen|1.0|
+|[HLH_markov](HLH_markov.h)|Markov chain-based procedural string (names, sentences) generation|1.0|
 |[HLH_math](HLH_math.h)|floating point math, vector and matrix math|wip|
-|[HLH_error](HLH_error.h)|Error reporting extension, adds error codes and error strings to the other HLH libraries|1.0|
-
-# Features
-
-* **No dependencies**, uses only types/functions provided by the C99 standard, some of which can be overwritten using the preprocessor
-* **Pure C99**, builds without warnings or errors using the ``-std=c99 -Wall -Wextra -pedantic`` flags on gcc
-* **Single header**
-* **Save**, every standard library function that can fail is checked and handled accordingly
 
 # How to use
 
