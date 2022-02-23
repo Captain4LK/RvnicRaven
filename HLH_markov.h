@@ -163,6 +163,11 @@ char *HLH_markov_model_generate(const HLH_markov_model *model);
 #define HLH_MARKOV_RANDOM_WEIGHT 1
 #endif
 
+//Save guard in case of endless loops (due to circular markov chain)
+#ifndef HLH_MARKOV_MAX_LENGTH
+#define HLH_MARKOV_MAX_LENGTH 2048
+#endif
+
 #define HLH_FNV_32_PRIME ((uint32_t)0x01000193)
 
 #include <stdlib.h>
@@ -357,6 +362,9 @@ static char *_HLH_markov_model_generate_word(const HLH_markov_model *model)
       {
          done = 1;
       }
+
+      if(sentence.data_used>=HLH_MARKOV_MAX_LENGTH)
+         done = 1;
    }
 
    HLH_markov_char_array str = {0};
@@ -439,6 +447,9 @@ static char *_HLH_markov_model_generate_char(const HLH_markov_model *model)
       {
          done = 1;
       }
+
+      if(str.data_used>=HLH_MARKOV_MAX_LENGTH)
+         done = 1;
    }
 
    _HLH_markov_char_array_add(&str,'\0');
