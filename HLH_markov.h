@@ -292,6 +292,7 @@ char *HLH_markov_model_generate(const HLH_markov_model *model)
       return _HLH_markov_model_generate_char(model);
    else if(model->type==HLH_MARKOV_WORD)
       return _HLH_markov_model_generate_word(model);
+   return NULL;
 }
 
 static char *_HLH_markov_model_generate_word(const HLH_markov_model *model)
