@@ -191,6 +191,8 @@ struct HLH_markov_count
    uint32_t item;
 };
 
+static char *_HLH_markov_strtok(char *s, const char *sep);
+
 static void _HLH_markov_model_delete_char(HLH_markov_model *model);
 static void _HLH_markov_model_delete_word(HLH_markov_model *model);
 
@@ -479,7 +481,7 @@ static void _HLH_markov_model_add_word(HLH_markov_model *model, const char *str)
 
    //Collect words and convert sentence to integers
    const char *token = " ";
-   char *word = strtok(str_line,token);
+   char *word = _HLH_markov_strtok(str_line,token);
    int first = 1;
    while(word!=NULL)
    {
@@ -491,7 +493,7 @@ static void _HLH_markov_model_add_word(HLH_markov_model *model, const char *str)
          _HLH_markov_u32_array_add(&model->as.mword.start_words,word_index);
       }
 
-      word = strtok(NULL,token);
+      word = _HLH_markov_strtok(NULL,token);
    }
    free(str_line);
 
@@ -803,6 +805,30 @@ static uint32_t _HLH_markov_fnv32a(const char *str)
    }
 
    return hval;
+}
+
+static char *_HLH_markov_strtok(char *s, const char *sep)
+{
+   static char *src = NULL;
+   char *p;
+
+   if(s==NULL)
+      s = src;
+
+   while(*s&&strchr(sep,*s)!=NULL)
+      s++;
+
+   if(!*s)
+      return NULL;
+
+   for(p = s;*s&&!strchr(sep,*s);s++);
+
+   if(*s&&s[1])
+      *(s++) = 0;
+
+   src = s;
+
+   return p;
 }
 
 #undef HLH_FNV_32_PRIME 
