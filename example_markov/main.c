@@ -15,6 +15,11 @@
 //-------------------------------------
 
 //Internal includes
+
+#define HLH_MARKOV_ORDER_CHAR 3
+#define HLH_MARKOV_ORDER_MIN_CHAR 2
+#define HLH_MARKOV_ORDER_WORD 3
+#define HLH_MARKOV_ORDER_MIN_WORD 2
 #define HLH_MARKOV_IMPLEMENTATION
 #include "../HLH_markov.h"
 //-------------------------------------
@@ -29,12 +34,80 @@
 //-------------------------------------
 
 //Function prototypes
+static char *file_read(const char *path);
 //-------------------------------------
 
 //Function implementations
 
 int main(int argc, char **argv)
 {
+   srand(time(NULL));
+
+   HLH_markov_model *model_word = HLH_markov_model_new(HLH_MARKOV_WORD);
+
+   char *file = file_read("test_word.txt");
+   char *str = file;
+   char *ptr = file;
+   while(*ptr++!='\0')
+   {
+      if(*ptr=='\n')
+      {
+         *ptr = '\0';
+         HLH_markov_model_add(model_word,str);
+         ptr++;
+         str = ptr;
+      }
+   }
+   free(file);
+
+   for(int i = 0;i<1;i++)
+   {
+      char *text = HLH_markov_model_generate(model_word);
+      puts(text);
+      free(text);
+   }
+   HLH_markov_model_delete(model_word);
+
+   HLH_markov_model *model_char = HLH_markov_model_new(HLH_MARKOV_CHAR);
+
+   file = file_read("test_char.txt");
+   str = file;
+   ptr = file;
+   while(*ptr++!='\0')
+   {
+      if(*ptr=='\n')
+      {
+         *ptr = '\0';
+         HLH_markov_model_add(model_char,str);
+         ptr++;
+         str = ptr;
+      }
+   }
+   free(file);
+
+   for(int i = 0;i<16;i++)
+   {
+      char *text = HLH_markov_model_generate(model_char);
+      puts(text);
+      free(text);
+   }
+   HLH_markov_model_delete(model_char);
+
    return 0;
+}
+
+static char *file_read(const char *path)
+{
+   FILE *f = fopen(path,"r");
+   int size = 0;
+   fseek(f,0,SEEK_END);
+   size = ftell(f);
+   fseek(f,0,SEEK_SET);
+   char *text = malloc(sizeof(*text)*(size+1));
+   fread(text,size,1,f);
+   text[size] = '\0';
+   fclose(f);
+
+   return text;
 }
 //-------------------------------------
