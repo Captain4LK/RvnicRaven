@@ -1,4 +1,4 @@
-#ifndef _HLH_STREAM_
+#ifndef _HLH_STREAM_H_
 
 /*
    Data stream abstraction
@@ -472,6 +472,8 @@ uint8_t HLH_rw_read_u8(HLH_rw *rw)
 {
    uint8_t b0 = 0;
    HLH_rw_read(rw,&b0,1,1);
+
+   return b0;
 }
 
 uint16_t HLH_rw_read_u16(HLH_rw *rw)
