@@ -104,6 +104,16 @@ int    HLH_rw_eof(HLH_rw *rw);
 size_t HLH_rw_read(HLH_rw *rw, void *buffer, size_t size, size_t count);
 size_t HLH_rw_write(HLH_rw *rw, const void *buffer, size_t size, size_t count);
 
+void HLH_rw_write_u8(HLH_rw *rw, uint8_t val);
+void HLH_rw_write_u16(HLH_rw *rw, uint16_t val);
+void HLH_rw_write_u32(HLH_rw *rw, uint32_t val);
+void HLH_rw_write_u64(HLH_rw *rw, uint64_t val);
+
+uint8_t  HLH_rw_read_u8(HLH_rw *rw);
+uint16_t HLH_rw_read_u16(HLH_rw *rw);
+uint32_t HLH_rw_read_u32(HLH_rw *rw);
+uint64_t HLH_rw_read_u64(HLH_rw *rw);
+
 #endif
 
 #ifdef HLH_STREAM_IMPLEMENTATION
@@ -425,6 +435,75 @@ size_t HLH_rw_write(HLH_rw *rw, const void *buffer, size_t size, size_t count)
    }
 
    return 0;
+}
+
+void HLH_rw_write_u8(HLH_rw *rw, uint8_t val)
+{
+   HLH_rw_write(rw,&val,1,1);
+}
+
+void HLH_rw_write_u16(HLH_rw *rw, uint16_t val)
+{
+   HLH_rw_write_u8(rw,(val>>8)&255);
+   HLH_rw_write_u8(rw,(val)&255);
+}
+
+void HLH_rw_write_u32(HLH_rw *rw, uint32_t val)
+{
+   HLH_rw_write_u8(rw,(val>>24)&255);
+   HLH_rw_write_u8(rw,(val>>16)&255);
+   HLH_rw_write_u8(rw,(val>>8)&255);
+   HLH_rw_write_u8(rw,(val)&255);
+}
+
+void HLH_rw_write_u64(HLH_rw *rw, uint64_t val)
+{
+   HLH_rw_write_u8(rw,(val>>56)&255);
+   HLH_rw_write_u8(rw,(val>>48)&255);
+   HLH_rw_write_u8(rw,(val>>40)&255);
+   HLH_rw_write_u8(rw,(val>>32)&255);
+   HLH_rw_write_u8(rw,(val>>24)&255);
+   HLH_rw_write_u8(rw,(val>>16)&255);
+   HLH_rw_write_u8(rw,(val>>8)&255);
+   HLH_rw_write_u8(rw,(val)&255);
+}
+
+uint8_t HLH_rw_read_u8(HLH_rw *rw)
+{
+   uint8_t b0 = 0;
+   HLH_rw_read(rw,&b0,1,1);
+}
+
+uint16_t HLH_rw_read_u16(HLH_rw *rw)
+{
+   uint16_t b0 = HLH_rw_read_u8(rw);
+   uint16_t b1 = HLH_rw_read_u8(rw);
+
+   return (b0<<8)|(b1);
+}
+
+uint32_t HLH_rw_read_u32(HLH_rw *rw)
+{
+   uint32_t b0 = HLH_rw_read_u8(rw);
+   uint32_t b1 = HLH_rw_read_u8(rw);
+   uint32_t b2 = HLH_rw_read_u8(rw);
+   uint32_t b3 = HLH_rw_read_u8(rw);
+
+   return (b0<<24)|(b1<<16)|(b2<<8)|(b3);
+}
+
+uint64_t HLH_rw_read_u64(HLH_rw *rw)
+{
+   uint64_t b0 = HLH_rw_read_u8(rw);
+   uint64_t b1 = HLH_rw_read_u8(rw);
+   uint64_t b2 = HLH_rw_read_u8(rw);
+   uint64_t b3 = HLH_rw_read_u8(rw);
+   uint64_t b4 = HLH_rw_read_u8(rw);
+   uint64_t b5 = HLH_rw_read_u8(rw);
+   uint64_t b6 = HLH_rw_read_u8(rw);
+   uint64_t b7 = HLH_rw_read_u8(rw);
+
+   return (b0<<56)|(b1<<48)|(b2<<40)|(b3<<32)|(b4<<24)|(b5<<16)|(b6<<8)|(b7);
 }
 
 #undef HLH_STREAM_MAX
