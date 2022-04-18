@@ -5,6 +5,7 @@ single-file public domain (CC0) libraries for C
 |library|description|latest version|
 |---|---|---|
 |[HLH_stream](HLH_stream.h)|Data stream abstraction|1.0|
+|[HLH_qoi](HLH_qoi.h)|[QOI](https://qoiformat.org/) encoder/decoder, needs [HLH_stream](HLH_stream.h)|1.0|
 |[HLH_markov](HLH_markov.h)|Markov chain-based procedural string (names, sentences) generation|1.0|
 |[HLH_math](HLH_math.h)|floating point math, vector and matrix math|wip|
 
