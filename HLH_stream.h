@@ -73,23 +73,23 @@ struct HLH_rw
       struct
       {
          void *mem;
-         size_t size;
-         size_t csize;
-         size_t pos;
+         long size;
+         long csize;
+         long pos;
       }mem;
       struct
       {
          void *mem;
-         size_t size;
-         size_t csize;
-         size_t pos;
-         size_t min_grow;
+         long size;
+         long csize;
+         long pos;
+         long min_grow;
       }dmem;
       struct
       {
          const void *mem;
-         size_t size;
-         size_t pos;
+         long size;
+         long pos;
       }cmem;
       struct
       {
@@ -254,7 +254,6 @@ int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
    }
    else if(rw->type==HLH_RW_MEM)
    {
-      //This can underflow, it's your problem now
       if(origin==SEEK_SET)
          rw->as.mem.pos = offset;
       else if(origin==SEEK_CUR)
@@ -262,11 +261,16 @@ int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
       else if(origin==SEEK_END)
          rw->as.mem.pos = rw->as.mem.csize+offset;
 
+      if(rw->as.mem.pos<0)
+      {
+         rw->as.mem.pos = 0;
+         return 1;
+      }
+
       return 0;
    }
    else if(rw->type==HLH_RW_DYN_MEM)
    {
-      //This can underflow, it's your problem now
       if(origin==SEEK_SET)
          rw->as.dmem.pos = offset;
       else if(origin==SEEK_CUR)
@@ -274,17 +278,28 @@ int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
       else if(origin==SEEK_END)
          rw->as.dmem.pos = rw->as.dmem.csize+offset;
 
+      if(rw->as.dmem.pos<0)
+      {
+         rw->as.dmem.pos = 0;
+         return 1;
+      }
+
       return 0;
    }
    else if(rw->type==HLH_RW_CONST_MEM)
    {
-      //This can underflow, it's your problem now
       if(origin==SEEK_SET)
          rw->as.cmem.pos = offset;
       else if(origin==SEEK_CUR)
          rw->as.cmem.pos+=offset;
       else if(origin==SEEK_END)
          rw->as.cmem.pos = rw->as.cmem.size+offset;
+
+      if(rw->as.cmem.pos<0)
+      {
+         rw->as.cmem.pos = 0;
+         return 1;
+      }
 
       return 0;
    }
