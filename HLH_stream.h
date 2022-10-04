@@ -17,6 +17,14 @@
 */
 
 /*
+Needs:
+   <stdlib.h>
+   <stdio.h>
+   <stdint.h>
+   <string.h>
+*/
+
+/*
    malloc(), realloc(), free() can be overwritten by 
    defining the following macros:
 
@@ -29,12 +37,19 @@
 
 typedef enum
 {
-   HLH_RW_STD_FILE = 0,
-   HLH_RW_MEM = 1,
-   HLH_RW_DYN_MEM = 2,
-   HLH_RW_CONST_MEM = 3,
-   HLH_RW_USR = 4,
+   HLH_RW_INVALID = 1,
+   HLH_RW_STD_FILE = 1,
+   HLH_RW_MEM = 2,
+   HLH_RW_DYN_MEM = 3,
+   HLH_RW_CONST_MEM = 4,
+   HLH_RW_USR = 5,
 }HLH_rw_type;
+
+typedef enum
+{
+   HLH_RW_LITTLE_ENDIAN = 0,
+   HLH_RW_BIG_ENDIAN = 1,
+}HLH_rw_endian;
 
 typedef struct HLH_rw HLH_rw;
 
@@ -50,6 +65,7 @@ typedef size_t (*HLH_rw_usr_write) (HLH_rw *rw, const void *buffer, size_t size,
 struct HLH_rw
 {
    HLH_rw_type type;
+   HLH_rw_endian endian;
 
    union
    {
@@ -57,23 +73,23 @@ struct HLH_rw
       struct
       {
          void *mem;
-         long size;
-         long csize;
-         long pos;
+         size_t size;
+         size_t csize;
+         size_t pos;
       }mem;
       struct
       {
          void *mem;
-         long size;
-         long csize;
-         long pos;
-         long min_grow;
+         size_t size;
+         size_t csize;
+         size_t pos;
+         size_t min_grow;
       }dmem;
       struct
       {
          const void *mem;
-         long size;
-         long pos;
+         size_t size;
+         size_t pos;
       }cmem;
       struct
       {
@@ -96,6 +112,8 @@ void HLH_rw_init_dyn_mem(HLH_rw *rw, size_t base_len, size_t min_grow);
 void HLH_rw_init_const_mem(HLH_rw *rw, const void *mem, size_t len);
 void HLH_rw_init_usr(HLH_rw *rw, HLH_rw_usr_init init, void *data);
 
+int    HLH_rw_valid(const HLH_rw *rw);
+void   HLH_rw_endian_set(HLH_rw *rw, HLH_rw_endian endian);
 void   HLH_rw_close(HLH_rw *rw);
 void   HLH_rw_flush(HLH_rw *rw);
 int    HLH_rw_seek(HLH_rw *rw, long offset, int origin);
@@ -104,10 +122,10 @@ int    HLH_rw_eof(HLH_rw *rw);
 size_t HLH_rw_read(HLH_rw *rw, void *buffer, size_t size, size_t count);
 size_t HLH_rw_write(HLH_rw *rw, const void *buffer, size_t size, size_t count);
 
-void HLH_rw_write_u8(HLH_rw *rw, uint8_t val);
-void HLH_rw_write_u16(HLH_rw *rw, uint16_t val);
-void HLH_rw_write_u32(HLH_rw *rw, uint32_t val);
-void HLH_rw_write_u64(HLH_rw *rw, uint64_t val);
+int HLH_rw_write_u8(HLH_rw *rw, uint8_t val);
+int HLH_rw_write_u16(HLH_rw *rw, uint16_t val);
+int HLH_rw_write_u32(HLH_rw *rw, uint32_t val);
+int HLH_rw_write_u64(HLH_rw *rw, uint64_t val);
 
 uint8_t  HLH_rw_read_u8(HLH_rw *rw);
 uint16_t HLH_rw_read_u16(HLH_rw *rw);
@@ -140,6 +158,7 @@ void HLH_rw_init_file(HLH_rw *rw, FILE *f)
       return;
 
    rw->type = HLH_RW_STD_FILE;
+   rw->endian = HLH_RW_LITTLE_ENDIAN;
    rw->as.fp = f;
 }
 
@@ -149,6 +168,7 @@ void HLH_rw_init_mem(HLH_rw *rw, void *mem, size_t len, size_t clen)
       return;
 
    rw->type = HLH_RW_MEM;
+   rw->endian = HLH_RW_LITTLE_ENDIAN;
    rw->as.mem.mem = mem;
    rw->as.mem.size = len;
    rw->as.mem.pos = 0;
@@ -174,6 +194,7 @@ void HLH_rw_init_const_mem(HLH_rw *rw, const void *mem, size_t len)
       return;
 
    rw->type = HLH_RW_CONST_MEM;
+   rw->endian = HLH_RW_LITTLE_ENDIAN;
    rw->as.cmem.mem = mem;
    rw->as.cmem.size = len;
    rw->as.cmem.pos = 0;
@@ -182,12 +203,27 @@ void HLH_rw_init_const_mem(HLH_rw *rw, const void *mem, size_t len)
 void HLH_rw_init_usr(HLH_rw *rw, HLH_rw_usr_init init, void *data)
 {
    rw->type = HLH_RW_USR;
+   rw->endian = HLH_RW_LITTLE_ENDIAN;
    init(rw,data);
+}
+
+int HLH_rw_valid(const HLH_rw *rw)
+{
+   if(rw==NULL)
+      return 0;
+   return rw->type!=HLH_RW_INVALID;
+}
+
+void HLH_rw_endian_set(HLH_rw *rw, HLH_rw_endian endian)
+{
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return;
+   rw->endian = endian;
 }
 
 void HLH_rw_close(HLH_rw *rw)
 {
-   if(rw==NULL)
+   if(rw==NULL||!HLH_rw_valid(rw))
       return;
 
    if(rw->type==HLH_RW_DYN_MEM)
@@ -198,7 +234,7 @@ void HLH_rw_close(HLH_rw *rw)
 
 void HLH_rw_flush(HLH_rw *rw)
 {
-   if(rw==NULL)
+   if(rw==NULL||!HLH_rw_valid(rw))
       return;
 
    if(rw->type==HLH_RW_STD_FILE)
@@ -209,7 +245,7 @@ void HLH_rw_flush(HLH_rw *rw)
 
 int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
 {
-   if(rw==NULL)
+   if(rw==NULL||!HLH_rw_valid(rw))
       return 1;
 
    if(rw->type==HLH_RW_STD_FILE)
@@ -218,6 +254,7 @@ int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
    }
    else if(rw->type==HLH_RW_MEM)
    {
+      //This can underflow, it's your problem now
       if(origin==SEEK_SET)
          rw->as.mem.pos = offset;
       else if(origin==SEEK_CUR)
@@ -225,16 +262,11 @@ int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
       else if(origin==SEEK_END)
          rw->as.mem.pos = rw->as.mem.csize+offset;
 
-      if(rw->as.mem.pos<0)
-      {
-         rw->as.mem.pos = 0;
-         return 1;
-      }
-
       return 0;
    }
    else if(rw->type==HLH_RW_DYN_MEM)
    {
+      //This can underflow, it's your problem now
       if(origin==SEEK_SET)
          rw->as.dmem.pos = offset;
       else if(origin==SEEK_CUR)
@@ -242,28 +274,17 @@ int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
       else if(origin==SEEK_END)
          rw->as.dmem.pos = rw->as.dmem.csize+offset;
 
-      if(rw->as.dmem.pos<0)
-      {
-         rw->as.dmem.pos = 0;
-         return 1;
-      }
-
       return 0;
    }
    else if(rw->type==HLH_RW_CONST_MEM)
    {
+      //This can underflow, it's your problem now
       if(origin==SEEK_SET)
          rw->as.cmem.pos = offset;
       else if(origin==SEEK_CUR)
          rw->as.cmem.pos+=offset;
       else if(origin==SEEK_END)
          rw->as.cmem.pos = rw->as.cmem.size+offset;
-
-      if(rw->as.cmem.pos<0)
-      {
-         rw->as.cmem.pos = 0;
-         return 1;
-      }
 
       return 0;
    }
@@ -277,7 +298,7 @@ int HLH_rw_seek(HLH_rw *rw, long offset, int origin)
 
 long HLH_rw_tell(HLH_rw *rw)
 {
-   if(rw==NULL)
+   if(rw==NULL||!HLH_rw_valid(rw))
       return EOF;
 
    if(rw->type==HLH_RW_STD_FILE)
@@ -296,7 +317,7 @@ long HLH_rw_tell(HLH_rw *rw)
 
 int HLH_rw_eof(HLH_rw *rw)
 {
-   if(rw==NULL)
+   if(rw==NULL||!HLH_rw_valid(rw))
       return 1;
 
    if(rw->type==HLH_RW_STD_FILE)
@@ -315,7 +336,7 @@ int HLH_rw_eof(HLH_rw *rw)
 
 size_t HLH_rw_read(HLH_rw *rw, void *buffer, size_t size, size_t count)
 {
-   if(rw==NULL||buffer==NULL)
+   if(rw==NULL||buffer==NULL||!HLH_rw_valid(rw))
       return 0;
 
    if(rw->type==HLH_RW_STD_FILE)
@@ -381,7 +402,7 @@ size_t HLH_rw_read(HLH_rw *rw, void *buffer, size_t size, size_t count)
 
 size_t HLH_rw_write(HLH_rw *rw, const void *buffer, size_t size, size_t count)
 {
-   if(rw==NULL||buffer==NULL)
+   if(rw==NULL||buffer==NULL||!HLH_rw_valid(rw))
       return 0;
 
    if(rw->type==HLH_RW_STD_FILE)
@@ -437,39 +458,95 @@ size_t HLH_rw_write(HLH_rw *rw, const void *buffer, size_t size, size_t count)
    return 0;
 }
 
-void HLH_rw_write_u8(HLH_rw *rw, uint8_t val)
+int HLH_rw_write_u8(HLH_rw *rw, uint8_t val)
 {
-   HLH_rw_write(rw,&val,1,1);
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
+   return HLH_rw_write(rw,&val,1,1);
 }
 
-void HLH_rw_write_u16(HLH_rw *rw, uint16_t val)
+int HLH_rw_write_u16(HLH_rw *rw, uint16_t val)
 {
-   HLH_rw_write_u8(rw,(val>>8)&255);
-   HLH_rw_write_u8(rw,(val)&255);
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
+   int res = 0;
+   if(rw->endian==HLH_RW_LITTLE_ENDIAN)
+   {
+      res+=HLH_rw_write_u8(rw,(val)&255);
+      res+=HLH_rw_write_u8(rw,(val>>8)&255);
+   }
+   else if(rw->endian==HLH_RW_BIG_ENDIAN)
+   {
+      res+=HLH_rw_write_u8(rw,(val>>8)&255);
+      res+=HLH_rw_write_u8(rw,(val)&255);
+   }
+
+   return res;
 }
 
-void HLH_rw_write_u32(HLH_rw *rw, uint32_t val)
+int HLH_rw_write_u32(HLH_rw *rw, uint32_t val)
 {
-   HLH_rw_write_u8(rw,(val>>24)&255);
-   HLH_rw_write_u8(rw,(val>>16)&255);
-   HLH_rw_write_u8(rw,(val>>8)&255);
-   HLH_rw_write_u8(rw,(val)&255);
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
+   int res = 0;
+   if(rw->endian==HLH_RW_LITTLE_ENDIAN)
+   {
+      res+=HLH_rw_write_u8(rw,(val)&255);
+      res+=HLH_rw_write_u8(rw,(val>>8)&255);
+      res+=HLH_rw_write_u8(rw,(val>>16)&255);
+      res+=HLH_rw_write_u8(rw,(val>>24)&255);
+   }
+   else if(rw->endian==HLH_RW_BIG_ENDIAN)
+   {
+      res+=HLH_rw_write_u8(rw,(val>>24)&255);
+      res+=HLH_rw_write_u8(rw,(val>>16)&255);
+      res+=HLH_rw_write_u8(rw,(val>>8)&255);
+      res+=HLH_rw_write_u8(rw,(val)&255);
+   }
+
+   return res;
 }
 
-void HLH_rw_write_u64(HLH_rw *rw, uint64_t val)
+int HLH_rw_write_u64(HLH_rw *rw, uint64_t val)
 {
-   HLH_rw_write_u8(rw,(val>>56)&255);
-   HLH_rw_write_u8(rw,(val>>48)&255);
-   HLH_rw_write_u8(rw,(val>>40)&255);
-   HLH_rw_write_u8(rw,(val>>32)&255);
-   HLH_rw_write_u8(rw,(val>>24)&255);
-   HLH_rw_write_u8(rw,(val>>16)&255);
-   HLH_rw_write_u8(rw,(val>>8)&255);
-   HLH_rw_write_u8(rw,(val)&255);
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
+   int res = 0;
+   if(rw->endian==HLH_RW_LITTLE_ENDIAN)
+   {
+      res+=HLH_rw_write_u8(rw,(val)&255);
+      res+=HLH_rw_write_u8(rw,(val>>8)&255);
+      res+=HLH_rw_write_u8(rw,(val>>16)&255);
+      res+=HLH_rw_write_u8(rw,(val>>24)&255);
+      res+=HLH_rw_write_u8(rw,(val>>32)&255);
+      res+=HLH_rw_write_u8(rw,(val>>40)&255);
+      res+=HLH_rw_write_u8(rw,(val>>48)&255);
+      res+=HLH_rw_write_u8(rw,(val>>56)&255);
+   }
+   else if(rw->endian==HLH_RW_BIG_ENDIAN)
+   {
+      res+=HLH_rw_write_u8(rw,(val>>56)&255);
+      res+=HLH_rw_write_u8(rw,(val>>48)&255);
+      res+=HLH_rw_write_u8(rw,(val>>40)&255);
+      res+=HLH_rw_write_u8(rw,(val>>32)&255);
+      res+=HLH_rw_write_u8(rw,(val>>24)&255);
+      res+=HLH_rw_write_u8(rw,(val>>16)&255);
+      res+=HLH_rw_write_u8(rw,(val>>8)&255);
+      res+=HLH_rw_write_u8(rw,(val)&255);
+   }
+
+   return res;
 }
 
 uint8_t HLH_rw_read_u8(HLH_rw *rw)
 {
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
    uint8_t b0 = 0;
    HLH_rw_read(rw,&b0,1,1);
 
@@ -478,24 +555,43 @@ uint8_t HLH_rw_read_u8(HLH_rw *rw)
 
 uint16_t HLH_rw_read_u16(HLH_rw *rw)
 {
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
    uint16_t b0 = HLH_rw_read_u8(rw);
    uint16_t b1 = HLH_rw_read_u8(rw);
 
-   return (b0<<8)|(b1);
+   if(rw->endian==HLH_RW_LITTLE_ENDIAN)
+      return (b1<<8)|(b0);
+   else if(rw->endian==HLH_RW_BIG_ENDIAN)
+      return (b0<<8)|(b1);
+
+   return 0;
 }
 
 uint32_t HLH_rw_read_u32(HLH_rw *rw)
 {
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
    uint32_t b0 = HLH_rw_read_u8(rw);
    uint32_t b1 = HLH_rw_read_u8(rw);
    uint32_t b2 = HLH_rw_read_u8(rw);
    uint32_t b3 = HLH_rw_read_u8(rw);
 
-   return (b0<<24)|(b1<<16)|(b2<<8)|(b3);
+   if(rw->endian==HLH_RW_LITTLE_ENDIAN)
+      return (b3<<24)|(b2<<16)|(b1<<8)|(b0);
+   else if(rw->endian==HLH_RW_BIG_ENDIAN)
+      return (b0<<24)|(b1<<16)|(b2<<8)|(b3);
+
+   return 0;
 }
 
 uint64_t HLH_rw_read_u64(HLH_rw *rw)
 {
+   if(rw==NULL||!HLH_rw_valid(rw))
+      return 0;
+
    uint64_t b0 = HLH_rw_read_u8(rw);
    uint64_t b1 = HLH_rw_read_u8(rw);
    uint64_t b2 = HLH_rw_read_u8(rw);
@@ -505,7 +601,12 @@ uint64_t HLH_rw_read_u64(HLH_rw *rw)
    uint64_t b6 = HLH_rw_read_u8(rw);
    uint64_t b7 = HLH_rw_read_u8(rw);
 
-   return (b0<<56)|(b1<<48)|(b2<<40)|(b3<<32)|(b4<<24)|(b5<<16)|(b6<<8)|(b7);
+   if(rw->endian==HLH_RW_LITTLE_ENDIAN)
+      return (b7<<56)|(b6<<48)|(b5<<40)|(b4<<32)|(b3<<24)|(b2<<16)|(b1<<8)|(b0);
+   else if(rw->endian==HLH_RW_BIG_ENDIAN)
+      return (b0<<56)|(b1<<48)|(b2<<40)|(b3<<32)|(b4<<24)|(b5<<16)|(b6<<8)|(b7);
+
+   return 0;
 }
 
 #undef HLH_STREAM_MAX
