@@ -1,14 +1,11 @@
-# HLH_headers
+# RvnicRaven
 
-single-file public domain (CC0) libraries for C
+DIY game engine/framework, split into single headers, grab what you need, all licensed as CC0.
 
-|library|description|latest version|
-|---|---|---|
-|[HLH_stream](HLH_stream.h)|Data stream abstraction|1.0|
-|[HLH_qoi](HLH_qoi.h)|[QOI](https://qoiformat.org/) encoder/decoder, needs [HLH_stream](HLH_stream.h)|1.0|
-|[HLH_markov](HLH_markov.h)|Markov chain-based procedural string (names, sentences) generation|1.0|
-|[HLH_log](HLH_log.h)|Adds loging to the other single headers|1.0|
-|[HLH_math](HLH_math.h)|floating point math, vector and matrix math|wip|
+|library|description|latest version|dependencies|
+|---|---|---|---|
+|[RvR_rw](headers/RvR_rw.h)|Data stream abstraction|1.0|None|
+|[RvR_rand](headers/RvR_rand.h)|Collection of rngs, merely a abstraction over [rnd.h](https://github.com/mattiasgustavsson/libs)|1.0|None|
 
 # How to use
 
