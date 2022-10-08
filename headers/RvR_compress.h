@@ -16,16 +16,6 @@
    before including this file in *one* C file (translation unit)
 */
 
-/*
-Needs:
-   <stdlib.h>
-   <stdio.h>
-   <stdint.h>
-   <stdarg.h>
-   <string.h>
-   RvR_rw
-*/
-
 #define _RVR_COMPRESS_H_
 
 void  RvR_compress(RvR_rw *in, RvR_rw *out, unsigned level);

@@ -16,19 +16,6 @@
    before including this file in *one* C file (translation unit)
 */
 
-/*
-Needs:
-   <stdlib.h>
-   <stdio.h>
-   <stdint.h>
-   <stdarg.h>
-   <string.h>
-   RvR_hash
-   RvR_rw
-   RvR_malloc
-   RvR_pak
-*/
-
 #define _RVR_TEXTURE_H_
 
 typedef struct
@@ -47,6 +34,22 @@ void         RvR_texture_create_free(uint16_t id);
 #ifdef RVR_TEXTURE_IMPLEMENTATION
 #ifndef RVR_TEXTURE_IMPLEMENTATION_ONCE
 #define RVR_TEXTURE_IMPLEMENTATION_ONCE
+
+#ifndef RvR_log
+#define RvR_log(...) while(0)
+#endif
+
+#ifndef RvR_error_fail
+#define RvR_error_fail(w,...) do { goto RvR_err; } while(0)
+#endif
+
+#ifndef RvR_error_check
+#define RvR_error_check(X,w,...) do { if(!(X)) RvR_error_fail(w,__VA_ARGS__); } while(0)
+#endif
+
+#ifndef RvR_log_line
+#define RvR_log_line(w,...) while(0)
+#endif
 
 #ifndef RVR_TEXTURE_MAX
 #define RVR_TEXTURE_MAX 256

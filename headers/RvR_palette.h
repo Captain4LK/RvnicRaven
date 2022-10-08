@@ -16,19 +16,6 @@
    before including this file in *one* C file (translation unit)
 */
 
-/*
-Needs:
-   <stdlib.h>
-   <stdio.h>
-   <stdint.h>
-   <stdarg.h>
-   <string.h>
-   RvR_hash
-   RvR_rw
-   RvR_malloc
-   RvR_pak
-*/
-
 #define _RVR_PALETTE_H_
 
 typedef struct

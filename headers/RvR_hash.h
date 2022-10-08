@@ -17,12 +17,6 @@
 */
 
 /*
-Needs:
-   <stdlib.h>
-   <stdint.h>
-*/
-
-/*
 Fowler/Noll/Vo (FNV) hash
 
 Some info taken from http://www.isthe.com/chongo/tech/comp/fnv/index.html:

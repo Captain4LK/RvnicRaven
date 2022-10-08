@@ -16,18 +16,6 @@
    before including this file in *one* C file (translation unit)
 */
 
-/*
-Needs:
-   <stdlib.h>
-   <stdio.h>
-   <stdint.h>
-   <stdarg.h>
-   <string.h>
-   RvR_hash
-   RvR_rw
-   RvR_malloc
-*/
-
 #define _RVR_PAK_H_
 
 void        RvR_pak_add(const char *path);

@@ -17,15 +17,6 @@
 */
 
 /*
-Needs:
-   <stdlib.h>
-   <stdio.h>
-   <stdint.h>
-   <stdarg.h>
-   <string.h>
-*/
-
-/*
    malloc(), realloc(), free() can be overwritten by 
    defining the following macros:
 

@@ -9,7 +9,12 @@ DIY game engine/framework, split into single headers, grab what you need, all li
 |[RvR_rand](headers/RvR_rand.h)|Collection of rngs, merely a abstraction over [rnd.h](https://github.com/mattiasgustavsson/libs)|1.0|None|
 |[RvR_hash](headers/RvR_hash.h)|FNV hash implementation|1.0|None|
 |[RvR_malloc](headers/RvR_malloc.h)|malloc replacement|1.0|None|
-|[RvR_pak](headers/RvR_pak.h)|malloc replacement|1.0|None|
+|[RvR_pak](headers/RvR_pak.h)|malloc replacement|1.0|RvR_hash, RvR_rw, RvR_malloc|
+|[RvR_compress](headers/RvR_compress.h)|data compression|1.0|RvR_rw, RvR_malloc|
+|[RvR_palette](headers/RvR_palette.h)|palette and color tables|1.0|RvR_rw, RvR_malloc, RvR_pak|
+|[RvR_texture](headers/RvR_texture.h)|texture managment|1.0|RvR_rw, RvR_malloc, RvR_pak|
+|[RvR_core](headers/RvR_core.h)|framebuffer, input|1.0|RvR_palette, RvR_malloc|
+|[RvR_draw](headers/RvR_draw.h)|basic drawing routines|1.0|RvR_core|
 
 # How to use
 

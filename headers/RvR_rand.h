@@ -17,11 +17,6 @@
 */
 
 /*
-Needs:
-   <stdint.h>
-*/
-
-/*
 //This is merely an abstraction over another library, to make the api more streamlined
 //Taken from: https://github.com/mattiasgustavsson/libs
 

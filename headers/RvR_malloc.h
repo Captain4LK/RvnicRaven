@@ -16,12 +16,6 @@
    before including this file in *one* C file (translation unit)
 */
 
-/*
-Needs:
-   <stdlib.h>
-   <stdint.h>
-*/
-
 #define _RVR_MALLOC_H_
 
 void  RvR_malloc_init(void *buffer, size_t size);
