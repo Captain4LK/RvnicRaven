@@ -4,8 +4,12 @@ DIY game engine/framework, split into single headers, grab what you need, all li
 
 |library|description|latest version|dependencies|
 |---|---|---|---|
+|[RvR_log](headers/RvR_log.h)|adds logging to other headers if included before|1.0|None|
 |[RvR_rw](headers/RvR_rw.h)|Data stream abstraction|1.0|None|
 |[RvR_rand](headers/RvR_rand.h)|Collection of rngs, merely a abstraction over [rnd.h](https://github.com/mattiasgustavsson/libs)|1.0|None|
+|[RvR_hash](headers/RvR_hash.h)|FNV hash implementation|1.0|None|
+|[RvR_malloc](headers/RvR_malloc.h)|malloc replacement|1.0|None|
+|[RvR_pak](headers/RvR_pak.h)|malloc replacement|1.0|None|
 
 # How to use
 
