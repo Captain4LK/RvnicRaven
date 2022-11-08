@@ -7,10 +7,10 @@
 
    To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-   You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+   You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-/* 
+/*
    To create implementation (the function definitions) add
       #define RVR_HASH_IMPLEMENTATION
    before including this file in *one* C file (translation unit)
@@ -61,7 +61,7 @@ uint64_t RvR_fnv64a(const char *str)
    if(str==NULL)
       return RVR_HASH_FNV64_INIT;
 
-   return RvR_fnv64a_str(str,RVR_HASH_FNV64_INIT);
+   return RvR_fnv64a_str(str, RVR_HASH_FNV64_INIT);
 }
 
 uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
@@ -72,8 +72,8 @@ uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
    unsigned char *s = (unsigned char *)str;
    while(*s)
    {
-      hval^=(uint64_t)*s++;
-      hval*=RVR_HASH_FNV64_PRIME;
+      hval ^= (uint64_t)*s++;
+      hval *= RVR_HASH_FNV64_PRIME;
    }
 
    return hval;
@@ -85,11 +85,11 @@ uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
       return hval;
 
    unsigned char *bs = (unsigned char *)buf;
-   unsigned char *be = bs+len;
+   unsigned char *be = bs + len;
    while(bs<be)
    {
-      hval^=(uint64_t)*bs++;
-      hval*=RVR_HASH_FNV64_PRIME;
+      hval ^= (uint64_t)*bs++;
+      hval *= RVR_HASH_FNV64_PRIME;
    }
 
    return hval;
@@ -100,7 +100,7 @@ uint32_t RvR_fnv32a(const char *str)
    if(str==NULL)
       return RVR_HASH_FNV32_INIT;
 
-   return RvR_fnv32a_str(str,RVR_HASH_FNV32_INIT);
+   return RvR_fnv32a_str(str, RVR_HASH_FNV32_INIT);
 }
 
 uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
@@ -109,10 +109,10 @@ uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
       return hval;
 
    unsigned char *s = (unsigned char *)str;
-   while(*s) 
+   while(*s)
    {
-      hval^=(uint32_t)*s++;
-      hval*=RVR_HASH_FNV32_PRIME;
+      hval ^= (uint32_t)*s++;
+      hval *= RVR_HASH_FNV32_PRIME;
    }
 
    return hval;
@@ -124,11 +124,11 @@ uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
       return hval;
 
    unsigned char *bs = (unsigned char *)buf;
-   unsigned char *be = bs+len;
+   unsigned char *be = bs + len;
    while(bs<be)
    {
-      hval^=(uint32_t)*bs++;
-      hval*=RVR_HASH_FNV32_PRIME;
+      hval ^= (uint32_t)*bs++;
+      hval *= RVR_HASH_FNV32_PRIME;
    }
 
    return hval;

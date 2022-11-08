@@ -7,10 +7,10 @@
 
    To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-   You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+   You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-/* 
+/*
    To create implementation (the function definitions) add
       #define RVR_RAND_IMPLEMENTATION
    before including this file in *one* C file (translation unit)
@@ -98,9 +98,9 @@ void     RvR_rand_game_seed(RvR_rand_game *game, uint32_t seed);
 uint32_t RvR_rand_game_next(RvR_rand_game *game);
 int32_t  RvR_rand_game_next_range(RvR_rand_game *game, int32_t min, int32_t max);
 
-void     RvR_rand_xor_seed(RvR_rand_xor *xor, uint64_t seed);
-uint64_t RvR_rand_xor_next(RvR_rand_xor *xor);
-int32_t  RvR_rand_xor_next_range(RvR_rand_xor *xor, int32_t min, int32_t max);
+void RvR_rand_xor_seed(RvR_rand_xor * xor, uint64_t seed);
+uint64_t RvR_rand_xor_next(RvR_rand_xor * xor);
+int32_t RvR_rand_xor_next_range(RvR_rand_xor * xor, int32_t min, int32_t max);
 
 #endif
 
@@ -115,87 +115,87 @@ static uint32_t rvr_rand_murmur3_avalanche32(uint32_t h);
 
 void RvR_rand_pcg_seed(RvR_rand_pcg *pcg, uint32_t seed)
 {
-   uint64_t value = (((uint64_t)seed)<<1)|1;
+   uint64_t value = (((uint64_t)seed) << 1) | 1;
    value = rvr_rand_murmur3_avalanche64(value);
    (*pcg)[0] = 0;
-   (*pcg)[1] = (value<<1)|1;
+   (*pcg)[1] = (value << 1) | 1;
    RvR_rand_pcg_next(pcg);
-   (*pcg)[0]+=rvr_rand_murmur3_avalanche64(value);
+   (*pcg)[0] += rvr_rand_murmur3_avalanche64(value);
    RvR_rand_pcg_next(pcg);
 }
 
 uint32_t RvR_rand_pcg_next(RvR_rand_pcg *pcg)
 {
    uint64_t oldstate = (*pcg)[0];
-   (*pcg)[0] = oldstate*UINT64_C(0x5851f42d4c957f2d)+(*pcg)[1];
-   uint32_t xorshifted = (uint32_t)(((oldstate>>18)^oldstate)>>27);
-   uint32_t rot = (uint32_t)(oldstate>>59);
+   (*pcg)[0] = oldstate * UINT64_C(0x5851f42d4c957f2d) + (*pcg)[1];
+   uint32_t xorshifted = (uint32_t)(((oldstate >> 18) ^ oldstate) >> 27);
+   uint32_t rot = (uint32_t)(oldstate >> 59);
 
-   return (xorshifted>>rot)|(xorshifted<<((-(int32_t)rot)&31));
+   return (xorshifted >> rot) | (xorshifted << ((-(int32_t)rot) & 31));
 }
 
 int32_t RvR_rand_pcg_next_range(RvR_rand_pcg *pcg, int32_t min, int32_t max)
 {
-   uint32_t range = RVR_RAND_ABS((max-min))+1;
-   return min+(RvR_rand_pcg_next(pcg)%range);
+   uint32_t range = RVR_RAND_ABS((max - min)) + 1;
+   return min + (RvR_rand_pcg_next(pcg) % range);
 }
 
 void RvR_rand_well_seed(RvR_rand_well *well, uint32_t seed)
 {
-   uint32_t value = rvr_rand_murmur3_avalanche32((seed<<1)|1);
+   uint32_t value = rvr_rand_murmur3_avalanche32((seed << 1) | 1);
    (*well)[16] = 0;
-   (*well)[0] = value^0xf68a9fc1U;
-   for(int i = 1;i<16;i++) 
-      (*well)[i] = (0x6c078965U*((*well)[i-1]^((*well)[i-1]>>30))+i);
+   (*well)[0] = value ^ 0xf68a9fc1U;
+   for(int i = 1; i<16; i++)
+      (*well)[i] = (0x6c078965U * ((*well)[i - 1] ^ ((*well)[i - 1] >> 30)) + i);
 }
 
 uint32_t RvR_rand_well_next(RvR_rand_well *well)
 {
    uint32_t a = (*well)[(*well)[16]];
-   uint32_t c = (*well)[((*well)[16]+13)&15];
-   uint32_t b = a^c^(a<<16)^(c<<15);
-   c = (*well)[(*well[16]+9)&15];
-   c^=(c>>11);
-   a = (*well)[(*well)[16]] = b^c;
-   uint32_t d = a^((a<<5)&0xda442d24);
-   (*well)[16] = ((*well)[16]+15)&15;
+   uint32_t c = (*well)[((*well)[16] + 13) & 15];
+   uint32_t b = a ^ c ^ (a << 16) ^ (c << 15);
+   c = (*well)[(*well[16] + 9) & 15];
+   c ^= (c >> 11);
+   a = (*well)[(*well)[16]] = b ^ c;
+   uint32_t d = a ^ ((a << 5) & 0xda442d24);
+   (*well)[16] = ((*well)[16] + 15) & 15;
    a = (*well)[(*well)[16]];
-   (*well)[(*well)[16]] = a^b^d^(a<<2)^(b<<18)^(c<<28);
+   (*well)[(*well)[16]] = a ^ b ^ d ^ (a << 2) ^ (b << 18) ^ (c << 28);
 
    return (*well)[(*well)[16]];
 }
 
 int32_t RvR_rand_well_next_range(RvR_rand_well *well, int32_t min, int32_t max)
 {
-   uint32_t range = RVR_RAND_ABS((max-min))+1;
-   return min+(RvR_rand_well_next(well)%range);
+   uint32_t range = RVR_RAND_ABS((max - min)) + 1;
+   return min + (RvR_rand_well_next(well) % range);
 }
 
 void RvR_rand_game_seed(RvR_rand_game *game, uint32_t seed)
 {
-   uint32_t value = rvr_rand_murmur3_avalanche32((seed<<1)|1);
+   uint32_t value = rvr_rand_murmur3_avalanche32((seed << 1) | 1);
    (*game)[0] = value;
-   (*game)[1] = value^0x49616e42U;
+   (*game)[1] = value ^ 0x49616e42U;
 }
 
 uint32_t RvR_rand_game_next(RvR_rand_game *game)
 {
-   (*game)[0] = ((*game)[0]<<16)+((*game)[0]>>16);
-   (*game)[0]+=(*game)[1];
-   (*game)[1]+=(*game)[0];
+   (*game)[0] = ((*game)[0] << 16) + ((*game)[0] >> 16);
+   (*game)[0] += (*game)[1];
+   (*game)[1] += (*game)[0];
 
    return (*game)[0];
 }
 
 int32_t RvR_rand_game_next_range(RvR_rand_game *game, int32_t min, int32_t max)
 {
-   uint32_t range = RVR_RAND_ABS((max-min))+1;
-   return min+(RvR_rand_game_next(game)%range);
+   uint32_t range = RVR_RAND_ABS((max - min)) + 1;
+   return min + (RvR_rand_game_next(game) % range);
 }
 
 void RvR_rand_xor_seed(RvR_rand_xor *xor, uint64_t seed)
 {
-   uint64_t value = rvr_rand_murmur3_avalanche64((seed<<1)|1);
+   uint64_t value = rvr_rand_murmur3_avalanche64((seed << 1) | 1);
    (*xor)[0] = value;
    value = rvr_rand_murmur3_avalanche64(value);
    (*xor)[1] = value;
@@ -206,38 +206,38 @@ uint64_t RvR_rand_xor_next(RvR_rand_xor *xor)
    uint64_t x = (*xor)[0];
    uint64_t const y = (*xor)[1];
    (*xor)[0] = y;
-   x^=x<<23;
-   x^=x>>17;
-   x^=y^(y>>26);
+   x ^= x << 23;
+   x ^= x >> 17;
+   x ^= y ^ (y >> 26);
    (*xor)[1] = x;
 
-   return x+y;
+   return x + y;
 }
 
 int32_t RvR_rand_xor_next_range(RvR_rand_xor *xor, int32_t min, int32_t max)
 {
-   uint32_t range = RVR_RAND_ABS((max-min))+1;
-   return min+(RvR_rand_xor_next(xor)%range);
+   uint32_t range = RVR_RAND_ABS((max - min)) + 1;
+   return min + (RvR_rand_xor_next(xor) % range);
 }
 
 static uint64_t rvr_rand_murmur3_avalanche64(uint64_t h)
 {
-   h^=h>>33;
-   h*=0xff51afd7ed558ccd;
-   h^=h>>33;
-   h*=0xc4ceb9fe1a85ec53;
-   h^=h>>33;
+   h ^= h >> 33;
+   h *= 0xff51afd7ed558ccd;
+   h ^= h >> 33;
+   h *= 0xc4ceb9fe1a85ec53;
+   h ^= h >> 33;
 
    return h;
 }
 
 static uint32_t rvr_rand_murmur3_avalanche32(uint32_t h)
 {
-   h^=h>>16;
-   h*=0x85ebca6b;
-   h^=h>>13;
-   h*=0xc2b2ae35;
-   h^=h>>16;
+   h ^= h >> 16;
+   h *= 0x85ebca6b;
+   h ^= h >> 13;
+   h *= 0xc2b2ae35;
+   h ^= h >> 16;
 
    return h;
 }
