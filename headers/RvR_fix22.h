@@ -1,7 +1,7 @@
 #ifndef _RVR_FIX22_H_
 
 /*
-   RvnicRaven - basic drawing routines
+   RvnicRaven - 22.10 fixed point math
 
    Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 

@@ -1,7 +1,7 @@
 #ifndef _RVR_RAY_H_
 
 /*
-   RvnicRaven - basic drawing routines
+   RvnicRaven - raycasting renderer
 
    Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
