@@ -156,6 +156,10 @@ void RvR_ray_map_wall_ctex_set(int16_t x, int16_t y, uint16_t tex);
 #define RVR_RAY_MAX_STEPS 64
 #endif
 
+#ifndef RVR_RAY_DRAW_PLANES
+#define RVR_RAY_DRAW_PLANES 2
+#endif
+
 typedef struct rvr_ray_plane rvr_ray_plane;
 
 struct rvr_ray_plane
@@ -1499,9 +1503,9 @@ void RvR_ray_draw_map()
             for(; s0<s1&&s0<=e0; s0++)
             {
 #if RVR_RAY_DRAW_PLANES==1
-               ray_span_draw_flat(ray_span_start[s0], x - 1, s0, (i + 1) & 255);
+               rvr_ray_span_draw_flat(ray_span_start[s0], x - 1, s0, (i + 1) & 255);
 #elif RVR_RAY_DRAW_PLANES==2
-               ray_span_draw_tex(ray_span_start[s0], x - 1, s0, pl->height, texture);
+               rvr_ray_span_draw_tex(ray_span_start[s0], x - 1, s0, pl->height, texture);
 #endif
             }
 
@@ -1509,9 +1513,9 @@ void RvR_ray_draw_map()
             for(; e0>e1&&e0>=s0; e0--)
             {
 #if RVR_RAY_DRAW_PLANES==1
-               ray_span_draw_flat(ray_span_start[e0], x - 1, e0, (i + 1) & 255);
+               rvr_ray_span_draw_flat(ray_span_start[e0], x - 1, e0, (i + 1) & 255);
 #elif RVR_RAY_DRAW_PLANES==2
-               ray_span_draw_tex(ray_span_start[e0], x - 1, e0, pl->height, texture);
+               rvr_ray_span_draw_tex(ray_span_start[e0], x - 1, e0, pl->height, texture);
 #endif
             }
 
