@@ -27,6 +27,7 @@
 #define RvR_sign_equal(a, b) (((a) ^ (b))>=0)
 #define RvR_clamp(a, min, max) (RvR_max((min), RvR_min((max), (a))))
 
+int32_t  RvR_div_round_down(int32_t a, int32_t b);
 uint32_t RvR_log2(uint32_t a);
 
 #endif
@@ -34,6 +35,11 @@ uint32_t RvR_log2(uint32_t a);
 #ifdef RVR_MATH_IMPLEMENTATION
 #ifndef RVR_MATH_IMPLEMENTATION_ONCE
 #define RVR_MATH_IMPLEMENTATION_ONCE
+
+int32_t RvR_div_round_down(int32_t a, int32_t b)
+{
+   return a / b - ((a>=0)?0:1);
+}
 
 uint32_t RvR_log2(uint32_t a)
 {

@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -27,11 +27,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define RVR_RW_IMPLEMENTATION
 #define RVR_MALLOC_IMPLEMENTATION
-#define RVR_COMPRESS_IMPLEMENTATION
 #include "RvR_log.h"
 #include "RvR_rw.h"
 #include "RvR_malloc.h"
-#include "RvR_compress.h"
 //-------------------------------------
 
 //Internal includes
@@ -42,13 +40,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-typedef enum
-{
-   SPRITE_NONE = 0,
-   SPRITE_WALL = 1,
-   SPRITE_SPRITE = 2,
-}Sprite_flag;
-
 typedef struct
 {
    uint8_t r, g, b, a;
@@ -66,13 +57,6 @@ typedef struct
    int height;
    Color *data;
 }Sprite_rgb;
-
-typedef struct
-{
-   int width;
-   int height;
-   uint8_t *data;
-}Sprite_pal;
 //-------------------------------------
 
 //Variables
@@ -80,7 +64,6 @@ typedef struct
 
 //Function prototypes
 static void print_help(char **argv);
-static Sprite_pal *texture_load(const char *path, const char *path_pal);
 static Palette *palette_pal(FILE *f);
 static Palette *palette_png(FILE *f);
 static Palette *palette_gpl(FILE *f);
@@ -89,9 +72,7 @@ static Sprite_rgb *image_load(FILE *f);
 static int chartoi(char in);
 
 static Sprite_rgb *sprite_rgb_create(int width, int height);
-static Sprite_pal *sprite_pal_create(int width, int height);
 static void sprite_rgb_destroy(Sprite_rgb *s);
-static void sprite_pal_destroy(Sprite_pal *s);
 //-------------------------------------
 
 //Function implementations
@@ -102,17 +83,12 @@ int main(int argc, char **argv)
    {
       {"in", 'i', OPTPARSE_REQUIRED},
       {"out", 'o', OPTPARSE_REQUIRED},
-      {"pal", 'p', OPTPARSE_REQUIRED},
-      {"wall", 'w', OPTPARSE_NONE},
-      {"sprite", 's', OPTPARSE_NONE},
       {"help", 'h', OPTPARSE_NONE},
       {0},
    };
 
    const char *path_in = NULL;
    const char *path_out = NULL;
-   const char *path_pal = NULL;
-   uint64_t flags = SPRITE_NONE;
 
    int option;
    struct optparse options;
@@ -121,12 +97,6 @@ int main(int argc, char **argv)
    {
       switch(option)
       {
-      case 'w':
-         flags |= SPRITE_WALL;
-         break;
-      case 's':
-         flags |= SPRITE_SPRITE;
-         break;
       case 'h':
          print_help(argv);
          exit(EXIT_SUCCESS);
@@ -135,9 +105,6 @@ int main(int argc, char **argv)
          break;
       case 'o':
          path_out = options.optarg;
-         break;
-      case 'p':
-         path_pal = options.optarg;
          break;
       case '?':
          fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
@@ -148,86 +115,19 @@ int main(int argc, char **argv)
 
    if(path_in==NULL)
    {
-      RvR_log("input texture not specified, try %s -h for more info\n", argv[0]);
+      RvR_log("input palette not specified, try %s -h for more info\n", argv[0]);
       return 0;
    }
    if(path_out==NULL)
    {
-      RvR_log("output texture not specified, try %s -h for more info\n", argv[0]);
-      return 0;
-   }
-   if(path_pal==NULL)
-   {
-      RvR_log("palette not specified, try %s -h for more info\n", argv[0]);
+      RvR_log("output palette not specified, try %s -h for more info\n", argv[0]);
       return 0;
    }
 
-   Sprite_pal *sp = texture_load(path_in, path_pal);
-
-   if(flags & SPRITE_WALL)
-   {
-      Sprite_pal *csp = sprite_pal_create(sp->width, sp->height);
-      memcpy(csp->data, sp->data, sizeof(*sp->data) * sp->width * sp->height);
-
-      for(int x = 0; x<sp->width; x++)
-         for(int y = 0; y<sp->height; y++)
-            sp->data[x * sp->height + y] = csp->data[y * csp->width + x];
-
-      sprite_pal_destroy(csp);
-   }
-   else if(flags & SPRITE_SPRITE)
-   {
-      Sprite_pal *csp = sprite_pal_create(sp->width, sp->height);
-      memcpy(csp->data, sp->data, sizeof(*sp->data) * sp->width * sp->height);
-
-      for(int x = 0; x<sp->width; x++)
-         for(int y = 0; y<sp->height; y++)
-            sp->data[x * sp->height + y] = csp->data[y * csp->width + x];
-
-      sprite_pal_destroy(csp);
-   }
-
-   //Compress and write to file
-   RvR_rw cin;
-   RvR_rw cout;
-   int len = sizeof(uint8_t) * sp->width * sp->height + 2 * sizeof(int32_t);
-   uint8_t *mem = RvR_malloc(len);
-   RvR_rw_init_mem(&cin, mem, len, len);
-   RvR_rw_write_u32(&cin, sp->width);
-   RvR_rw_write_u32(&cin, sp->height);
-   for(int i = 0; i<sp->width * sp->height; i++)
-      RvR_rw_write_u8(&cin, sp->data[i]);
-   RvR_rw_init_path(&cout, path_out, "wb");
-   RvR_compress(&cin, &cout, 10);
-   RvR_rw_close(&cin);
-   RvR_rw_close(&cout);
-
-   sprite_pal_destroy(sp);
-   RvR_free(mem);
-
-   return 0;
-}
-
-static void print_help(char **argv)
-{
-   RvR_log("%s usage:\n"
-           "%s --in filename --out filename --pal filename [OPTIONS]\n"
-           "   -i, --in          input texture path\n"
-           "   -o, --out         output texture path\n"
-           "   -p, --pal         palette to use for assigning indices (.pal,.png,.hex,.gpl\n"
-           "   -w, --wall        flag sprite as wall texture\n"
-           "   -s, --sprite      flag sprite as sprite texture\n",
-           argv[0], argv[0]);
-}
-
-static Sprite_pal *texture_load(const char *path, const char *path_pal)
-{
    char ext[33] = {0};
-   path_pop_ext(path, NULL, ext);
-
-   path_pop_ext(path_pal, NULL, ext);
+   path_pop_ext(path_in, NULL, ext);
    Palette *pal = NULL;
-   FILE *fpal = fopen(path_pal, "r");
+   FILE *fpal = fopen(path_in, "r");
    if(fpal!=NULL)
    {
       if(strncmp(ext, "pal", 32)==0)
@@ -241,49 +141,28 @@ static Sprite_pal *texture_load(const char *path, const char *path_pal)
       fclose(fpal);
    }
 
-   if(pal==NULL)
+   RvR_rw rw;
+   RvR_rw_init_path(&rw, path_out, "wb");
+   for(int i = 0; i<256; i++)
    {
-      RvR_log_line("texture_load", "failed to load palette '%s'", path_pal);
-      exit(-1);
+      RvR_rw_write_u8(&rw, pal->colors[i].r);
+      RvR_rw_write_u8(&rw, pal->colors[i].g);
+      RvR_rw_write_u8(&rw, pal->colors[i].b);
    }
-
-   FILE *ftex_in = fopen(path, "rb");
-   Sprite_rgb *tex_in = image_load(ftex_in);
-   if(ftex_in!=NULL)
-      fclose(ftex_in);
-   Sprite_pal *tex_out = sprite_pal_create(tex_in->width, tex_in->height);
-
-   for(int i = 0; i<tex_in->width * tex_in->height; i++)
-   {
-      int min_dist = INT_MAX;
-      int min_index = 0;
-      Color color = tex_in->data[i];
-      if(color.a==0)
-      {
-         tex_out->data[i] = 0;
-         continue;
-      }
-
-      for(int j = 0; j<pal->colors_used; j++)
-      {
-         Color pal_color = pal->colors[j];
-         int dist_r = pal_color.r - color.r;
-         int dist_g = pal_color.g - color.g;
-         int dist_b = pal_color.b - color.b;
-         int dist = dist_r * dist_r + dist_g * dist_g + dist_b * dist_b;
-         if(dist<min_dist)
-         {
-            min_dist = dist;
-            min_index = j;
-         }
-      }
-      tex_out->data[i] = min_index;
-   }
+   RvR_rw_close(&rw);
 
    RvR_free(pal);
-   sprite_rgb_destroy(tex_in);
 
-   return tex_out;
+   return 0;
+}
+
+static void print_help(char **argv)
+{
+   RvR_log("%s usage:\n"
+           "%s --in filename --out filename ]\n"
+           "   -i, --in        input palette path\n"
+           "   -o, --out       output palette path\n",
+           argv[0], argv[0]);
 }
 
 static Palette *palette_pal(FILE *f)
@@ -370,7 +249,7 @@ static Sprite_rgb *image_load(FILE *f)
    data = stbi_load_from_file(f, &width, &height, NULL, 4);
    if(data==NULL)
    {
-      RvR_log("Failed to load image\n");
+      RvR_log("Failed to load imgage\n");
       return sprite_rgb_create(1, 1);
    }
 
@@ -400,17 +279,6 @@ static Sprite_rgb *sprite_rgb_create(int width, int height)
    s->width = width;
    s->height = height;
    s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height);
-
-   return s;
-}
-
-static Sprite_pal *sprite_pal_create(int width, int height)
-{
-   Sprite_pal *s = RvR_malloc(sizeof(*s));
-   s->width = width;
-   s->height = height;
-   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height);
-
    return s;
 }
 
@@ -418,17 +286,6 @@ static void sprite_rgb_destroy(Sprite_rgb *s)
 {
    if(s==NULL)
       return;
-
-   if(s->data!=NULL)
-      RvR_free(s->data);
-   RvR_free(s);
-}
-
-static void sprite_pal_destroy(Sprite_pal *s)
-{
-   if(s==NULL)
-      return;
-
    if(s->data!=NULL)
       RvR_free(s->data);
    RvR_free(s);

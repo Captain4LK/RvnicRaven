@@ -18,6 +18,10 @@
 
 #define _RVR_RAY_H_
 
+#ifndef RVR_RAY_MAX_STEPS
+#define RVR_RAY_MAX_STEPS 64
+#endif
+
 typedef struct
 {
    RvR_fix22_vec2 start;
@@ -151,10 +155,6 @@ void RvR_ray_map_wall_ctex_set(int16_t x, int16_t y, uint16_t tex);
 #ifdef RVR_RAY_IMPLEMENTATION
 #ifndef RVR_RAY_IMPLEMENTATION_ONCE
 #define RVR_RAY_IMPLEMENTATION_ONCE
-
-#ifndef RVR_RAY_MAX_STEPS
-#define RVR_RAY_MAX_STEPS 64
-#endif
 
 #ifndef RVR_RAY_DRAW_PLANES
 #define RVR_RAY_DRAW_PLANES 2
