@@ -2233,7 +2233,6 @@ static void rvr_ray_sprite_draw_floor(rvr_ray_sprite *sp)
 static void rvr_ray_sprite_draw_billboard(rvr_ray_sprite *sp)
 {
    RvR_texture *texture = RvR_texture_get(sp->texture);
-   int mask = (1 << RvR_log2(texture->height)) - 1;
 
    RvR_fix22 tpx = sp->p.x - RvR_ray_get_position().x;
    RvR_fix22 tpy = sp->p.y - RvR_ray_get_position().y;
@@ -2290,7 +2289,7 @@ static void rvr_ray_sprite_draw_billboard(rvr_ray_sprite *sp)
       int ye = y1;
 
       //Clip floor
-      RvR_ray_depth_buffer_entry *clip = rvr_ray_depth_buffer.floor[x];
+      RvR_ray_depth_buffer_entry *clip = RvR_ray_draw_depth_buffer()->floor[x];
       while(clip!=NULL)
       {
          if(depth>clip->depth&&ye>clip->limit)
@@ -2299,7 +2298,7 @@ static void rvr_ray_sprite_draw_billboard(rvr_ray_sprite *sp)
       }
 
       //Clip ceiling
-      clip = rvr_ray_depth_buffer.ceiling[x];
+      clip = RvR_ray_draw_depth_buffer()->ceiling[x];
       while(clip!=NULL)
       {
          if(depth>clip->depth&&ys<clip->limit)
@@ -2309,13 +2308,13 @@ static void rvr_ray_sprite_draw_billboard(rvr_ray_sprite *sp)
 
       tex = &texture->data[texture->height * (u >> 16)];
       dst = &RvR_core_framebuffer()[ys * RVR_XRES + x];
-      RvR_fix22 v = (sp->p.z - RvR_ray_get_position().z) * 4096 + (ys - rvr_ray_middle_row + 1) * step_v;
+      RvR_fix22 v = (sp->p.z - RvR_ray_get_position().z) * 4096 + (ys - rvr_ray_middle_row + 1) * step_v + texture->height * 65536;
 
       if(sp->flags & 32)
       {
          for(int y = ys; y<ye; y++, dst += RVR_XRES)
          {
-            uint8_t index = tex[(v >> 16) & mask];
+            uint8_t index = tex[v >> 16];
             *dst = RvR_blend(col[index], *dst);
             v += step_v;
          }
@@ -2324,7 +2323,7 @@ static void rvr_ray_sprite_draw_billboard(rvr_ray_sprite *sp)
       {
          for(int y = ys; y<ye; y++, dst += RVR_XRES)
          {
-            uint8_t index = tex[(v >> 16) & mask];
+            uint8_t index = tex[v >> 16];
             *dst = RvR_blend(*dst, col[index]);
             v += step_v;
          }
@@ -2333,7 +2332,7 @@ static void rvr_ray_sprite_draw_billboard(rvr_ray_sprite *sp)
       {
          for(int y = ys; y<ye; y++, dst += RVR_XRES)
          {
-            uint8_t index = tex[(v >> 16) & mask];
+            uint8_t index = tex[v >> 16];
             *dst = index?col[index]:*dst;
             v += step_v;
          }
