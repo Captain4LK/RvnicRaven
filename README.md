@@ -15,6 +15,7 @@ DIY game engine/framework, split into single headers, grab what you need, all li
 |[RvR_compress](headers/RvR_compress.h)|data compression|1.0|RvR_rw, RvR_malloc|
 |[RvR_palette](headers/RvR_palette.h)|palette and color tables|1.0|RvR_rw, RvR_malloc, RvR_pak|
 |[RvR_texture](headers/RvR_texture.h)|texture managment|1.0|RvR_rw, RvR_malloc, RvR_pak|
+|[RvR_vm](headers/RvR_vm.h)|riscv bytecode vm (modding?)|1.0|RvR_rw, RvR_malloc|
 |[RvR_core](headers/RvR_core.h)|framebuffer, input|1.0|RvR_palette, RvR_malloc|
 |[RvR_draw](headers/RvR_draw.h)|basic drawing routines|1.0|RvR_core|
 |[RvR_ray](headers/RvR_ray.h)|advanced raycasting|1.0|RvR_core,RvR_math,RvR_fix22 TODO|

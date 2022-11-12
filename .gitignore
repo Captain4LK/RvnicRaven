@@ -1,5 +1,12 @@
 session.vim
 Session.vim
 
+#executables
+palette-tool
+texture-tool
+rayed
 a.out
+*.exe
+
 *.bin
+*.map

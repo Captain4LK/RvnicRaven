@@ -12,7 +12,7 @@
 
 /*
    To create implementation (the function definitions) add
-      #define RVR_DRAW_IMPLEMENTATION
+      #define RVR_MATH_IMPLEMENTATION
    before including this file in *one* C file (translation unit)
 */
 
