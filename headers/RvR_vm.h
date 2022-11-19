@@ -1,7 +1,7 @@
 #ifndef _RVR_VM_H_
 
 /*
-   RvnicRaven - riscv bytecode vm
+   RvnicRaven - bytecode vm
 
    Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -50,36 +50,110 @@ void RvR_vm_stack_free(); //Call after all vms have been destroyed
 #define RVR_VM_STACK_SIZE (1 << 20)
 #endif
 
+#ifndef RvR_vm_unreachable
+#define RvR_vm_unreachable __builtin_unreachable
+#endif
+
 #if !RVR_VM_COMPUTED_GOTO
 
 #define case_OP_INVALID  default
-#define case_OP_LOAD     case RVR_VM_OP_LOAD
-#define case_OP_MISC_MEM case RVR_VM_OP_MISC_MEM
-#define case_OP_IMM      case RVR_VM_OP_IMM
-#define case_OP_AUIPC    case RVR_VM_OP_AUIPC
-#define case_OP_STORE    case RVR_VM_OP_STORE
-#define case_OP          case RVR_VM_OP
-#define case_OP_LUI      case RVR_VM_OP_LUI
-#define case_OP_BRANCH   case RVR_VM_OP_BRANCH
-#define case_OP_JALR     case RVR_VM_OP_JALR
-#define case_OP_JAL      case RVR_VM_OP_JAL
-#define case_OP_SYSTEM   case RVR_VM_OP_SYSTEM
+#define case_OP_LB case RVR_VM_OP_LB
+#define case_OP_LH case RVR_VM_OP_LH
+#define case_OP_LW case RVR_VM_OP_LW
+#define case_OP_LBU case RVR_VM_OP_LBU
+#define case_OP_LHU case RVR_VM_OP_LHU
+#define case_OP_ADDI case RVR_VM_OP_ADDI
+#define case_OP_SLLI case RVR_VM_OP_SLLI
+#define case_OP_SLTI case RVR_VM_OP_SLTI
+#define case_OP_SLTIU case RVR_VM_OP_SLTIU
+#define case_OP_XORI case RVR_VM_OP_XORI
+#define case_OP_SRLI case RVR_VM_OP_SRLI
+#define case_OP_SRAI case RVR_VM_OP_SRAI
+#define case_OP_ORI case RVR_VM_OP_ORI
+#define case_OP_ANDI case RVR_VM_OP_ANDI
+#define case_OP_SB case RVR_VM_OP_SB
+#define case_OP_SH case RVR_VM_OP_SH
+#define case_OP_SW case RVR_VM_OP_SW
+#define case_OP_BEQ case RVR_VM_OP_BEQ
+#define case_OP_BNE case RVR_VM_OP_BNE
+#define case_OP_BLT case RVR_VM_OP_BLT
+#define case_OP_BGE case RVR_VM_OP_BGE
+#define case_OP_BLTU case RVR_VM_OP_BLTU
+#define case_OP_BGEU case RVR_VM_OP_BGEU
+#define case_OP_JALR case RVR_VM_OP_JALR
+#define case_OP_SYSCALL case RVR_VM_OP_SYSCALL
+#define case_OP_ADD case RVR_VM_OP_ADD
+#define case_OP_SUB case RVR_VM_OP_SUB
+#define case_OP_SLL case RVR_VM_OP_SLL
+#define case_OP_SLT case RVR_VM_OP_SLT
+#define case_OP_SLTU case RVR_VM_OP_SLTU
+#define case_OP_XOR case RVR_VM_OP_XOR
+#define case_OP_SRL case RVR_VM_OP_SRL
+#define case_OP_SRA case RVR_VM_OP_SRA
+#define case_OP_OR case RVR_VM_OP_OR
+#define case_OP_AND case RVR_VM_OP_AND
+#define case_OP_MUL case RVR_VM_OP_MUL
+#define case_OP_MULH case RVR_VM_OP_MULH
+#define case_OP_MULHSU case RVR_VM_OP_MULHSU
+#define case_OP_MULHU case RVR_VM_OP_MULHU
+#define case_OP_DIV case RVR_VM_OP_DIV
+#define case_OP_DIVU case RVR_VM_OP_DIVU
+#define case_OP_REM case RVR_VM_OP_REM
+#define case_OP_REMU case RVR_VM_OP_REMU
+#define case_OP_AUIPC case RVR_VM_OP_AUIPC
+#define case_OP_LUI case RVR_VM_OP_LUI
+#define case_OP_JAL case RVR_VM_OP_JAL
 
 #endif
 
 typedef enum
 {
-   RVR_VM_OP_LOAD = 3,
-   RVR_VM_OP_MISC_MEM = 15,
-   RVR_VM_OP_IMM = 19,
-   RVR_VM_OP_AUIPC = 23,
-   RVR_VM_OP_STORE = 35,
-   RVR_VM_OP = 51,
-   RVR_VM_OP_LUI = 55,
-   RVR_VM_OP_BRANCH = 99,
-   RVR_VM_OP_JALR = 103,
-   RVR_VM_OP_JAL = 111,
-   RVR_VM_OP_SYSTEM = 115,
+   RVR_VM_OP_LB = 0,
+   RVR_VM_OP_LH = 1,
+   RVR_VM_OP_LW = 2,
+   RVR_VM_OP_LBU = 3,
+   RVR_VM_OP_LHU = 4,
+   RVR_VM_OP_ADDI = 5,
+   RVR_VM_OP_SLLI = 6,
+   RVR_VM_OP_SLTI = 7,
+   RVR_VM_OP_SLTIU = 8,
+   RVR_VM_OP_XORI = 9,
+   RVR_VM_OP_SRLI = 10,
+   RVR_VM_OP_SRAI = 11,
+   RVR_VM_OP_ORI = 12,
+   RVR_VM_OP_ANDI = 13,
+   RVR_VM_OP_SB = 14,
+   RVR_VM_OP_SH = 15,
+   RVR_VM_OP_SW = 16,
+   RVR_VM_OP_BEQ = 17,
+   RVR_VM_OP_BNE = 18,
+   RVR_VM_OP_BLT = 19,
+   RVR_VM_OP_BGE = 20,
+   RVR_VM_OP_BLTU = 21,
+   RVR_VM_OP_BGEU = 22,
+   RVR_VM_OP_JALR = 23,
+   RVR_VM_OP_SYSCALL = 24,
+   RVR_VM_OP_ADD = 25,
+   RVR_VM_OP_SUB = 26,
+   RVR_VM_OP_SLL = 27,
+   RVR_VM_OP_SLT = 28,
+   RVR_VM_OP_SLTU = 29,
+   RVR_VM_OP_XOR = 30,
+   RVR_VM_OP_SRL = 31,
+   RVR_VM_OP_SRA = 32,
+   RVR_VM_OP_OR = 33,
+   RVR_VM_OP_AND = 34,
+   RVR_VM_OP_MUL = 35,
+   RVR_VM_OP_MULH = 36,
+   RVR_VM_OP_MULHSU = 37,
+   RVR_VM_OP_MULHU = 38,
+   RVR_VM_OP_DIV = 39,
+   RVR_VM_OP_DIVU = 40,
+   RVR_VM_OP_REM = 41,
+   RVR_VM_OP_REMU = 42,
+   RVR_VM_OP_AUIPC = 43,
+   RVR_VM_OP_LUI = 44,
+   RVR_VM_OP_JAL = 45,
 }rvr_vm_opcode;
 
 static int rvr_vm_syscall_term = 0;
@@ -160,12 +234,11 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
 
    vm->pc = (uint8_t *)vm->code + instr;
    vm->regs[2] = ((intptr_t)rvr_vm_stack - (intptr_t)vm->mem_base) + RVR_VM_STACK_SIZE;
-   int32_t op;
-   int32_t arg0;
-   int32_t arg1;
-   int32_t arg2;
-   int32_t arg3;
-   int32_t arg4;
+   uint32_t op;
+   int32_t rs1;
+   int32_t rs2;
+   int32_t rd;
+   int32_t imm;
 
 #if RVR_VM_COMPUTED_GOTO
 
@@ -184,8 +257,8 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
    dispatch_table[111] = &&case_OP_JAL;
    dispatch_table[115] = &&case_OP_SYSTEM;
 
-#define DISPATCH() vm->pc += 4; vm->regs[0] = 0; op = *((int32_t *)vm->pc); goto *dispatch_table[op & 127]
-#define DISPATCH_BRANCH() vm->regs[0] = 0; op = *((int32_t *)vm->pc); goto *dispatch_table[op & 127]
+#define DISPATCH() vm->pc += 4; vm->regs[0] = 0; op = *((uint32_t *)vm->pc); goto *dispatch_table[op & 127]
+#define DISPATCH_BRANCH() vm->regs[0] = 0; op = *((uint32_t *)vm->pc); goto *dispatch_table[op & 127]
 
    DISPATCH_BRANCH();
 
@@ -237,256 +310,238 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
 #if !RVR_VM_COMPUTED_GOTO
       next:
       vm->regs[0] = 0;
-      op = *((int32_t *)vm->pc);
-      //vm_disassemble_instruction(op);
+      op = *((uint32_t *)vm->pc);
 #endif
 
-      switch(op & 127)
+      switch(op & 63)
       {
-case_OP_LOAD:
-      //I format
-      arg3 = (op >> 7) & 31;
-      arg2 = (op >> 12) & 7;
-      arg1 = (op >> 15) & 31;
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
+case_OP_LB:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = *(((int8_t *)vm->mem_base) + imm + vm->regs[rs1]);
 
-      switch(arg2)
+      DISPATCH();
+case_OP_LH:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = *((int16_t *)(((uint8_t *)vm->mem_base) + imm + vm->regs[rs1]));
+
+      DISPATCH();
+case_OP_LW:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = *((int32_t *)(((uint8_t *)vm->mem_base) + imm + vm->regs[rs1]));
+
+      DISPATCH();
+case_OP_LBU:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = *(((uint8_t *)vm->mem_base) + imm + vm->regs[rs1]);
+
+      DISPATCH();
+case_OP_LHU:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = *((uint16_t *)(((uint8_t *)vm->mem_base) + imm + vm->regs[rs1]));
+
+      DISPATCH();
+case_OP_ADDI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = vm->regs[rs1] + imm;
+
+      DISPATCH();
+case_OP_SLLI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = (uint32_t)vm->regs[rs1] << imm;
+
+      DISPATCH();
+case_OP_SLTI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = vm->regs[rs1]<imm;
+
+      DISPATCH();
+case_OP_SLTIU:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = (uint32_t)vm->regs[rs1] < (uint32_t)imm;
+
+      DISPATCH();
+case_OP_XORI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = vm->regs[rs1] ^ imm;
+
+      DISPATCH();
+case_OP_SRLI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = (uint32_t)vm->regs[rs1] >> imm;
+
+      DISPATCH();
+case_OP_SRAI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = vm->regs[rs1] >> imm;
+
+      DISPATCH();
+case_OP_ORI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = vm->regs[rs1] | imm;
+
+      DISPATCH();
+case_OP_ANDI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      vm->regs[rd] = vm->regs[rs1] & imm;
+
+      DISPATCH();
+case_OP_SB:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      *(((uint8_t *)vm->mem_base) + imm + vm->regs[rs1]) = (uint8_t)vm->regs[rs2];
+
+      DISPATCH();
+case_OP_SH:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      *((uint16_t *)(((uint8_t *)vm->mem_base) + imm + vm->regs[rs1])) = (uint16_t)vm->regs[rs2];
+
+      DISPATCH();
+case_OP_SW:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      *((uint32_t *)(((uint8_t *)vm->mem_base) + imm + vm->regs[rs1])) = (uint32_t)vm->regs[rs2];
+
+      DISPATCH();
+case_OP_BEQ:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      if(vm->regs[rs1]==vm->regs[rs2])
       {
-      case 0:    //LB
-         vm->regs[arg3] = *(((int8_t *)vm->mem_base) + arg0 + vm->regs[arg1]);
-         break;
-      case 1:    //LH
-         vm->regs[arg3] = *((int16_t *)(((uint8_t *)vm->mem_base) + arg0 + vm->regs[arg1]));
-         break;
-      case 2:    //LW
-         vm->regs[arg3] = *((int32_t *)(((uint8_t *)vm->mem_base) + arg0 + vm->regs[arg1]));
-         break;
-      case 4:    //LBU
-         vm->regs[arg3] = *(((uint8_t *)vm->mem_base) + arg0 + vm->regs[arg1]);
-         break;
-      case 5:    //LHU
-         vm->regs[arg3] = *((uint16_t *)(((uint8_t *)vm->mem_base) + arg0 + vm->regs[arg1]));
-         break;
+         vm->pc += imm;
+         DISPATCH_BRANCH();
       }
 
       DISPATCH();
-case_OP_MISC_MEM:
-      //TODO?
-      DISPATCH();
-case_OP_IMM:
-      //I format
-      arg3 = (op >> 7) & 31;
-      arg2 = (op >> 12) & 7;
-      arg1 = (op >> 15) & 31;
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
-
-      switch(arg2)
+case_OP_BNE:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      if(vm->regs[rs1]!=vm->regs[rs2])
       {
-      case 0:    //ADDI
-         vm->regs[arg3] = vm->regs[arg1] + arg0;
-         break;
-      case 1:    //SLLI
-         vm->regs[arg3] = (uint32_t)vm->regs[arg1] << arg0;
-         break;
-      case 2:    //SLTI
-         vm->regs[arg3] = vm->regs[arg1]<arg0;
-         break;
-      case 3:    //SLTIU
-         vm->regs[arg3] = (uint32_t)vm->regs[arg1]<(uint32_t)arg0;
-         break;
-      case 4:    //XORI
-         vm->regs[arg3] = vm->regs[arg1] ^ arg0;
-         break;
-      case 5:     //SRLI/SRAI
-         if(arg0 & 1024)
-            vm->regs[arg3] = ((int32_t)vm->regs[arg1]) >> arg0;
-         else
-            vm->regs[arg3] = ((uint32_t)vm->regs[arg1]) >> arg0;
-         break;
-      case 6:    //ORI
-         vm->regs[arg3] = vm->regs[arg1] | arg0;
-         break;
-      case 7:    //ANDI
-         vm->regs[arg3] = vm->regs[arg1] & arg0;
-         break;
+         vm->pc += imm;
+         DISPATCH_BRANCH();
       }
 
       DISPATCH();
-case_OP_AUIPC:
-      //U format
-      arg0 = op & 4294963200;
-      arg1 = (op >> 7) & 31;
-
-      vm->regs[arg1] = (intptr_t)vm->pc - (intptr_t)vm->mem_base;
-      vm->regs[arg1] += arg0;
-
-      DISPATCH();
-case_OP_STORE:
-      //S format
-      arg0 = (op >> 20) & 4064;
-      arg1 = (op >> 20) & 31;
-      arg2 = (op >> 15) & 31;
-      arg3 = (op >> 12) & 7;
-      arg0 |= (op >> 7) & 31;
-      arg0 = (arg0 << 20) >> 20;
-
-      switch(arg3)
+case_OP_BLT:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      if(vm->regs[rs1]<vm->regs[rs2])
       {
-      case 0:    //SB
-         *(((uint8_t *)vm->mem_base) + arg0 + vm->regs[arg2]) = (uint8_t)vm->regs[arg1];
-         break;
-      case 1:    //SH
-         *((uint16_t *)(((uint8_t *)vm->mem_base) + arg0 + vm->regs[arg2])) = (uint16_t)vm->regs[arg1];
-         break;
-      case 2:    //SW
-         *((uint32_t *)(((uint8_t *)vm->mem_base) + arg0 + vm->regs[arg2])) = (uint32_t)vm->regs[arg1];
-         break;
+         vm->pc += imm;
+         DISPATCH_BRANCH();
       }
 
       DISPATCH();
-case_OP:
-      //R format
-      arg0 = (op >> 25) & 127;
-      arg1 = (op >> 20) & 31;
-      arg2 = (op >> 15) & 31;
-      arg3 = (op >> 12) & 7;
-      arg4 = (op >> 7) & 31;
-
-      switch((arg0 << 3) | arg3)
+case_OP_BGE:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      if(vm->regs[rs1]>=vm->regs[rs2])
       {
-      case 0:    //ADD
-         vm->regs[arg4] = vm->regs[arg2] + vm->regs[arg1];
-         break;
-      case 256:    //SUB
-         vm->regs[arg4] = vm->regs[arg2] - vm->regs[arg1];
-         break;
-      case 1:    //SLL
-         vm->regs[arg4] = vm->regs[arg2] << (vm->regs[arg1] & 31);
-         break;
-      case 2:    //SLT
-         vm->regs[arg4] = vm->regs[arg2]<vm->regs[arg1];
-         break;
-      case 3:    //SLTU
-         vm->regs[arg4] = (uint32_t)vm->regs[arg2]<(uint32_t)vm->regs[arg1];
-         break;
-      case 4:    //XOR
-         vm->regs[arg4] = vm->regs[arg2] ^ vm->regs[arg1];
-         break;
-      case 5:    //SRL
-         vm->regs[arg4] = (uint32_t)vm->regs[arg2] >> (vm->regs[arg1] & 31);
-         break;
-      case 261:    //SRA
-         vm->regs[arg4] = vm->regs[arg2] >> (vm->regs[arg1] & 31);
-         break;
-      case 6:    //OR
-         vm->regs[arg4] = vm->regs[arg2] | vm->regs[arg1];
-         break;
-      case 7:    //AND
-         vm->regs[arg4] = vm->regs[arg2] & vm->regs[arg1];
-         break;
-      case 8:    //MUL
-         vm->regs[arg4] = vm->regs[arg2] * vm->regs[arg1];
-         break;
-      case 9:    //MULH
-         vm->regs[arg4] = ((int64_t)vm->regs[arg2] * (int64_t)vm->regs[arg1]) >> 32;
-         break;
-      case 10:    //MULHSU
-         vm->regs[arg4] = ((int64_t)vm->regs[arg2] * (uint64_t)vm->regs[arg1]) >> 32;
-         break;
-      case 11:    //MULHU
-         vm->regs[arg4] = ((uint64_t)vm->regs[arg2] * (uint64_t)vm->regs[arg1]) >> 32;
-         break;
-      case 12:    //DIV
-         vm->regs[arg4] = vm->regs[arg2] / vm->regs[arg1];
-         break;
-      case 13:    //DIVU
-         vm->regs[arg4] = (uint32_t)vm->regs[arg2] / (uint32_t)vm->regs[arg1];
-         break;
-      case 14:    //REM
-         vm->regs[arg4] = vm->regs[arg2] % vm->regs[arg1];
-         break;
-      case 15:    //REMU
-         vm->regs[arg4] = (uint32_t)vm->regs[arg2] % (uint32_t)vm->regs[arg1];
-         break;
+         vm->pc += imm;
+         DISPATCH_BRANCH();
       }
 
       DISPATCH();
-case_OP_LUI:
-      //U format
-      arg0 = op & 4294963200;
-      arg1 = (op >> 7) & 31;
-
-      vm->regs[arg1] = arg0;
+case_OP_BLTU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      if((uint32_t)vm->regs[rs1]<(uint32_t)vm->regs[rs2])
+      {
+         vm->pc += imm;
+         DISPATCH_BRANCH();
+      }
 
       DISPATCH();
-case_OP_BRANCH:
+case_OP_BGEU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      if((uint32_t)vm->regs[rs1]>=(uint32_t)vm->regs[rs2])
       {
-         //B format
-         arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op >> 19) & 4096) | ((op >> 20) & 2016)) | ((op >> 7) & 30)) | ((op << 4) & 2048)) << 19)) >> 19);
-         arg1 = (op >> 20) & 31;
-         arg2 = (op >> 15) & 31;
-         arg3 = (op >> 12) & 7;
-         int32_t cmp = 0;
-
-         switch(arg3)
-         {
-         case 0:    //BEQ
-            cmp = vm->regs[arg2]==vm->regs[arg1];
-            break;
-         case 1:    //BNE
-            cmp = vm->regs[arg2]!=vm->regs[arg1];
-            break;
-         case 4:    //BLT
-            cmp = vm->regs[arg2]<vm->regs[arg1];
-            break;
-         case 5:    //BGE
-            cmp = vm->regs[arg2]>=vm->regs[arg1];
-            break;
-         case 6:    //BLTU
-            cmp = (uint32_t)vm->regs[arg2]<(uint32_t)vm->regs[arg1];
-            break;
-         case 7:    //BGEU
-            cmp = (uint32_t)vm->regs[arg2]>=(uint32_t)vm->regs[arg1];
-            break;
-         }
-
-         if(cmp)
-         {
-            vm->pc += arg0;
-            DISPATCH_BRANCH();
-         }
-
-         DISPATCH();
+         vm->pc += imm;
+         DISPATCH_BRANCH();
       }
+
+      DISPATCH();
 case_OP_JALR:
-      //I format
-      arg3 = (op >> 7) & 31;
-      arg1 = (op >> 15) & 31;
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
-
-      uint8_t *pc = vm->pc + 4;
-      vm->pc = vm->code + ((vm->regs[arg1] + arg0) & -2);
-      vm->regs[arg3] = (intptr_t)pc - (intptr_t)vm->mem_base;
-
-      DISPATCH_BRANCH();
-case_OP_JAL:
-      //J format
-      arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op >> 11) & 1048576) | ((op >> 20) & 2046)) | ((op >> 9) & 2048)) | ((op << 0) & 1044480)) << 11)) >> 11);
-      arg1 = (op >> 7) & 31;
-      vm->regs[arg1] = ((intptr_t)vm->pc - (intptr_t)vm->mem_base) + 4;
-      vm->pc += arg0;
+      {
+         rs1 = (op >> 6) & 31;
+         rd = (op >> 11) & 31;
+         imm = (op >> 16);
+         imm = (imm << 16) >> 16; //sign extend
+         uint8_t *pc = vm->pc + 4;
+         vm->pc = vm->code + ((vm->regs[rs1] + imm) & -2);
+         vm->regs[rd] = (intptr_t)pc - (intptr_t)vm->mem_base;
+      }
 
       DISPATCH_BRANCH();
-case_OP_SYSTEM:
+case_OP_SYSCALL:
       //I format
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
       rvr_vm_syscall_term = 0;
 
-      switch(arg0)
+      switch(imm)
       {
       case 0:
          vm->regs[10] = rvr_vm_syscall(vm, vm->regs[17]);
@@ -498,8 +553,155 @@ case_OP_SYSTEM:
       }
 
       DISPATCH();
-case_OP_INVALID:
+case_OP_ADD:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] + vm->regs[rs2];
+
       DISPATCH();
+case_OP_SUB:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] - vm->regs[rs2];
+
+      DISPATCH();
+case_OP_SLL:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] << (vm->regs[rs2] & 31);
+
+      DISPATCH();
+case_OP_SLT:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] < vm->regs[rs2];
+
+      DISPATCH();
+case_OP_SLTU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = (uint32_t)vm->regs[rs1] < (uint32_t)vm->regs[rs2];
+
+      DISPATCH();
+case_OP_XOR:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] ^ vm->regs[rs2];
+
+      DISPATCH();
+case_OP_SRL:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = (uint32_t)vm->regs[rs1] >> (vm->regs[rs2] & 31);
+
+      DISPATCH();
+case_OP_SRA:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] >> (vm->regs[rs2] & 31);
+
+      DISPATCH();
+case_OP_OR:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] | vm->regs[rs2];
+
+      DISPATCH();
+case_OP_AND:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] & vm->regs[rs2];
+
+      DISPATCH();
+case_OP_MUL:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] * vm->regs[rs2];
+
+      DISPATCH();
+case_OP_MULH:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = ((int64_t)vm->regs[rs1] * (int64_t)vm->regs[rs2]) >> 32;
+
+      DISPATCH();
+case_OP_MULHSU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = ((int64_t)vm->regs[rs1] * (uint64_t)vm->regs[rs2]) >> 32;
+
+      DISPATCH();
+case_OP_MULHU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = ((uint64_t)vm->regs[rs1] * (uint64_t)vm->regs[rs2]) >> 32;
+
+      DISPATCH();
+case_OP_DIV:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] / vm->regs[rs2];
+
+      DISPATCH();
+case_OP_DIVU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = (uint32_t)vm->regs[rs1] / (uint32_t)vm->regs[rs2];
+
+      DISPATCH();
+case_OP_REM:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = vm->regs[rs1] % vm->regs[rs2];
+
+      DISPATCH();
+case_OP_REMU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+      vm->regs[rd] = (uint32_t)vm->regs[rs1] % (uint32_t)vm->regs[rs2];
+
+      DISPATCH();
+case_OP_AUIPC:
+      rd = (op >> 6) & 31;
+      imm = op & 4294963200;
+      vm->regs[rd] = (intptr_t)vm->pc - (intptr_t)vm->mem_base;
+      vm->regs[rd] += imm;
+
+      DISPATCH();
+case_OP_LUI:
+      rd = (op >> 6) & 31;
+      imm = op & 4294963200;
+      vm->regs[rd] = imm;
+
+      DISPATCH();
+case_OP_JAL:
+      rd = (op >> 6) & 31;
+      imm = op >> 11;
+      imm = (imm << 11) >> 11; //sign extend
+      vm->regs[rd] = ((intptr_t)vm->pc - (intptr_t)vm->mem_base) + 4;
+      vm->pc += imm;
+
+      DISPATCH_BRANCH();
+      default: //The code is faster if this is here. WTF?
+         printf("msiing instruction %d\n", op & 63);
       }
    }
 }
@@ -587,267 +789,98 @@ static uint32_t rvr_vm_syscall(RvR_vm *vm, uint32_t code)
 
 static void rvr_vm_disassemble_instruction(uint32_t op)
 {
+   //TODO: add the remaining instructions
    RvR_log("%8x|", op);
    static const char *reg_names[32] = {"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
-   int32_t arg0;
-   int32_t arg1;
-   int32_t arg2;
-   int32_t arg3;
-   int32_t arg4;
 
-   switch(op & 127)
+   int32_t rs1;
+   int32_t rs2;
+   int32_t rd;
+   int32_t imm;
+
+   switch(op & 63)
    {
-   case RVR_VM_OP_LOAD:
-      //I format
-      arg3 = (op >> 7) & 31;
-      arg2 = (op >> 12) & 7;
-      arg1 = (op >> 15) & 31;
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
-
-      switch(arg2)
-      {
-      case 0: //LB
-         RvR_log("lb %s,%d(%s)\n", reg_names[arg3], arg0, reg_names[arg1]);
-         break;
-      case 1: //LH
-         RvR_log("lh %s,%d(%s)\n", reg_names[arg3], arg0, reg_names[arg1]);
-         break;
-      case 2: //LW
-         RvR_log("lw %s,%d(%s)\n", reg_names[arg3], arg0, reg_names[arg1]);
-         break;
-      case 4: //LBU
-         RvR_log("lbu %s,%d(%s)\n", reg_names[arg3], arg0, reg_names[arg1]);
-         break;
-      case 5: //LHU
-         RvR_log("lhu %s,%d(%s)\n", reg_names[arg3], arg0, reg_names[arg1]);
-         break;
-      default:
-         RvR_log("unknown LOAD instruction %d\n", arg2);
-         break;
-      }
+   case RVR_VM_OP_LB:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("lb %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]);
       break;
-   case RVR_VM_OP_MISC_MEM:
-      puts("fence");
+   case RVR_VM_OP_LW:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("lw %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]);
       break;
-   case RVR_VM_OP_IMM:
-      //I format
-      arg3 = (op >> 7) & 31;
-      arg2 = (op >> 12) & 7;
-      arg1 = (op >> 15) & 31;
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
-
-      switch(arg2)
-      {
-      case 0: //ADDI
-         RvR_log("addi %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      case 1: //SLLI
-         RvR_log("slli %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      case 2: //SLTI
-         RvR_log("slti %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      case 3: //SLTIU
-         RvR_log("sltiu %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      case 4: //XORI
-         RvR_log("xori %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      case 5:  //SRLI/SRAI
-         if(arg0 & 1024)
-            RvR_log("srai %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         else
-            RvR_log("srli %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      case 6: //ORI
-         RvR_log("ori %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      case 7: //ANDI
-         RvR_log("andi %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
-         break;
-      default:
-         RvR_log("unknown OP-IMM instruction %d\n", arg2);
-         break;
-      }
+   case RVR_VM_OP_LBU:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = op >> 16;
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("lbu %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]);
+      break;
+   case RVR_VM_OP_ADDI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("addi %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm);
+      break;
+   case RVR_VM_OP_ANDI:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("andi %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm);
+      break;
+   case RVR_VM_OP_SB:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("sb %s,%d(%s)\n", reg_names[rs2], imm, reg_names[rs1]);
+      break;
+   case RVR_VM_OP_SW:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("sw %s,%d(%s)\n", reg_names[rs2], imm, reg_names[rs1]);
+      break;
+   case RVR_VM_OP_BEQ:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("beq %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm);
+      break;
+   case RVR_VM_OP_BNE:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("bne %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm);
       break;
    case RVR_VM_OP_AUIPC:
-      //U format
-      arg0 = (op >> 12) & 1048575;
-      arg1 = (op >> 7) & 31;
-
-      RvR_log("auipc %s,%d\n", reg_names[arg1], arg0);
-      break;
-   case RVR_VM_OP_STORE:
-      //S format
-      arg0 = (op >> 20) & 4064;
-      arg1 = (op >> 20) & 31;
-      arg2 = (op >> 15) & 31;
-      arg3 = (op >> 12) & 7;
-      arg0 |= (op >> 7) & 31;
-      arg0 = (arg0 << 20) >> 20;
-
-      switch(arg3)
-      {
-      case 0: //SB
-         RvR_log("sb %s,%d(%s)\n", reg_names[arg1], arg0, reg_names[arg1]);
-         break;
-      case 1: //SH
-         RvR_log("sh %s,%d(%s)\n", reg_names[arg1], arg0, reg_names[arg1]);
-         break;
-      case 2: //SW
-         RvR_log("sw %s,%d(%s)\n", reg_names[arg1], arg0, reg_names[arg1]);
-         break;
-      default:
-         RvR_log("unknown STORE instruction %d\n", arg3);
-         break;
-      }
-      break;
-   case RVR_VM_OP:
-      //R format
-      arg0 = (op >> 25) & 127;
-      arg1 = (op >> 20) & 31;
-      arg2 = (op >> 15) & 31;
-      arg3 = (op >> 12) & 7;
-      arg4 = (op >> 7) & 31;
-
-      switch((arg0 << 3) | arg3)
-      {
-      case 0: //ADD
-         RvR_log("add %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 256: //SUB
-         RvR_log("sub %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 1: //SLL
-         RvR_log("sll %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 2: //SLT
-         RvR_log("slt %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 3: //SLTU
-         RvR_log("sltu %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 4: //XOR
-         RvR_log("xor %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 5: //SRL
-         RvR_log("srl %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 261: //SRA
-         RvR_log("sra %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 6: //OR
-         RvR_log("or %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 7: //AND
-         RvR_log("and %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 8: //MUL
-         RvR_log("mul %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 9: //MULH
-         RvR_log("mulh %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 10: //MULHSU
-         RvR_log("mulhsu %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 11: //MULHU
-         RvR_log("mulhu %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 12: //DIV
-         RvR_log("div %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 13: //DIVU
-         RvR_log("divu %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 14: //REM
-         RvR_log("rem %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      case 15: //REMU
-         RvR_log("remu %s,%s,%s\n", reg_names[arg4], reg_names[arg2], reg_names[arg1]);
-         break;
-      default:
-         RvR_log("unknown OP instruction %d\n", (arg0 << 3) | arg3);
-         break;
-      }
+      rd = (op >> 6) & 31;
+      imm = op & 4294963200;
+      RvR_log("auipc %s,%d\n", reg_names[rd], imm >> 12);
       break;
    case RVR_VM_OP_LUI:
-      //U format
-      arg0 = (op >> 12) & 1048575;
-      arg1 = (op >> 7) & 31;
-
-      RvR_log("lui %s,%d\n", reg_names[arg1], arg0);
-      break;
-   case RVR_VM_OP_BRANCH:
-      //B format
-      arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op >> 19) & 4096) | ((op >> 20) & 2016)) | ((op >> 7) & 30)) | ((op << 4) & 2048)) << 19)) >> 19);
-      arg1 = (op >> 20) & 31;
-      arg2 = (op >> 15) & 31;
-      arg3 = (op >> 12) & 7;
-
-      switch(arg3)
-      {
-      case 0: //BEQ
-         RvR_log("beq %s,%s,%d\n", reg_names[arg2], reg_names[arg1], arg0);
-         break;
-      case 1: //BNE
-         RvR_log("bne %s,%s,%d\n", reg_names[arg2], reg_names[arg1], arg0);
-         break;
-      case 4: //BLT
-         RvR_log("blt %s,%s,%d\n", reg_names[arg2], reg_names[arg1], arg0);
-         break;
-      case 5: //BGE
-         RvR_log("bge %s,%s,%d\n", reg_names[arg2], reg_names[arg1], arg0);
-         break;
-      case 6: //BLTU
-         RvR_log("bltu %s,%s,%d\n", reg_names[arg2], reg_names[arg1], arg0);
-         break;
-      case 7: //BGEU
-         RvR_log("bgeu %s,%s,%d\n", reg_names[arg2], reg_names[arg1], arg0);
-         break;
-      default:
-         RvR_log("unknown BRANCH instruction %d\n", arg3);
-         break;
-      }
-      break;
-   case RVR_VM_OP_JALR:
-      //I format
-      arg3 = (op >> 7) & 31;
-      arg2 = (op >> 12) & 7;
-      arg1 = (op >> 15) & 31;
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
-
-      RvR_log("jalr %s,%s,%d\n", reg_names[arg3], reg_names[arg1], arg0);
+      rd = (op >> 6) & 31;
+      imm = op & 4294963200;
+      RvR_log("lui %s,%d\n", reg_names[rd], imm >> 12);
       break;
    case RVR_VM_OP_JAL:
-      arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op >> 11) & 1048576) | ((op >> 20) & 2046)) | ((op >> 9) & 2048)) | ((op << 0) & 1044480)) << 11)) >> 11);
-      arg1 = (op >> 7) & 31;
-      RvR_log("jal %s,%d\n", reg_names[arg1], arg0);
-      break;
-   case RVR_VM_OP_SYSTEM:
-      //I format
-      arg0 = (op >> 20) & 4095;
-      arg0 = (arg0 << 20) >> 20; //sign extend
-
-      switch(arg0)
-      {
-      case 0:
-         RvR_log("ecall\n");
-         break;
-      case 1:
-         RvR_log("ebreak\n");
-         break;
-      default:
-         RvR_log("unknown SYSTEM instruction %d\n", arg0);
-         break;
-      }
+      rd = (op >> 6) & 31;
+      imm = op >> 11;
+      imm = (imm << 11) >> 11; //sign extend
+      RvR_log("jal %s,%d\n", reg_names[rd], imm);
       break;
    default:
-      RvR_log("Unknown instruction %d\n", op & 127);
-      break;
+      RvR_log("%d\n", op & 63);
    }
 }
 
