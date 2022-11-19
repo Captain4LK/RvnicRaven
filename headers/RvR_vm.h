@@ -46,6 +46,10 @@ void RvR_vm_stack_free(); //Call after all vms have been destroyed
 #ifndef RVR_VM_IMPLEMENTATION_ONCE
 #define RVR_VM_IMPLEMENTATION_ONCE
 
+#ifndef RVR_VOM_COMPUTED_GOTO
+#define RVR_VM_COMPUTED_GOTO 0
+#endif
+
 #ifndef RVR_VM_STACK_SIZE
 #define RVR_VM_STACK_SIZE (1 << 20)
 #endif
@@ -242,23 +246,58 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
 
 #if RVR_VM_COMPUTED_GOTO
 
-   void *dispatch_table[128];
-   for(int i = 0; i<128; i++)
-      dispatch_table[i] = &&case_OP_INVALID;
-   dispatch_table[3] = &&case_OP_LOAD;
-   dispatch_table[15] = &&case_OP_MISC_MEM;
-   dispatch_table[19] = &&case_OP_IMM;
-   dispatch_table[23] = &&case_OP_AUIPC;
-   dispatch_table[35] = &&case_OP_STORE;
-   dispatch_table[51] = &&case_OP;
-   dispatch_table[55] = &&case_OP_LUI;
-   dispatch_table[99] = &&case_OP_BRANCH;
-   dispatch_table[103] = &&case_OP_JALR;
-   dispatch_table[111] = &&case_OP_JAL;
-   dispatch_table[115] = &&case_OP_SYSTEM;
+   void *dispatch_table[64] = 
+   {
+      &&case_OP_LB,
+      &&case_OP_LH,
+      &&case_OP_LW,
+      &&case_OP_LBU,
+      &&case_OP_LHU,
+      &&case_OP_ADDI,
+      &&case_OP_SLLI,
+      &&case_OP_SLTI,
+      &&case_OP_SLTIU,
+      &&case_OP_XORI,
+      &&case_OP_SRLI,
+      &&case_OP_SRAI,
+      &&case_OP_ORI,
+      &&case_OP_ANDI,
+      &&case_OP_SB,
+      &&case_OP_SH,
+      &&case_OP_SW,
+      &&case_OP_BEQ,
+      &&case_OP_BNE,
+      &&case_OP_BLT,
+      &&case_OP_BGE,
+      &&case_OP_BLTU,
+      &&case_OP_BGEU,
+      &&case_OP_JALR,
+      &&case_OP_SYSCALL,
+      &&case_OP_ADD,
+      &&case_OP_SUB,
+      &&case_OP_SLL,
+      &&case_OP_SLT,
+      &&case_OP_SLTU,
+      &&case_OP_XOR,
+      &&case_OP_SRL,
+      &&case_OP_SRA,
+      &&case_OP_OR,
+      &&case_OP_AND,
+      &&case_OP_MUL,
+      &&case_OP_MULH,
+      &&case_OP_MULHSU,
+      &&case_OP_MULHU,
+      &&case_OP_DIV,
+      &&case_OP_DIVU,
+      &&case_OP_REM,
+      &&case_OP_REMU,
+      &&case_OP_AUIPC,
+      &&case_OP_LUI,
+      &&case_OP_JAL,
+   }
 
-#define DISPATCH() vm->pc += 4; vm->regs[0] = 0; op = *((uint32_t *)vm->pc); goto *dispatch_table[op & 127]
-#define DISPATCH_BRANCH() vm->regs[0] = 0; op = *((uint32_t *)vm->pc); goto *dispatch_table[op & 127]
+#define DISPATCH() vm->pc += 4; vm->regs[0] = 0; op = *((uint32_t *)vm->pc); goto *dispatch_table[op & 63]
+#define DISPATCH_BRANCH() vm->regs[0] = 0; op = *((uint32_t *)vm->pc); goto *dispatch_table[op & 63]
 
    DISPATCH_BRANCH();
 
@@ -266,44 +305,6 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
 #define DISPATCH() vm->pc += 4; goto next
 #define DISPATCH_BRANCH() goto next
 #endif
-
-   //R format
-   //arg0 - funct7
-   //arg1 - rs2
-   //arg2 - rs1
-   //arg3 - func3
-   //arg4 - rd
-
-   //I format
-   //arg0 - imm[11:0]
-   //arg1 - rs1
-   //arg2 - funct3
-   //arg3 - rd
-
-   //S format
-   //arg0 - imm[11:5]
-   //arg1 - rs2
-   //arg2 - rs1
-   //arg3 - funct3
-   //arg0 - imm[4:0]
-
-   //B format
-   //arg0 - imm[12|10:5]
-   //arg1 - rs2
-   //arg2 - rs1
-   //arg3 - funct3
-   //arg0 - imm[4:1|11]
-
-   //U format
-   //arg0 - imm[31,12]
-   //arg1 - rd
-
-   //J format
-   //arg0 - imm[20]
-   //arg0 - imm[10:1]
-   //arg0 - imm[11]
-   //arg0 - imm[19:12]
-   //arg1 - rd
 
    for(;;)
    {
