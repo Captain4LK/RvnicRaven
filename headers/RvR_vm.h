@@ -246,7 +246,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
 
 #if RVR_VM_COMPUTED_GOTO
 
-   void *dispatch_table[64] = 
+   void *dispatch_table[64] =
    {
       &&case_OP_LB,
       &&case_OP_LH,
@@ -701,8 +701,8 @@ case_OP_JAL:
       vm->pc += imm;
 
       DISPATCH_BRANCH();
-      default: //The code is faster if this is here. WTF?
-         printf("msiing instruction %d\n", op & 63);
+case_OP_INVALID: //The code is faster if this is here. WTF?
+      printf("msiing instruction %d\n", op & 63);
       }
    }
 }
@@ -790,79 +790,164 @@ static uint32_t rvr_vm_syscall(RvR_vm *vm, uint32_t code)
 
 static void rvr_vm_disassemble_instruction(uint32_t op)
 {
-   //TODO: add the remaining instructions
-   RvR_log("%8x|", op);
    static const char *reg_names[32] = {"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
-
    int32_t rs1;
    int32_t rs2;
    int32_t rd;
    int32_t imm;
 
+   RvR_log("%8x|", op);
    switch(op & 63)
    {
    case RVR_VM_OP_LB:
-      rs1 = (op >> 6) & 31;
-      rd = (op >> 11) & 31;
-      imm = op >> 16;
-      imm = (imm << 16) >> 16; //sign extend
-      RvR_log("lb %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]);
-      break;
+   case RVR_VM_OP_LH:
    case RVR_VM_OP_LW:
-      rs1 = (op >> 6) & 31;
-      rd = (op >> 11) & 31;
-      imm = op >> 16;
-      imm = (imm << 16) >> 16; //sign extend
-      RvR_log("lw %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]);
-      break;
    case RVR_VM_OP_LBU:
+   case RVR_VM_OP_LHU:
       rs1 = (op >> 6) & 31;
       rd = (op >> 11) & 31;
       imm = op >> 16;
       imm = (imm << 16) >> 16; //sign extend
-      RvR_log("lbu %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]);
+
+      switch(op & 63)
+      {
+      case RVR_VM_OP_LB: RvR_log("lb %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]); break;
+      case RVR_VM_OP_LH: RvR_log("lh %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]); break;
+      case RVR_VM_OP_LW: RvR_log("lw %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]); break;
+      case RVR_VM_OP_LBU: RvR_log("lbu %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]); break;
+      case RVR_VM_OP_LHU: RvR_log("lhu %s,%d(%s)\n", reg_names[rd], imm, reg_names[rs1]); break;
+      }
       break;
    case RVR_VM_OP_ADDI:
-      rs1 = (op >> 6) & 31;
-      rd = (op >> 11) & 31;
-      imm = (op >> 16);
-      imm = (imm << 16) >> 16; //sign extend
-      RvR_log("addi %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm);
-      break;
+   case RVR_VM_OP_SLLI:
+   case RVR_VM_OP_SLTI:
+   case RVR_VM_OP_SLTIU:
+   case RVR_VM_OP_XORI:
+   case RVR_VM_OP_SRLI:
+   case RVR_VM_OP_SRAI:
+   case RVR_VM_OP_ORI:
    case RVR_VM_OP_ANDI:
       rs1 = (op >> 6) & 31;
       rd = (op >> 11) & 31;
       imm = (op >> 16);
       imm = (imm << 16) >> 16; //sign extend
-      RvR_log("andi %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm);
+
+      switch(op & 63)
+      {
+      case RVR_VM_OP_ADDI: RvR_log("addi %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_SLLI: RvR_log("slli %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_SLTI: RvR_log("slti %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_SLTIU: RvR_log("sltiu %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_XORI: RvR_log("xori %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_SRLI: RvR_log("srli %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_SRAI: RvR_log("srai %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_ORI: RvR_log("ori %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      case RVR_VM_OP_ANDI: RvR_log("andi %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm); break;
+      }
       break;
    case RVR_VM_OP_SB:
-      rs1 = (op >> 6) & 31;
-      rs2 = (op >> 11) & 31;
-      imm = (op >> 16);
-      imm = (imm << 16) >> 16; //sign extend
-      RvR_log("sb %s,%d(%s)\n", reg_names[rs2], imm, reg_names[rs1]);
-      break;
+   case RVR_VM_OP_SH:
    case RVR_VM_OP_SW:
       rs1 = (op >> 6) & 31;
       rs2 = (op >> 11) & 31;
       imm = (op >> 16);
       imm = (imm << 16) >> 16; //sign extend
-      RvR_log("sw %s,%d(%s)\n", reg_names[rs2], imm, reg_names[rs1]);
+
+      switch(op & 63)
+      {
+      case RVR_VM_OP_SB: RvR_log("sb %s,%d(%s)\n", reg_names[rs2], imm, reg_names[rs1]); break;
+      case RVR_VM_OP_SH: RvR_log("sh %s,%d(%s)\n", reg_names[rs2], imm, reg_names[rs1]); break;
+      case RVR_VM_OP_SW: RvR_log("sw %s,%d(%s)\n", reg_names[rs2], imm, reg_names[rs1]); break;
+      }
       break;
    case RVR_VM_OP_BEQ:
-      rs1 = (op >> 6) & 31;
-      rs2 = (op >> 11) & 31;
-      imm = (op >> 16);
-      imm = (imm << 16) >> 16; //sign extend
-      RvR_log("beq %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm);
-      break;
    case RVR_VM_OP_BNE:
+   case RVR_VM_OP_BLT:
+   case RVR_VM_OP_BGE:
+   case RVR_VM_OP_BLTU:
+   case RVR_VM_OP_BGEU:
       rs1 = (op >> 6) & 31;
       rs2 = (op >> 11) & 31;
       imm = (op >> 16);
       imm = (imm << 16) >> 16; //sign extend
-      RvR_log("bne %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm);
+
+      switch(op & 63)
+      {
+      case RVR_VM_OP_BEQ: RvR_log("beq %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm); break;
+      case RVR_VM_OP_BNE: RvR_log("bne %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm); break;
+      case RVR_VM_OP_BLT: RvR_log("blt %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm); break;
+      case RVR_VM_OP_BGE: RvR_log("bge %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm); break;
+      case RVR_VM_OP_BLTU: RvR_log("bltu %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm); break;
+      case RVR_VM_OP_BGEU: RvR_log("bgeu %s,%s,%d\n", reg_names[rs1], reg_names[rs2], imm); break;
+      }
+      break;
+   case RVR_VM_OP_JALR:
+      rs1 = (op >> 6) & 31;
+      rd = (op >> 11) & 31;
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      RvR_log("jalr %s,%s,%d\n", reg_names[rd], reg_names[rs1], imm);
+      break;
+   case RVR_VM_OP_SYSCALL:
+      //I format
+      imm = (op >> 16);
+      imm = (imm << 16) >> 16; //sign extend
+      switch(imm)
+      {
+      case 0:
+         RvR_log("ecall\n");
+         break;
+      case 1:
+         RvR_log("ebreak\n");
+         break;
+      default:
+         RvR_log("unknown SYSTEM instruction %d\n", imm);
+         break;
+      }
+      break;
+   case RVR_VM_OP_ADD:
+   case RVR_VM_OP_SUB:
+   case RVR_VM_OP_SLL:
+   case RVR_VM_OP_SLT:
+   case RVR_VM_OP_SLTU:
+   case RVR_VM_OP_XOR:
+   case RVR_VM_OP_SRL:
+   case RVR_VM_OP_SRA:
+   case RVR_VM_OP_OR:
+   case RVR_VM_OP_AND:
+   case RVR_VM_OP_MUL:
+   case RVR_VM_OP_MULH:
+   case RVR_VM_OP_MULHSU:
+   case RVR_VM_OP_MULHU:
+   case RVR_VM_OP_DIV:
+   case RVR_VM_OP_DIVU:
+   case RVR_VM_OP_REM:
+   case RVR_VM_OP_REMU:
+      rs1 = (op >> 6) & 31;
+      rs2 = (op >> 11) & 31;
+      rd = (op >> 16) & 31;
+
+      switch(op & 63)
+      {
+      case RVR_VM_OP_ADD: RvR_log("add %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_SUB: RvR_log("sub %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_SLL: RvR_log("sll %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_SLT: RvR_log("slt %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_SLTU: RvR_log("sltu %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_XOR: RvR_log("xor %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_SRL: RvR_log("srl %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_SRA: RvR_log("sra %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_OR: RvR_log("or %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_AND: RvR_log("and %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_MUL: RvR_log("mul %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_MULH: RvR_log("mulh %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_MULHSU: RvR_log("mulhsu %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_MULHU: RvR_log("mulhu %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_DIV: RvR_log("div %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_DIVU: RvR_log("divu %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_REM: RvR_log("rem %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      case RVR_VM_OP_REMU: RvR_log("remu %s,%s,%s\n", reg_names[rd], reg_names[rs1], reg_names[rs2]); break;
+      }
       break;
    case RVR_VM_OP_AUIPC:
       rd = (op >> 6) & 31;
@@ -881,7 +966,7 @@ static void rvr_vm_disassemble_instruction(uint32_t op)
       RvR_log("jal %s,%d\n", reg_names[rd], imm);
       break;
    default:
-      RvR_log("%d\n", op & 63);
+      RvR_log("unknown instruction %d\n", op & 63);
    }
 }
 

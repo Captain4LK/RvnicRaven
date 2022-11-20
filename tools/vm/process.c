@@ -213,34 +213,7 @@ int main(int argc, char **argv)
       RvR_log("|size    |%16d|\n", size);
       if(strcmp(name, ".text")==0)
          code_size = size;
-      //RvR_log("|p_vaddr |%16d|\n", entries[i].p_vaddr);
-      //RvR_log("|p_filesz|%16d|\n", entries[i].p_filesz);
-      //RvR_log("|p_memsz |%16d|\n", entries[i].p_memsz);
-      //RvR_log("|p_flags |%16d|\n", entries[i].flags);
       RvR_log("|-------------------------|\n");
-      /*entries[i].type = RvR_rw_read_u32(&rw);
-      entries[i].p_offset = RvR_rw_read_u32(&rw);
-      entries[i].p_vaddr = RvR_rw_read_u32(&rw);
-      RvR_rw_read_u32(&rw);
-      entries[i].p_filesz = RvR_rw_read_u32(&rw);
-      entries[i].p_memsz = RvR_rw_read_u32(&rw);
-      entries[i].flags = RvR_rw_read_u32(&rw);
-      RvR_rw_read_u32(&rw);
-
-      RvR_log("|type    |%16d|\n", entries[i].type);
-      RvR_log("|p_offset|%16d|\n", entries[i].p_offset);
-      RvR_log("|p_vaddr |%16d|\n", entries[i].p_vaddr);
-      RvR_log("|p_filesz|%16d|\n", entries[i].p_filesz);
-      RvR_log("|p_memsz |%16d|\n", entries[i].p_memsz);
-      RvR_log("|p_flags |%16d|\n", entries[i].flags);
-      RvR_log("|-------------------------|\n");
-
-      if(entries[i].type!=1)
-         continue;
-
-      entry_count++;
-      if(entries[i].p_vaddr + entries[i].p_memsz>mem_size)
-         mem_size = entries[i].p_vaddr + entries[i].p_memsz;*/
    }
    //-------------------------------------
 
