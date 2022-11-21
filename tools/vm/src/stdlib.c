@@ -37,7 +37,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void abort()
 {
    register int a0 asm ("a0") = 0;
-   register int syscall_id asm ("a7") = 18;
+   register int syscall_id asm ("a7") = -18;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
 
    __builtin_unreachable();
@@ -51,7 +51,7 @@ int abs(int n)
 int atoi(const char *s)
 {
    register int a0 asm ("a0") = (intptr_t)s;
-   register int syscall_id asm ("a7") = 19;
+   register int syscall_id asm ("a7") = -19;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
 
    return a0;
@@ -115,14 +115,14 @@ void exit(int exit_code)
 void free(void *ptr)
 {
    register int a0 asm ("a0") = (intptr_t)ptr;
-   register int syscall_id asm ("a7") = 20;
+   register int syscall_id asm ("a7") = -20;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
 }
 
 void *malloc(size_t size)
 {
    register int a0 asm ("a0") = size;
-   register int syscall_id asm ("a7") = 21;
+   register int syscall_id asm ("a7") = -21;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
 
    return (void *)(intptr_t)a0;
@@ -158,7 +158,7 @@ void qsort(void *array, size_t count, size_t size, int (*cmp)(const void *, cons
 int rand()
 {
    register int a0 asm ("a0") = 0;
-   register int syscall_id asm ("a7") = 22;
+   register int syscall_id asm ("a7") = -22;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
 
    return a0;
@@ -168,7 +168,7 @@ void *realloc(void *ptr, size_t new_size)
 {
    register int a0 asm ("a0") = (intptr_t)ptr;
    register int a1 asm ("a1") = new_size;
-   register int syscall_id asm ("a7") = 23;
+   register int syscall_id asm ("a7") = -23;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }

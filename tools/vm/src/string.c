@@ -39,7 +39,7 @@ void *memchr(const void *ptr, int c, size_t count)
    register int a0 asm ("a0") = (intptr_t)ptr;
    register int a1 asm ("a1") = c;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 1;
+   register int syscall_id asm ("a7") = -1;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -49,7 +49,7 @@ int memcmp(const void *lhs, const void *rhs, size_t count)
    register int a0 asm ("a0") = (intptr_t)lhs;
    register int a1 asm ("a1") = (intptr_t)rhs;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 2;
+   register int syscall_id asm ("a7") = -2;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return a0;
 }
@@ -59,7 +59,7 @@ void *memcpy(void * restrict dest, const void * restrict src, size_t count)
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 3;
+   register int syscall_id asm ("a7") = -3;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -69,7 +69,7 @@ void *memmove(void *dest, const void *src, size_t count)
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 4;
+   register int syscall_id asm ("a7") = -4;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -79,7 +79,7 @@ void *memset(void *dest, int c, size_t count)
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = c;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 5;
+   register int syscall_id asm ("a7") = -5;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -88,7 +88,7 @@ char *strcat(char * restrict dest, const char * restrict src)
 {
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
-   register int syscall_id asm ("a7") = 6;
+   register int syscall_id asm ("a7") = -6;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -97,7 +97,7 @@ char *strchr(const char *str, int c)
 {
    register int a0 asm ("a0") = (intptr_t)str;
    register int a1 asm ("a1") = c;
-   register int syscall_id asm ("a7") = 7;
+   register int syscall_id asm ("a7") = -7;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -106,7 +106,7 @@ int strcmp(const char *lhs, const char *rhs)
 {
    register int a0 asm ("a0") = (intptr_t)lhs;
    register int a1 asm ("a1") = (intptr_t)rhs;
-   register int syscall_id asm ("a7") = 8;
+   register int syscall_id asm ("a7") = -8;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return a0;
 }
@@ -115,7 +115,7 @@ char *strcpy(char * restrict dest, const char * restrict src)
 {
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
-   register int syscall_id asm ("a7") = 9;
+   register int syscall_id asm ("a7") = -9;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -124,7 +124,7 @@ size_t strcspn(const char *dest, const char *src)
 {
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
-   register int syscall_id asm ("a7") = 10;
+   register int syscall_id asm ("a7") = -10;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return a0;
 }
@@ -138,7 +138,7 @@ char *strerror(int errnum)
 size_t strlen(const char *str)
 {
    register int a0 asm ("a0") = (intptr_t)str;
-   register int syscall_id asm ("a7") = 11;
+   register int syscall_id asm ("a7") = -11;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
    return a0;
 }
@@ -148,7 +148,7 @@ char *strncat(char * restrict dest, const char * restrict src, size_t count)
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 12;
+   register int syscall_id asm ("a7") = -12;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -158,7 +158,7 @@ int strncmp(const char *lhs, const char *rhs, size_t count)
    register int a0 asm ("a0") = (intptr_t)lhs;
    register int a1 asm ("a1") = (intptr_t)rhs;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 13;
+   register int syscall_id asm ("a7") = -13;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return a0;
 }
@@ -168,7 +168,7 @@ char *strncpy(char * restrict dest, const char * restrict src, size_t count)
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
    register int a2 asm ("a2") = count;
-   register int syscall_id asm ("a7") = 14;
+   register int syscall_id asm ("a7") = -14;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (a2), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -177,7 +177,7 @@ char *strpbrk(const char *dest, const char *breakset)
 {
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)breakset;
-   register int syscall_id asm ("a7") = 15;
+   register int syscall_id asm ("a7") = -15;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -186,7 +186,7 @@ char *strrchr(const char *str, int c)
 {
    register int a0 asm ("a0") = (intptr_t)str;
    register int a1 asm ("a1") = c;
-   register int syscall_id asm ("a7") = 16;
+   register int syscall_id asm ("a7") = -16;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return (void *)(intptr_t)a0;
 }
@@ -195,7 +195,7 @@ size_t strspn(const char *dest, const char *src)
 {
    register int a0 asm ("a0") = (intptr_t)dest;
    register int a1 asm ("a1") = (intptr_t)src;
-   register int syscall_id asm ("a7") = 17;
+   register int syscall_id asm ("a7") = -17;
    asm volatile ("ecall" : "+r" (a0) : "r" (a1), "r" (syscall_id));
    return a0;
 }

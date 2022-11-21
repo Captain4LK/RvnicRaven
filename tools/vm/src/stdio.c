@@ -32,7 +32,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 int puts(const char *str)
 {
    register int a0 asm ("a0") = (intptr_t)str;
-   register int syscall_id asm ("a7") = 24;
+   register int syscall_id asm ("a7") = -24;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
    return a0;
 }
@@ -40,7 +40,7 @@ int puts(const char *str)
 int putchar(int ch)
 {
    register int a0 asm ("a0") = ch;
-   register int syscall_id asm ("a7") = 25;
+   register int syscall_id asm ("a7") = -25;
    asm volatile ("ecall" : "+r" (a0) : "r" (syscall_id));
    return a0;
 }

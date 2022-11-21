@@ -163,7 +163,7 @@ typedef enum
 static int rvr_vm_syscall_term = 0;
 static void *rvr_vm_stack = NULL;
 
-static uint32_t rvr_vm_syscall(RvR_vm *vm, uint32_t code);
+static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code);
 static void rvr_vm_disassemble_instruction(uint32_t op);
 
 void RvR_vm_create(RvR_vm *vm, RvR_rw *code)
@@ -707,82 +707,82 @@ case_OP_INVALID: //The code is faster if this is here. WTF?
    }
 }
 
-static uint32_t rvr_vm_syscall(RvR_vm *vm, uint32_t code)
+static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code)
 {
    switch(code)
    {
    case 0: //exit
       rvr_vm_syscall_term = 1;
       break;
-   case 1: //memchr
+   case -1: //memchr
    {
       void *res = memchr((uint8_t *)vm->mem_base + vm->regs[10], vm->regs[11], vm->regs[12]);
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
-   case 2: //memcmp
+   case -2: //memcmp
       return memcmp((uint8_t *)vm->mem_base + vm->regs[10], (uint8_t *)vm->mem_base + vm->regs[11], vm->regs[12]);
-   case 3: //memcpy
+   case -3: //memcpy
       return (intptr_t)memcpy((uint8_t *)vm->mem_base + vm->regs[10], (uint8_t *)vm->mem_base + vm->regs[11], vm->regs[12]) - (intptr_t)vm->mem_base;
-   case 4: //memmove
+   case -4: //memmove
       return (intptr_t)memmove((uint8_t *)vm->mem_base + vm->regs[10], (uint8_t *)vm->mem_base + vm->regs[11], vm->regs[12]) - (intptr_t)vm->mem_base;
-   case 5: //memset
+   case -5: //memset
       return (intptr_t)memset((uint8_t *)vm->mem_base + vm->regs[10], vm->regs[11], vm->regs[12]) - (intptr_t)vm->mem_base;
-   case 6: //strcat
+   case -6: //strcat
       return (intptr_t)strcat((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11])) - (intptr_t)vm->mem_base;
-   case 7: //strchr
+   case -7: //strchr
    {
       void *res = strchr((char *)((uint8_t *)vm->mem_base + vm->regs[10]), vm->regs[11]);
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
-   case 8: //strcmp
+   case -8: //strcmp
       return strcmp((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]));
-   case 9: //strcpy
+   case -9: //strcpy
       return (intptr_t)strcpy((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11])) - (intptr_t)vm->mem_base;
-   case 10: //strcspn
+   case -10: //strcspn
       return strcspn((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]));
-   case 11: //strlen
+   case -11: //strlen
       return strlen((char *)((uint8_t *)vm->mem_base + vm->regs[10]));
-   case 12: //strncat
+   case -12: //strncat
       return (intptr_t)strncat((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]), vm->regs[12]) - (intptr_t)vm->mem_base;
-   case 13: //strncmp
+   case -13: //strncmp
       return strncmp((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]), vm->regs[12]);
-   case 14: //strncpy
+   case -14: //strncpy
       return (intptr_t)strncmp((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]), vm->regs[12]) - (intptr_t)vm->mem_base;
-   case 15: //strpbrk
+   case -15: //strpbrk
    {
       void *res = strpbrk((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]));
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
-   case 16: //strrchr
+   case -16: //strrchr
    {
       void *res = strrchr((char *)((uint8_t *)vm->mem_base + vm->regs[10]), vm->regs[11]);
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
-   case 17: //strspn
+   case -17: //strspn
       return strspn((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]));
-   case 18: //abort
+   case -18: //abort
       rvr_vm_syscall_term = 1;
       break;
-   case 19: //atoi
+   case -19: //atoi
       return atoi((char *)((uint8_t *)vm->mem_base + vm->regs[10]));
-   case 20: //free
+   case -20: //free
       RvR_free((uint8_t *)vm->mem_base + vm->regs[10]);
       break;
-   case 21: //malloc
+   case -21: //malloc
    {
       void *res = RvR_malloc(vm->regs[10]);
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
-   case 22: //rand
+   case -22: //rand
       return rand();
-   case 23: //realloc
+   case -23: //realloc
    {
       void *res = RvR_realloc((uint8_t *)vm->mem_base + vm->regs[10], vm->regs[11]);
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
-   case 24: //puts
+   case -24: //puts
       return puts((char *)((uint8_t *)vm->mem_base + vm->regs[10]));
-   case 25: //putchar
+   case -25: //putchar
       return putchar(vm->regs[10]);
    }
    return 0;
