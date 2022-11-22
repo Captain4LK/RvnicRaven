@@ -18,8 +18,12 @@
 
 #define _RVR_VM_H_
 
+typedef struct RvR_vm RvR_vm;
 
-typedef struct
+typedef intptr_t (*RvR_vm_func_call) (RvR_vm *vm, intptr_t *args);
+typedef uint32_t (*RvR_vm_syscall) (RvR_vm *vm, int32_t code);
+
+struct RvR_vm
 {
    uint8_t *code;
    void *mem_base;
@@ -30,9 +34,9 @@ typedef struct
    //Registers
    uint8_t *pc;
    int32_t regs[32];
-}RvR_vm;
 
-typedef intptr_t (*RvR_vm_func_call) (RvR_vm *vm, intptr_t *args);
+   RvR_vm_syscall sys;
+};
 
 void RvR_vm_create(RvR_vm *vm, RvR_rw *code);
 void RvR_vm_free(RvR_vm *vm);
@@ -542,16 +546,9 @@ case_OP_SYSCALL:
       imm = (imm << 16) >> 16; //sign extend
       rvr_vm_syscall_term = 0;
 
-      switch(imm)
-      {
-      case 0:
-         vm->regs[10] = rvr_vm_syscall(vm, vm->regs[17]);
-         if(rvr_vm_syscall_term)
-            return;
-         break;
-      case 1:
+      vm->regs[10] = rvr_vm_syscall(vm, vm->regs[17]);
+      if(rvr_vm_syscall_term)
          return;
-      }
 
       DISPATCH();
 case_OP_ADD:
@@ -701,8 +698,9 @@ case_OP_JAL:
       vm->pc += imm;
 
       DISPATCH_BRANCH();
-case_OP_INVALID: //The code is faster if this is here. WTF?
-      printf("msiing instruction %d\n", op & 63);
+case_OP_INVALID: //The code is faster if you put a printf here, but only if there is no function pointer check for user syscalls in rvr_vm_syscall()... WTF?
+      //printf("msiing instruction %d\n", op & 63);
+      RvR_vm_unreachable();
       }
    }
 }
@@ -785,6 +783,11 @@ static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code)
    case -25: //putchar
       return putchar(vm->regs[10]);
    }
+   
+   //The mere existence of these two lines makes the vm 20% slower... WTF?
+   if(vm->sys!=NULL)
+      return vm->sys(vm,code);
+
    return 0;
 }
 

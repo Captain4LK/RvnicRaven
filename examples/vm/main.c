@@ -47,6 +47,12 @@ static uint8_t mem[1<<25];
 
 //Function implementations
 
+static uint32_t vm_syscall(RvR_vm *vm, int32_t code)
+{
+   puts("SYSCALL");
+   return 0;
+}
+
 int main(int argc, char **argv)
 {
    RvR_malloc_init(mem,1<<25);
@@ -55,6 +61,7 @@ int main(int argc, char **argv)
    RvR_rw rw = {0};
    RvR_rw_init_path(&rw,"test.bin","rb");
    RvR_vm_create(&vm,&rw);
+   vm.sys = &vm_syscall;
    RvR_rw_close(&rw);
 
    //RvR_vm_disassemble(&vm);
