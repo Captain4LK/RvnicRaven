@@ -50,6 +50,7 @@ static uint8_t mem[1<<25];
 static uint32_t vm_syscall(RvR_vm *vm, int32_t code)
 {
    puts("SYSCALL");
+   printf("%d\n",vm->regs[10]);
    return 0;
 }
 
@@ -65,7 +66,7 @@ int main(int argc, char **argv)
    RvR_rw_close(&rw);
 
    //RvR_vm_disassemble(&vm);
-   RvR_vm_run(&vm,vm.pc_entry);
+   RvR_vm_call_init(&vm);
 
    return 0;
 }

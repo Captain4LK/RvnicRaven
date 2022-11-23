@@ -7,6 +7,6 @@ _start:
     .option pop
     li  a1,0
     li  a0,0
-    jal ra, main
+    jal ra, init 
     jal ra, exit
     .end

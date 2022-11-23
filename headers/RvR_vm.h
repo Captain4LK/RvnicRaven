@@ -41,7 +41,9 @@ struct RvR_vm
 void RvR_vm_create(RvR_vm *vm, RvR_rw *code);
 void RvR_vm_free(RvR_vm *vm);
 void RvR_vm_disassemble(RvR_vm *vm);
-void RvR_vm_run(RvR_vm *vm, uint32_t instr);
+void RvR_vm_run(RvR_vm *vm); //Runs the main() functions of the vm, intended for setup
+void RvR_vm_call(RvR_vm *vm, uint32_t instr);
+void RvR_vm_call_init(RvR_vm *vm);
 void RvR_vm_stack_free(); //Call after all vms have been destroyed
 
 #endif
@@ -166,6 +168,7 @@ typedef enum
 
 static int rvr_vm_syscall_term = 0;
 static void *rvr_vm_stack = NULL;
+static void *rvr_vm_stack_ptr = NULL;
 
 static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code);
 static void rvr_vm_disassemble_instruction(uint32_t op);
@@ -178,6 +181,7 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code)
    if(rvr_vm_stack==NULL)
    {
       rvr_vm_stack = RvR_malloc(RVR_VM_STACK_SIZE);
+      rvr_vm_stack_ptr = rvr_vm_stack+RVR_VM_STACK_SIZE;
       memset(rvr_vm_stack, 0, RVR_VM_STACK_SIZE);
    }
 
@@ -235,13 +239,32 @@ void RvR_vm_disassemble(RvR_vm *vm)
    }
 }
 
-void RvR_vm_run(RvR_vm *vm, uint32_t instr)
+void RvR_vm_call(RvR_vm *vm, uint32_t instr)
 {
    if(vm==NULL)
       return;
 
-   vm->pc = (uint8_t *)vm->code + instr;
-   vm->regs[2] = ((intptr_t)rvr_vm_stack - (intptr_t)vm->mem_base) + RVR_VM_STACK_SIZE;
+   RvR_vm_run(vm);
+}
+
+void RvR_vm_call_init(RvR_vm *vm)
+{
+   if(vm==NULL)
+      return;
+
+   vm->regs[2] = (intptr_t)rvr_vm_stack_ptr-(intptr_t)vm->mem_base;
+   vm->pc = (uint8_t *)vm->code+vm->pc_entry;
+
+   RvR_vm_run(vm);
+}
+
+void RvR_vm_run(RvR_vm *vm)
+{
+   if(vm==NULL)
+      return;
+
+   //vm->pc = (uint8_t *)vm->code + vm->pc_entry;
+   //vm->regs[2] = ((intptr_t)rvr_vm_stack - (intptr_t)vm->mem_base) + RVR_VM_STACK_SIZE;
    uint32_t op;
    int32_t rs1;
    int32_t rs2;
@@ -316,6 +339,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
       next:
       vm->regs[0] = 0;
       op = *((uint32_t *)vm->pc);
+      //rvr_vm_disassemble_instruction(op);
 #endif
 
       switch(op & 63)
@@ -711,7 +735,8 @@ static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code)
    {
    case 0: //exit
       rvr_vm_syscall_term = 1;
-      break;
+      rvr_vm_stack_ptr = (uint8_t *)vm->mem_base+vm->regs[2];
+      return 0;
    case -1: //memchr
    {
       void *res = memchr((uint8_t *)vm->mem_base + vm->regs[10], vm->regs[11], vm->regs[12]);
@@ -760,7 +785,8 @@ static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code)
       return strspn((char *)((uint8_t *)vm->mem_base + vm->regs[10]), (char *)((uint8_t *)vm->mem_base + vm->regs[11]));
    case -18: //abort
       rvr_vm_syscall_term = 1;
-      break;
+      rvr_vm_stack_ptr = (uint8_t *)vm->mem_base+vm->regs[2];
+      return 0;
    case -19: //atoi
       return atoi((char *)((uint8_t *)vm->mem_base + vm->regs[10]));
    case -20: //free
@@ -784,9 +810,12 @@ static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code)
       return putchar(vm->regs[10]);
    }
    
-   //The mere existence of these two lines makes the vm 20% slower... WTF?
+   //The mere existence of these lines makes the vm 20% slower... WTF?
    if(vm->sys!=NULL)
+   {
+      rvr_vm_stack_ptr = (uint8_t *)vm->mem_base+vm->regs[2];
       return vm->sys(vm,code);
+   }
 
    return 0;
 }
