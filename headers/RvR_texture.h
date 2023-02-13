@@ -106,13 +106,13 @@ static void rvr_texture_load(uint16_t id)
    if(rvr_texture_cache.cache==NULL)
    {
       rvr_texture_cache.cache_used = 0;
-      rvr_texture_cache.cache = RvR_malloc(sizeof(*rvr_texture_cache.cache) * RVR_TEXTURE_MAX);
+      rvr_texture_cache.cache = RvR_malloc(sizeof(*rvr_texture_cache.cache) * RVR_TEXTURE_MAX, "RvR texture cache array");
       memset(rvr_texture_cache.cache, 0, sizeof(*rvr_texture_cache.cache) * RVR_TEXTURE_MAX);
    }
    if(rvr_textures==NULL)
    {
-      rvr_textures = RvR_malloc(sizeof(*rvr_textures) * (UINT16_MAX + 1));
-      rvr_textures_cache = RvR_malloc(sizeof(*rvr_textures_cache) * (UINT16_MAX + 1));
+      rvr_textures = RvR_malloc(sizeof(*rvr_textures) * (UINT16_MAX + 1), "RvR texture ptr array");
+      rvr_textures_cache = RvR_malloc(sizeof(*rvr_textures_cache) * (UINT16_MAX + 1), "RvR texture cache");
       memset(rvr_textures, 0, sizeof(*rvr_textures) * (UINT16_MAX + 1));
       memset(rvr_textures_cache, 0, sizeof(*rvr_textures_cache) * (UINT16_MAX + 1));
    }
@@ -175,7 +175,7 @@ static void rvr_texture_load(uint16_t id)
 
    int32_t width = RvR_rw_read_u32(&rw);
    int32_t height = RvR_rw_read_u32(&rw);
-   rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height);
+   rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height, "RvR texture");
    rvr_textures[id]->width = width;
    rvr_textures[id]->height = height;
    for(int i = 0; i<rvr_textures[id]->width * rvr_textures[id]->height; i++)
@@ -193,8 +193,8 @@ void RvR_texture_create(uint16_t id, int width, int height)
 {
    if(rvr_textures==NULL)
    {
-      rvr_textures = RvR_malloc(sizeof(*rvr_textures) * (UINT16_MAX + 1));
-      rvr_textures_cache = RvR_malloc(sizeof(*rvr_textures_cache) * (UINT16_MAX + 1));
+      rvr_textures = RvR_malloc(sizeof(*rvr_textures) * (UINT16_MAX + 1), "RvR texture cache");
+      rvr_textures_cache = RvR_malloc(sizeof(*rvr_textures_cache) * (UINT16_MAX + 1), "RvR texture cache array");
       memset(rvr_textures, 0, sizeof(*rvr_textures) * (UINT16_MAX + 1));
       memset(rvr_textures_cache, 0, sizeof(*rvr_textures_cache) * (UINT16_MAX + 1));
    }
@@ -202,7 +202,7 @@ void RvR_texture_create(uint16_t id, int width, int height)
    if(rvr_textures[id]!=NULL)
       return;
 
-   rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height);
+   rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height, "RvR texture");
    rvr_textures[id]->width = width;
    rvr_textures[id]->height = height;
    rvr_textures_cache[id] = -1;

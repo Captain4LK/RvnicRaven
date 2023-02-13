@@ -52,7 +52,7 @@ void RvR_palette_load(uint16_t id)
 
    //Allocate palette if it isn't yet
    if(rvr_palette==NULL)
-      rvr_palette = RvR_malloc(sizeof(*rvr_palette) * 256);
+      rvr_palette = RvR_malloc(sizeof(*rvr_palette) * 256, "RvR palette");
 
    //Format lump name
    //Palettes must be named in this exact way (e.g. PAL00000)
@@ -83,7 +83,7 @@ void RvR_palette_load(uint16_t id)
 static void rvr_pal_calculate_colormap()
 {
    if(rvr_pal_shade_table==NULL)
-      rvr_pal_shade_table = RvR_malloc(sizeof(*rvr_pal_shade_table) * 256 * 64);
+      rvr_pal_shade_table = RvR_malloc(sizeof(*rvr_pal_shade_table) * 256 * 64, "RvR palette shade table");
 
    //Distance fading
    for(int x = 0; x<256; x++)

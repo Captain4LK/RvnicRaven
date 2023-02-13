@@ -1,19 +1,19 @@
 #ifndef _RVR_PAK_H_
 
 /*
-   RvnicRaven -
+RvnicRaven - pak file managment
 
-   Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
-   To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
+To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-   You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 /*
-   To create implementation (the function definitions) add
-      #define RVR_PAK_IMPLEMENTATION
-   before including this file in *one* C file (translation unit)
+To create implementation (the function definitions) add
+   #define RVR_PAK_IMPLEMENTATION
+before including this file in *one* C file (translation unit)
 */
 
 #define _RVR_PAK_H_
@@ -85,7 +85,7 @@ static struct
    uint32_t used;
    uint32_t size;
    rvr_pak_lump *data;
-} rvr_pak_lumps[256] = {0};
+} rvr_pak_lumps = {0};
 
 static struct
 {
@@ -243,30 +243,30 @@ void *RvR_lump_get(const char *name, unsigned *size)
 
    char name8[8];
    strncpy(name8, name, 8);
-   uint8_t lump_index = RvR_fnv32a_buf(name8, 8, RVR_HASH_FNV32_INIT); //Would xor folding be better?
+   //uint8_t lump_index = RvR_fnv32a_buf(name8, 8, RVR_HASH_FNV32_INIT); //Would xor folding be better?
 
-   for(uint32_t i = 0; i<rvr_pak_lumps[lump_index].used; i++)
+   for(uint32_t i = 0; i<rvr_pak_lumps.used; i++)
    {
-      if(strncmp(name, rvr_pak_lumps[lump_index].data[i].name, 8)==0)
+      if(strncmp(name, rvr_pak_lumps.data[i].name, 8)==0)
       {
          //Check for pak file
          char ext[RVR_CUTE_PATH_MAX_EXT] = {0};
-         rvr_pak_path_pop_ext(rvr_pak_paths.data[rvr_pak_lumps[lump_index].data[i].path], NULL, ext);
+         rvr_pak_path_pop_ext(rvr_pak_paths.data[rvr_pak_lumps.data[i].path], NULL, ext);
          if(strncmp(ext, "pak", RVR_CUTE_PATH_MAX_EXT)==0)
          {
             //Check if pak already opened
             rvr_pak_queue *b = rvr_pak_buffer;
             while(b)
             {
-               if(strcmp(b->path, rvr_pak_paths.data[rvr_pak_lumps[lump_index].data[i].path])==0)
+               if(strcmp(b->path, rvr_pak_paths.data[rvr_pak_lumps.data[i].path])==0)
                   break;
                b = b->next;
             }
             if(b==NULL)
             {
-               b = RvR_malloc(sizeof(*b));
-               b->pak = rvr_pak_open(rvr_pak_paths.data[rvr_pak_lumps[lump_index].data[i].path], "r");
-               strncpy(b->path, rvr_pak_paths.data[rvr_pak_lumps[lump_index].data[i].path], 255);
+               b = RvR_malloc(sizeof(*b), "RvR_pak queue entry");
+               b->pak = rvr_pak_open(rvr_pak_paths.data[rvr_pak_lumps.data[i].path], "r");
+               strncpy(b->path, rvr_pak_paths.data[rvr_pak_lumps.data[i].path], 255);
                b->path[255] = '\0';
                b->next = rvr_pak_buffer;
                rvr_pak_buffer = b;
@@ -279,14 +279,14 @@ void *RvR_lump_get(const char *name, unsigned *size)
          }
 
          //Raw reading
-         FILE *f = fopen(rvr_pak_paths.data[rvr_pak_lumps[lump_index].data[i].path], "rb");
-         RvR_error_check(f!=NULL, "RvR_lump_get", "failed to open '%s'\n", rvr_pak_paths.data[rvr_pak_lumps[lump_index].data[i].path]);
+         FILE *f = fopen(rvr_pak_paths.data[rvr_pak_lumps.data[i].path], "rb");
+         RvR_error_check(f!=NULL, "RvR_lump_get", "failed to open '%s'\n", rvr_pak_paths.data[rvr_pak_lumps.data[i].path]);
          fseek(f, 0, SEEK_END);
          unsigned fsize = ftell(f);
          if(size!=NULL)
             *size = fsize;
          fseek(f, 0, SEEK_SET);
-         uint8_t *buffer = RvR_malloc(fsize + 1);
+         uint8_t *buffer = RvR_malloc(fsize + 1, "RvR_pak file content");
          fread(buffer, fsize, 1, f);
          buffer[fsize] = 0;
          fclose(f);
@@ -310,9 +310,9 @@ const char *RvR_lump_get_path(const char *name)
    strncpy(name8, name, 8);
    uint8_t lump_index = RvR_fnv32a_buf(name8, 8, RVR_HASH_FNV32_INIT); //Would xor folding be better?
 
-   for(int i = rvr_pak_lumps[lump_index].used - 1; i>=0; i--)
-      if(strncmp(name, rvr_pak_lumps[lump_index].data[i].name, 8)==0)
-         return rvr_pak_paths.data[rvr_pak_lumps[lump_index].data[i].path];
+   for(int i = rvr_pak_lumps.used - 1; i>=0; i--)
+      if(strncmp(name, rvr_pak_lumps.data[i].name, 8)==0)
+         return rvr_pak_paths.data[rvr_pak_lumps.data[i].path];
 
    RvR_log("RvR_pak: lump %s not found\n", name);
 
@@ -328,8 +328,8 @@ int RvR_lump_exists(const char *name)
    strncpy(name8, name, 8);
    uint8_t lump_index = RvR_fnv32a_buf(name8, 8, RVR_HASH_FNV32_INIT); //Would xor folding be better?
 
-   for(int i = rvr_pak_lumps[lump_index].used - 1; i>=0; i--)
-      if(strncmp(name, rvr_pak_lumps[lump_index].data[i].name, 8)==0)
+   for(int i = rvr_pak_lumps.used - 1; i>=0; i--)
+      if(strncmp(name, rvr_pak_lumps.data[i].name, 8)==0)
          return 1;
 
 RvR_err:
@@ -398,7 +398,7 @@ static void rvr_pak_add_pak(const char *path)
    RvR_error_check(path!=NULL, "pak_add_pak", "argument 'path' must be non-NULL\n");
 
    //Add pak to list
-   rvr_pak_queue *b = RvR_malloc(sizeof(*b));
+   rvr_pak_queue *b = RvR_malloc(sizeof(*b), "RvR_pak queue entry");
    b->pak = rvr_pak_open(path, "r");
    strncpy(b->path, path, 255);
    b->path[255] = '\0';
@@ -422,28 +422,28 @@ static void rvr_pak_lumps_push(rvr_pak_lump l)
    uint8_t lump_index = RvR_fnv32a_buf(l.name, 8, RVR_HASH_FNV32_INIT); //Would xor folding be better?
 
    //Allocate memory for list
-   if(rvr_pak_lumps[lump_index].data==NULL)
+   if(rvr_pak_lumps.data==NULL)
    {
-      rvr_pak_lumps[lump_index].size = 4;
-      rvr_pak_lumps[lump_index].used = 0;
-      rvr_pak_lumps[lump_index].data = RvR_malloc(sizeof(*rvr_pak_lumps[lump_index].data) * rvr_pak_lumps[lump_index].size);
+      rvr_pak_lumps.size = 4;
+      rvr_pak_lumps.used = 0;
+      rvr_pak_lumps.data = RvR_malloc(sizeof(*rvr_pak_lumps.data) * rvr_pak_lumps.size, "RvR_pak lumps");
    }
 
    //Override existing entry
-   for(uint32_t i = 0; i<rvr_pak_lumps[lump_index].used; i++)
+   for(uint32_t i = 0; i<rvr_pak_lumps.used; i++)
    {
-      if(strncmp(rvr_pak_lumps[lump_index].data[i].name, l.name, 8)==0)
+      if(strncmp(rvr_pak_lumps.data[i].name, l.name, 8)==0)
       {
-         memcpy(&rvr_pak_lumps[lump_index].data[i], &l, sizeof(l));
+         memcpy(&rvr_pak_lumps.data[i], &l, sizeof(l));
          return;
       }
    }
 
-   rvr_pak_lumps[lump_index].data[rvr_pak_lumps[lump_index].used++] = l;
-   if(rvr_pak_lumps[lump_index].used==rvr_pak_lumps[lump_index].size)
+   rvr_pak_lumps.data[rvr_pak_lumps.used++] = l;
+   if(rvr_pak_lumps.used==rvr_pak_lumps.size)
    {
-      rvr_pak_lumps[lump_index].size *= 2;
-      rvr_pak_lumps[lump_index].data = RvR_realloc(rvr_pak_lumps[lump_index].data, sizeof(*rvr_pak_lumps[lump_index].data) * rvr_pak_lumps[lump_index].size);
+      rvr_pak_lumps.size *= 2;
+      rvr_pak_lumps.data = RvR_realloc(rvr_pak_lumps.data, sizeof(*rvr_pak_lumps.data) * rvr_pak_lumps.size, "RvR pak lumps grow");
    }
 }
 
@@ -456,7 +456,7 @@ static uint32_t rvr_pak_paths_push(const char *path)
    {
       rvr_pak_paths.size = 16;
       rvr_pak_paths.used = 0;
-      rvr_pak_paths.data = RvR_malloc(sizeof(*rvr_pak_paths.data) * rvr_pak_paths.size);
+      rvr_pak_paths.data = RvR_malloc(sizeof(*rvr_pak_paths.data) * rvr_pak_paths.size, "RvR_pak paths");
    }
 
    //Check if already added
@@ -470,7 +470,7 @@ static uint32_t rvr_pak_paths_push(const char *path)
    if(rvr_pak_paths.used==rvr_pak_paths.size)
    {
       rvr_pak_paths.size += 16;
-      rvr_pak_paths.data = RvR_realloc(rvr_pak_paths.data, sizeof(*rvr_pak_paths.data) * rvr_pak_paths.size);
+      rvr_pak_paths.data = RvR_realloc(rvr_pak_paths.data, sizeof(*rvr_pak_paths.data) * rvr_pak_paths.size, "RvR pak paths grow");
    }
 
 RvR_err:
@@ -750,7 +750,7 @@ static void *rvr_pak_extract(rvr_pak *p, unsigned index)
       if(RvR_rw_seek(p->in, e->offset, SEEK_SET)!=0)
          return NULL;
 
-      void *buffer = RvR_malloc(e->size);
+      void *buffer = RvR_malloc(e->size, "RvR_pak file content");
       if(RvR_rw_read(p->in, buffer, 1, e->size)!=e->size)
       {
          RvR_free(buffer);
@@ -792,11 +792,11 @@ static rvr_pak *rvr_pak_open(const char *fname, const char *mode)
       return NULL;
    }
 
-   rw = RvR_malloc(sizeof(*rw));
+   rw = RvR_malloc(sizeof(*rw), "RvR_pak rw struct");
    RvR_rw_init_path(rw, fname, mode[0]=='w'?"wb":mode[0]=='r'?"rb":"rb+");
    RvR_rw_endian_set(rw, RVR_RW_LITTLE_ENDIAN);
 
-   p = RvR_malloc(sizeof(*p));
+   p = RvR_malloc(sizeof(*p), "RvR_pak file");
    memset(p, 0, sizeof(*p));
 
    if(mode[0]=='r')
@@ -815,7 +815,7 @@ static rvr_pak *rvr_pak_open(const char *fname, const char *mode)
          goto RvR_err;
 
       p->count = num_files;
-      p->entries = RvR_malloc(num_files * sizeof(*p->entries));
+      p->entries = RvR_malloc(num_files * sizeof(*p->entries), "RvR_pak file entries");
 
       for(unsigned i = 0; i<num_files; i++)
       {
@@ -872,7 +872,7 @@ static void rvr_pak_append_file(rvr_pak *p, const char *filename, FILE *in)
 
    //index meta
    unsigned index = p->count++;
-   p->entries = RvR_realloc(p->entries, p->count * sizeof(*p->entries));
+   p->entries = RvR_realloc(p->entries, p->count * sizeof(*p->entries), "RvR pak file entries grow");
    rvr_pak_file *e = &p->entries[index];
    memset(e, 0, sizeof(*e));
    strncpy(e->name, filename, 9);
@@ -893,7 +893,7 @@ static void rvr_pak_append_file(rvr_pak *p, const char *filename, FILE *in)
 RvR_err:
 
    p->count = count_old;
-   p->entries = RvR_realloc(p->entries, p->count * sizeof(*p->entries));
+   p->entries = RvR_realloc(p->entries, p->count * sizeof(*p->entries), "RvR pak file entries shrink");
 
    return;
 }

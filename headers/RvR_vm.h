@@ -180,7 +180,7 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code)
 
    if(rvr_vm_stack==NULL)
    {
-      rvr_vm_stack = RvR_malloc(RVR_VM_STACK_SIZE);
+      rvr_vm_stack = RvR_malloc(RVR_VM_STACK_SIZE,"RvR_vm stack");
       rvr_vm_stack_ptr = rvr_vm_stack+RVR_VM_STACK_SIZE;
       memset(rvr_vm_stack, 0, RVR_VM_STACK_SIZE);
    }
@@ -192,7 +192,7 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code)
    uint32_t entry_count = RvR_rw_read_u32(code);
 
    vm->code_size = size;
-   vm->code = RvR_malloc(size);
+   vm->code = RvR_malloc(size,"RvR_vm code");
 
    for(int i = 0; i<entry_count; i++)
    {
@@ -794,14 +794,14 @@ static uint32_t rvr_vm_syscall(RvR_vm *vm, int32_t code)
       break;
    case -21: //malloc
    {
-      void *res = RvR_malloc(vm->regs[10]);
+      void *res = RvR_malloc(vm->regs[10],"RvR_vm malloc syscall");
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
    case -22: //rand
       return rand();
    case -23: //realloc
    {
-      void *res = RvR_realloc((uint8_t *)vm->mem_base + vm->regs[10], vm->regs[11]);
+      void *res = RvR_realloc((uint8_t *)vm->mem_base + vm->regs[10], vm->regs[11],"RvR_vm realloc syscall");
       return res==NULL?0:(intptr_t)res - (intptr_t)vm->mem_base;
    }
    case -24: //puts

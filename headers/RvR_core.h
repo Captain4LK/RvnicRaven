@@ -364,7 +364,7 @@ void RvR_core_init(char *title, int scale)
    int fps = RvR_core_max(1, RvR_core_min(1000, RVR_FPS));
    rvr_framedelay = SDL_GetPerformanceFrequency() / fps;
 
-   rvr_framebuffer = RvR_malloc(RVR_XRES * RVR_YRES);
+   rvr_framebuffer = RvR_malloc(RVR_XRES * RVR_YRES, "RvR framebuffer");
    memset(rvr_framebuffer, 0, RVR_XRES * RVR_YRES);
 }
 
