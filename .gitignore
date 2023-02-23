@@ -8,5 +8,9 @@ rayed
 a.out
 *.exe
 
+#compiler output
+*.o
+*.a
+
 *.bin
 *.map
