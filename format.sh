@@ -1,9 +1,8 @@
 #!/bin/sh
 
-src=$(find headers/ -name "*.c")
-src="$src $(find headers/ -name "*.h")"
-src="$src $(find tools/ -name "*.c")"
-src="$src $(find tools/ -name "*.h")"
+src=$(find RvR/ -name "*.c")
+src=$src $(find RvR/ -name "*.h")
+src="$src $(find include/ -name "*.h")"
 echo "$src"
 
 uncrustify -c uncrustify.cfg --no-backup --replace $src

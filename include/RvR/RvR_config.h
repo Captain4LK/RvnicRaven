@@ -16,7 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define RVR_XRES 640
 #define RVR_YRES 480
-#define RVR_FPS 30 
+#define RVR_FPS 30
 
 #define RVR_TEXTURE_MAX 256
 

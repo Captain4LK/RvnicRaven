@@ -5,7 +5,7 @@ Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutan
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -38,7 +38,7 @@ static uint16_t rvr_render_font_id = 0;
 
 void RvR_render_clear(uint8_t index)
 {
-   memset(RvR_framebuffer(),index,RVR_XRES*RVR_YRES);
+   memset(RvR_framebuffer(), index, RVR_XRES * RVR_YRES);
 }
 
 void RvR_render_texture(RvR_texture *t, int x, int y)
@@ -235,8 +235,8 @@ void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index)
                continue;
             //TODO
             //for(int m = 0; m<scale; m++)
-               //for(int o = 0; o<scale; o++)
-                  //RvR_draw(x + sx + (x_ * scale) + o, y + sy + (y_ * scale) + m, index);
+            //for(int o = 0; o<scale; o++)
+            //RvR_draw(x + sx + (x_ * scale) + o, y + sy + (y_ * scale) + m, index);
          }
       }
       sx += x_dim * scale;

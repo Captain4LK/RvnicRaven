@@ -5,7 +5,7 @@ Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutan
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -77,7 +77,7 @@ void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow)
       return;
 
    rw->type = RVR_RW_DYN_MEM;
-   rw->as.dmem.mem = RvR_malloc(base_len,"RvR_rw dynamic memory rw");
+   rw->as.dmem.mem = RvR_malloc(base_len, "RvR_rw dynamic memory rw");
    rw->as.dmem.size = base_len;
    rw->as.dmem.csize = 0;
    rw->as.dmem.pos = 0;
@@ -349,7 +349,7 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
          if(rw->as.dmem.pos + size>rw->as.dmem.size)
          {
             rw->as.dmem.size += RvR_max(rw->as.dmem.min_grow, rw->as.dmem.pos + (long)size - rw->as.dmem.size);
-            rw->as.dmem.mem = RvR_realloc(rw->as.dmem.mem, rw->as.dmem.size,"RvR_rw dynamic memory rw grow");
+            rw->as.dmem.mem = RvR_realloc(rw->as.dmem.mem, rw->as.dmem.size, "RvR_rw dynamic memory rw grow");
          }
 
          rw->as.dmem.csize = RvR_max(rw->as.dmem.csize, rw->as.dmem.pos);

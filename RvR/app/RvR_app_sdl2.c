@@ -5,7 +5,7 @@ Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutan
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -97,9 +97,9 @@ void RvR_init(char *title, int scale)
 {
    Uint32 flags =
 #ifndef __EMSCRIPTEN__
-   SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+      SDL_INIT_VIDEO | SDL_INIT_EVENTS;
 #else
-   SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+      SDL_INIT_VIDEO | SDL_INIT_EVENTS;
 #endif
 
    if(SDL_Init(flags)<0)

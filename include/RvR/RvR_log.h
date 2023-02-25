@@ -15,7 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void RvR_log(const char *format, ...);
 void RvR_logl(const char *fun, const char *file, unsigned line, const char *format, ...);
 
-#define RvR_log_line(w,...) RvR_logl(w,__FILE__,__LINE__,__VA_ARGS__)
+#define RvR_log_line(w, ...) RvR_logl(w, __FILE__, __LINE__, __VA_ARGS__)
 
 #define RvR_error_fail(w, ...) do { RvR_log_line(w, __VA_ARGS__); goto RvR_err; } while(0)
 
