@@ -1,5 +1,5 @@
 /*
-RvnicRaven - palette and color luts
+RvnicRaven - hashes
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
