@@ -16,10 +16,9 @@
    before including this file in *one* C file (translation unit)
 */
 
-/*
-//This is merely an abstraction over another library, to make the api more streamlined
 //Taken from: https://github.com/mattiasgustavsson/libs
 
+/*
 rnd.h - v1.0 - Pseudo-random number generators for C/C++.
 
 ------------------------------------------------------------------------------
