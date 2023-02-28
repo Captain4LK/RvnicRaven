@@ -21,7 +21,7 @@ void RvR_render_circle(int x, int y, int radius, uint8_t index);
 void RvR_render_font_set(uint16_t id);
 void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index);
 void RvR_render(int x, int y, uint8_t index); //do not use, access framebuffer directly if possible
-void RvR_render_line(int x0, int y0, int x1, int y1, uint8_t index);
+void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uint8_t index);
 void RvR_render_vertical_line(int x, int y0, int y1, uint8_t index);
 void RvR_render_horizontal_line(int x0, int x1, int y, uint8_t index);
 

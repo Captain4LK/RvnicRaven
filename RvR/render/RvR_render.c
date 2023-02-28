@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR/RvR_config.h"
 #include "RvR/RvR_app.h"
 #include "RvR/RvR_math.h"
+#include "RvR/RvR_fix24.h"
 #include "RvR/RvR_texture.h"
 #include "RvR/RvR_render.h"
 //-------------------------------------
@@ -240,63 +241,6 @@ void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index)
          }
       }
       sx += x_dim * scale;
-   }
-}
-
-void RvR_render_line(int x0, int y0, int x1, int y1, uint8_t index)
-{
-   if(x0>x1||y0>y1)
-   {
-      int t = x0;
-      x0 = x1;
-      x1 = t;
-      t = y0;
-      y0 = y1;
-      y1 = t;
-   }
-   int dx = x1 - x0;
-   int ix = (dx>0) - (dx<0);
-   dx = RvR_abs(dx) << 1;
-   int dy = y1 - y0;
-   int iy = (dy>0) - (dy<0);
-   dy = RvR_abs(dy) << 1;
-   //TODO
-   //RvR_draw(x0, y0, index);
-
-   if(dx>=dy)
-   {
-      int error = dy - (dx >> 1);
-      while(x0!=x1)
-      {
-         if(error>0||(!error&&ix>0))
-         {
-            error -= dx;
-            y0 += iy;
-         }
-
-         error += dy;
-         x0 += ix;
-
-         //RvR_draw(x0, y0, index);
-      }
-   }
-   else
-   {
-      int error = dx - (dy >> 1);
-
-      while(y0!=y1)
-      {
-         if(error>0||(!error&&iy>0))
-         {
-            error -= dy;
-            x0 += ix;
-         }
-
-         error += dx;
-         y0 += iy;
-
-         //RvR_draw(x0, y0, index);
-      }
    }
 }
 

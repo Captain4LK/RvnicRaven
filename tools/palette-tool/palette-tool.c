@@ -25,11 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define OPTPARSE_API static
 #include "optparse.h"
 
-#define RVR_RW_IMPLEMENTATION
-#define RVR_MALLOC_IMPLEMENTATION
-#include "RvR_log.h"
-#include "RvR_rw.h"
-#include "RvR_malloc.h"
+#include "RvR/RvR.h"
 //-------------------------------------
 
 //Internal includes
