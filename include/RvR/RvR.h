@@ -13,7 +13,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _RVR_H_
 
 #include "RvR/RvR_app.h"
-#include "RvR/RvR_clip.h"
 #include "RvR/RvR_rw.h"
 #include "RvR/RvR_compress.h"
 
@@ -21,6 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "RvR/RvR_fix16.h"
 #include "RvR/RvR_fix24.h"
+#include "RvR/RvR_clip.h"
 #include "RvR/RvR_hash.h"
 #include "RvR/RvR_log.h"
 #include "RvR/RvR_malloc.h"

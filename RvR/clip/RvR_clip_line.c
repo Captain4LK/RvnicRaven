@@ -34,6 +34,7 @@ uint8_t outcode(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 x,
 
 //Function implementations
 
+//Cohen–Sutherland line clipping
 int RvR_clip_line(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 *x0, RvR_fix24 *y0, RvR_fix24 *x1, RvR_fix24 *y1)
 {
    uint8_t code0 = outcode(l,u,r,d,*x0,*y0);

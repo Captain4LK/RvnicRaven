@@ -8,13 +8,17 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _RVR_FIX24_H_
+#ifndef _RVR_FIX16_H_
 
-#define _RVR_FIX24_H_
+#define _RVR_FIX16_H_
 
 typedef int32_t RvR_fix16;
 
 RvR_fix16 RvR_fix16_mul(RvR_fix16 a, RvR_fix16 b);
 RvR_fix16 RvR_fix16_div(RvR_fix16 a, RvR_fix16 b);
+
+RvR_fix16 RvR_fix16_cos(RvR_fix16 a);
+RvR_fix16 RvR_fix16_sin(RvR_fix16 a);
+RvR_fix16 RvR_fix16_tan(RvR_fix16 a);
 
 #endif
