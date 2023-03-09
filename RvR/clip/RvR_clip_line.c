@@ -13,7 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
-#include "RvR/RvR_config.h"
+#include "RvR_config.h"
 #include "RvR/RvR_math.h"
 #include "RvR/RvR_fix24.h"
 #include "RvR/RvR_clip.h"

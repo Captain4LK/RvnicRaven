@@ -54,6 +54,9 @@ int      RvR_frametime_average();
 void     RvR_render_present();
 uint8_t *RvR_framebuffer();
 uint32_t RvR_frame();
+int      RvR_xres();
+int      RvR_yres();
+int      RvR_fps();
 
 int  RvR_key_down(RvR_key key);
 int  RvR_key_pressed(RvR_key key);

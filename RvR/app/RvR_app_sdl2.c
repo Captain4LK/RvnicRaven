@@ -13,7 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
-#include "RvR/RvR_config.h"
+#include "RvR_config.h"
 #include "RvR/RvR_log.h"
 #include "RvR/RvR_math.h"
 #include "RvR/RvR_malloc.h"
@@ -567,6 +567,21 @@ int RvR_frametime_average()
    uint64_t sum = 0;
    for(int i = 0; i<32; i++) sum += rvr_core_frametimes[i];
    return sum / 32;
+}
+
+int RvR_xres()
+{
+   return RVR_XRES;
+}
+
+int RvR_yres()
+{
+   return RVR_YRES;
+}
+
+int RvR_fps()
+{
+   return RVR_FPS;
 }
 
 static void rvr_update_viewport()
