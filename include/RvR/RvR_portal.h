@@ -16,6 +16,7 @@ typedef struct
 {
    int16_t wall_count;
    int16_t wall_first;
+   uint8_t visited;
 }RvR_port_sector;
 
 typedef struct
@@ -35,6 +36,17 @@ typedef struct
    int32_t sector_count;
 }RvR_port_map;
 
+typedef struct
+{
+   RvR_fix16 x;
+   RvR_fix16 y;
+   RvR_fix16 z;
+   RvR_fix16 dir;
+   int16_t sector;
+}RvR_port_cam;
+
 int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y);
+
+void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam);
 
 #endif
