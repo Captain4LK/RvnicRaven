@@ -16,6 +16,8 @@ typedef struct
 {
    int16_t wall_count;
    int16_t wall_first;
+   RvR_fix16 floor;
+   RvR_fix16 ceiling;
    uint8_t visited;
 }RvR_port_sector;
 
@@ -42,6 +44,7 @@ typedef struct
    RvR_fix16 y;
    RvR_fix16 z;
    RvR_fix16 dir;
+   RvR_fix16 fov;
    int16_t sector;
 }RvR_port_cam;
 

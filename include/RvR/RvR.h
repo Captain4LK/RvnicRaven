@@ -24,6 +24,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR/RvR_hash.h"
 #include "RvR/RvR_log.h"
 #include "RvR/RvR_malloc.h"
+#include "RvR/RvR_ds.h"
 #include "RvR/RvR_math.h"
 #include "RvR/RvR_pak.h"
 #include "RvR/RvR_palette.h"
