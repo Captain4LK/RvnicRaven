@@ -31,7 +31,7 @@ typedef struct
    RvR_fix16 x1;
    RvR_fix16 y1;
    RvR_fix16 z1;
-   RvR_fix16 zback;
+   RvR_fix16 zfront;
 
    int16_t wall;
    int16_t sector;
@@ -45,7 +45,7 @@ static RvR_port_dwall *dwalls = NULL;
 
 //Function prototypes
 static int dwall_comp(const void *a, const void *b);
-static int dwall_order(const RvR_port_dwall *wa, const RvR_port_dwall *wb);
+static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb);
 //-------------------------------------
 
 //Function implementations
@@ -64,15 +64,15 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
    //TODO: bitmap for visited?
    RvR_array_length_set(dwalls,0);
    RvR_array_length_set(sector_stack,0);
-   RvR_array_push(sector_stack,cam->sector);
    for(int i = 0;i<map->sector_count;i++)
       map->sectors[i].visited = 0;
+   RvR_array_push(sector_stack,cam->sector);
+   map->sectors[cam->sector].visited = 1;
 
    while(RvR_array_length(sector_stack)>0)
    {
       int16_t sector = sector_stack[RvR_array_length(sector_stack)-1];
       RvR_array_length_set(sector_stack,RvR_array_length(sector_stack)-1);
-      map->sectors[sector].visited = 1;
 
       RvR_port_wall *w0 = &map->walls[map->sectors[sector].wall_first];
       RvR_port_wall *w1 = NULL;
@@ -166,16 +166,19 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          //Add portal
          int16_t portal = w0->portal;
          if(portal>=0&&!map->sectors[portal].visited)
+         {
             RvR_array_push(sector_stack,portal);
+            map->sectors[portal].visited = 1;
+         }
 
          //Near clip
          if(dw.z0<16||dw.z1<16)
             continue;
 
-         if(dw.z0>dw.z1)
-            dw.zback = dw.z0;
+         if(dw.z0<dw.z1)
+            dw.zfront = dw.z0;
          else
-            dw.zback = dw.z1;
+            dw.zfront = dw.z1;
 
          dw.y0 = RvR_fix16_div(map->sectors[sector].floor-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,dw.z0)));
          dw.y0 = RvR_yres()*32768-RvR_yres()*dw.y0;
@@ -191,6 +194,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
    //Sort walls
    qsort(dwalls,RvR_array_length(dwalls),sizeof(*dwalls),dwall_comp);
+   puts("SORT");
    int len = RvR_array_length(dwalls);
    for(int i = 0;i<len;i++)
    {
@@ -198,17 +202,19 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       int j = i+1;
       while(j<len)
       {
-         if(dwall_order(dwalls+i,dwalls+j)!=2)
+         if(dwall_can_front(dwalls+i,dwalls+j))
          {
             j++;
          }
          else if(i+swaps>j)
          {
             //RvR_log("shit");
-            break;
+            j++;
+            //break;
          }
          else
          {
+            //puts("ROTATE");
             RvR_port_dwall tmp = dwalls[j];
             for(int w = j;w>i;w--)
                dwalls[w] = dwalls[w-1];
@@ -218,6 +224,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          }
       }
    }
+   for(int i = len-1;i>=0;i--)
+      printf("{%d,%d,%d,%d,%d},\n",dwalls[i].x0>>16,dwalls[i].z0>>16,dwalls[i].x1>>16,dwalls[i].z1>>16,dwalls[i].wall);
 
    //And finally... Draw!
    int16_t *ytop = RvR_malloc(sizeof(*ytop)*RvR_xres(),"RvR_portal wall drawing top clip");
@@ -225,11 +233,15 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
    memset(ytop,0,sizeof(*ytop)*RvR_xres());
    for(int i = 0;i<RvR_xres();i++)
       ybot[i] = RvR_yres()-1;
-   for(int i = len-1;i>=0;i--)
+   //printf("len %d\n",len);
+   //for(int i = len-1;i>=0;i--)
+   for(int i = 0;i<len;i++)
    {
       RvR_port_dwall *wall = dwalls+i;
       int16_t sector = wall->sector;
       int16_t portal = map->walls[wall->wall].portal;
+
+      //printf("%d %d\n",wall->x0>>16,(wall->x1-wall->x0)>>16);
 
       if(portal<0)
       {
@@ -328,6 +340,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
                pix = &RvR_framebuffer()[wy*RvR_xres()+x];
             }
 
+            if(RvR_key_pressed(RVR_KEY_SPACE))
+               RvR_render_present();
             //if(RvR_core_key_down(RVR_KEY_SPACE))
                //RvR_core_render_present();
 
@@ -343,6 +357,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             wy = RvR_max(wy,(fy-fph)>>16);
             pix = &RvR_framebuffer()[wy*RvR_xres()+x];
 
+            if(RvR_key_pressed(RVR_KEY_SPACE))
+               RvR_render_present();
             //if(RvR_core_key_down(RVR_KEY_SPACE))
                //RvR_core_render_present();
 
@@ -354,6 +370,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
                pix+=RvR_xres();
             }
 
+            if(RvR_key_pressed(RVR_KEY_SPACE))
+               RvR_render_present();
             //if(RvR_core_key_down(RVR_KEY_SPACE))
                //RvR_core_render_present();
 
@@ -384,10 +402,10 @@ static int dwall_comp(const void *a, const void *b)
    const RvR_port_dwall *wa = a;
    const RvR_port_dwall *wb = b;
 
-   return wb->zback-wa->zback;
+   return wa->zfront-wb->zfront;
 }
 
-static int dwall_order(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
+static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
 {
    int64_t x00 = wa->x0;
    int64_t y00 = wa->z0;
@@ -398,90 +416,30 @@ static int dwall_order(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
    int64_t x11 = wb->x1;
    int64_t y11 = wb->z1;
 
-   //(x00/y00) is origin, all calculations centered arround it
-   //t0 is relation of (b,p0) to wall a
-   //t1 is relation of (b,p1) to wall a
-   //See RvR_port_sector_inside for more in depth explanation
-   int64_t x = x01-x00;
-   int64_t y = y01-y00;
-   //int32_t t0 = ((x10-x00)*y-(y10-y00)*x)/1024;
-   //int32_t t1 = ((x11-x00)*y-(y11-y00)*x)/1024;
-   int64_t t0 = ((x10-x00)*y-(y10-y00)*x);
-   int64_t t1 = ((x11-x00)*y-(y11-y00)*x);
+   int64_t dx0 = x01-x00;
+   int64_t dy0 = y01-y00;
+   int64_t dx1 = x11-x10;
+   int64_t dy1 = y11-y10;
 
-   //wa completely behind wb
-   if(RvR_max(y00,y01)<RvR_min(y10,y11))
+   int64_t cross00 = dx0*(y10-y00)-dy0*(x10-x00);
+   int64_t cross01 = dx0*(y11-y00)-dy0*(x11-x00);
+   int64_t cross10 = dx1*(y00-y10)-dy1*(x00-x10);
+   int64_t cross11 = dx1*(y01-y10)-dy1*(x01-x10);
+
+   //wb completely behind wa
+   if(RvR_min(y10,y11)>RvR_max(y00,y01))
       return 1;
 
    //no overlap
-   if(x00>x11||x01<x10)
-      return 0;
+   if(x00>=x11||x01<=x10)
+      return 1;
 
-   //if(RvR_min(y00>y11||y01<y10)
-   //{
-      //if(y00>y10)
-         //return 1;
-      //return 2;
-   //}
+   if(cross00>=0&&cross01>=0)
+      return 1;
 
-   //walls on the same line (identicall or adjacent)
-   if(t0==0&&t1==0)
-      return 0;
-
-   //(b,p0) on extension of wall a (shared corner, etc)
-   //Set t0 = t1 to trigger RvR_sign_equal check (and for the return !RvR_sign_equal to be correct)
-   if(t0==0)
-   {
-      //puts("CASE A");
-      t0 = t1;
-      //return 0;
-   }
-
-   //(b,p1) on extension of wall a
-   //Set t0 = t1 to trigger RvR_sign_equal check
-   if(t1==0)
-   {
-      //puts("CASE B");
-      t1 = t0;
-      //return 0;
-   }
-
-   //Wall either completely to the left or to the right of other wall
-   if(RvR_sign_equal(t0,t1))
-   {
-      //Compare with player position relative to wall a
-      //if wall b and the player share the same relation, wall a needs to be drawn first
-      t1 = ((0-x00)*y-(0-y00)*x);
-      //printf("%d %d\n",t0,t1);
-      return (!RvR_sign_equal(t0,t1))+1;
-   }
-
-   //Extension of wall a intersects with wall b
-   //--> check wall b instead
-   //(x10/y10) is origin, all calculations centered arround it
-   x = x11-x10;
-   y = y11-y10;
-   t0 = ((x00-x10)*y-(y00-y10)*x);
-   t1 = ((x01-x10)*y-(y01-y10)*x);
-
-   //(a,p0) on extension of wall b
-   if(t0==0)
-      t0 = t1;
-
-   //(a,p1) on extension of wall b
-   if(t1==0)
-      t1 = t0;
-
-   //Wall either completely to the left or to the right of other wall
-   if(RvR_sign_equal(t0,t1))
-   {
-      //Compare with player position relative to wall b
-      //if wall a and the player share the same relation, wall b needs to be drawn first
-      t1 = ((0-x10)*y-(0-y10)*x);
-      return RvR_sign_equal(t0,t1)+1;
-   }
-
-   //Invalid case (walls are intersecting), expect rendering glitches
+   if(cross10<=0&&cross11<=0)
+      return 1;
+   
    return 0;
 }
 //-------------------------------------
