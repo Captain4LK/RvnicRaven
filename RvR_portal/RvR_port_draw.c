@@ -193,8 +193,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
    //-------------------------------------
 
    //Sort walls
+   //Basically Newell's algorithm
    qsort(dwalls,RvR_array_length(dwalls),sizeof(*dwalls),dwall_comp);
-   puts("SORT");
    int len = RvR_array_length(dwalls);
    for(int i = 0;i<len;i++)
    {
@@ -208,13 +208,13 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          }
          else if(i+swaps>j)
          {
-            //RvR_log("shit");
+            //This case usually happens when walls intersect
+            //Here we would split the wall, 
+            //but since intersecting walls aren't supported we just pretend nothing happended
             j++;
-            //break;
          }
          else
          {
-            //puts("ROTATE");
             RvR_port_dwall tmp = dwalls[j];
             for(int w = j;w>i;w--)
                dwalls[w] = dwalls[w-1];
@@ -224,8 +224,6 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          }
       }
    }
-   for(int i = len-1;i>=0;i--)
-      printf("{%d,%d,%d,%d,%d},\n",dwalls[i].x0>>16,dwalls[i].z0>>16,dwalls[i].x1>>16,dwalls[i].z1>>16,dwalls[i].wall);
 
    //And finally... Draw!
    int16_t *ytop = RvR_malloc(sizeof(*ytop)*RvR_xres(),"RvR_portal wall drawing top clip");
@@ -240,6 +238,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       RvR_port_dwall *wall = dwalls+i;
       int16_t sector = wall->sector;
       int16_t portal = map->walls[wall->wall].portal;
+      //printf("%d %d\n",wall->x0>>16,wall->x1>>16);
 
       //printf("%d %d\n",wall->x0>>16,(wall->x1-wall->x0)>>16);
 
@@ -253,7 +252,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),wall->z1);
          cy0 = RvR_yres()*32768-cy0;
          cy1 = RvR_yres()*32768-cy1;
-         RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,wall->x1-wall->x0);
+         RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(wall->x1-wall->x0));
          //RvR_fix16 step_cy = (cy1-cy0)/RvR_non_zero(width);
          RvR_fix16 cy = cy0;
 
@@ -261,7 +260,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),wall->z1);
          fy0 = RvR_yres()*32768-fy0;
          fy1 = RvR_yres()*32768-fy1;
-         RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,wall->x1-wall->x0);
+         RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
          //RvR_fix16 step_fy = (fy1-fy0)/RvR_non_zero(width);
          RvR_fix16 fy = fy0;
 
@@ -306,24 +305,24 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),wall->z1);
          cy0 = RvR_yres()*32768-cy0;
          cy1 = RvR_yres()*32768-cy1;
-         RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,wall->x1-wall->x0);
+         RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 cy = cy0;
 
          RvR_fix16 cph0 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-map->sectors[portal].ceiling),wall->z0));
          RvR_fix16 cph1 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-map->sectors[portal].ceiling),wall->z1));
-         RvR_fix16 step_cph = RvR_fix16_div(cph1-cph0,wall->x1-wall->x0);
+         RvR_fix16 step_cph = RvR_fix16_div(cph1-cph0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 cph = cph0;
 
          RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),wall->z0);
          RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),wall->z1);
          fy0 = RvR_yres()*32768-fy0;
          fy1 = RvR_yres()*32768-fy1;
-         RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,wall->x1-wall->x0);
+         RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 fy = fy0;
 
          RvR_fix16 fph0 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[portal].floor-map->sectors[sector].floor),wall->z0));
          RvR_fix16 fph1 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[portal].floor-map->sectors[sector].floor),wall->z1));
-         RvR_fix16 step_fph = RvR_fix16_div(fph1-fph0,wall->x1-wall->x0);
+         RvR_fix16 step_fph = RvR_fix16_div(fph1-fph0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 fph = fph0;
 
          for(int x = x0;x<=x1;x++)
@@ -405,41 +404,45 @@ static int dwall_comp(const void *a, const void *b)
    return wa->zfront-wb->zfront;
 }
 
+//Calculates wether wa can be drawn in front of wb
 static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
 {
    int64_t x00 = wa->x0;
-   int64_t y00 = wa->z0;
+   int64_t z00 = wa->z0;
    int64_t x01 = wa->x1;
-   int64_t y01 = wa->z1;
+   int64_t z01 = wa->z1;
    int64_t x10 = wb->x0;
-   int64_t y10 = wb->z0;
+   int64_t z10 = wb->z0;
    int64_t x11 = wb->x1;
-   int64_t y11 = wb->z1;
+   int64_t z11 = wb->z1;
 
    int64_t dx0 = x01-x00;
-   int64_t dy0 = y01-y00;
+   int64_t dz0 = z01-z00;
    int64_t dx1 = x11-x10;
-   int64_t dy1 = y11-y10;
+   int64_t dz1 = z11-z10;
 
-   int64_t cross00 = dx0*(y10-y00)-dy0*(x10-x00);
-   int64_t cross01 = dx0*(y11-y00)-dy0*(x11-x00);
-   int64_t cross10 = dx1*(y00-y10)-dy1*(x00-x10);
-   int64_t cross11 = dx1*(y01-y10)-dy1*(x01-x10);
+   int64_t cross00 = dx0*(z10-z00)-dz0*(x10-x00);
+   int64_t cross01 = dx0*(z11-z00)-dz0*(x11-x00);
+   int64_t cross10 = dx1*(z00-z10)-dz1*(x00-x10);
+   int64_t cross11 = dx1*(z01-z10)-dz1*(x01-x10);
 
    //wb completely behind wa
-   if(RvR_min(y10,y11)>RvR_max(y00,y01))
+   if(RvR_min(z10,z11)>RvR_max(z00,z01))
       return 1;
 
    //no overlap
    if(x00>=x11||x01<=x10)
       return 1;
 
+   //p0 and p1 of wb behind wa
    if(cross00>=0&&cross01>=0)
       return 1;
 
+   //p0 and p1 of wa in front of wb
    if(cross10<=0&&cross11<=0)
       return 1;
    
+   //Need swapping
    return 0;
 }
 //-------------------------------------

@@ -28,6 +28,7 @@ typedef struct
    uint32_t flags;
    int16_t p2;
    int16_t portal;
+   int16_t join;
 }RvR_port_wall;
 
 typedef struct
@@ -49,6 +50,7 @@ typedef struct
 }RvR_port_cam;
 
 int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y);
+int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix16 x, RvR_fix16 y);
 
 void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam);
 

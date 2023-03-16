@@ -58,4 +58,31 @@ int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_f
 
    return crossed<0;
 }
+
+int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix16 x, RvR_fix16 y)
+{
+   if(sector_last>=0&&sector_last<map->sector_count)
+   {
+      //Check if still in same sector
+      if(RvR_port_sector_inside(map,sector_last,x,y))
+         return sector_last;
+
+      //Check adjacent sectors
+      //TODO: higher depth search?
+      for(int i = 0;i<map->sectors[sector_last].wall_count;i++)
+      {
+         int16_t portal = map->walls[map->sectors[sector_last].wall_first+i].portal;
+         if(portal>=0&&RvR_port_sector_inside(map,portal,x,y))
+            return portal;
+      }
+   }
+
+   //Linear search over all sectors
+   for(int i = 0;i<map->sector_count;i++)
+      if(RvR_port_sector_inside(map,i,x,y))
+         return i;
+
+   //Not found, pretend we are still in the same sector
+   return sector_last;
+}
 //-------------------------------------
