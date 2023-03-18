@@ -51,8 +51,15 @@ typedef struct
 
 int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y);
 int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix16 x, RvR_fix16 y);
+int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix16 x, RvR_fix16 y);
 
 void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix16 x, RvR_fix16 y);
+//Finds first wall in polygon
+int16_t RvR_port_wall_first(RvR_port_map *map, int16_t wall);
+//For adding a point to an UNFINISHED polygon or creating a new polygon
+int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y);
+//For subdividing lines in COMPLETED polygins
+int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix16 y);
 
 void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam);
 

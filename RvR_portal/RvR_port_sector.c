@@ -85,4 +85,18 @@ int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix16
    //Not found, pretend we are still in the same sector
    return sector_last;
 }
+
+int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix16 x, RvR_fix16 y)
+{
+   int16_t sector = map->sector_count++;
+   map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
+   map->sectors[sector].wall_count = 1;
+   map->sectors[sector].wall_first = map->wall_count;
+   map->wall_count++;
+   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
+   map->walls[map->sectors[sector].wall_first].x = x;
+   map->walls[map->sectors[sector].wall_first].y = y;
+
+   return sector;
+}
 //-------------------------------------
