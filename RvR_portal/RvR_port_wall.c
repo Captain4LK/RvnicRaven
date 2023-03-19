@@ -72,6 +72,7 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR
       if(map->walls[i].x==x&&map->walls[i].y==y)
       {
          map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2 = first;
+         RvR_port_sector_fix_winding(map,sector);
          return i;
       }
    }
@@ -112,5 +113,102 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR
 
 int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix16 y)
 {
+   int16_t w1 = map->walls[w0].p2;
+
+   //Check for second wall pair
+   int16_t cur0 = map->walls[w0].join;
+   int16_t w2 = -1;
+   int16_t w3 = -1;
+   while(cur0>=0&&cur0!=w0)
+   {
+
+      int16_t cur1 = map->walls[w1].join;
+      while(cur1>=0&&cur1!=w1)
+      {
+         if(map->walls[cur1].p2==cur0)
+         {
+            w2 = cur1;
+            break;
+         }
+         cur1 = map->walls[cur1].join;
+      }
+      if(w2>=0)
+         break;
+
+      cur0 = map->walls[cur0].join;
+   }
+
+
+   //Add wall to org sector
+   //-------------------------------------
+   map->wall_count++;
+   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
+   int16_t insert = w1;
+
+   //Move existing walls to right
+   for(int16_t w = map->wall_count-1;w>insert;w--)
+      map->walls[w] = map->walls[w-1];
+
+   //Update indices
+   for(int i = 0;i<map->wall_count;i++)
+   {
+      RvR_port_wall *wall = map->walls+i;
+      if(wall->portal>=insert)
+         wall->portal++;
+      if(wall->p2>=insert)
+         wall->p2++;
+      if(wall->join>=insert)
+         wall->join++;
+   }
+   if(w2>=insert)
+      w2++;
+
+   //Insert new wall
+   map->walls[insert].x = x;
+   map->walls[insert].y = y;
+   map->walls[insert].p2 = w1+1;
+   map->walls[insert].join = -1;
+   map->walls[insert].portal = -1;
+   map->walls[insert].flags = 0;
+   map->walls[w0].p2 = insert;
+   //-------------------------------------
+   
+   //Add wall to adjacent sector
+   if(w2>=0)
+   {
+      map->wall_count++;
+      map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
+      w3 = map->walls[w2].p2;
+      int16_t insert1 = w3;
+
+      //Move existing walls to right
+      for(int16_t w = map->wall_count-1;w>insert1;w--)
+         map->walls[w] = map->walls[w-1];
+
+      //Update indices
+      for(int i = 0;i<map->wall_count;i++)
+      {
+         RvR_port_wall *wall = map->walls+i;
+         if(wall->portal>=insert1)
+            wall->portal++;
+         if(wall->p2>=insert1)
+            wall->p2++;
+         if(wall->join>=insert1)
+            wall->join++;
+      }
+      if(insert>=insert1)
+         insert++;
+
+      //Insert new wall
+      map->walls[insert1].x = x;
+      map->walls[insert1].y = y;
+      map->walls[insert1].p2 = w3+1;
+      map->walls[insert1].join = -1;
+      map->walls[insert1].portal = -1;
+      map->walls[insert1].flags = 0;
+      map->walls[w2].p2 = insert;
+   }
+
+   return insert;
 }
 //-------------------------------------

@@ -99,4 +99,41 @@ int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix16 x, RvR_fix16 y)
 
    return sector;
 }
+
+void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
+{
+   int wall = 0;
+   RvR_port_sector *s = map->sectors+sector;
+   while(wall<map->sectors[sector].wall_count)
+   {
+      int64_t sum = 0;
+      int first = wall;
+
+      for(;wall==0||map->walls[map->sectors[sector].wall_first+wall-1].p2==map->sectors[sector].wall_first+wall;wall++)
+      {
+         int64_t x0 = map->walls[s->wall_first+wall].x;
+         int64_t y0 = map->walls[s->wall_first+wall].y;
+         int64_t x1 = map->walls[map->walls[s->wall_first+wall].p2].x;
+         int64_t y1 = map->walls[map->walls[s->wall_first+wall].p2].y;
+         sum+=(x1-x0)*(y0+y1);
+      }
+
+      if((first==0&&sum>0)||(first!=0&&sum<0))
+      {
+         //Need reversing
+         for(int j = 0;j<(wall-first)/2;j++)
+         {
+            RvR_port_wall tmp = map->walls[s->wall_first+first+j];
+            int pt20 = tmp.p2;
+            int pt21 = map->walls[s->wall_first+wall-j-1].p2;
+            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
+
+            map->walls[s->wall_first+wall-j-1] = tmp;
+            map->walls[s->wall_first+first+j].p2 = pt20;
+            map->walls[s->wall_first+wall-j-1].p2 = pt21;
+         }
+      }
+      wall++;
+   }
+}
 //-------------------------------------
