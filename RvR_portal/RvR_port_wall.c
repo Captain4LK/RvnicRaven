@@ -60,21 +60,16 @@ int16_t RvR_port_wall_first(RvR_port_map *map, int16_t wall)
 
 int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y)
 {
-   int16_t first = 0;
-   if(map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2==map->sectors[sector].wall_first+map->sectors[sector].wall_count)
+   int16_t first = -1;
+   if(map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2==-1/*map->sectors[sector].wall_first+map->sectors[sector].wall_count*/)
       first = RvR_port_wall_first(map,map->sectors[sector].wall_first+map->sectors[sector].wall_count-1);
-   else
-      first = map->sectors[sector].wall_first+map->sectors[sector].wall_count;
 
-   //Check if point overlap
-   for(int16_t i = first;i<map->sectors[sector].wall_first+map->sectors[sector].wall_count;i++)
+   //Check if point overlaps with first point of polygon
+   if(first>=0&&map->walls[first].x==x&&map->walls[first].y==y)
    {
-      if(map->walls[i].x==x&&map->walls[i].y==y)
-      {
-         map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2 = first;
-         RvR_port_sector_fix_winding(map,sector);
-         return i;
-      }
+      map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2 = first;
+      RvR_port_sector_fix_winding(map,sector);
+      return first;
    }
 
    //Add wall
@@ -102,10 +97,13 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR
    //Insert new wall
    map->walls[insert].x = x;
    map->walls[insert].y = y;
-   map->walls[insert].p2 = insert+1;
+   map->walls[insert].p2 = -1;
+   if(first>=0)
+      map->walls[insert-1].p2 = insert;
    map->walls[insert].join = -1;
    map->walls[insert].portal = -1;
    map->walls[insert].flags = 0;
+   map->sectors[sector].wall_count++;
    //-------------------------------------
 
    return insert;
@@ -166,11 +164,13 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
    //Insert new wall
    map->walls[insert].x = x;
    map->walls[insert].y = y;
-   map->walls[insert].p2 = w1+1;
+   map->walls[insert].p2 = insert+1;
    map->walls[insert].join = -1;
    map->walls[insert].portal = -1;
    map->walls[insert].flags = 0;
    map->walls[w0].p2 = insert;
+   //TODO
+   //map->sectors[sector].wall_count++;
    //-------------------------------------
    
    //Add wall to adjacent sector
@@ -202,11 +202,13 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
       //Insert new wall
       map->walls[insert1].x = x;
       map->walls[insert1].y = y;
-      map->walls[insert1].p2 = w3+1;
+      map->walls[insert1].p2 = insert1+1;
       map->walls[insert1].join = -1;
       map->walls[insert1].portal = -1;
       map->walls[insert1].flags = 0;
       map->walls[w2].p2 = insert;
+      //TODO
+      //map->sectors[sector].wall_count++;
    }
 
    return insert;

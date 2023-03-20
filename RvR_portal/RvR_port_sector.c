@@ -96,6 +96,9 @@ int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix16 x, RvR_fix16 y)
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
    map->walls[map->sectors[sector].wall_first].x = x;
    map->walls[map->sectors[sector].wall_first].y = y;
+   map->walls[map->sectors[sector].wall_first].p2 = -1;
+   map->walls[map->sectors[sector].wall_first].portal = -1;
+   map->walls[map->sectors[sector].wall_first].join = -1;
 
    return sector;
 }
