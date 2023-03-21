@@ -30,6 +30,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
+int16_t RvR_port_wall_sector(RvR_port_map *map, int16_t wall)
+{
+   for(int i = 0;i<map->sector_count;i++)
+      if(wall>=map->sectors[i].wall_first&&wall<map->sectors[i].wall_first+map->sectors[i].wall_count)
+         return i;
+
+   return -1;
+}
+
 void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix16 x, RvR_fix16 y)
 {
    map->walls[wall].x = x;
@@ -61,7 +70,7 @@ int16_t RvR_port_wall_first(RvR_port_map *map, int16_t wall)
 int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y)
 {
    int16_t first = -1;
-   if(map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2==-1/*map->sectors[sector].wall_first+map->sectors[sector].wall_count*/)
+   if(map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2==-1)
       first = RvR_port_wall_first(map,map->sectors[sector].wall_first+map->sectors[sector].wall_count-1);
 
    //Check if point overlaps with first point of polygon

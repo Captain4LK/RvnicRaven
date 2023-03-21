@@ -139,4 +139,32 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
       wall++;
    }
 }
+
+int16_t RvR_port_sector_make_inner(RvR_port_map *map,int16_t wall)
+{
+   int16_t sector = RvR_port_wall_sector(map,wall);
+   int16_t first = RvR_port_wall_first(map,wall);
+
+   int16_t sn = RvR_port_sector_new(map,map->walls[first].x,map->walls[first].y);
+   map->sectors[sn].floor = map->sectors[sector].floor;
+   map->sectors[sn].ceiling = map->sectors[sector].ceiling;
+   map->walls[map->sectors[sn].wall_first].join = first;
+   map->walls[first].join = map->sectors[sn].wall_first;
+   map->walls[map->sectors[sn].wall_first].portal = sector;
+   map->walls[first].portal = sn;
+
+   int16_t w = map->walls[first].p2;
+   while(w!=first)
+   {
+      int16_t wn = RvR_port_wall_append(map,sn,map->walls[w].x,map->walls[w].y);
+      map->walls[wn].join = w;
+      map->walls[w].join = wn;
+      map->walls[wn].portal = sector;
+      map->walls[w].portal = sn;
+      w = map->walls[w].p2;
+   }
+   RvR_port_wall_append(map,sn,map->walls[first].x,map->walls[first].y);
+
+   return sn;
+}
 //-------------------------------------
