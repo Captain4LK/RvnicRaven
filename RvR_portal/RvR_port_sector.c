@@ -126,14 +126,39 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
          //Need reversing
          for(int j = 0;j<(wall-first)/2;j++)
          {
+            int16_t w0 = s->wall_first+first+j;
+            int16_t w1 = s->wall_first+wall-j-1;
+
             RvR_port_wall tmp = map->walls[s->wall_first+first+j];
-            int pt20 = tmp.p2;
-            int pt21 = map->walls[s->wall_first+wall-j-1].p2;
+            int16_t pt20 = tmp.p2;
+            int16_t pt21 = map->walls[s->wall_first+wall-j-1].p2;
             map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
 
             map->walls[s->wall_first+wall-j-1] = tmp;
             map->walls[s->wall_first+first+j].p2 = pt20;
             map->walls[s->wall_first+wall-j-1].p2 = pt21;
+            
+            //Update joins
+            int16_t cur = map->walls[w0].join;
+            while(cur>=0&&cur!=w0)
+            {
+               if(map->walls[cur].join==w1)
+               {
+                  map->walls[cur].join = w0;
+                  break;
+               }
+               cur = map->walls[cur].join;
+            }
+            cur = map->walls[w1].join;
+            while(cur>=0&&cur!=w1)
+            {
+               if(map->walls[cur].join==w0)
+               {
+                  map->walls[cur].join = w1;
+                  break;
+               }
+               cur = map->walls[cur].join;
+            }
          }
       }
       wall++;
@@ -157,6 +182,9 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map,int16_t wall)
    while(w!=first)
    {
       int16_t wn = RvR_port_wall_append(map,sn,map->walls[w].x,map->walls[w].y);
+      if(w>=wn) w++;
+      if(first>=wn) first++;
+
       map->walls[wn].join = w;
       map->walls[w].join = wn;
       map->walls[wn].portal = sector;

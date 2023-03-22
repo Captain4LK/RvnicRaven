@@ -171,15 +171,15 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
       w2++;
 
    //Insert new wall
+   int16_t sector = RvR_port_wall_sector(map,insert);
    map->walls[insert].x = x;
    map->walls[insert].y = y;
    map->walls[insert].p2 = insert+1;
    map->walls[insert].join = -1;
-   map->walls[insert].portal = -1;
+   map->walls[insert].portal = map->walls[w0].portal;
    map->walls[insert].flags = 0;
    map->walls[w0].p2 = insert;
-   //TODO
-   //map->sectors[sector].wall_count++;
+   map->sectors[sector].wall_count++;
    //-------------------------------------
    
    //Add wall to adjacent sector
@@ -209,15 +209,17 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
          insert++;
 
       //Insert new wall
+      sector = RvR_port_wall_sector(map,insert1);
+      printf("%d\n",sector);
       map->walls[insert1].x = x;
       map->walls[insert1].y = y;
       map->walls[insert1].p2 = insert1+1;
-      map->walls[insert1].join = -1;
-      map->walls[insert1].portal = -1;
+      map->walls[insert1].join = insert;
+      map->walls[insert].join = insert1;
+      map->walls[insert1].portal = map->walls[w2].portal;
       map->walls[insert1].flags = 0;
       map->walls[w2].p2 = insert;
-      //TODO
-      //map->sectors[sector].wall_count++;
+      map->sectors[sector].wall_count++;
    }
 
    return insert;

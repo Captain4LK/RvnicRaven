@@ -181,9 +181,9 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             dw.zfront = dw.z1;
 
          dw.y0 = RvR_fix16_div(map->sectors[sector].floor-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,dw.z0)));
-         dw.y0 = RvR_yres()*32768-RvR_yres()*dw.y0;
+         dw.y0 = RvR_fix16_mul(RvR_yres()<<16,32768-dw.y0);
          dw.y1 = RvR_fix16_div(map->sectors[sector].floor-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,dw.z1)));
-         dw.y1 = RvR_yres()*32768-RvR_yres()*dw.y1;
+         dw.y1 = RvR_fix16_mul(RvR_yres()<<16,32768-dw.y1);
          dw.wall = map->sectors[sector].wall_first+i;
          dw.sector = sector;
 
