@@ -102,6 +102,13 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR
       if(wall->join>=insert)
          wall->join++;
    }
+   //Update sector first_wall
+   for(int i = 0;i<map->sector_count;i++)
+   {
+      RvR_port_sector *sect = map->sectors+i;
+      if(sect->wall_first>=insert)
+         sect->wall_first++;
+   }
 
    //Insert new wall
    map->walls[insert].x = x;
@@ -145,12 +152,11 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
       cur0 = map->walls[cur0].join;
    }
 
-
    //Add wall to org sector
    //-------------------------------------
    map->wall_count++;
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
-   int16_t insert = w1;
+   int16_t insert = w0+1;
 
    //Move existing walls to right
    for(int16_t w = map->wall_count-1;w>insert;w--)
@@ -167,14 +173,25 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
       if(wall->join>=insert)
          wall->join++;
    }
+   //Update sector first_wall
+   for(int i = 0;i<map->sector_count;i++)
+   {
+      if(i==RvR_port_wall_sector(map,w0))
+         continue;
+      RvR_port_sector *sect = map->sectors+i;
+      if(sect->wall_first>=insert)
+         sect->wall_first++;
+   }
    if(w2>=insert)
       w2++;
+   if(w1>=insert)
+      w1++;
 
    //Insert new wall
    int16_t sector = RvR_port_wall_sector(map,insert);
    map->walls[insert].x = x;
    map->walls[insert].y = y;
-   map->walls[insert].p2 = insert+1;
+   map->walls[insert].p2 = w1;
    map->walls[insert].join = -1;
    map->walls[insert].portal = map->walls[w0].portal;
    map->walls[insert].flags = 0;
@@ -188,7 +205,7 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
       map->wall_count++;
       map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
       w3 = map->walls[w2].p2;
-      int16_t insert1 = w3;
+      int16_t insert1 = w2+1;
 
       //Move existing walls to right
       for(int16_t w = map->wall_count-1;w>insert1;w--)
@@ -205,20 +222,30 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix
          if(wall->join>=insert1)
             wall->join++;
       }
+      //Update sector first_wall
+      for(int i = 0;i<map->sector_count;i++)
+      {
+         if(i==RvR_port_wall_sector(map,w2))
+            continue;
+         RvR_port_sector *sect = map->sectors+i;
+         if(sect->wall_first>=insert1)
+            sect->wall_first++;
+      }
       if(insert>=insert1)
          insert++;
+      if(w3>=insert1)
+         w3++;
 
       //Insert new wall
       sector = RvR_port_wall_sector(map,insert1);
-      printf("%d\n",sector);
       map->walls[insert1].x = x;
       map->walls[insert1].y = y;
-      map->walls[insert1].p2 = insert1+1;
+      map->walls[insert1].p2 = w3;
       map->walls[insert1].join = insert;
       map->walls[insert].join = insert1;
       map->walls[insert1].portal = map->walls[w2].portal;
       map->walls[insert1].flags = 0;
-      map->walls[w2].p2 = insert;
+      map->walls[w2].p2 = insert1;
       map->sectors[sector].wall_count++;
    }
 
