@@ -36,26 +36,57 @@ typedef struct
    int16_t wall;
    int16_t sector;
 }RvR_port_dwall;
+
+typedef struct port_plane port_plane;
+struct port_plane
+{
+   int32_t min;
+   int32_t max;
+   int16_t sector;
+   uint8_t where; //0 --> ceiling; 1 --> floor
+   uint16_t start[RVR_XRES_MAX+2];
+   uint16_t end[RVR_XRES_MAX+2];
+
+   port_plane *next;
+};
 //-------------------------------------
 
 //Variables
 static int16_t *sector_stack = NULL;
 static RvR_port_dwall *dwalls = NULL;
+
+static port_plane *port_planes[128] = {0};
+static port_plane *port_plane_pool = NULL;
 //-------------------------------------
 
 //Function prototypes
 static int dwall_comp(const void *a, const void *b);
 static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb);
+
+static void port_span_draw(RvR_port_map *map, RvR_port_cam *cam, int16_t sector, uint8_t where, int x0, int x1, int y);
+
+static void port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1);
+static port_plane *port_plane_new();
+static void port_plane_free(port_plane *pl);
 //-------------------------------------
 
 //Function implementations
 
 void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 {
+   //Init
+   //-------------------------------------
+   for(int i = 0;i<128;i++)
+   {
+      port_plane_free(port_planes[i]);
+      port_planes[i] = NULL;
+   }
+   //-------------------------------------
+
    //Collect potentially visible walls
    //-------------------------------------
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
-   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres());
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
    RvR_fix16 cos = RvR_fix16_cos(cam->dir);
    RvR_fix16 sin_fov = RvR_fix16_mul(sin,fovx);
@@ -77,7 +108,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       RvR_port_wall *w0 = &map->walls[map->sectors[sector].wall_first];
       RvR_port_wall *w1 = NULL;
 
-      //Clipped an projected points
+      //Clipped and projected points
       RvR_fix16 tp0x = 0;
       RvR_fix16 tp0y = 0;
       RvR_fix16 tp1x = 0;
@@ -172,7 +203,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          }
 
          //Near clip
-         if(dw.z0<16||dw.z1<16)
+         if(dw.z0<32||dw.z1<32)
             continue;
 
          if(dw.z0<dw.z1)
@@ -238,6 +269,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       RvR_port_dwall *wall = dwalls+i;
       int16_t sector = wall->sector;
       int16_t portal = map->walls[wall->wall].portal;
+      //printf("width: %d\n",wall->x1-wall->x0);
       //printf("%d %d\n",wall->x0>>16,wall->x1>>16);
 
       //printf("%d %d\n",wall->x0>>16,(wall->x1-wall->x0)>>16);
@@ -253,7 +285,6 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          cy0 = RvR_yres()*32768-cy0;
          cy1 = RvR_yres()*32768-cy1;
          RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(wall->x1-wall->x0));
-         //RvR_fix16 step_cy = (cy1-cy0)/RvR_non_zero(width);
          RvR_fix16 cy = cy0;
 
          RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),wall->z0);
@@ -261,10 +292,9 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          fy0 = RvR_yres()*32768-fy0;
          fy1 = RvR_yres()*32768-fy1;
          RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
-         //RvR_fix16 step_fy = (fy1-fy0)/RvR_non_zero(width);
          RvR_fix16 fy = fy0;
 
-         for(int x = x0;x<=x1;x++)
+         for(int x = x0;x<x1;x++)
          {
             int wy =  ytop[x];
             uint8_t * restrict pix = RvR_framebuffer()+(wy*RvR_xres()+x);
@@ -273,6 +303,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             int y_to = RvR_min(cy>>16,ybot[x]);
             if(y_to>wy)
             {
+               port_plane_add(wall->sector,0,x,wy,y_to);
                wy = y_to;
                pix = RvR_framebuffer()+(wy*RvR_xres()+x);
             }
@@ -284,6 +315,11 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
                *pix = i+24;
                pix+=RvR_xres();
             }
+
+            //Floor
+            y_to = RvR_min(RvR_yres()-1,ybot[x]);
+            if(y_to>wy)
+               port_plane_add(wall->sector,1,x,wy,y_to);
 
             cy+=step_cy;
             fy+=step_fy;
@@ -325,7 +361,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 step_fph = RvR_fix16_div(fph1-fph0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 fph = fph0;
 
-         for(int x = x0;x<=x1;x++)
+         for(int x = x0;x<x1;x++)
          {
             int wy =  ytop[x];
             uint8_t * restrict pix = RvR_framebuffer()+(wy*RvR_xres()+x);
@@ -334,15 +370,13 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             int y_to = RvR_min(cy>>16,ybot[x]);
             if(y_to>wy)
             {
-               //port_plane_add(wall->sector,0,x,wy,y_to);
+               port_plane_add(wall->sector,0,x,wy,y_to);
                wy = y_to;
                pix = &RvR_framebuffer()[wy*RvR_xres()+x];
             }
 
             if(RvR_key_pressed(RVR_KEY_SPACE))
                RvR_render_present();
-            //if(RvR_core_key_down(RVR_KEY_SPACE))
-               //RvR_core_render_present();
 
             //Draw ceiling wall
             y_to = RvR_min((cy+cph)>>16,ybot[x]);
@@ -358,8 +392,6 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
             if(RvR_key_pressed(RVR_KEY_SPACE))
                RvR_render_present();
-            //if(RvR_core_key_down(RVR_KEY_SPACE))
-               //RvR_core_render_present();
 
             //Draw floor wall
             y_to = RvR_min((fy>>16)-1,ybot[x]);
@@ -371,16 +403,11 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
             if(RvR_key_pressed(RVR_KEY_SPACE))
                RvR_render_present();
-            //if(RvR_core_key_down(RVR_KEY_SPACE))
-               //RvR_core_render_present();
 
             //Draw floor
-            /*y_to = RvR_min(RVR_YRES-1,port_ymax[x]);
+            y_to = RvR_min(RvR_yres()-1,ybot[x]);
             if(y_to>wy)
                port_plane_add(wall->sector,1,x,wy,y_to);
-
-            if(RvR_core_key_down(RVR_KEY_SPACE))
-               RvR_core_render_present();*/
 
             ybot[x] = RvR_min((fy-fph)>>16,ybot[x]);
 
@@ -391,9 +418,51 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          }
       }
    }
-
    RvR_free(ytop);
    RvR_free(ybot);
+
+   //Render floor planes
+   RvR_fix16 *span_start = RvR_malloc(sizeof(*span_start)*RvR_yres(),"RvR_port: floor/ceiling plane spans");
+   for(int i = 0;i<128;i++)
+   {
+      port_plane *pl = port_planes[i];
+      while(pl!=NULL)
+      {
+         if(pl->min>pl->max)
+         {
+            pl = pl->next;
+            continue;
+         }
+
+         for(int x = pl->min;x<pl->max+2;x++)
+         {
+            RvR_fix16 s0 = pl->start[x-1];
+            RvR_fix16 s1 = pl->start[x];
+            RvR_fix16 e0 = pl->end[x-1];
+            RvR_fix16 e1 = pl->end[x];
+
+            //End spans top
+            for(;s0<s1&&s0<=e0;s0++)
+               port_span_draw(map,cam,pl->sector,pl->where,span_start[s0],x-1,s0);
+
+            //End spans bottom
+            for(;e0>e1&&e0>=s0;e0--)
+               port_span_draw(map,cam,pl->sector,pl->where,span_start[e0],x-1,e0);
+
+            //Start spans top
+            for(;s1<s0&&s1<=e1;s1++)
+               span_start[s1] = x-1;
+
+            //Start spans bottom
+            for(;e1>e0&&e1>=s1;e1--)
+               span_start[e1] = x-1;
+         }
+
+         pl = pl->next;
+      }
+   
+   }
+   RvR_free(span_start);
 }
 
 static int dwall_comp(const void *a, const void *b)
@@ -444,5 +513,155 @@ static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
    
    //Need swapping
    return 0;
+}
+
+static void port_span_draw(RvR_port_map *map, RvR_port_cam *cam, int16_t sector, uint8_t where, int x0, int x1, int y)
+{
+   //Shouldn't happen
+   if(x0>=x1)
+      return;
+
+   RvR_texture *texture = NULL;
+   if(where==0)
+      texture = RvR_texture_get(map->sectors[sector].ceiling_tex);
+   else if(where==1)
+      texture = RvR_texture_get(map->sectors[sector].floor_tex);
+
+   if(texture==NULL)
+      return;
+
+   RvR_fix16 height = 0;
+   if(where==0)
+      height = map->sectors[sector].ceiling;
+   else if(where==1)
+      height = map->sectors[sector].floor;
+
+   RvR_fix16 view_sin = RvR_fix16_sin(cam->dir);
+   RvR_fix16 view_cos = RvR_fix16_cos(cam->dir);
+   RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+
+   RvR_fix16 dy = RvR_yres()/2-y;
+   RvR_fix16 depth = RvR_fix16_div(RvR_abs(cam->z-height),RvR_non_zero(fovy));
+   depth = RvR_fix16_div(depth*RvR_yres(),RvR_non_zero(RvR_abs(dy)<<16)); //TODO
+
+   RvR_fix16 x_log = RvR_log2(texture->width);
+   RvR_fix16 y_log = RvR_log2(texture->height);
+   RvR_fix16 step_x = RvR_fix16_div(RvR_fix16_mul(view_sin,cam->z-height),RvR_non_zero(dy)*65536);
+   RvR_fix16 step_y = RvR_fix16_div(RvR_fix16_mul(view_cos,cam->z-height),RvR_non_zero(dy)*65536);
+   RvR_fix16 tx = cam->x+RvR_fix16_mul(view_cos,depth)+(x0-RvR_xres()/2)*step_x;
+   RvR_fix16 ty = -cam->y-RvR_fix16_mul(view_sin,depth)+(x0-RvR_xres()/2)*step_y;
+   RvR_fix16 x_and = (1<<x_log)-1;
+   RvR_fix16 y_and = (1<<y_log)-1;
+
+   uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
+   const uint8_t * restrict tex = texture->data;
+
+   for(int x = x0;x<x1;x++)
+   {
+      uint8_t c = tex[(((tx>>10)&x_and)<<y_log)+((ty>>10)&y_and)];
+      *pix = c;
+      tx+=step_x;
+      ty+=step_y;
+      pix++;
+   }
+}
+
+static void port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1)
+{
+   x+=1;
+
+   //TODO: check how this hash actually performs (probably poorly...)
+   int hash = (sector*7+where*3)&127;
+
+   port_plane *pl = port_planes[hash];
+   while(pl!=NULL)
+   {
+      //port_planes need to be in the same sector..
+      if(sector!=pl->sector)
+         goto next;
+      //... and the same texture to be valid for concatination
+      if(where!=pl->where)
+         goto next;
+
+      //Additionally the spans collumn needs to be either empty...
+      if(pl->start[x]!=UINT16_MAX)
+      {
+         //... or directly adjacent to each other vertically, in that case
+         //Concat planes vertically
+         if(pl->start[x]-1==y1)
+         {
+            pl->start[x] = y0;
+            return;
+         }
+         if(pl->end[x]+1==y0)
+         {
+            pl->end[x] = y1;
+            return;
+         }
+
+         goto next;
+      }
+
+      break;
+next:
+      pl = pl->next;
+   }
+
+   if(pl==NULL)
+   {
+      pl = port_plane_new();
+      pl->next= port_planes[hash];
+      port_planes[hash] = pl;
+
+      pl->min = RvR_xres();
+      pl->max = -1;
+      pl->sector = sector;
+      pl->where = where;
+
+      //Since this is an unsigned int, we can use memset to set all values to 65535 (0xffff)
+      memset(pl->start,255,sizeof(pl->start));
+   }
+
+   if(x<pl->min)
+      pl->min = x;
+   if(x>pl->max)
+      pl->max = x;
+
+   pl->end[x] = y1;
+   pl->start[x] = y0;
+}
+
+static port_plane *port_plane_new()
+{
+   if(port_plane_pool==NULL)
+   {
+      port_plane *p = RvR_malloc(sizeof(*p)*8,"RvR_port plane pool");
+      memset(p,0,sizeof(*p)*8);
+
+      for(int i = 0;i<7;i++)
+         p[i].next = &p[i+1];
+      port_plane_pool = p;
+   }
+
+   port_plane *p = port_plane_pool;
+   port_plane_pool = p->next;
+   p->next = NULL;
+
+   return p;
+}
+
+static void port_plane_free(port_plane *pl)
+{
+   if(pl==NULL)
+      return;
+
+   //Find last
+   port_plane *last = pl;
+   while(last->next!=NULL)
+      last = last->next;
+
+   last->next = port_plane_pool;
+   port_plane_pool = pl;
 }
 //-------------------------------------

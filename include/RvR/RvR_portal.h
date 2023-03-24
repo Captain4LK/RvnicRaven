@@ -18,6 +18,8 @@ typedef struct
    int16_t wall_first;
    RvR_fix16 floor;
    RvR_fix16 ceiling;
+   uint16_t floor_tex;
+   uint16_t ceiling_tex;
    uint8_t visited;
 }RvR_port_sector;
 

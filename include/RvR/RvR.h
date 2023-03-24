@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 
+#include "RvR/RvR_config.h"
 #include "RvR/RvR_app.h"
 #include "RvR/RvR_rw.h"
 #include "RvR/RvR_compress.h"
