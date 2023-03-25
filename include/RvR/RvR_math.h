@@ -18,7 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RvR_max(a, b) ((a)>(b)?(a):(b))
 #define RvR_abs(a) ((a)<0?-(a):(a))
 #define RvR_non_zero(a) ((a) + ((a)==0))
-#define RvR_sign_equal(a,b) (((a)^(b))>=0)
+#define RvR_sign_equal(a, b) (((a) ^ (b))>=0)
 
 uint32_t RvR_log2(uint32_t a);
 

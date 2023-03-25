@@ -302,16 +302,16 @@ RvR_fix16 RvR_fix16_div(RvR_fix16 a, RvR_fix16 b)
 
 RvR_fix16 RvR_fix16_cos(RvR_fix16 a)
 {
-   return fix16_cos_table[(a>>3)&8191];
+   return fix16_cos_table[(a >> 3) & 8191];
 }
 
 RvR_fix16 RvR_fix16_sin(RvR_fix16 a)
 {
-   return RvR_fix16_cos(a-16384);
+   return RvR_fix16_cos(a - 16384);
 }
 
 RvR_fix16 RvR_fix16_tan(RvR_fix16 a)
 {
-   return RvR_fix16_div(RvR_fix16_sin(a),RvR_fix16_cos(a));
+   return RvR_fix16_div(RvR_fix16_sin(a), RvR_fix16_cos(a));
 }
 //-------------------------------------

@@ -37,54 +37,54 @@ uint8_t outcode(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 x,
 //Cohen–Sutherland line clipping
 int RvR_clip_line(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 *x0, RvR_fix24 *y0, RvR_fix24 *x1, RvR_fix24 *y1)
 {
-   uint8_t code0 = outcode(l,u,r,d,*x0,*y0);
-   uint8_t code1 = outcode(l,u,r,d,*x1,*y1);
+   uint8_t code0 = outcode(l, u, r, d, *x0, *y0);
+   uint8_t code1 = outcode(l, u, r, d, *x1, *y1);
 
    for(;;)
    {
       if(code0==0&&code1==0)
          return 1;
 
-      if(code0&code1)
+      if(code0 & code1)
          return 0;
 
       uint8_t code_out = code1>code0?code1:code0;
-      RvR_fix24 x,y;
-      RvR_fix24 dx = *x1-*x0;
-      RvR_fix24 dy = *y1-*y0;
+      RvR_fix24 x, y;
+      RvR_fix24 dx = *x1 - *x0;
+      RvR_fix24 dy = *y1 - *y0;
 
-      if(code_out&8)
+      if(code_out & 8)
       {
-         x = *x0+RvR_fix24_div(RvR_fix24_mul(dx,d-*y0),dy);
+         x = *x0 + RvR_fix24_div(RvR_fix24_mul(dx, d - *y0), dy);
          y = d;
       }
-      else if(code_out&4)
+      else if(code_out & 4)
       {
-         x = *x0+RvR_fix24_div(RvR_fix24_mul(dx,u-*y0),dy);
+         x = *x0 + RvR_fix24_div(RvR_fix24_mul(dx, u - *y0), dy);
          y = u;
       }
-      else if(code_out&2)
+      else if(code_out & 2)
       {
          x = r;
-         y = *y0+RvR_fix24_div(RvR_fix24_mul(dy,r-*x0),dx);
+         y = *y0 + RvR_fix24_div(RvR_fix24_mul(dy, r - *x0), dx);
       }
       else
       {
          x = l;
-         y = *y0+RvR_fix24_div(RvR_fix24_mul(dy,l-*x0),dx);
+         y = *y0 + RvR_fix24_div(RvR_fix24_mul(dy, l - *x0), dx);
       }
 
       if(code_out==code0)
       {
          *x0 = x;
          *y0 = y;
-         code0 = outcode(l,u,r,d,*x0,*y0);
+         code0 = outcode(l, u, r, d, *x0, *y0);
       }
       else
       {
          *x1 = x;
          *y1 = y;
-         code1 = outcode(l,u,r,d,*x1,*y1);
+         code1 = outcode(l, u, r, d, *x1, *y1);
       }
    }
 
@@ -96,14 +96,14 @@ uint8_t outcode(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 x,
    uint8_t code = 0;
 
    if(x<l)
-      code|=1;
+      code |= 1;
    else if(x>r)
-      code|=2;
+      code |= 2;
 
    if(y<u)
-      code|=4;
+      code |= 4;
    if(y>d)
-      code|=8;
+      code |= 8;
 
    return code;
 }

@@ -32,7 +32,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 uint32_t RvR_log2(uint32_t a)
 {
    uint32_t r = 0;
-   while(a>>=1)
+   while(a >>= 1)
       r++;
 
    return r;

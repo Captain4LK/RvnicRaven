@@ -39,21 +39,21 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uint8_t index)
 {
-   if(!RvR_clip_line(0,0,RVR_XRES*256-1,RVR_YRES*256-1,&x0,&y0,&x1,&y1))
+   if(!RvR_clip_line(0, 0, RVR_XRES * 256 - 1, RVR_YRES * 256 - 1, &x0, &y0, &x1, &y1))
       return;
 
-   RvR_fix24 dx = x1-x0;
-   RvR_fix24 dy = y1-y0;
-   int x = x0>>8;
-   int y = y0>>8;
+   RvR_fix24 dx = x1 - x0;
+   RvR_fix24 dy = y1 - y0;
+   int x = x0 >> 8;
+   int y = y0 >> 8;
    RvR_fix24 db;
    RvR_fix24 ds;
    RvR_fix24 fracb;
    RvR_fix24 fracs;
    int steps;
    int stepb;
-   int togox = (x1>>8)-(x0>>8);
-   int togoy = (y1>>8)-(y0>>8);
+   int togox = (x1 >> 8) - (x0 >> 8);
+   int togoy = (y1 >> 8) - (y0 >> 8);
    int togob;
    int togos;
 
@@ -63,8 +63,8 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
       {
          db = dx;
          ds = dy;
-         fracb = x0&255;
-         fracs = y0&255;
+         fracb = x0 & 255;
+         fracs = y0 & 255;
          togob = togox;
          togos = togoy;
          stepb = 1;
@@ -74,8 +74,8 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
       {
          db = dx;
          ds = -dy;
-         fracb = x0&255;
-         fracs = 255-(y0&255);
+         fracb = x0 & 255;
+         fracs = 255 - (y0 & 255);
          togob = togox;
          togos = -togoy;
          stepb = 1;
@@ -88,8 +88,8 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
       {
          db = -dx;
          ds = dy;
-         fracb = 255-(x0&255);
-         fracs = y0&255;
+         fracb = 255 - (x0 & 255);
+         fracs = y0 & 255;
          togob = -togox;
          togos = togoy;
          stepb = -1;
@@ -99,8 +99,8 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
       {
          db = -dx;
          ds = -dy;
-         fracb = 255-(x0&255);
-         fracs = 255-(y0&255);
+         fracb = 255 - (x0 & 255);
+         fracs = 255 - (y0 & 255);
          togob = -togox;
          togos = -togoy;
          stepb = -1;
@@ -118,19 +118,19 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
    }
 
    uint8_t * restrict dst = &RvR_framebuffer()[y * RVR_XRES + x];
-   RvR_fix24 dist = RvR_fix24_mul(fracs-128,db)-RvR_fix24_mul(fracb-128,ds);
+   RvR_fix24 dist = RvR_fix24_mul(fracs - 128, db) - RvR_fix24_mul(fracb - 128, ds);
    int togo = togob;
    while(togo>0)
    {
-      if(dist>db/2)
+      if(dist>db / 2)
       {
-         dst+=steps;
-         dist-=db;
+         dst += steps;
+         dist -= db;
       }
 
       *dst = index;
-      dst+=stepb;
-      dist+=ds;
+      dst += stepb;
+      dist += ds;
       togo--;
    }
 }

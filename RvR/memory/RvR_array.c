@@ -36,28 +36,28 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void *RvR_array_grow_internal(void *old, size_t size, size_t grow, size_t min)
 {
-   size_t header_off = (sizeof(RvR_aheader)+size-1)/size;
+   size_t header_off = (sizeof(RvR_aheader) + size - 1) / size;
 
    if(min<4)
       min = 4;
    if(old==NULL)
    {
       //goodbye c++ lmao
-      char *new = RvR_malloc(header_off*size+min*size,"RvR_array new");
+      char *new = RvR_malloc(header_off * size + min * size, "RvR_array new");
       RvR_aheader *h = (RvR_aheader *)new;
       h->length = 0;
       h->size = min;
 
-      return new+header_off*size;
+      return new + header_off * size;
    }
 
-   RvR_aheader *h = (RvR_aheader *)(((char *)old)-header_off*size);
+   RvR_aheader *h = (RvR_aheader *)(((char *)old) - header_off * size);
    if(h->size<min)
       h->size = min;
-   while(h->size<h->length+grow)
-      h->size*=2;
-   h = RvR_realloc(h,header_off*size+h->size*size,"RvR_array grow");
+   while(h->size<h->length + grow)
+      h->size *= 2;
+   h = RvR_realloc(h, header_off * size + h->size * size, "RvR_array grow");
 
-   return ((char *)h)+header_off*size;
+   return ((char *)h) + header_off * size;
 }
 //-------------------------------------

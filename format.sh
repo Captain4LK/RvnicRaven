@@ -2,6 +2,8 @@
 
 src=$(find RvR/ -name "*.c")
 src=$src $(find RvR/ -name "*.h")
+src=$src $(find RvR_port/ -name "*.c")
+src=$src $(find RvR_port/ -name "*.h")
 src="$src $(find include/ -name "*.h")"
 echo "$src"
 
