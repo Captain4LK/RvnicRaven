@@ -192,7 +192,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             continue;
 
          dw.u0 = 0;
-         dw.u1 = 65536;
+         dw.u1 = RvR_fix16_sqrt(RvR_fix16_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix16_mul(w1->y-w0->y,w1->y-w0->y));
 
          //Clipping
          //Left point in fov
@@ -217,7 +217,10 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             dw.x0 = 0;
             dw.z0 = RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y+tp1x-tp0x)-tp0x;
 
-            dw.u0 = RvR_fix16_div(-dx1,RvR_non_zero(RvR_fix16_mul(tp1x,tp0y)-RvR_fix16_mul(tp0x,tp1y)));
+            //RvR_fix16 t = RvR_fix16_div(-tp0x-tp0y,RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
+            //dw.u0 = t;
+            dw.u0 = dw.u0 + RvR_fix16_div(RvR_fix16_mul(-tp0x-tp0y,dw.u1-dw.u0),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
+            //dw.u0 = RvR_fix16_div(-dx1,RvR_non_zero(RvR_fix16_mul(tp1x,tp0y)-RvR_fix16_mul(tp0x,tp1y)));
             //dw.u0 = RvR_fix16_div(-dx1,RvR_non_zero((tp1x+tp0y)-(tp0x+tp1y)));
          }
 
@@ -243,7 +246,9 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             dw.x1 = RvR_xres()*65536-1;
             dw.z1 = tp0x-RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y-tp1x+tp0x);
 
-            dw.u1 = RvR_fix16_div(dx1,RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
+            dw.u1 = RvR_fix16_div(RvR_fix16_mul(dx1,dw.u1),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
+            //dw.u1 = RvR_fix16_div(tp0x-tp0y,RvR_non_zero(tp1x-tp0x-tp1y+tp0y));
+            //dw.u1 = RvR_fix16_div(dx1,RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
          }
 
          if(dw.x0>dw.x1)
@@ -372,6 +377,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 xfrac = wall->x0-x0*65536;
          num_z-=RvR_fix16_mul(xfrac,num_step_z);
          num_u-=RvR_fix16_mul(xfrac,num_step_u);
+         //cy-=RvR_fix16_mul(xfrac,step_cy);
+         //fy-=RvR_fix16_mul(xfrac,step_fy);
 
          for(int x = x0;x<x1;x++)
          {

@@ -314,4 +314,24 @@ RvR_fix16 RvR_fix16_tan(RvR_fix16 a)
 {
    return RvR_fix16_div(RvR_fix16_sin(a),RvR_fix16_cos(a));
 }
+
+RvR_fix16 RvR_fix16_sqrt(RvR_fix16 a)
+{
+   RvR_fix16 b = 1 << 30;
+   RvR_fix16 result = 0;
+
+   while(b>64)
+   {
+      RvR_fix16 t = result + b;
+      if(a>=t)
+      {
+         a -= t;
+         result = t + b;
+      }
+      a*=2;
+      b/=2;
+   }
+
+   return result >> 8;
+}
 //-------------------------------------
