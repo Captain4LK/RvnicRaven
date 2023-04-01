@@ -279,6 +279,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       int16_t sector = wall->sector;
       int16_t portal = map->walls[wall->wall].portal;
 
+      //No portal
       if(portal<0)
       {
          int x0 = wall->x0>>16;
@@ -300,19 +301,17 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
          RvR_fix16 denom = RvR_fix16_mul(wall->z1,wall->z0);
          RvR_fix16 num_step_z = RvR_fix16_div(wall->z0-wall->z1,RvR_non_zero(wall->x1-wall->x0));
-         RvR_fix16 num_z0 = wall->z1;
-         RvR_fix16 num_z = num_z0;
+         RvR_fix16 num_z = wall->z1;
 
          RvR_fix16 num_step_u = RvR_fix16_div(RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0),RvR_non_zero(wall->x1-wall->x0));
-         RvR_fix16 num_u0 = RvR_fix16_mul(wall->u0,wall->z1);
-         RvR_fix16 num_u = num_u0;
+         RvR_fix16 num_u = RvR_fix16_mul(wall->u0,wall->z1);
 
          //Adjust for fractional part
          RvR_fix16 xfrac = wall->x0-x0*65536;
-         num_z-=RvR_fix16_mul(xfrac,num_step_z);
-         num_u-=RvR_fix16_mul(xfrac,num_step_u);
          cy-=RvR_fix16_mul(xfrac,step_cy);
          fy-=RvR_fix16_mul(xfrac,step_fy);
+         num_z-=RvR_fix16_mul(xfrac,num_step_z);
+         num_u-=RvR_fix16_mul(xfrac,num_step_u);
 
          for(int x = x0;x<x1;x++)
          {
@@ -343,7 +342,6 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             {
                *pix = col[tex[(texture_coord_scaled>>10)&y_and]];
                pix+=RvR_xres();
-
                texture_coord_scaled+=coord_step_scaled;
             }
 
@@ -369,7 +367,6 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       {
          int x0 = wall->x0>>16;
          int x1 = wall->x1>>16;
-         int width = x1-x0;
 
          RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z0,fovy));
          RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z1,fovy));
@@ -397,18 +394,18 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
          RvR_fix16 denom = RvR_fix16_mul(wall->z1,wall->z0);
          RvR_fix16 num_step_z = RvR_fix16_div(wall->z0-wall->z1,RvR_non_zero(wall->x1-wall->x0));
-         RvR_fix16 num_z0 = wall->z1;
-         RvR_fix16 num_z = num_z0;
+         RvR_fix16 num_z = wall->z1;
 
          RvR_fix16 num_step_u = RvR_fix16_div(RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0),RvR_non_zero(wall->x1-wall->x0));
-         RvR_fix16 num_u0 = RvR_fix16_mul(wall->u0,wall->z1);
-         RvR_fix16 num_u = num_u0;
+         RvR_fix16 num_u = RvR_fix16_mul(wall->u0,wall->z1);
 
          RvR_fix16 xfrac = wall->x0-x0*65536;
+         cy-=RvR_fix16_mul(xfrac,step_cy);
+         cph-=RvR_fix16_mul(xfrac,step_cph);
+         fy-=RvR_fix16_mul(xfrac,step_fy);
+         fph-=RvR_fix16_mul(xfrac,step_fph);
          num_z-=RvR_fix16_mul(xfrac,num_step_z);
          num_u-=RvR_fix16_mul(xfrac,num_step_u);
-         cy-=RvR_fix16_mul(xfrac,step_cy);
-         fy-=RvR_fix16_mul(xfrac,step_fy);
 
          for(int x = x0;x<x1;x++)
          {
