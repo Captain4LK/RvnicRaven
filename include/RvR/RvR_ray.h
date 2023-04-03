@@ -26,6 +26,14 @@ typedef struct
 {
    RvR_fix16 x;
    RvR_fix16 y;
+   RvR_fix16 dirx;
+   RvR_fix16 diry;
+}RvR_ray;
+
+typedef struct
+{
+   RvR_fix16 x;
+   RvR_fix16 y;
    RvR_fix16 z;
    RvR_fix16 direction;
    uint16_t texture;
@@ -50,8 +58,34 @@ typedef struct
    RvR_ray_map_sprite *sprites;
 }RvR_ray_map;
 
+typedef struct
+{
+   RvR_fix16 posx;
+   RvR_fix16 posy;
+   RvR_fix16 posz;
+   RvR_fix16 squarex;
+   RvR_fix16 squarey;
+   RvR_fix16 distance;
+   uint8_t direction;
+   uint16_t wall_ftex;
+   uint16_t wall_ctex;
+   uint16_t floor_tex;
+   uint16_t ceil_tex;
+   RvR_fix16 fheight;
+   RvR_fix16 cheight;
+   RvR_fix16 texture_coord;
+}RvR_ray_hit_result;
+
+typedef struct
+{
+   RvR_fix16 x;
+   RvR_fix16 y;
+   RvR_fix16 depth;
+}RvR_ray_pixel_info;
+
 void                  RvR_ray_draw_begin();
 void                  RvR_ray_draw_end();
+void                  RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map);
 
 RvR_ray_map *RvR_ray_map_create(uint16_t width, uint16_t height);
 void RvR_ray_map_free(RvR_ray_map *map);

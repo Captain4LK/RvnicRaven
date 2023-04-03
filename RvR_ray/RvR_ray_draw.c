@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "RvR_ray_config.h"
 #include "RvR/RvR_ray.h"
 //-------------------------------------
 
@@ -22,12 +23,53 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
+typedef struct ray_depth_buffer_entry ray_depth_buffer_entry;
+typedef struct ray_plane ray_plane;
+
+struct ray_depth_buffer_entry
+{
+   RvR_fix16 depth;
+   int32_t limit;
+
+   ray_depth_buffer_entry *next;
+};
+
+struct ray_plane
+{
+   int32_t min;
+   int32_t max;
+   RvR_fix16 height;
+   uint16_t tex;
+   uint16_t start[RVR_XRES_MAX+2];
+   uint16_t end[RVR_XRES_MAX+2];
+
+   ray_plane *next;
+};
 //-------------------------------------
 
 //Variables
+struct
+{
+   ray_depth_buffer_entry *floor[RVR_XRES_MAX];
+   ray_depth_buffer_entry *ceiling[RVR_XRES_MAX];
+}ray_depth_buffer;
+
+static ray_plane *ray_planes[128] = {0};
+static ray_plane *ray_plane_pool = NULL;
+static ray_depth_buffer_entry *ray_depth_buffer_entry_pool = NULL;
 //-------------------------------------
 
 //Function prototypes
+static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray);
+static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_fix16 y_current, RvR_fix16 y_from, RvR_fix16 y_to, RvR_fix16 limit0, RvR_fix16 limit1, RvR_fix16 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit);
+
+static void ray_plane_add(RvR_fix16 height, uint16_t tex, int x, int y0, int y1);
+
+static ray_depth_buffer_entry *ray_depth_buffer_entry_new();
+static void ray_depth_buffer_entry_free(ray_depth_buffer_entry *ent);
+
+static ray_plane *ray_plane_new();
+static void ray_plane_free(ray_plane *pl);
 //-------------------------------------
 
 //Function implementations
@@ -35,7 +77,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void RvR_ray_draw_begin()
 {
    //Clear depth buffer
-   for(int i = 0;i<RVR_XRES;i++)
+   for(int i = 0;i<RvR_xres();i++)
    {
       ray_depth_buffer_entry_free(ray_depth_buffer.floor[i]);
       ray_depth_buffer_entry_free(ray_depth_buffer.ceiling[i]);
@@ -52,7 +94,7 @@ void RvR_ray_draw_begin()
    }
 
    //Initialize needed vars
-   ray_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
+   /*ray_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
    ray_fov_factor_y = (RVR_YRES*ray_fov_factor_x*2)/RVR_XRES;
 
    ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
@@ -63,10 +105,602 @@ void RvR_ray_draw_begin()
    ray_cos = RvR_fix22_cos(RvR_ray_get_angle());
    ray_sin = RvR_fix22_sin(RvR_ray_get_angle());
    ray_cos_fov = (ray_cos*ray_fov_factor_x)/1024;
-   ray_sin_fov = (ray_sin*ray_fov_factor_x)/1024;
+   ray_sin_fov = (ray_sin*ray_fov_factor_x)/1024;*/
 }
 
 void RvR_ray_draw_end()
 {
+}
+
+void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
+{
+   RvR_fix16 dir0x = RvR_fix16_cos(cam->dir-(cam->fov/2));
+   RvR_fix16 dir0y = RvR_fix16_sin(cam->dir-(cam->fov/2));
+   RvR_fix16 dir1x = RvR_fix16_cos(cam->dir+(cam->fov/2));
+   RvR_fix16 dir1y = RvR_fix16_sin(cam->dir+(cam->fov/2));
+   //RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(ray_cam_fov/2));
+   //RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(ray_cam_fov/2));
+   RvR_fix16 cos = RvR_non_zero(RvR_fix16_cos(cam->fov/2));
+   dir0x = RvR_fix16_div(dir0x,cos);
+   dir0y = RvR_fix16_div(dir0y,cos);
+   dir1x = RvR_fix16_div(dir1x,cos);
+   dir1y = RvR_fix16_div(dir1y,cos);
+
+   RvR_fix16 dx = dir1x-dir0x;
+   RvR_fix16 dy = dir1y-dir0y;
+   RvR_fix16 current_dx = 0;
+   RvR_fix16 current_dy = 0;
+
+   RvR_ray_hit_result hits[RVR_RAY_MAX_STEPS] = {0};
+   uint16_t hit_count = 0;
+
+   for(int16_t x = 0;x<RvR_xres();x++)
+   {
+      //Here by linearly interpolating the direction vector its length changes,
+      //which in result achieves correcting the fish eye effect (computing
+      //perpendicular distance).
+      RvR_ray r;
+      r.x = cam->x;
+      r.y = cam->y;
+      r.dirx = dir0x+(current_dx/(RvR_xres()-1));
+      r.diry = dir0y+(current_dy/(RvR_xres()-1));
+
+      //RvR_ray_cast_multi_hit_draw(r,hits,&hit_count);
+
+      //column(hits,hit_count,i,r);
+
+      hit_count = 0;
+
+      RvR_fix16 current_posx = r.x;
+      RvR_fix16 current_posy = r.y;
+      RvR_fix16 current_squarex = r.x/65536;
+      RvR_fix16 current_squarey = r.y/65536;
+
+      RvR_fix16 old_floor = INT32_MIN;
+      RvR_fix16 old_ceiling = INT32_MIN;
+      uint16_t old_ftex = UINT16_MAX;
+      uint16_t old_ctex = UINT16_MAX;
+      RvR_fix16 floor = old_floor;
+      RvR_fix16 ceiling = old_ceiling;
+      uint16_t ftex = old_ftex;
+      uint16_t ctex = old_ctex;
+
+      RvR_fix16 deltax = RvR_fix16_div(65536,r.dirx);
+      RvR_fix16 deltay = RvR_fix16_div(65536,r.diry);
+      //RvR_fix16 deltay = RvR_abs((1024*1024)/RvR_non_zero(ray.direction.y));
+
+      RvR_fix16 stepx;
+      RvR_fix16 stepy;
+      RvR_fix16 side_distx;
+      RvR_fix16 side_disty;
+      int side;
+
+      if(r.dirx<0)
+      {
+         stepx = -1;
+         side_distx = RvR_fix16_mul(r.x-current_squarex,deltax);
+         //side_distx = ((ray.start.x-current_square.x*1024)*delta.x)/1024;
+      }
+      else
+      {
+         stepx = 1;
+         side_distx = RvR_fix16_mul(current_squarex+65536-r.x,deltax);
+         //side_distx = ((current_square.x*1024+1024-ray.start.x)*delta.x)/1024;
+      }
+
+      if(r.diry<0)
+      {
+         stepy = -1;
+         side_disty = RvR_fix16_mul(r.y-current_squarey,deltay);
+         //side_disty = ((ray.start.y-current_square.y*1024)*delta.y)/1024;
+      }
+      else
+      {
+         stepy = 1;
+         side_disty = RvR_fix16_mul(current_squarey+65536-r.y,deltay);
+         //side_disty = ((current_square.y*1024+1024-ray.start.y)*delta.y)/1024;
+      }
+
+      for(unsigned i = 0;i<RVR_RAY_MAX_STEPS;i++)
+      {
+         // DDA step
+         if(side_distx<side_disty)
+         {
+            side_distx+=deltax;
+            current_squarex+=stepx;
+            side = 0;
+         }
+         else
+         {
+            side_disty+=deltay;
+            current_squarey+=stepy;
+            side = 1;
+         }
+
+         int inbounds = RvR_ray_map_inbounds(map,current_squarex,current_squarey);
+         if(inbounds)
+         {
+            floor = RvR_ray_map_floor_height_at_us(map,current_squarex,current_squarey);
+            ceiling = RvR_ray_map_ceiling_height_at_us(map,current_squarex,current_squarey);
+            ftex = RvR_ray_map_floor_tex_at_us(map,current_squarex,current_squarey);
+            ctex = RvR_ray_map_ceil_tex_at_us(map,current_squarex,current_squarey);
+         }
+
+         if(!inbounds||i==RVR_RAY_MAX_STEPS-1||floor!=old_floor||ceiling!=old_ceiling||ftex!=old_ftex||ctex!=old_ctex)
+         {
+            RvR_ray_hit_result h;
+            h.posx = current_posx;
+            h.posy = current_posy;
+            h.squarex = current_squarex;
+            h.squarey = current_squarey;
+
+            if(!side)
+            {
+               h.distance = (side_distx-deltax);
+               h.posy = r.y+RvR_fix16_mul(h.distance,r.diry);
+               //h.posy = r.y+(h.distance*r.diry)/102l4;
+               h.posx = current_squarex*65536;
+               h.direction = 3;
+               if(stepx==-1)
+               {
+                  h.direction = 1;
+                  h.posx+=65536;
+               }
+            }
+            else
+            {
+               h.distance = (side_disty-deltay);
+               h.posx = r.x+RvR_fix16_mul(h.distance,r.dirx);
+               //h.posx = ray.start.x+(h.distance*ray.direction.x)/1024;
+               h.posy = current_squarey*65536;
+               h.direction = 2;
+               if(stepy==-1)
+               {
+                  h.direction = 0;
+                  h.posy+=65536;
+               }
+            }
+            
+            if(RvR_ray_map_inbounds(map,current_squarex,current_squarey))
+            {
+               h.wall_ftex = RvR_ray_map_wall_ftex_at_us(map,current_squarex,current_squarey);
+               h.wall_ctex = RvR_ray_map_wall_ctex_at_us(map,current_squarex,current_squarey);
+            }
+            else
+            {
+               h.wall_ftex = map->sky_tex;
+               h.wall_ctex = map->sky_tex;
+            }
+
+            h.fheight = 0;
+            h.cheight = (127*65536)/8;
+            h.floor_tex = map->sky_tex;
+            h.ceil_tex = map->sky_tex;
+
+            switch(h.direction)
+            {
+            case 0:
+               h.texture_coord = (h.posx)&65536;
+               if(RvR_ray_map_inbounds(map,current_squarex,current_squarey+1))
+               {
+                  h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex,current_squarey+1);
+                  h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex,current_squarey+1);
+                  h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex,h.squarey+1);
+                  h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex,h.squarey+1);
+               }
+               break;
+            case 1:
+               h.texture_coord = (-h.posy)&65536;
+               if(RvR_ray_map_inbounds(map,current_squarex+1,current_squarey))
+               {
+                  h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex+1,current_squarey);
+                  h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex+1,current_squarey);
+                  h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex+1,h.squarey);
+                  h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex+1,h.squarey);
+               }
+               break;
+            case 2:
+               h.texture_coord = (-h.posx)&65536;
+               if(RvR_ray_map_inbounds(map,current_squarex,current_squarey-1))
+               {
+                  h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex,current_squarey-1);
+                  h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex,current_squarey-1);
+                  h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex,h.squarey-1);
+                  h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex,h.squarey-1);
+               }
+               break;
+            case 3:
+               h.texture_coord = (h.posy)&65536;
+               if(RvR_ray_map_inbounds(map,current_squarex-1,current_squarey))
+               {
+                  h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex-1,current_squarey);
+                  h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex-1,current_squarey);
+                  h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex-1,h.squarey);
+                  h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex-1,h.squarey);
+               }
+               break;
+            default:
+               h.texture_coord = 0;
+               break;
+            }
+
+            hits[hit_count++] = h;
+
+            if(hit_count>=RVR_RAY_MAX_STEPS||!inbounds)
+               break;
+
+            old_floor = floor;
+            old_ceiling = ceiling;
+            old_ftex = ftex;
+            old_ctex = ctex;
+         }
+      }
+      
+      ray_draw_column(map,cam,hits,hit_count,x,r);
+
+      current_dx+=dx;
+      current_dy+=dy;
+   }
+}
+
+static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray)
+{
+   //last written Y position, can never go backwards
+   RvR_fix16 f_pos_y = RvR_yres();
+   RvR_fix16 c_pos_y = -1;
+
+   RvR_fix16 middle_row = RvR_yres()/2+cam->shear;
+   RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+
+   //world coordinates (relative to camera height though)
+   RvR_fix16 f_z1_world = RvR_ray_map_floor_height_at(map,ray.x/65536,ray.y/65536)-cam->z;
+   RvR_fix16 c_z1_world = RvR_ray_map_ceiling_height_at(map,ray.x/65536,ray.y/65536)-cam->z;
+
+   RvR_ray_pixel_info p = {0};
+   RvR_ray_hit_result h = {0};
+   p.x = x;
+
+   //we'll be simulatenously drawing the floor and the ceiling now  
+   for(RvR_fix16 j = 0;j<=hits_len;j++)
+   {                    //^ = add extra iteration for horizon plane
+      int8_t drawing_horizon = j==(hits_len);
+      int limit_c = 0;
+      int limit_f = 0;
+
+      RvR_fix16 distance = 0;
+
+      RvR_fix16 f_z2_world = 0,    c_z2_world = 0;
+      RvR_fix16 f_z1_screen = 0,   c_z1_screen = 0;
+      RvR_fix16 f_z2_screen = 0,   c_z2_screen = 0;
+
+      if(!drawing_horizon)
+      {
+         RvR_ray_hit_result hit = hits[j];
+         distance = RvR_non_zero(hit.distance); 
+         h = hit;
+
+         RvR_fix16 wall_height = RvR_ray_map_floor_height_at(map,hit.squarex,hit.squarey);
+         f_z2_world = wall_height-cam->z;
+         f_z1_screen = middle_row-RvR_fix16_div(f_z1_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
+         f_z2_screen = middle_row-RvR_fix16_div(f_z2_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
+         //f_z1_screen = ray_middle_row-((f_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
+         //f_z2_screen = ray_middle_row-((f_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
+
+         wall_height = RvR_ray_map_ceiling_height_at(map,hit.squarex,hit.squarey);
+         c_z2_world = wall_height-cam->z;
+         c_z1_screen = middle_row-RvR_fix16_div(c_z1_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
+         c_z2_screen = middle_row-RvR_fix16_div(c_z2_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
+         //c_z1_screen = ray_middle_row-((c_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
+         //c_z2_screen = ray_middle_row-((c_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
+      }
+      else
+      {
+         f_z1_screen = middle_row;
+         c_z1_screen = middle_row+1;
+
+         h = hits[j-1];
+         h.distance = 65536*128;
+         h.posx = RvR_fix16_mul(ray.dirx,h.distance)/65536;
+         h.posy = RvR_fix16_mul(ray.diry,h.distance)/65536;
+
+         h.direction = 0;
+         h.texture_coord = 0;
+         h.wall_ftex = map->sky_tex;
+         h.wall_ctex = map->sky_tex;
+         h.floor_tex = map->sky_tex;
+         h.ceil_tex = map->sky_tex;
+         h.fheight = 65536*128;
+         h.cheight = 65536*128;
+      }
+
+      RvR_fix16 limit;
+
+      //draw floor until wall
+      limit_f = limit = RvR_clamp(f_z1_screen,c_pos_y+1,RvR_yres());
+      if(f_pos_y>limit)
+      {
+         ray_plane_add(h.fheight,h.floor_tex,p.x,limit,f_pos_y-1);
+         f_pos_y = limit;
+      }
+
+      //draw ceiling until wall
+      limit_c = limit = RvR_clamp(c_z1_screen,-1,f_pos_y-1);
+      if(limit>c_pos_y)
+      {
+         ray_plane_add(h.cheight,h.ceil_tex,p.x,c_pos_y+1,limit);
+         c_pos_y = limit;
+      }
+
+      if(!drawing_horizon) //don't draw walls for horizon plane
+      {
+         p.depth = distance;
+         p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS)*65536));
+
+         //draw floor wall
+         if(f_z1_world!=f_z2_world)
+         {
+            if(f_pos_y>0)  //still pixels left?
+            {
+               limit = ray_draw_wall(map,cam,f_pos_y,f_z1_screen,f_z2_screen,c_pos_y+1,
+                                             RvR_yres(),
+                                             //^ purposfully allow outside screen bounds here
+                                             f_z2_world
+                                             ,-1,&p,&h);
+               if(f_pos_y>limit)
+                  f_pos_y = limit;
+
+               f_z1_world = f_z2_world; //for the next iteration
+                           //^ purposfully allow outside screen bounds here
+            }
+
+            int limit_clip = RvR_min(limit,limit_f);
+            ray_depth_buffer_entry *entry = ray_depth_buffer_entry_new();
+            entry->depth = p.depth;
+            entry->limit = limit_clip;
+            entry->next = ray_depth_buffer.floor[p.x];
+            ray_depth_buffer.floor[p.x] = entry;
+         }
+
+         //draw ceiling wall
+         if(c_z1_world!=c_z2_world)
+         {
+            if(c_pos_y<RvR_yres()-1) //pixels left?
+            {
+               limit = ray_draw_wall(map,cam,c_pos_y,c_z1_screen,c_z2_screen,
+                                 -1,f_pos_y-1,
+                                 //^ puposfully allow outside screen bounds here
+                                 c_z2_world 
+                                 ,1,&p,&h);
+
+               if(c_pos_y<limit)
+                  c_pos_y = limit;
+
+               c_z1_world = c_z2_world; //for the next iteration
+                          //^ puposfully allow outside screen bounds here 
+            }
+
+            int limit_clip = RvR_max(limit,limit_c);
+            ray_depth_buffer_entry *entry = ray_depth_buffer_entry_new();
+            entry->depth = p.depth;
+            entry->limit = limit_clip+1;
+            entry->next = ray_depth_buffer.ceiling[p.x];
+            ray_depth_buffer.ceiling[p.x] = entry;
+         }
+      }
+   }
+}
+
+static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_fix16 y_current, RvR_fix16 y_from, RvR_fix16 y_to, RvR_fix16 limit0, RvR_fix16 limit1, RvR_fix16 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit)
+{
+   int16_t limit = RvR_clamp(y_to,limit0,limit1);
+   int start = 0;
+   int end = 0;
+   RvR_fix16 middle_row = RvR_yres()/2+cam->shear;
+   RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+
+   if(increment==-1)
+   {
+      start = limit;
+      end = y_current+increment;
+   }
+   else if(increment==1)
+   {
+      start = y_current+increment;
+      end = limit;
+   }
+
+   if(end<start)
+      return limit;
+
+   //Sky texture is handled differently and instead added as a plane
+   if(increment==-1&&hit->wall_ftex==map->sky_tex)
+   {
+      ray_plane_add(hit->fheight,hit->wall_ftex,pixel_info->x,start,end);
+      return limit;
+   }
+   else if(increment==1&&hit->wall_ctex==map->sky_tex)
+   {
+      ray_plane_add(hit->cheight,hit->wall_ctex,pixel_info->x,start,end);
+      return limit;
+   }
+
+   RvR_texture *texture = NULL;
+   //RvR_fix16 coord_step_scaled = (4*fovy*pixel_info->depth)/RvR_yres();
+   //RvR_fix16 texture_coord_scaled = height*4096+(start-middle_row+1)*coord_step_scaled;
+   RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,pixel_info->depth)/RvR_yres();
+   RvR_fix16 texture_coord_scaled = height+(start-middle_row+1)*coord_step_scaled;
+
+   if(increment==-1)
+      texture = RvR_texture_get(hit->wall_ftex);
+   else if(increment==1)
+      texture = RvR_texture_get(hit->wall_ctex);
+
+   uint8_t * restrict pix = &RvR_framebuffer()[start*RvR_xres()+pixel_info->x];
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(hit->direction&1)*10+(pixel_info->depth>>15)));
+   const uint8_t * restrict tex = &texture->data[(hit->texture_coord>>10)*texture->height];
+   RvR_fix16 y_and = (1<<RvR_log2(texture->height))-1;
+
+#if RVR_UNROLL
+
+   int count = end-start+1;
+   int n = (count+7)/8;
+   switch(count%8)
+   {
+   case 0: do {
+           *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+   case 7: *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+   case 6: *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+   case 5: *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+   case 4: *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+   case 3: *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+   case 2: *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+   case 1: *pix = col[tex[(texture_coord_scaled>>10)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RvR_xres(); //fallthrough
+           }while(--n>0);
+   }
+
+#else
+
+   for(int i = start;i<=end;i++)
+   {
+      *pix = col[tex[(texture_coord_scaled>>10)&y_and]];
+      texture_coord_scaled+=coord_step_scaled;
+      pix+=RvR_xres();
+   }
+
+#endif
+
+   return limit;
+}
+
+static void ray_plane_add(RvR_fix16 height, uint16_t tex, int x, int y0, int y1)
+{
+   x+=1;
+   //Div height by 128, since it's usually in these increments
+   int hash = ((height>>7)*7+tex*3)&127;
+
+   ray_plane *pl = ray_planes[hash];
+   while(pl!=NULL)
+   {
+      //ray_planes need to have the same height...
+      if(height!=pl->height)
+         goto next;
+      //... and the same texture to be valid for concatination
+      if(tex!=pl->tex)
+         goto next;
+
+      //Additionally the spans collumn needs to be either empty...
+      if(pl->start[x]!=UINT16_MAX)
+      {
+         //... or directly adjacent to each other vertically, in that case
+         //Concat planes vertically
+         if(pl->start[x]-1==y1)
+         {
+            pl->start[x] = y0;
+            return;
+         }
+         if(pl->end[x]+1==y0)
+         {
+            pl->end[x] = y1;
+            return;
+         }
+
+         goto next;
+      }
+
+      break;
+next:
+      pl = pl->next;
+   }
+
+   if(pl==NULL)
+   {
+      pl = ray_plane_new();
+      pl->next= ray_planes[hash];
+      ray_planes[hash] = pl;
+
+      pl->min = RvR_xres();
+      pl->max = -1;
+      pl->height = height;
+      pl->tex = tex;
+
+      //Since this is an unsigned int, we can use memset to set all values to 65535 (0xffff)
+      memset(pl->start,255,sizeof(pl->start));
+   }
+
+   if(x<pl->min)
+      pl->min = x;
+   if(x>pl->max)
+      pl->max = x;
+
+   pl->end[x] = y1;
+   pl->start[x] = y0;
+}
+
+static ray_depth_buffer_entry *ray_depth_buffer_entry_new()
+{
+   if(ray_depth_buffer_entry_pool==NULL)
+   {
+      ray_depth_buffer_entry *e = RvR_malloc(sizeof(*e)*256,"RvR_ray ray_depth_buffer_entry pool");
+      memset(e,0,sizeof(*e)*256);
+
+      for(int i = 0;i<255;i++)
+         e[i].next = &e[i+1];
+      ray_depth_buffer_entry_pool = e;
+   }
+
+   ray_depth_buffer_entry *e = ray_depth_buffer_entry_pool;
+   ray_depth_buffer_entry_pool = e->next;
+   e->next = NULL;
+
+   return e;
+}
+
+static void ray_depth_buffer_entry_free(ray_depth_buffer_entry *ent)
+{
+   if(ent==NULL)
+      return;
+
+   //Find last
+   ray_depth_buffer_entry *last = ent;
+   while(last->next!=NULL)
+      last = last->next;
+
+   last->next = ray_depth_buffer_entry_pool;
+   ray_depth_buffer_entry_pool = ent;
+}
+
+static ray_plane *ray_plane_new()
+{
+   if(ray_plane_pool==NULL)
+   {
+      ray_plane *p = RvR_malloc(sizeof(*p)*16,"RvR_ray ray_plane pool");
+      memset(p,0,sizeof(*p)*16);
+
+      for(int i = 0;i<15;i++)
+         p[i].next = &p[i+1];
+      ray_plane_pool = p;
+   }
+
+   ray_plane *p = ray_plane_pool;
+   ray_plane_pool = p->next;
+   p->next = NULL;
+
+   return p;
+}
+
+static void ray_plane_free(ray_plane *pl)
+{
+   if(pl==NULL)
+      return;
+
+   //Find last
+   ray_plane *last = pl;
+   while(last->next!=NULL)
+      last = last->next;
+
+   last->next = ray_plane_pool;
+   ray_plane_pool = pl;
 }
 //-------------------------------------
