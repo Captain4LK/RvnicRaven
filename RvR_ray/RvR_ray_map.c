@@ -168,8 +168,8 @@ RvR_ray_map *RvR_ray_map_load_rw(RvR_rw *rw)
 
    //Read texture, floor and ceiling
    int32_t tile_count = map->width*map->height;
-   for(int32_t i = 0;i<tile_count;i++) map->floor[i] = RvR_rw_read_u32(rw);
-   for(int32_t i = 0;i<tile_count;i++) map->ceiling[i] = RvR_rw_read_u32(rw);
+   for(int32_t i = 0;i<tile_count;i++) map->floor[i] = RvR_rw_read_u32(rw)*64;
+   for(int32_t i = 0;i<tile_count;i++) map->ceiling[i] = RvR_rw_read_u32(rw)*64;
    for(int32_t i = 0;i<tile_count;i++) map->floor_tex[i] = RvR_rw_read_u16(rw);
    for(int32_t i = 0;i<tile_count;i++) map->ceil_tex[i] = RvR_rw_read_u16(rw);
    for(int32_t i = 0;i<tile_count;i++) map->wall_ftex[i] = RvR_rw_read_u16(rw);
@@ -188,6 +188,8 @@ RvR_ray_map *RvR_ray_map_load_rw(RvR_rw *rw)
       map->sprites[i].extra1 = RvR_rw_read_u32(rw);
       map->sprites[i].extra2 = RvR_rw_read_u32(rw);
    }
+
+   return map;
 
 RvR_err:
    return NULL;

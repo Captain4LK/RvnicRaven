@@ -291,7 +291,7 @@ static const RvR_fix16 fix16_cos_table[8192] =
 
 RvR_fix16 RvR_fix16_mul(RvR_fix16 a, RvR_fix16 b)
 {
-   return (RvR_fix16)((int64_t)a * b >> 16);
+   return (RvR_fix16)(((int64_t)a * b) >> 16);
 }
 
 RvR_fix16 RvR_fix16_div(RvR_fix16 a, RvR_fix16 b)
