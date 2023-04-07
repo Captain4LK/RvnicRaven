@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -22,8 +22,10 @@ typedef struct
 typedef struct Map_sprite
 {
    uint16_t texture;
-   RvR_fix22_vec3 pos;
-   RvR_fix22 direction;
+   RvR_fix16 x;
+   RvR_fix16 y;
+   RvR_fix16 z;
+   RvR_fix16 direction;
    uint32_t flags;
    int32_t extra0;
    int32_t extra1;
@@ -41,7 +43,7 @@ void map_new(uint16_t width, uint16_t height);
 void map_save();
 void map_set_path(const char *path);
 const char *map_path_get();
-int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y);
+int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix16 fheight, RvR_fix16 cheight, int x, int y);
 
 void map_sky_tex_set(uint16_t tex);
 

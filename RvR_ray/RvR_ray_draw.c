@@ -23,16 +23,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-typedef struct ray_depth_buffer_entry ray_depth_buffer_entry;
 typedef struct ray_plane ray_plane;
-
-struct ray_depth_buffer_entry
-{
-   RvR_fix16 depth;
-   int32_t limit;
-
-   ray_depth_buffer_entry *next;
-};
 
 struct ray_plane
 {
@@ -50,15 +41,15 @@ struct ray_plane
 //Variables
 struct
 {
-   ray_depth_buffer_entry *floor[RVR_XRES_MAX];
-   ray_depth_buffer_entry *ceiling[RVR_XRES_MAX];
+   RvR_ray_depth_buffer_entry *floor[RVR_XRES_MAX];
+   RvR_ray_depth_buffer_entry *ceiling[RVR_XRES_MAX];
 }ray_depth_buffer;
 
 static RvR_fix16 ray_span_start[RVR_YRES_MAX] = {0};
 
 static ray_plane *ray_planes[128] = {0};
 static ray_plane *ray_plane_pool = NULL;
-static ray_depth_buffer_entry *ray_depth_buffer_entry_pool = NULL;
+static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_pool = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -68,8 +59,8 @@ static void ray_span_draw_tex(const RvR_ray_cam *cam, int x0, int x1, int y, RvR
 
 static void ray_plane_add(RvR_fix16 height, uint16_t tex, int x, int y0, int y1);
 
-static ray_depth_buffer_entry *ray_depth_buffer_entry_new();
-static void ray_depth_buffer_entry_free(ray_depth_buffer_entry *ent);
+static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new();
+static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent);
 
 static ray_plane *ray_plane_new();
 static void ray_plane_free(ray_plane *pl);
@@ -115,14 +106,43 @@ void RvR_ray_draw_end()
 {
 }
 
+RvR_ray_pixel_info RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z)
+{
+   RvR_ray_pixel_info result;
+
+   RvR_fix16 to_pointx = x-cam->x;
+   RvR_fix16 to_pointy = y-cam->y;
+   RvR_fix16 cos = RvR_fix16_cos(cam->dir);
+   RvR_fix16 sin = RvR_fix16_sin(cam->dir);
+   RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+
+   RvR_fix16 middle_column = RvR_xres()/2;
+
+   //rotate the point to camera space (y left/right, x forw/backw)
+   RvR_fix16 tmp = to_pointx;
+   to_pointx = RvR_fix16_mul(to_pointx,cos)+RvR_fix16_mul(to_pointy,sin);
+   to_pointy = RvR_fix16_mul(tmp,sin)+RvR_fix16_mul(to_pointy,cos);
+   //to_point.x = (to_pointx*cos+to_pointy*sin)/1024; 
+   //to_point.y = (tmp*sin-to_pointy*cos)/1024; 
+
+   result.depth = to_pointx;
+
+   result.x = middle_column-(to_pointy*middle_column)/RvR_non_zero(RvR_abs(RvR_fix16_mul(fovx,result.depth)));
+   //result.x = middle_column-(((to_point.y*1024)/RvR_non_zero((ray_fov_factor_x*RvR_abs(result.depth))/1024))*middle_column)/1024;
+   result.y = ((z-cam->z)*RvR_yres())/RvR_non_zero(RvR_abs(RvR_fix16_mul(fovy,result.depth)));
+   //result.y = ((((world_position.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*result.depth)/1024))*RVR_YRES)/1024;
+   result.y = RvR_yres()/2-result.y+cam->shear;
+
+   return result;
+}
+
 void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
 {
    RvR_fix16 dir0x = RvR_fix16_cos(cam->dir-(cam->fov/2));
    RvR_fix16 dir0y = RvR_fix16_sin(cam->dir-(cam->fov/2));
    RvR_fix16 dir1x = RvR_fix16_cos(cam->dir+(cam->fov/2));
    RvR_fix16 dir1y = RvR_fix16_sin(cam->dir+(cam->fov/2));
-   //RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(ray_cam_fov/2));
-   //RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(ray_cam_fov/2));
    RvR_fix16 cos = RvR_non_zero(RvR_fix16_cos(cam->fov/2));
    dir0x = RvR_fix16_div(dir0x,cos);
    dir0y = RvR_fix16_div(dir0y,cos);
@@ -150,10 +170,6 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
       current_dx+=dx;
       current_dy+=dy;
 
-      //RvR_ray_cast_multi_hit_draw(r,hits,&hit_count);
-
-      //column(hits,hit_count,i,r);
-
       hit_count = 0;
 
       RvR_fix16 current_posx = r.x;
@@ -172,8 +188,6 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
 
       RvR_fix16 deltax = RvR_abs(RvR_fix16_div(65536,RvR_non_zero(r.dirx)));
       RvR_fix16 deltay = RvR_abs(RvR_fix16_div(65536,RvR_non_zero(r.diry)));
-      //printf("%d %d\n",deltax,64*RvR_abs((1024*1024)/RvR_non_zero(r.dirx/64)));
-      //RvR_fix16 deltaxo = RvR_abs((1024*1024)/RvR_non_zero(r.dirx/64));
 
       RvR_fix16 stepx;
       RvR_fix16 stepy;
@@ -185,31 +199,23 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
       {
          stepx = -1;
          side_distx = RvR_fix16_mul(r.x-current_squarex*65536,deltax);
-         //side_distx = ((ray.start.x-current_square.x*1024)*delta.x)/1024;
       }
       else
       {
          stepx = 1;
          side_distx = RvR_fix16_mul(current_squarex*65536+65536-r.x,deltax);
-         //side_distx = ((current_square.x*1024+1024-ray.start.x)*delta.x)/1024;
       }
 
       if(r.diry<0)
       {
          stepy = -1;
          side_disty = RvR_fix16_mul(r.y-current_squarey*65536,deltay);
-         //side_disty = RvR_fix16_div(r.y-current_squarey*65536,RvR_abs(RvR_non_zero(r.diry)));
-         //side_disty = ((ray.start.y-current_square.y*1024)*delta.y)/1024;
       }
       else
       {
          stepy = 1;
          side_disty = RvR_fix16_mul(current_squarey*65536+65536-r.y,deltay);
-         //side_disty = RvR_fix16_div(current_squarey*65536+65536-r.y,RvR_abs(RvR_non_zero(r.diry)));
-         //side_disty = ((current_square.y*1024+1024-ray.start.y)*delta.y)/1024;
       }
-      //printf("%d %d %d %d\n",side_distx,deltax,side_disty,deltay);
-      //printf("%d %d\n",side_distx,side_disty);
 
       for(int i = 0;i<RVR_RAY_MAX_STEPS;i++)
       {
@@ -248,7 +254,6 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
             {
                h.distance = (side_distx-deltax);
                h.posy = r.y+RvR_fix16_mul(h.distance,r.diry);
-               //h.posy = r.y+(h.distance*r.diry)/102l4;
                h.posx = current_squarex*65536;
                h.direction = 3;
                if(stepx==-1)
@@ -261,7 +266,6 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
             {
                h.distance = (side_disty-deltay);
                h.posx = r.x+RvR_fix16_mul(h.distance,r.dirx);
-               //h.posx = ray.start.x+(h.distance*ray.direction.x)/1024;
                h.posy = current_squarey*65536;
                h.direction = 2;
                if(stepy==-1)
@@ -345,15 +349,6 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
             old_ctex = ctex;
          }
       }
-
-      /*if(x==RvR_xres()-1)
-      {
-         puts("START");
-         for(int j = 0;j<hit_count;j++)
-         {
-            printf("%d %d %d\n",hits[j].fheight,hits[j].cheight,hits[j].cheight-hits[j].fheight);
-         }
-      }*/
       
       ray_draw_column(map,cam,hits,hit_count,x,r);
 
@@ -383,7 +378,7 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
             RvR_fix16 angle_step = (skyw*1024)/RvR_xres();
             RvR_fix16 tex_step = (1024*skyh-1)/RvR_yres();
 
-            RvR_fix16 angle = (cam->dir)*256;
+            RvR_fix16 angle = (cam->dir)*4;
             angle+=(pl->min-1)*angle_step;
 
             for(int x = pl->min;x<pl->max+1;x++)
@@ -477,7 +472,6 @@ static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_
    RvR_ray_pixel_info p = {0};
    RvR_ray_hit_result h = {0};
    p.x = x;
-   puts("START");
 
    //we'll be simulatenously drawing the floor and the ceiling now  
    for(RvR_fix16 j = 0;j<=hits_len;j++)
@@ -496,26 +490,21 @@ static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_
       {
          RvR_ray_hit_result hit = hits[j];
          distance = RvR_non_zero(hit.distance); 
-         if(distance<1024)
-            continue;
          h = hit;
 
+         //Using RvR_fix16_div here messes up the rendering and I haven't quite 
+         //figured out why...
+         //NOTE(Captain4LK): Might be because of i32 "overflow", since the value 
+         //calculated by RvR_fix16_div can't be presented as an int32
          RvR_fix16 wall_height = RvR_ray_map_floor_height_at(map,hit.squarex,hit.squarey);
          f_z2_world = wall_height-cam->z;
-         f_z1_screen = middle_row-RvR_fix16_div(f_z1_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
-         f_z2_screen = middle_row-RvR_fix16_div(f_z2_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
-         printf("%d %d\n",f_z1_screen,middle_row-(((f_z1_world/64)*RvR_yres())/RvR_non_zero(((fovy/64)*(distance/64))/1024)));
-         //f_z1_screen = ray_middle_row-((f_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
-         //f_z2_screen = ray_middle_row-((f_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
+         f_z1_screen = middle_row-((f_z1_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fovy,distance)));
+         f_z2_screen = middle_row-((f_z2_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fovy,distance)));
 
          wall_height = RvR_ray_map_ceiling_height_at(map,hit.squarex,hit.squarey);
          c_z2_world = wall_height-cam->z;
-         c_z1_screen = middle_row-RvR_fix16_div(c_z1_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
-         c_z2_screen = middle_row-RvR_fix16_div(c_z2_world*RvR_yres(),RvR_non_zero(RvR_fix16_mul(fovy,distance)))/65536;
-         //c_z1_screen = ray_middle_row-((c_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
-         //c_z2_screen = ray_middle_row-((c_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
-
-         //printf("(%d %d) (%d %d)\n",f_z1_screen,f_z2_screen,c_z1_screen,c_z2_screen);
+         c_z1_screen = middle_row-((c_z1_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fovy,distance)));
+         c_z2_screen = middle_row-((c_z2_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fovy,distance)));
       }
       else
       {
@@ -538,9 +527,6 @@ static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_
       }
 
       RvR_fix16 limit;
-
-      printf("%d %d %d %d\n",f_z1_world,f_z2_world,c_z1_world,c_z2_world);
-      //printf("%d %d %d\n",c_pos_y,limit_f,limit_c);
 
       //draw floor until wall
       limit_f = limit = RvR_clamp(f_z1_screen,c_pos_y+1,RvR_yres());
@@ -581,7 +567,7 @@ static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_
             }
 
             int limit_clip = RvR_min(limit,limit_f);
-            ray_depth_buffer_entry *entry = ray_depth_buffer_entry_new();
+            RvR_ray_depth_buffer_entry *entry = ray_depth_buffer_entry_new();
             entry->depth = p.depth;
             entry->limit = limit_clip;
             entry->next = ray_depth_buffer.floor[p.x];
@@ -607,7 +593,7 @@ static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_
             }
 
             int limit_clip = RvR_max(limit,limit_c);
-            ray_depth_buffer_entry *entry = ray_depth_buffer_entry_new();
+            RvR_ray_depth_buffer_entry *entry = ray_depth_buffer_entry_new();
             entry->depth = p.depth;
             entry->limit = limit_clip+1;
             entry->next = ray_depth_buffer.ceiling[p.x];
@@ -640,7 +626,6 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
 
    if(end<start)
       return limit;
-   //printf("%d %d\n",start,end);
 
    //Sky texture is handled differently and instead added as a plane
    if(increment==-1&&hit->wall_ftex==map->sky_tex)
@@ -655,8 +640,6 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
    }
 
    RvR_texture *texture = NULL;
-   //RvR_fix16 coord_step_scaled = (4*fovy*pixel_info->depth)/RvR_yres();
-   //RvR_fix16 texture_coord_scaled = height*4096+(start-middle_row+1)*coord_step_scaled;
    RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,pixel_info->depth)/RvR_yres();
    RvR_fix16 texture_coord_scaled = height+(start-middle_row+1)*coord_step_scaled;
 
@@ -751,8 +734,8 @@ static void ray_span_draw_tex(const RvR_ray_cam *cam, int x0, int x1, int y, RvR
 static void ray_plane_add(RvR_fix16 height, uint16_t tex, int x, int y0, int y1)
 {
    x+=1;
-   //Div height by 128, since it's usually in these increments
-   int hash = ((height>>7)*7+tex*3)&127;
+   //Div height by 8192, since it's usually in these increments
+   int hash = ((height/8192)*7+tex*3)&127;
 
    ray_plane *pl = ray_planes[hash];
    while(pl!=NULL)
@@ -812,11 +795,11 @@ next:
    pl->start[x] = y0;
 }
 
-static ray_depth_buffer_entry *ray_depth_buffer_entry_new()
+static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new()
 {
    if(ray_depth_buffer_entry_pool==NULL)
    {
-      ray_depth_buffer_entry *e = RvR_malloc(sizeof(*e)*256,"RvR_ray ray_depth_buffer_entry pool");
+      RvR_ray_depth_buffer_entry *e = RvR_malloc(sizeof(*e)*256,"RvR_ray ray_depth_buffer_entry pool");
       memset(e,0,sizeof(*e)*256);
 
       for(int i = 0;i<255;i++)
@@ -824,20 +807,20 @@ static ray_depth_buffer_entry *ray_depth_buffer_entry_new()
       ray_depth_buffer_entry_pool = e;
    }
 
-   ray_depth_buffer_entry *e = ray_depth_buffer_entry_pool;
+   RvR_ray_depth_buffer_entry *e = ray_depth_buffer_entry_pool;
    ray_depth_buffer_entry_pool = e->next;
    e->next = NULL;
 
    return e;
 }
 
-static void ray_depth_buffer_entry_free(ray_depth_buffer_entry *ent)
+static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent)
 {
    if(ent==NULL)
       return;
 
    //Find last
-   ray_depth_buffer_entry *last = ent;
+   RvR_ray_depth_buffer_entry *last = ent;
    while(last->next!=NULL)
       last = last->next;
 
