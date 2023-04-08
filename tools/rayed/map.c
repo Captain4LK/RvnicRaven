@@ -19,11 +19,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "cute_path.h"
 #include "cute_files.h"
 
-#include "RvR_malloc.h"
-#include "RvR_rw.h"
-#include "RvR_fix22.h"
-#include "RvR_core.h"
-#include "RvR_ray.h"
+#include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -68,16 +65,15 @@ void map_load(const char *path)
       map_sprite_free(map_sprites);
 
    map_set_path(path);
-   RvR_ray_map_load_path(map_path);
+   map = RvR_ray_map_load_path(map_path);
 
-   map = RvR_ray_map_get();
    printf("Map dimensions: %ux%u\n", map->width, map->height);
 
    //Load sprites
-   printf("%d Sprites\n", RvR_ray_map_sprite_count());
-   for(int i = 0; i<RvR_ray_map_sprite_count(); i++)
+   printf("%d Sprites\n", map->sprite_count);
+   for(int i = 0; i<map->sprite_count; i++)
    {
-      RvR_ray_map_sprite *s = RvR_ray_map_sprite_get(i);
+      RvR_ray_map_sprite *s = map->sprites+i;
       Map_sprite *ms = map_sprite_new();
 
       ms->texture = s->texture;
@@ -86,14 +82,17 @@ void map_load(const char *path)
       ms->extra2 = s->extra2;
       ms->flags = s->flags;
       ms->direction = s->direction;
-      ms->pos = s->pos;
+      ms->x = s->x;
+      ms->y = s->y;
+      ms->z = s->z;
+      //ms->pos = s->pos;
 
       map_sprite_add(ms);
    }
 
-   camera.pos.x = map->width * 512 + 512;
-   camera.pos.y = map->height * 512 + 512;
-   camera.pos.z = INT16_MIN;
+   camera.x = map->width * 32768 + 32768;
+   camera.y = map->height * 32768 + 32768;
+   camera.z = INT16_MIN;
 
    editor_undo_reset();
 }
@@ -105,17 +104,16 @@ void map_new(uint16_t width, uint16_t height)
       map_sprite_free(map_sprites);
 
    snprintf(map_path, 127, "map%" PRIu64 ".map", (uint64_t)time(NULL));
-   RvR_ray_map_create(width, height);
-   map = RvR_ray_map_get();
+   map = RvR_ray_map_create(width, height);
    //printf("%d\n",texture_sky);
    map->sky_tex = texture_sky;
    for(int i = 0; i<map->width * map->height; i++)
       map->ceil_tex[i] = texture_sky;
    printf("Map dimensions: %ux%u\n", map->width, map->height);
 
-   camera.pos.x = map->width * 512 + 512;
-   camera.pos.y = map->height * 512 + 512;
-   camera.pos.z = INT16_MIN;
+   camera.x = map->width * 32768 + 32768;
+   camera.y = map->height * 32768 + 32768;
+   camera.z = INT16_MIN;
 
    editor_undo_reset();
 }
@@ -132,12 +130,14 @@ void map_save()
       sprite_count++;
    }
    map->sprite_count = sprite_count;
-   map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count);
+   map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count,"RvR_ray map sprites grow");
    s = map_sprites;
    for(int i = 0; s!=NULL; i++)
    {
       map->sprites[i].texture = s->texture;
-      map->sprites[i].pos = s->pos;
+      map->sprites[i].x = s->x;
+      map->sprites[i].y = s->y;
+      map->sprites[i].z = s->z;
       map->sprites[i].direction = s->direction;
       map->sprites[i].extra0 = s->extra0;
       map->sprites[i].extra1 = s->extra1;
@@ -147,7 +147,7 @@ void map_save()
    }
 
    puts(map_path);
-   RvR_ray_map_save(map_path);
+   RvR_ray_map_save(map,map_path);
 }
 
 void map_set_path(const char *path)
@@ -167,7 +167,7 @@ void map_path_add(const char *path)
    {
       path_list.data_used = 0;
       path_list.data_size = 1;
-      path_list.data = RvR_malloc(sizeof(*path_list.data) * path_list.data_size);
+      path_list.data = RvR_malloc(sizeof(*path_list.data) * path_list.data_size,"rayed map path list");
    }
 
    for(unsigned i = 0; i<path_list.data_used; i++)
@@ -180,7 +180,7 @@ void map_path_add(const char *path)
    if(path_list.data_used>=path_list.data_size)
    {
       path_list.data_size += 1;
-      path_list.data = RvR_realloc(path_list.data, sizeof(*path_list.data) * path_list.data_size);
+      path_list.data = RvR_realloc(path_list.data, sizeof(*path_list.data) * path_list.data_size,"rayed map path list grow");
    }
 }
 
@@ -190,7 +190,7 @@ static void map_list_add(const char *path)
    {
       map_list.data_used = 0;
       map_list.data_size = 1;
-      map_list.data = RvR_malloc(sizeof(*map_list.data) * map_list.data_size);
+      map_list.data = RvR_malloc(sizeof(*map_list.data) * map_list.data_size,"rayed map list");
    }
 
    for(unsigned i = 0; i<map_list.data_used; i++)
@@ -203,25 +203,25 @@ static void map_list_add(const char *path)
    if(map_list.data_used>=map_list.data_size)
    {
       map_list.data_size += 1;
-      map_list.data = RvR_realloc(map_list.data, sizeof(*map_list.data) * map_list.data_size);
+      map_list.data = RvR_realloc(map_list.data, sizeof(*map_list.data) * map_list.data_size,"rayed map list grow");
    }
 }
 
-int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y)
+int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix16 fheight, RvR_fix16 cheight, int x, int y)
 {
-   if(!RvR_ray_map_inbounds(x, y))
+   if(!RvR_ray_map_inbounds(map,x, y))
       return 0;
 
-   if(ftex!=RvR_ray_map_floor_tex_at(x, y))
+   if(ftex!=RvR_ray_map_floor_tex_at(map,x, y))
       return 0;
 
-   if(ctex!=RvR_ray_map_ceil_tex_at(x, y))
+   if(ctex!=RvR_ray_map_ceil_tex_at(map,x, y))
       return 0;
 
-   if(fheight!=RvR_ray_map_floor_height_at(x, y))
+   if(fheight!=RvR_ray_map_floor_height_at(map,x, y))
       return 0;
 
-   if(cheight!=RvR_ray_map_ceiling_height_at(x, y))
+   if(cheight!=RvR_ray_map_ceiling_height_at(map,x, y))
       return 0;
 
    return 1;
@@ -267,7 +267,7 @@ Map_sprite *map_sprite_new()
 {
    if(map_sprite_pool==NULL)
    {
-      Map_sprite *ms = RvR_malloc(sizeof(*ms) * 256);
+      Map_sprite *ms = RvR_malloc(sizeof(*ms) * 256,"rayed map sprite pool");
       memset(ms, 0, sizeof(*ms) * 256);
 
       for(int i = 0; i<255; i++)

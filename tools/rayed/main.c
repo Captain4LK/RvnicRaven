@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -20,30 +20,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define CUTE_FILES_IMPLEMENTATION
 #include "cute_files.h"
 
-#define RVR_MALLOC_IMPLEMENTATION
-#define RVR_RW_IMPLEMENTATION
-#define RVR_COMPRESS_IMPLEMENTATION
-#define RVR_HASH_IMPLEMENTATION
-#define RVR_PAK_IMPLEMENTATION
-#define RVR_PALETTE_IMPLEMENTATION
-#define RVR_TEXTURE_IMPLEMENTATION
-#define RVR_MATH_IMPLEMENTATION
-#define RVR_FIX22_IMPLEMENTATION
-#define RVR_CORE_IMPLEMENTATION
-#define RVR_DRAW_IMPLEMENTATION
-#define RVR_RAY_IMPLEMENTATION
-#include "RvR_malloc.h"
-#include "RvR_rw.h"
-#include "RvR_hash.h"
-#include "RvR_compress.h"
-#include "RvR_pak.h"
-#include "RvR_palette.h"
-#include "RvR_texture.h"
-#include "RvR_math.h"
-#include "RvR_fix22.h"
-#include "RvR_core.h"
-#include "RvR_draw.h"
-#include "RvR_ray.h"
+#include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -78,18 +56,18 @@ int main(int argc, char **argv)
    }
 
    //Init memory manager
-   RvR_malloc_init(mem, 1 << 25);
+   //RvR_malloc_init(mem, 1 << 25);
 
    //Init RvnicRaven core
-   RvR_core_init("Rayed", 0);
-   RvR_core_mouse_relative(0);
-   RvR_core_mouse_show(0);
-   RvR_core_key_repeat(1);
+   RvR_init("Rayed", 0);
+   RvR_mouse_relative(0);
+   RvR_mouse_show(0);
+   RvR_key_repeat(1);
 
    for(int i = 1; i<argc; i++)
       RvR_pak_add(argv[i]);
    RvR_palette_load(0);
-   RvR_draw_font_set(0xF000);
+   RvR_render_font_set(0xF000);
 
    colors_find();
    texture_list_create();
@@ -106,17 +84,17 @@ int main(int argc, char **argv)
 
    editor_init();
 
-   while(RvR_core_running())
+   while(RvR_running())
    {
-      RvR_core_update();
+      RvR_update();
 
       editor_update();
       editor_draw();
 
-      if(RvR_core_key_pressed(RVR_KEY_M))
+      if(RvR_key_pressed(RVR_KEY_M))
          RvR_malloc_report();
 
-      RvR_core_render_present();
+      RvR_render_present();
    }
 
    map_set_path("autosave.map");

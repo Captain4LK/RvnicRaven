@@ -137,6 +137,16 @@ RvR_ray_pixel_info RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, Rv
    return result;
 }
 
+const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_floor(int x)
+{
+   return ray_depth_buffer.floor[x];
+}
+
+const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_ceiling(int x)
+{
+   return ray_depth_buffer.ceiling[x];
+}
+
 void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
 {
    RvR_fix16 dir0x = RvR_fix16_cos(cam->dir-(cam->fov/2));

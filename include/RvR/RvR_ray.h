@@ -98,6 +98,9 @@ void                  RvR_ray_draw_end();
 void                  RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map);
 RvR_ray_pixel_info    RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z);
 
+const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_floor(int x);
+const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_ceiling(int x);
+
 RvR_ray_map *RvR_ray_map_create(uint16_t width, uint16_t height);
 void RvR_ray_map_free(RvR_ray_map *map);
 RvR_ray_map *RvR_ray_map_load(uint16_t id);

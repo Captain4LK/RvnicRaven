@@ -429,10 +429,10 @@ void editor2d_draw()
          if(sp->flags & 8)
          {
             int half_width = (RvR_texture_get(sp->texture)->width * 8 * grid_size) / 65536;
-            RvR_fix16 p0x = (diry * half_width) / 65536+ x;
-            RvR_fix16 p0y = (-dirx * half_width) / 65536+ y;
-            RvR_fix16 p1x = (-diry * half_width) / 65536+ x;
-            RvR_fix16 p1y = (dirx * half_width) / 65536+ y;
+            RvR_fix16 p0x = (diry * half_width) + x*65536;
+            RvR_fix16 p0y = (-dirx * half_width) + y*65536;
+            RvR_fix16 p1x = (-diry * half_width) + x*65536;
+            RvR_fix16 p1y = (dirx * half_width) + y*65536;
             RvR_render_line(p0x, p0y, p1x, p1y, color_white);
          }
       }
@@ -444,15 +444,15 @@ void editor2d_draw()
    //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(camera.direction);
    RvR_fix16 dirx = RvR_fix16_cos(camera.dir);
    RvR_fix16 diry = RvR_fix16_sin(camera.dir);
-   int dsx = (dirx * grid_size) / 65536;
-   int dsy = (diry * grid_size) / 65536;
-   RvR_render_line(RvR_xres() / 2 + dsx / 2, RvR_yres()/ 2 + dsy / 2, RvR_xres()/ 2 - dsx / 2, RvR_yres()/ 2 - dsy / 2, color_white);
-   dirx = RvR_fix16_cos(camera.dir+8*128);
-   diry = RvR_fix16_sin(camera.dir+8*128);
-   RvR_render_line(RvR_xres() / 2 + dsx / 2, RvR_yres()/ 2 + dsy / 2, RvR_xres()/ 2 + dsx / 2 - (dirx * grid_size / 2) / 65536, RvR_yres()/ 2 + dsy / 2 - (diry * grid_size / 2) / 65536, color_white);
-   dirx = RvR_fix16_cos(camera.dir-8*128);
-   diry = RvR_fix16_sin(camera.dir-8*128);
-   RvR_render_line(RvR_xres() / 2 + dsx / 2, RvR_yres()/ 2 + dsy / 2, RvR_xres()/ 2 + dsx / 2 - (dirx * grid_size / 2) / 65536, RvR_yres()/ 2 + dsy / 2 - (diry * grid_size / 2) / 65536, color_white);
+   int dsx = (dirx * grid_size)/256 ;
+   int dsy = (diry * grid_size)/256 ;
+   RvR_render_line(RvR_xres() *128+ dsx / 2, RvR_yres()*128+ dsy / 2, RvR_xres()*128- dsx / 2, RvR_yres()*128- dsy / 2, color_white);
+   dirx = RvR_fix16_cos(camera.dir+32*128);
+   diry = RvR_fix16_sin(camera.dir+32*128);
+   RvR_render_line(RvR_xres()*128 + dsx / 2, RvR_yres()*128 + dsy / 2, RvR_xres()*128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres()*128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
+   dirx = RvR_fix16_cos(camera.dir-32*128);
+   diry = RvR_fix16_sin(camera.dir-32*128);
+   RvR_render_line(RvR_xres()*128 + dsx / 2, RvR_yres()*128 + dsy / 2, RvR_xres()*128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres()*128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
 
    //Draw cursor
    int mx, my;

@@ -101,7 +101,7 @@ void RvR_crush_compress(RvR_rw *in, RvR_rw *out, unsigned level)
    size = RvR_rw_tell(in) - pos;
    RvR_rw_seek(in, pos, SEEK_SET);
 
-   buffer_in = RvR_malloc(size + 1, "RvR_compress input buffer");
+   buffer_in = RvR_malloc(size + 1 + RVR_COMP_HASH2_LEN, "RvR_compress input buffer");
    RvR_rw_read(in, buffer_in, size, 1);
    buffer_in[size] = 0;
 
@@ -285,6 +285,7 @@ static void rvr_comp_crush_rvr_compress(const uint8_t *buf, size_t size, RvR_rw 
          rvr_comp_bits_put(&bits, 9, buf[p] << 1); //0 xxxxxxxx
       }
 
+      //NOTE: the input buffer needs additional max(RVR_COMP_HASH1_LEN,RVR_COMP_HASH2_LEN) bytes
       while(len--!=0) //Insert new strings
       {
          head[h1] = p;

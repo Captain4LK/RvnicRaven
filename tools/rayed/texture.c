@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -13,14 +13,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "RvR_math.h"
-#include "RvR_fix22.h"
-#include "RvR_malloc.h"
-#include "RvR_rw.h"
-#include "RvR_texture.h"
-#include "RvR_pak.h"
-#include "RvR_core.h"
-#include "RvR_ray.h"
+#include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -51,7 +45,7 @@ void texture_list_create()
    if(texture_list.data==NULL)
    {
       texture_list.data_size = 16;
-      texture_list.data = RvR_malloc(sizeof(*texture_list.data) * texture_list.data_size);
+      texture_list.data = RvR_malloc(sizeof(*texture_list.data) * texture_list.data_size,"rayed texture list");
    }
    texture_list.data_used = 0;
    texture_sky = 0;
@@ -67,7 +61,7 @@ void texture_list_create()
       if(texture_list.data_used==texture_list.data_size)
       {
          texture_list.data_size += 16;
-         texture_list.data = RvR_realloc(texture_list.data, sizeof(*texture_list.data) * texture_list.data_size);
+         texture_list.data = RvR_realloc(texture_list.data, sizeof(*texture_list.data) * texture_list.data_size,"rayed texture list grow");
       }
    }
 }

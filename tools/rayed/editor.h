@@ -12,15 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _EDITOR_H_
 
-RvR_ray_cam camera;
-/*typedef struct
-{
-   RvR_fix22_vec3 pos;
-   RvR_fix22 direction;
-   int16_t shear;
-   RvR_fix22 vertical_speed;
-}Camera;
-extern Camera camera;*/
+extern RvR_ray_cam camera;
 
 void editor_init();
 void editor_update();

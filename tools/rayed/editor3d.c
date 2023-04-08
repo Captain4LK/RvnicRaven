@@ -109,7 +109,10 @@ void editor3d_update()
             if(RvR_key_down(RVR_KEY_LSHIFT))
                editor_ed_flood_floor(wx, wy, 1);
             else
+            {
+               printf("%d %d\n",wx,wy);
                editor_ed_floor(wx, wy, 1);
+            }
          }
          if(wlocation==1||wlocation==3)
          {
@@ -424,8 +427,8 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
    //RvR_fix22_vec2 dir1 = RvR_fix22_vec2_rot(RvR_ray_get_angle() + (RvR_ray_get_fov() / 2));
    //RvR_fix22 ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
    //RvR_fix22 ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
-   RvR_fix16 ray_start_floor_height = RvR_ray_map_floor_height_at(map,camera.x / 65536, camera.y / 65536) - 1 * camera.z;
-   RvR_fix16 ray_start_ceil_height = RvR_ray_map_ceiling_height_at(map,camera.x / 65536, camera.y / 65536) - 1 * camera.z;
+   RvR_fix16 ray_start_floor_height = RvR_ray_map_floor_height_at(map,camera.x / 65536, camera.y / 65536) -  camera.z;
+   RvR_fix16 ray_start_ceil_height = RvR_ray_map_ceiling_height_at(map,camera.x / 65536, camera.y / 65536) - camera.z;
    int32_t ray_middle_row = (RvR_yres() / 2) + camera.shear;
    RvR_fix16 cos = RvR_non_zero(RvR_fix16_cos(camera.fov / 2));
    dir0x = RvR_fix16_div(dir0x,cos);
@@ -493,15 +496,15 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
 
          f_wall_height = RvR_ray_map_floor_height_at(map,hit.squarex, hit.squarey);
          f_z2_world = f_wall_height - camera.z;
-         f_z1_screen = ray_middle_row - (f_z1_world*RvR_yres())/RvR_fix16_mul(fov_factor_y,distance);
-         f_z2_screen = ray_middle_row - (f_z2_world*RvR_yres())/RvR_fix16_mul(fov_factor_y,distance);
+         f_z1_screen = ray_middle_row - (f_z1_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fov_factor_y,distance));
+         f_z2_screen = ray_middle_row - (f_z2_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fov_factor_y,distance));
          //f_z1_screen = ray_middle_row - ((f_z1_world * RvR_yres()) / RvR_non_zero((fov_factor_y * distance) / 1024));
          //f_z2_screen = ray_middle_row - ((f_z2_world * RvR_yres()) / RvR_non_zero((fov_factor_y * distance) / 1024));
 
          c_wall_height = RvR_ray_map_ceiling_height_at(map,hit.squarex, hit.squarey);
          c_z2_world = c_wall_height - camera.z;
-         c_z1_screen = ray_middle_row - (c_z1_world*RvR_yres())/RvR_fix16_mul(fov_factor_y,distance);
-         c_z2_screen = ray_middle_row - (c_z2_world*RvR_yres())/RvR_fix16_mul(fov_factor_y,distance);
+         c_z1_screen = ray_middle_row - (c_z1_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fov_factor_y,distance));
+         c_z2_screen = ray_middle_row - (c_z2_world*RvR_yres())/RvR_non_zero(RvR_fix16_mul(fov_factor_y,distance));
          //c_z1_screen = ray_middle_row - ((c_z1_world * RvR_yres()) / RvR_non_zero((fov_factor_y * distance) / 1024));
          //c_z2_screen = ray_middle_row - ((c_z2_world * RvR_yres()) / RvR_non_zero((fov_factor_y * distance) / 1024));
       }
@@ -670,7 +673,7 @@ static Map_sprite *sprite_selected()
       int ys = y;
 
       //Clip floor
-      RvR_ray_depth_buffer_entry *clip = RvR_ray_draw_depth_buffer()->floor[mx];
+      const RvR_ray_depth_buffer_entry *clip = RvR_ray_depth_buffer_entry_floor(mx);
       while(clip!=NULL)
       {
          if(px.depth>clip->depth&&y + (ey1 - sy)>clip->limit)
@@ -679,7 +682,7 @@ static Map_sprite *sprite_selected()
       }
 
       //Clip ceiling
-      clip = RvR_ray_draw_depth_buffer()->ceiling[mx];
+      clip = RvR_ray_depth_buffer_entry_ceiling(mx);
       while(clip!=NULL)
       {
          if(px.depth>clip->depth&&ys<clip->limit)

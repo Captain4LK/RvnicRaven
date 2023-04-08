@@ -235,9 +235,16 @@ void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index)
             if(draw_font->data[(y_ + oy * y_dim) * draw_font->width + x_ + ox * x_dim])
                continue;
             //TODO
-            //for(int m = 0; m<scale; m++)
-            //for(int o = 0; o<scale; o++)
-            //RvR_draw(x + sx + (x_ * scale) + o, y + sy + (y_ * scale) + m, index);
+            for(int m = 0; m<scale; m++)
+            {
+               for(int o = 0; o<scale; o++)
+               {
+                  int dx = x+sx+(x_*scale)+o;
+                  int dy = y+sy+(y_*scale)+m;
+                  if(dx>=0&&dx<RvR_xres()&&dy>=0&&dy<RvR_yres())
+                     RvR_framebuffer()[dy*RvR_xres()+dx] = index;
+               }
+            }
          }
       }
       sx += x_dim * scale;

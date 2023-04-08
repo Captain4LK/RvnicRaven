@@ -41,6 +41,7 @@ RvR_ray_map *RvR_ray_map_create(uint16_t width, uint16_t height)
       height = 1;
 
    RvR_ray_map *map = RvR_malloc(sizeof(*map),"RvR_ray map");
+   memset(map,0,sizeof(*map));
 
    map->width = width;
    map->height = height;
