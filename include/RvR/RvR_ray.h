@@ -93,10 +93,11 @@ struct RvR_ray_depth_buffer_entry
    RvR_ray_depth_buffer_entry *next;
 };
 
-void                  RvR_ray_draw_begin();
-void                  RvR_ray_draw_end();
-void                  RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map);
-RvR_ray_pixel_info    RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z);
+void               RvR_ray_draw_begin();
+void               RvR_ray_draw_end();
+void               RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map);
+void               RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags);
+RvR_ray_pixel_info RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z);
 
 const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_floor(int x);
 const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_ceiling(int x);

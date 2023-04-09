@@ -239,10 +239,10 @@ void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index)
             {
                for(int o = 0; o<scale; o++)
                {
-                  int dx = x+sx+(x_*scale)+o;
-                  int dy = y+sy+(y_*scale)+m;
+                  int dx = x + sx + (x_ * scale) + o;
+                  int dy = y + sy + (y_ * scale) + m;
                   if(dx>=0&&dx<RvR_xres()&&dy>=0&&dy<RvR_yres())
-                     RvR_framebuffer()[dy*RvR_xres()+dx] = index;
+                     RvR_framebuffer()[dy * RvR_xres() + dx] = index;
                }
             }
          }

@@ -36,6 +36,40 @@ struct ray_plane
 
    ray_plane *next;
 };
+
+typedef struct
+{
+   uint32_t flags;
+   uint16_t texture;
+   RvR_fix16 depth_sort;
+
+   union
+   {
+      struct
+      {
+         RvR_fix16 depth;
+         RvR_fix16 width;
+         RvR_fix16 height;
+         RvR_fix16 sp0x;
+         RvR_fix16 sp1x;
+         RvR_fix16 spx;
+         RvR_fix16 spy;
+         RvR_fix16 spz;
+         //RvR_fix16 sx;
+         //RvR_fix16 sy;
+      }bill;
+      struct
+      {
+      }wall;
+      struct
+      {
+      }floor;
+   }as;
+   //RvR_fix16 x;
+   //RvR_fix16 y;
+   //RvR_fix16 z;
+
+}ray_sprite;
 //-------------------------------------
 
 //Variables
@@ -463,6 +497,136 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
       }
    }
    //-------------------------------------
+}
+
+void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags)
+{
+   ray_sprite sp = {0};
+   sp.flags = flags;
+   sp.texture = sprite;
+
+   RvR_fix16 sin = RvR_fix16_sin(cam->dir);
+   RvR_fix16 cos = RvR_fix16_cos(cam->dir);
+   RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 sin_fov = RvR_fix16_mul(sin,fovx);
+   RvR_fix16 cos_fov = RvR_fix16_mul(cos,fovx);
+
+   //tagged as invisible
+   if(flags&1)
+      return;
+
+   //Wall aligned
+   if(flags&8)
+   {
+      return;
+   }
+
+   //Floor alligned: TODO
+   if(flags&16)
+   {
+      return;
+   }
+
+   //Billboard
+   RvR_texture *tex = RvR_texture_get(sprite);
+
+   //Translate sprite to world space coordinates
+   RvR_fix16 half_width = (tex->width*65536)/(64*64*2);
+   //RvR_fix16 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
+   RvR_fix16 p0x = RvR_fix16_mul(-sin,half_width)+x;
+   RvR_fix16 p0y = RvR_fix16_mul(cos,half_width)+y;
+   RvR_fix16 p1x = RvR_fix16_mul(sin,half_width)+x;
+   RvR_fix16 p1y = RvR_fix16_mul(-cos,half_width)+y;
+   //sprite_new.p = pos;
+
+   //Translate to camera space
+   RvR_fix16 x0 = p0x-cam->x;
+   RvR_fix16 y0 = p0y-cam->y;
+   RvR_fix16 x1 = p1x-cam->x;
+   RvR_fix16 y1 = p1y-cam->y;
+   RvR_fix16 tp0x = RvR_fix16_mul(-x0,sin)+RvR_fix16_mul(y0,cos);
+   RvR_fix16 tp0y = RvR_fix16_mul(x0,cos_fov)+RvR_fix16_mul(y0,sin_fov);;
+   RvR_fix16 tp1x = RvR_fix16_mul(-x1,sin)+RvR_fix16_mul(y1,cos);
+   RvR_fix16 tp1y = RvR_fix16_mul(x1,cos_fov)+RvR_fix16_mul(y1,sin_fov);
+   //to_point0.x = (-x0*ray_sin+y0*ray_cos)/1024; 
+   //to_point0.y = (x0*ray_cos_fov+y0*ray_sin_fov)/1024; 
+   //to_point1.x = (-x1*ray_sin+y1*ray_cos)/1024; 
+   //to_point1.y = (x1*ray_cos_fov+y1*ray_sin_fov)/1024; 
+
+   //Behind camera
+   if(tp0y<-128&&tp1y<-128)
+      return;
+
+   //Sprite not facing camera
+   //--> swap p0 and p1
+   if(RvR_fix16_mul(tp0x,tp1y)-RvR_fix16_mul(tp1x,tp0y)>0)
+   {
+      RvR_fix16 tmp = tp0x;
+      tp0x = tp1x;
+      tp1x = tmp;
+
+      tmp = tp0y;
+      tp0y = tp1y;
+      tp1y = tmp;
+   }
+
+   //Here we can treat everything as if we have a 90 degree
+   //fov, since the rotation to camera space transforms it to
+   //that
+   //Check if in fov
+   //Left point in fov
+   if(tp0x>=-tp0y)
+   {
+      if(tp0x>tp0y)
+         return;
+
+      sp.as.bill.sp0x = RvR_min(RvR_xres()/2+(tp0x*(RvR_xres()/2))/tp0y,RvR_xres()-1);
+      //sprite_new.sp0.x = RvR_min(RVR_XRES/2+(to_point0.x*(RVR_XRES/2))/to_point0.y,RVR_XRES-1);
+   }
+   //Left point to the left of fov
+   else
+   {
+      if(tp1x<-tp1y)
+         return;
+
+      sp.as.bill.sp0x = 0;
+      //sprite_new.sp0.x = 0;
+   }
+
+   //Right point in fov
+   if(tp1x<=tp1y)
+   {
+      if(tp1x<-tp1y)
+         return;
+
+      sp.as.bill.sp1x = RvR_min(RvR_xres()/2+(tp1x*(RvR_xres()/2))/tp1y-1,RvR_xres()-1);
+      //sprite_new.sp1.x = RvR_min(RVR_XRES/2+(to_point1.x*(RVR_XRES/2))/to_point1.y-1,RVR_XRES-1);
+   }
+   else
+   {
+      if(tp0x>tp0y)
+         return;
+      sp.as.bill.sp1x = RvR_xres()-1;
+      //sprite_new.sp1.x = RVR_XRES-1;
+   }
+
+   //Project to screen
+   RvR_ray_pixel_info p = RvR_ray_map_to_screen(cam,x,y,z);
+   sp.as.bill.spx = p.x;
+   sp.as.bill.spy = p.y;
+   sp.as.bill.spz = p.depth;
+
+   //Clipping
+   //Behind camera
+   if(sp.as.bill.depth<=0)
+      return;
+   //Too far away
+   if(sp.as.bill.depth>RVR_RAY_MAX_STEPS*1024)
+      return;
+
+   sp.depth_sort = sp.as.bill.depth;
+   ray_sprite_stack_push(sp);
 }
 
 static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray)

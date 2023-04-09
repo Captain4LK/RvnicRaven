@@ -64,15 +64,15 @@ void editor2d_update()
       switch(menu)
       {
       case -2:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
             menu = 0;
          break;
       case -1:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
             menu = 0;
          break;
       case 1:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
             menu = 0;
 
          if(RvR_key_pressed(RVR_KEY_N))
@@ -101,7 +101,7 @@ void editor2d_update()
          }
          break;
       case 2:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE)||RvR_key_pressed(RVR_KEY_N))
+         if(RvR_key_pressed(RVR_KEY_BACK)||RvR_key_pressed(RVR_KEY_N))
          {
             menu = 0;
          }
@@ -114,7 +114,7 @@ void editor2d_update()
          }
          break;
       case 3:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
          {
             RvR_text_input_end();
             menu = 0;
@@ -137,7 +137,7 @@ void editor2d_update()
          }
          break;
       case 4:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
          {
             RvR_text_input_end();
             menu = 0;
@@ -159,7 +159,7 @@ void editor2d_update()
          }
          break;
       case 5:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
          {
             RvR_text_input_end();
             menu = 0;
@@ -191,7 +191,7 @@ void editor2d_update()
          }
          break;
       case 8:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
          {
             menu = 0;
          }
@@ -210,7 +210,7 @@ void editor2d_update()
          }
          break;
       case 9:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
             menu = 0;
          if(RvR_key_pressed(RVR_KEY_ENTER))
          {
@@ -220,7 +220,7 @@ void editor2d_update()
          }
          break;
       case 10:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
             menu = 0;
          if(RvR_key_pressed(RVR_KEY_ENTER))
          {
@@ -230,7 +230,7 @@ void editor2d_update()
          }
          break;
       case 11:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         if(RvR_key_pressed(RVR_KEY_BACK))
             menu = 0;
          if(RvR_key_pressed(RVR_KEY_ENTER))
          {
@@ -244,7 +244,10 @@ void editor2d_update()
       return;
    }
 
-   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+   //TODO(Captain4LK): Sigh... swapping escape and caps (vim...) is currently
+   //broken in sdl2 (both keys get reported as capslock...) so we can't
+   //currently use escape until that's fixed
+   if(RvR_key_pressed(RVR_KEY_BACK))
       menu = !menu;
 
    //Find selected sprite

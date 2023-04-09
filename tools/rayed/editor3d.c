@@ -376,9 +376,9 @@ void editor3d_draw()
    {
       RvR_render_clear(color_black);
 
-      for(int y = 0; y<RvR_yres() / 64; y++)
+      for(int y = 0; y<=RvR_yres() / 64; y++)
       {
-         for(int x = 0; x<RvR_xres() / 64; x++)
+         for(int x = 0; x<=RvR_xres() / 64; x++)
          {
             int index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
             index = texture_list_used_wrap(texture_list_used.data_last - index);
@@ -393,9 +393,9 @@ void editor3d_draw()
    {
       RvR_render_clear(color_black);
 
-      for(int y = 0; y<RvR_yres() / 64; y++)
+      for(int y = 0; y<=RvR_yres() / 64; y++)
       {
-         for(int x = 0; x<RvR_xres() / 64; x++)
+         for(int x = 0; x<=RvR_xres() / 64; x++)
          {
             unsigned index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
             if(index<texture_list.data_used)

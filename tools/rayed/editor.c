@@ -140,7 +140,7 @@ void editor_init()
 
 void editor_update()
 {
-   if(RvR_key_pressed(RVR_KEY_ENTER))
+   if(RvR_key_pressed(RVR_KEY_NP_ENTER))
       editor_mode = !editor_mode;
 
    if(RvR_key_down(RVR_KEY_LCTRL)&&RvR_key_pressed(RVR_KEY_S))
@@ -294,14 +294,14 @@ void camera_update()
       if(RvR_key_down(RVR_KEY_LALT))
          camera.shear += CAMERA_SHEAR_STEP_FRAME;
       else
-         offz = speed * 64;
+         offz = speed * 64*64;
    }
    else if(RvR_key_down(RVR_KEY_Z))
    {
       if(RvR_key_down(RVR_KEY_LALT))
          camera.shear -= CAMERA_SHEAR_STEP_FRAME;
       else
-         offz = -speed * 64;
+         offz = -speed * 64*64;
    }
 
    camera.shear = RvR_max(-CAMERA_SHEAR_MAX_PIXELS, RvR_min(CAMERA_SHEAR_MAX_PIXELS, camera.shear));
@@ -671,7 +671,7 @@ static void undo_floor_height(int pos, int endpos)
    while(pos!=endpos)
    {
       RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos - 1);
-      height += undo_buffer[pos] << 16;        pos = WRAP(pos - 1);
+      height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
       RvR_fix16 old_height = RvR_ray_map_floor_height_at(map,x, y);
@@ -686,7 +686,7 @@ static void redo_floor_height(int pos, int endpos)
    while(pos!=endpos)
    {
       RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos + 1);
-      height += undo_buffer[pos] << 16;        pos = WRAP(pos + 1);
+      height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos + 1);
       RvR_fix16 old_height = RvR_ray_map_floor_height_at(map,x, y);
@@ -701,7 +701,7 @@ static void undo_ceiling_height(int pos, int endpos)
    while(pos!=endpos)
    {
       RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos - 1);
-      height += undo_buffer[pos] << 16;        pos = WRAP(pos - 1);
+      height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
       RvR_fix16 old_height = RvR_ray_map_ceiling_height_at(map,x, y);
@@ -716,7 +716,7 @@ static void redo_ceiling_height(int pos, int endpos)
    while(pos!=endpos)
    {
       RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos + 1);
-      height += undo_buffer[pos] << 16;        pos = WRAP(pos + 1);
+      height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos + 1);
       RvR_fix16 old_height = RvR_ray_map_ceiling_height_at(map,x, y);
@@ -729,7 +729,7 @@ static void redo_ceiling_height(int pos, int endpos)
 static void undo_flood_floor_height(int pos, int endpos)
 {
    RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos - 1);
-   height += undo_buffer[pos] << 16;        pos = WRAP(pos - 1);
+   height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos - 1);
    RvR_fix16 old_height = INT32_MIN;
    int16_t x = 0;
    int16_t y = 0;
@@ -754,7 +754,7 @@ static void undo_flood_floor_height(int pos, int endpos)
 static void redo_flood_floor_height(int pos, int endpos)
 {
    RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos + 1);
-   height += undo_buffer[pos] << 16;        pos = WRAP(pos + 1);
+   height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos + 1);
    RvR_fix16 old_height = INT32_MIN;
    int16_t x = 0;
    int16_t y = 0;
@@ -779,7 +779,7 @@ static void redo_flood_floor_height(int pos, int endpos)
 static void undo_flood_ceiling_height(int pos, int endpos)
 {
    RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos - 1);
-   height += undo_buffer[pos] << 16;        pos = WRAP(pos - 1);
+   height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos - 1);
    RvR_fix16 old_height = INT32_MIN;
    int16_t x = 0;
    int16_t y = 0;
@@ -804,7 +804,7 @@ static void undo_flood_ceiling_height(int pos, int endpos)
 static void redo_flood_ceiling_height(int pos, int endpos)
 {
    RvR_fix16 height = undo_buffer[pos]; pos = WRAP(pos + 1);
-   height += undo_buffer[pos] << 16;        pos = WRAP(pos + 1);
+   height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos + 1);
    RvR_fix16 old_height = INT32_MIN;
    int16_t x = 0;
    int16_t y = 0;
