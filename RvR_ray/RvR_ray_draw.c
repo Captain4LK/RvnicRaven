@@ -55,20 +55,27 @@ typedef struct
          RvR_fix16 spx;
          RvR_fix16 spy;
          RvR_fix16 spz;
-         //RvR_fix16 sx;
-         //RvR_fix16 sy;
       }bill;
       struct
       {
+         RvR_fix16 dir;
+         RvR_fix16 u0;
+         RvR_fix16 u1;
+
+         RvR_fix16 x0;
+         RvR_fix16 y0;
+         RvR_fix16 z0;
+         RvR_fix16 x1;
+         RvR_fix16 y1;
+         RvR_fix16 z1;
       }wall;
       struct
       {
       }floor;
    }as;
-   //RvR_fix16 x;
-   //RvR_fix16 y;
-   //RvR_fix16 z;
-
+   RvR_fix16 x;
+   RvR_fix16 y;
+   RvR_fix16 z;
 }ray_sprite;
 //-------------------------------------
 
@@ -78,6 +85,8 @@ struct
    RvR_ray_depth_buffer_entry *floor[RVR_XRES_MAX];
    RvR_ray_depth_buffer_entry *ceiling[RVR_XRES_MAX];
 }ray_depth_buffer;
+
+static ray_sprite *ray_sprites = NULL;
 
 static RvR_fix16 ray_span_start[RVR_YRES_MAX] = {0};
 
@@ -98,6 +107,10 @@ static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent);
 
 static ray_plane *ray_plane_new();
 static void ray_plane_free(ray_plane *pl);
+
+static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
+static int ray_sprite_comp(const void *a, const void *b);
+static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b);
 //-------------------------------------
 
 //Function implementations
@@ -121,6 +134,8 @@ void RvR_ray_draw_begin()
       ray_planes[i] = NULL;
    }
 
+   RvR_array_length_set(ray_sprites,0);
+
    //Initialize needed vars
    /*ray_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
    ray_fov_factor_y = (RVR_YRES*ray_fov_factor_x*2)/RVR_XRES;
@@ -136,8 +151,49 @@ void RvR_ray_draw_begin()
    ray_sin_fov = (ray_sin*ray_fov_factor_x)/1024;*/
 }
 
-void RvR_ray_draw_end()
+void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
 {
+   qsort(ray_sprites,RvR_array_length(ray_sprites),sizeof(*ray_sprites),ray_sprite_comp);
+   int len = RvR_array_length(ray_sprites);
+   for(int i = 0;i<len;i++)
+   {
+      int swaps = 0;
+      int j = i+1;
+      while(j<len)
+      {
+         if(dwall_can_front(dwalls+i,dwalls+j))
+         {
+            j++;
+         }
+         else if(i+swaps>j)
+         {
+            //This case usually happens when walls intersect
+            //Here we would split the wall, 
+            //but since intersecting walls aren't supported we just pretend nothing happended
+            j++;
+         }
+         else
+         {
+            RvR_port_dwall tmp = dwalls[j];
+            for(int w = j;w>i;w--)
+               dwalls[w] = dwalls[w-1];
+            dwalls[i] = tmp;
+            j = i+1;
+            swaps++;
+         }
+      }
+   }
+
+   for(int i = 0;i<RvR_array_length(ray_sprites);i++)
+   {
+      ray_sprite *sp = ray_sprites+i;
+      if(sp->flags&8)
+         continue;
+      else if(sp->flags&16)
+         continue;
+      else
+         ray_sprite_draw_billboard(cam,map,sp);
+   }
 }
 
 RvR_ray_pixel_info RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z)
@@ -504,6 +560,9 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    ray_sprite sp = {0};
    sp.flags = flags;
    sp.texture = sprite;
+   sp.x = x;
+   sp.y = y;
+   sp.z = z;
 
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
    RvR_fix16 cos = RvR_fix16_cos(cam->dir);
@@ -519,6 +578,187 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    //Wall aligned
    if(flags&8)
    {
+      RvR_texture *tex = RvR_texture_get(sprite);
+
+      //Translate sprite to world space
+      RvR_fix16 dirx = RvR_fix16_cos(dir);
+      RvR_fix16 diry = RvR_fix16_sin(dir);
+      //RvR_vec2 dir = RvR_vec2_rot(angle);
+      RvR_fix16 half_width = (tex->width*65536)/(64*2);
+      RvR_fix16 p0x = RvR_fix16_mul(-diry,half_width)+x;
+      RvR_fix16 p0y = RvR_fix16_mul(dirx,half_width)+y;
+      RvR_fix16 p1x = RvR_fix16_mul(diry,half_width)+x;
+      RvR_fix16 p1y = RvR_fix16_mul(-dirx,half_width)+y;
+      //sprite_new.p0.x = (-dir.y*half_width)/1024+pos.x;
+      //sprite_new.p0.y = (dir.x*half_width)/1024+pos.y;
+      //sprite_new.p1.x = (dir.y*half_width)/1024+pos.x;
+      //sprite_new.p1.y = (-dir.x*half_width)/1024+pos.y;
+      /*RvR_fix16 half_width = (tex->width*65536)/(64*2);
+      //RvR_fix16 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
+      RvR_fix16 p0x = RvR_fix16_mul(-sin,half_width)+x;
+      RvR_fix16 p0y = RvR_fix16_mul(cos,half_width)+y;
+      RvR_fix16 p1x = RvR_fix16_mul(sin,half_width)+x;
+      RvR_fix16 p1y = RvR_fix16_mul(-cos,half_width)+y;*/
+      //sprite_new.p = pos;
+      //sprite_new.st0 = 0;
+      //sprite_new.st1 = 1023;
+      //sprite_new.angle = angle;
+      sp.x = x;
+      sp.y = y;
+      sp.z = z;
+      sp.as.wall.dir = dir;
+      sp.as.wall.u0 = 0;
+      sp.as.wall.u1 = 65535;
+
+      //Translate to camera space
+      RvR_fix16 x0 = p0x-cam->x;
+      RvR_fix16 y0 = p0y-cam->y;
+      RvR_fix16 x1 = p1x-cam->x;
+      RvR_fix16 y1 = p1y-cam->y;
+      //RvR_vec2 to_point0;
+      //RvR_vec2 to_point1;
+      RvR_fix16 tp0x = RvR_fix16_mul(-x0,sin)+RvR_fix16_mul(y0,cos);
+      RvR_fix16 tp0y = RvR_fix16_mul(x0,cos_fov)+RvR_fix16_mul(y0,sin_fov);
+      RvR_fix16 tp1x = RvR_fix16_mul(-x1,sin)+RvR_fix16_mul(y1,cos);
+      RvR_fix16 tp1y = RvR_fix16_mul(x1,cos_fov)+RvR_fix16_mul(y1,sin_fov);
+      //RvR_fix16 tp0x = (-x0*ray_sin+y0*ray_cos)/1024; 
+      //RvR_fix16 tp0y = (x0*ray_cos_fov+y0*ray_sin_fov)/1024; 
+      //RvR_fix16 tp1x = (-x1*ray_sin+y1*ray_cos)/1024; 
+      //RvR_fix16 tp1y = (x1*ray_cos_fov+y1*ray_sin_fov)/1024; 
+
+      //Behind camera
+      if(tp0y<-128&&tp1y<-128)
+         return;
+
+      //Sprite not facing camera
+      //--> swap p0 and p1 and toggle y-axis mirror flag
+      if(RvR_fix16_mul(tp0x,tp1y)-RvR_fix16_mul(tp1x,tp0y)>0)
+      {
+         /*RvR_vec2 tmp = to_point0;
+         to_point0 = to_point1;
+         to_point1 = tmp;*/
+
+         RvR_fix16 tmp = tp0x;
+         tp0x = tp1x;
+         tp1x = tmp;
+
+         tmp = tp0y;
+         tp0y = tp1y;
+         tp1y = tmp;
+         sp.flags^=2;
+      }
+
+      //Here we can treat everything as if we have a 90 degree
+      //fov, since the rotation to camera space transforms it to
+      //that
+      //Check if in fov
+      //Left point in fov
+      if(tp0x>=-tp0y)
+      {
+         //Sprite completely out of sight
+         if(tp0x>tp0y)
+            return;
+
+         sp.as.wall.x0 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp0x*(RvR_xres()/2),tp0y),RvR_xres()*65536);
+         //sp.as.wall.sp0x = RvR_min(RvR_xres()/2+(to_point0.x*(RVR_XRES/2))/to_point0.y,RVR_XRES-1);
+         sp.as.wall.z0 = tp0y;
+      }
+      //Left point to the left of fov
+      else
+      {
+         //Sprite completely out of sight
+         if(tp1x<-tp1y)
+            return;
+
+         sp.as.wall.x0 = 0;
+         RvR_fix16 dx0 = tp1x-tp0x;
+         RvR_fix16 dx1 = tp0x+tp0y;
+         sp.as.wall.z0 = RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y+tp1x-tp0x)-tp0x;
+         sp.as.wall.u0 = sp.as.wall.u0 + RvR_fix16_div(RvR_fix16_mul(-tp0x-tp0y,sp.as.wall.u1-sp.as.wall.u0),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
+
+         //Basically just this equation: (0,0)+n(-1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reordered to n = ...
+         //This is here to circumvent a multiplication overflow while also minimizing the resulting error
+         //TODO: the first version might be universally better, making the if statement useless
+         /*RvR_fix22 dx0 = to_point1.x-to_point0.x;
+         RvR_fix22 dx1 = to_point0.y+to_point0.x;
+         if(RvR_abs(dx0)>RvR_abs(dx1))
+            sprite_new.sp0.z = (dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
+         else
+            sprite_new.sp0.z = (dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
+
+         sprite_new.st0 = ((to_point0.x+to_point0.y)*1024)/RvR_non_zero(-to_point1.y+to_point0.y-to_point1.x+to_point0.x);*/
+      }
+
+      //Right point in fov
+      if(tp1x<=tp1y)
+      {
+         //sprite completely out of sight
+         if(tp1x<-tp1y)
+            return;
+
+         sp.as.wall.x1 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp1x*(RvR_xres()/2),tp1y),RvR_xres()*65536);
+         sp.as.wall.z1 = tp1y;
+         //sprite_new.sp1.x = RvR_min(RVR_XRES/2+(to_point1.x*(RVR_XRES/2))/to_point1.y-1,RVR_XRES-1);
+         //sprite_new.sp1.z = to_point1.y;
+      }
+      //Right point to the right of fov
+      else
+      {
+         //sprite completely out of sight
+         if(tp0x>tp0y)
+            return;
+
+         RvR_fix16 dx0 = tp1x-tp0x;
+         RvR_fix16 dx1 = tp0y-tp0x;
+         sp.as.wall.x1 = RvR_xres()*65536;
+         sp.as.wall.z1 = tp0x-RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y-tp1x+tp0x);
+         sp.as.wall.u1 = RvR_fix16_div(RvR_fix16_mul(dx1,sp.as.wall.u1),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
+         /*sprite_new.sp1.x = RVR_XRES-1;
+
+         //Basically just this equation: (0,0)+n(1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reordered to n = ...
+         //This is here to circumvent a multiplication overflow while also minimizing the resulting error
+         //TODO: the first version might be universally better, making the if statement useless
+         RvR_fix22 dx0 = to_point1.x-to_point0.x;
+         RvR_fix22 dx1 = to_point0.y-to_point0.x;
+         if(RvR_abs(dx0)>RvR_abs(dx1))
+            sprite_new.sp1.z = to_point0.x-(dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
+         else
+            sprite_new.sp1.z = to_point0.x-(dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
+
+         sprite_new.st1 = ((to_point0.y-to_point0.x)*1024)/RvR_non_zero(-to_point1.y+to_point0.y+to_point1.x-to_point0.x);*/
+      }
+
+      //Near clip sprite 
+      if(sp.as.wall.z0<1024||sp.as.wall.z1<1024)
+         return;
+
+      //Far clip sprite
+      if(sp.as.wall.z0>RVR_RAY_MAX_STEPS*65536&&sp.as.wall.z1>RVR_RAY_MAX_STEPS*65536)
+         return;
+
+      if(sp.as.wall.x0>sp.as.wall.x1)
+         return;
+
+      sp.as.wall.y0 = RvR_fix16_div(sp.z-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,sp.as.wall.z0)));
+      sp.as.wall.y0 = RvR_fix16_mul(RvR_yres()*65536,32768-sp.as.wall.y0);
+      sp.as.wall.y1 = RvR_fix16_div(sp.z-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,sp.as.wall.z1)));
+      sp.as.wall.y1 = RvR_fix16_mul(RvR_yres()*65536,32768-sp.as.wall.y1);
+      //sprite_new.sp0.y = ((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp0.z)/1024);
+      //sprite_new.sp0.y = RVR_YRES*512-RVR_YRES*sprite_new.sp0.y+RvR_ray_get_shear()*1024;
+      //sprite_new.sp1.y = ((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp1.z)/1024);
+      //sprite_new.sp1.y = RVR_YRES*512-RVR_YRES*sprite_new.sp1.y+RvR_ray_get_shear()*1024;
+
+      if(sp.flags&2)
+      {
+         sp.as.wall.u0 = 65535-sp.as.wall.u0;
+         sp.as.wall.u1 = 65535-sp.as.wall.u1;
+      }
+
+      sp.depth_sort = sp.as.wall.z1;
+      if(sp.as.wall.z0>sp.as.wall.z1)
+         sp.depth_sort = sp.as.wall.z0;
+      RvR_array_push(ray_sprites,sp);
+
       return;
    }
 
@@ -532,7 +772,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    RvR_texture *tex = RvR_texture_get(sprite);
 
    //Translate sprite to world space coordinates
-   RvR_fix16 half_width = (tex->width*65536)/(64*64*2);
+   RvR_fix16 half_width = (tex->width*65536)/(64*2);
    //RvR_fix16 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
    RvR_fix16 p0x = RvR_fix16_mul(-sin,half_width)+x;
    RvR_fix16 p0y = RvR_fix16_mul(cos,half_width)+y;
@@ -549,10 +789,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    RvR_fix16 tp0y = RvR_fix16_mul(x0,cos_fov)+RvR_fix16_mul(y0,sin_fov);;
    RvR_fix16 tp1x = RvR_fix16_mul(-x1,sin)+RvR_fix16_mul(y1,cos);
    RvR_fix16 tp1y = RvR_fix16_mul(x1,cos_fov)+RvR_fix16_mul(y1,sin_fov);
-   //to_point0.x = (-x0*ray_sin+y0*ray_cos)/1024; 
-   //to_point0.y = (x0*ray_cos_fov+y0*ray_sin_fov)/1024; 
-   //to_point1.x = (-x1*ray_sin+y1*ray_cos)/1024; 
-   //to_point1.y = (x1*ray_cos_fov+y1*ray_sin_fov)/1024; 
 
    //Behind camera
    if(tp0y<-128&&tp1y<-128)
@@ -582,7 +818,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
          return;
 
       sp.as.bill.sp0x = RvR_min(RvR_xres()/2+(tp0x*(RvR_xres()/2))/tp0y,RvR_xres()-1);
-      //sprite_new.sp0.x = RvR_min(RVR_XRES/2+(to_point0.x*(RVR_XRES/2))/to_point0.y,RVR_XRES-1);
    }
    //Left point to the left of fov
    else
@@ -601,7 +836,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
          return;
 
       sp.as.bill.sp1x = RvR_min(RvR_xres()/2+(tp1x*(RvR_xres()/2))/tp1y-1,RvR_xres()-1);
-      //sprite_new.sp1.x = RvR_min(RVR_XRES/2+(to_point1.x*(RVR_XRES/2))/to_point1.y-1,RVR_XRES-1);
    }
    else
    {
@@ -616,17 +850,18 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    sp.as.bill.spx = p.x;
    sp.as.bill.spy = p.y;
    sp.as.bill.spz = p.depth;
+   sp.as.bill.depth = p.depth;
 
    //Clipping
    //Behind camera
    if(sp.as.bill.depth<=0)
       return;
    //Too far away
-   if(sp.as.bill.depth>RVR_RAY_MAX_STEPS*1024)
+   if(sp.as.bill.depth>RVR_RAY_MAX_STEPS*65536)
       return;
 
    sp.depth_sort = sp.as.bill.depth;
-   ray_sprite_stack_push(sp);
+   RvR_array_push(ray_sprites,sp);
 }
 
 static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray)
@@ -1033,5 +1268,209 @@ static void ray_plane_free(ray_plane *pl)
 
    last->next = ray_plane_pool;
    ray_plane_pool = pl;
+}
+
+static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
+{
+   RvR_fix16 cos = RvR_fix16_cos(cam->dir);
+   RvR_fix16 sin = RvR_fix16_sin(cam->dir);
+   RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
+
+   RvR_texture *texture = RvR_texture_get(sp->texture);
+   int mask = (1<<RvR_log2(texture->height))-1;
+
+   RvR_fix16 tpx = sp->x-cam->x;
+   RvR_fix16 tpy = sp->y-cam->y;
+   RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
+   tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
+
+   //Dimensions
+   RvR_fix16 top = middle_row*65536-RvR_fix16_div(RvR_yres()*(sp->z-cam->z+texture->height*16*64),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+   int y0 = (top+65535)/65536;
+
+   RvR_fix16 bot = middle_row*65536-RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+   int y1 = (bot-1)/65536;
+
+   RvR_fix16 left = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx+texture->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+   int x0 = (left+65535)/65536;
+
+   RvR_fix16 right = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-texture->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+   int x1 = (right-1)/65536;
+
+   //Floor and ceiling clip
+   RvR_fix16 cy = middle_row*65536-RvR_fix16_div(RvR_yres()*(RvR_ray_map_floor_height_at(map,sp->x/65536,sp->y/65536)-cam->z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+   int clip_bottom = RvR_min(cy/65536,RvR_yres());
+
+   cy = middle_row*65536-RvR_fix16_div(RvR_yres()*(RvR_ray_map_ceiling_height_at(map,sp->x/65536,sp->y/65536)-cam->z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+   int clip_top = RvR_max(cy/65536,0);
+
+   y0 = RvR_max(y0,clip_top);
+   y1 = RvR_min(y1,clip_bottom);
+   x1 = RvR_min(x1,RvR_xres());
+   RvR_fix16 step_v = RvR_fix16_mul(fovy,depth)/RvR_yres();
+   RvR_fix16 step_u = RvR_fix16_mul(2*fovx,depth)/RvR_xres();
+   RvR_fix16 u = RvR_fix16_mul(step_u,x0*65536-left);
+
+   if(x0<0)
+   {
+      u+=(-x0)*step_u;
+      x0 = 0;
+   }
+
+   //Draw
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>15));
+   uint8_t * restrict dst = NULL;
+   const uint8_t * restrict tex = NULL;
+   for(int x = x0;x<x1;x++)
+   {
+      //Clip against walls
+      int ys = y0;
+      int ye = y1;
+
+      //Clip floor
+      RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&ye>clip->limit)
+            ye = clip->limit;
+         clip = clip->next;
+      }
+
+      //Clip ceiling
+      clip = ray_depth_buffer.ceiling[x];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&ys<clip->limit)
+            ys = clip->limit;
+         clip = clip->next;
+      }
+
+      tex = &texture->data[texture->height*(u>>10)];
+      dst = &RvR_framebuffer()[ys*RvR_xres()+x];
+      RvR_fix16 v = (sp->z-cam->z)+(ys-middle_row+1)*step_v+texture->height*1024;
+
+      if(sp->flags&32)
+      {
+         for(int y = ys;y<ye;y++,dst+=RvR_xres())
+         {
+            uint8_t index = tex[(v>>10)];
+            *dst = RvR_blend(col[index],*dst);
+            v+=step_v;
+         }
+      }
+      else if(sp->flags&64)
+      {
+         for(int y = ys;y<ye;y++,dst+=RvR_xres())
+         {
+            uint8_t index = tex[(v>>10)];
+            *dst = RvR_blend(*dst,col[index]);
+            v+=step_v;
+         }
+      }
+      else
+      {
+         for(int y = ys;y<ye;y++,dst+=RvR_xres())
+         {
+            uint8_t index = tex[(v>>10)];
+            *dst = index?col[index]:*dst;
+            v+=step_v;
+         }
+      }
+
+      u+=step_u;
+   }
+}
+
+static int ray_sprite_comp(const void *a, const void *b)
+{
+   const ray_sprite *sa = a;
+   const ray_sprite *sb = b;
+
+   return sb->depth_sort-sa->depth_sort;
+}
+
+static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b)
+{
+   RvR_fix16 x00 = 0;
+   RvR_fix16 z00 = 0;
+   RvR_fix16 x01 = 0;
+   RvR_fix16 z01 = 0;
+   RvR_fix16 x10 = 0;
+   RvR_fix16 z10 = 0;
+   RvR_fix16 x11 = 0;
+   RvR_fix16 z11 = 0;
+   if(a->flags&8)
+   {
+      x00 = a->as.wall.x0;
+      x01 = a->as.wall.x1;
+      z00 = a->as.wall.z0;
+      z01 = a->as.wall.z1;
+   }
+   if(a->flags&16)
+   {
+      x00 = a->as.wall.x0;
+      x01 = a->as.wall.x1;
+      z00 = a->as.wall.z0;
+      z01 = a->as.wall.z1;
+   }
+   else
+   {
+      x00 = a->as.bill.sp0x;
+      x01 = a->as.bill.sp1x;
+      z00 = a->as.bill.depth;
+      z01 = a->as.bill.depth;
+   }
+
+   if(b->flags&8)
+   {
+      x10 = b->as.wall.x0;
+      x11 = b->as.wall.x1;
+   }
+   if(b->flags&16)
+   {
+      x10 = b->as.wall.x0;
+      x11 = b->as.wall.x1;
+   }
+   else
+   {
+      x10 = b->as.bill.sp0x;
+      x11 = b->as.bill.sp1x;
+   }
+
+   //a completely behind b
+   //-------------------------------------
+   RvR_fix16 za = 0;
+   if(a->flags&8)
+      za = RvR_min(a->as.wall.z0,a->as.wall.z1);
+   else if(a->flags&16)
+      za = RvR_min(a->as.wall.z0,a->as.wall.z1);
+   else
+      za = a->as.bill.depth;
+   RvR_fix16 zb = 0;
+
+   if(b->flags&8)
+      zb = RvR_min(b->as.wall.z0,b->as.wall.z1);
+   else if(a->flags&16)
+      zb = RvR_min(b->as.wall.z0,b->as.wall.z1);
+   else
+      zb = b->as.bill.depth;
+
+   if(za>zb)
+      return 1;
+   //-------------------------------------
+
+   //x overlap
+   if(x00>=x11||x01<=x10)
+      return 1;
+
+   //-------------------------------------
+   //for billboard sprites both x0 and x1 will be the middle of the sprite
+   //makes the sorting look more correct
+   
+   //-------------------------------------
+
+   return 0;
 }
 //-------------------------------------

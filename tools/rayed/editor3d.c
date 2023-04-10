@@ -122,7 +122,7 @@ void editor3d_update()
                editor_ed_ceiling(wx, wy, 1);
          }
          if(wlocation==4&&sprite_selec!=NULL)
-            sprite_selec->z += 64;
+            sprite_selec->z += 64*64;
       }
       else if(RvR_key_pressed(RVR_KEY_PGDN))
       {
@@ -141,7 +141,7 @@ void editor3d_update()
                editor_ed_ceiling(wx, wy, -1);
          }
          if(wlocation==4&&sprite_selec!=NULL)
-            sprite_selec->z -= 64;
+            sprite_selec->z -= 64*64;
       }
 
       //To prevent accidental texture editing after selecting a texture
@@ -352,12 +352,12 @@ void editor3d_draw()
       while(s!=NULL)
       {
          //TODO
-         //RvR_ray_draw_sprite(s->pos, s->direction, s->texture, s->flags);
+         RvR_ray_draw_sprite(&camera,s->x,s->y,s->z, s->direction, s->texture, s->flags);
          s = s->next;
       }
 
       RvR_ray_draw_map(&camera,map);
-      RvR_ray_draw_end();
+      RvR_ray_draw_end(&camera,map);
 
       texture_highlight_old = texture_highlight;
       if(wlocation==0)
@@ -423,10 +423,6 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
    RvR_fix16 dir0y = RvR_fix16_sin(camera.dir-camera.fov/2);
    RvR_fix16 dir1x = RvR_fix16_cos(camera.dir+camera.fov/2);
    RvR_fix16 dir1y = RvR_fix16_sin(camera.dir+camera.fov/2);
-   //RvR_fix22_vec2 dir0 = RvR_fix22_vec2_rot(RvR_ray_get_angle() - (RvR_ray_get_fov() / 2));
-   //RvR_fix22_vec2 dir1 = RvR_fix22_vec2_rot(RvR_ray_get_angle() + (RvR_ray_get_fov() / 2));
-   //RvR_fix22 ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
-   //RvR_fix22 ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
    RvR_fix16 ray_start_floor_height = RvR_ray_map_floor_height_at(map,camera.x / 65536, camera.y / 65536) -  camera.z;
    RvR_fix16 ray_start_ceil_height = RvR_ray_map_ceiling_height_at(map,camera.x / 65536, camera.y / 65536) - camera.z;
    int32_t ray_middle_row = (RvR_yres() / 2) + camera.shear;
@@ -435,10 +431,6 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
    dir0y = RvR_fix16_div(dir0y,cos);
    dir1x = RvR_fix16_div(dir1x,cos);
    dir1y = RvR_fix16_div(dir1y,cos);
-   //dir0.x = (dir0.x * 1024) / cos;
-   //dir0.y = (dir0.y * 1024) / cos;
-   //dir1.x = (dir1.x * 1024) / cos;
-   //dir1.y = (dir1.y * 1024) / cos;
 
    RvR_fix16 dx = dir1x - dir0x;
    RvR_fix16 dy = dir1y - dir0y;
@@ -618,14 +610,163 @@ static Map_sprite *sprite_selected()
    RvR_fix16 depth_min = INT32_MAX;
    Map_sprite *sp = map_sprites;
    RvR_mouse_pos(&mx, &my);
-   RvR_fix16 fov_factor_x = RvR_fix16_tan(camera.fov / 2);
-   RvR_fix16 fov_factor_y = (RvR_yres() * fov_factor_x) / (RvR_xres() / 2);
+   RvR_fix16 cos = RvR_fix16_cos(camera.dir);
+   RvR_fix16 sin = RvR_fix16_sin(camera.dir);
+   RvR_fix16 fovx = RvR_fix16_tan(camera.fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 middle_row = (RvR_yres()/2)+camera.shear;
 
    while(sp!=NULL)
    {
       RvR_ray_pixel_info px = RvR_ray_map_to_screen(&camera,sp->x,sp->y,sp->z);
+      if(px.depth<0||px.depth>24 * 65536||px.depth>depth_min)
+      {
+         sp = sp->next;
+         continue;
+      }
 
-      if(px.depth<0||px.depth>24 * 1024||px.x<-2 * RvR_xres()||px.x>4 * RvR_xres()||px.depth>depth_min)
+      RvR_texture *texture = RvR_texture_get(sp->texture);
+      int mask = (1<<RvR_log2(texture->height))-1;
+
+      RvR_fix16 tpx = sp->x-camera.x;
+      RvR_fix16 tpy = sp->y-camera.y;
+      RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
+      tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
+
+      //Dimensions
+      RvR_fix16 top = middle_row*65536-RvR_fix16_div(RvR_yres()*(sp->z-camera.z+texture->height*16*64),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+      int y0 = (top+65535)/65536;
+
+      RvR_fix16 bot = middle_row*65536-RvR_fix16_div(RvR_yres()*(sp->z-camera.z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+      int y1 = (bot-1)/65536;
+
+      RvR_fix16 left = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx+texture->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+      int x0 = (left+65535)/65536;
+
+      RvR_fix16 right = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-texture->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+      int x1 = (right-1)/65536;
+
+      //Floor and ceiling clip
+      RvR_fix16 cy = middle_row*65536-RvR_fix16_div(RvR_yres()*(RvR_ray_map_floor_height_at(map,sp->x/65536,sp->y/65536)-camera.z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+      int clip_bottom = RvR_min(cy/65536,RvR_yres());
+
+      cy = middle_row*65536-RvR_fix16_div(RvR_yres()*(RvR_ray_map_ceiling_height_at(map,sp->x/65536,sp->y/65536)-camera.z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+      int clip_top = RvR_max(cy/65536,0);
+
+      y0 = RvR_max(y0,clip_top);
+      y1 = RvR_min(y1,clip_bottom);
+      x1 = RvR_min(x1,RvR_xres());
+      RvR_fix16 step_v = RvR_fix16_mul(fovy,depth)/RvR_yres();
+      RvR_fix16 step_u = RvR_fix16_mul(2*fovx,depth)/RvR_xres();
+      RvR_fix16 u = RvR_fix16_mul(step_u,x0*65536-left);
+
+      if(my<y0||my>=y1||mx<x0||mx>=x1)
+      {
+         sp = sp->next;
+         continue;
+      }
+
+      int x = mx;
+      //Clip against walls
+      int ys = y0;
+      int ye = y1;
+
+      //Clip floor
+      const RvR_ray_depth_buffer_entry *clip = RvR_ray_depth_buffer_entry_floor(x);
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&ye>clip->limit)
+            ye = clip->limit;
+         clip = clip->next;
+      }
+
+      //Clip ceiling
+      clip = RvR_ray_depth_buffer_entry_ceiling(x);
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&ys<clip->limit)
+            ys = clip->limit;
+         clip = clip->next;
+      }
+
+      if(my>ys&&my<ye)
+      {
+         min = sp;
+         depth_min = px.depth;
+      }
+
+      sp = sp->next;
+
+      /*if(x0<0)
+      {
+         u+=(-x0)*step_u;
+         x0 = 0;
+      }*/
+
+      //Draw
+      //const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>15));
+      //uint8_t * restrict dst = NULL;
+      //const uint8_t * restrict tex = NULL;
+      //for(int x = x0;x<x1;x++)
+      /*{
+         //Clip against walls
+         int ys = y0;
+         int ye = y1;
+
+         //Clip floor
+         RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
+         while(clip!=NULL)
+         {
+            if(depth>clip->depth&&ye>clip->limit)
+               ye = clip->limit;
+            clip = clip->next;
+         }
+
+         //Clip ceiling
+         clip = ray_depth_buffer.ceiling[x];
+         while(clip!=NULL)
+         {
+            if(depth>clip->depth&&ys<clip->limit)
+               ys = clip->limit;
+            clip = clip->next;
+         }
+
+         tex = &texture->data[texture->height*(u>>10)];
+         dst = &RvR_framebuffer()[ys*RvR_xres()+x];
+         RvR_fix16 v = (sp->z-cam->z)+(ys-middle_row+1)*step_v;
+
+         if(sp->flags&32)
+         {
+            for(int y = ys;y<ye;y++,dst+=RvR_xres())
+            {
+               uint8_t index = tex[(v>>10)&mask];
+               *dst = RvR_blend(col[index],*dst);
+               v+=step_v;
+            }
+         }
+         else if(sp->flags&64)
+         {
+            for(int y = ys;y<ye;y++,dst+=RvR_xres())
+            {
+               uint8_t index = tex[(v>>10)&mask];
+               *dst = RvR_blend(*dst,col[index]);
+               v+=step_v;
+            }
+         }
+         else
+         {
+            for(int y = ys;y<ye;y++,dst+=RvR_xres())
+            {
+               uint8_t index = tex[(v>>10)&mask];
+               *dst = index?col[index]:*dst;
+               v+=step_v;
+            }
+         }
+
+         u+=step_u;
+      }*/
+
+      /*if(px.depth<0||px.depth>24 * 65536||px.x<-2 * RvR_xres()||px.x>4 * RvR_xres()||px.depth>depth_min)
          goto next;
 
       RvR_texture *texture = RvR_texture_get(sp->texture);
@@ -701,7 +842,7 @@ static Map_sprite *sprite_selected()
       }
 
 next:
-      sp = sp->next;
+      sp = sp->next;*/
    }
 
    return min;

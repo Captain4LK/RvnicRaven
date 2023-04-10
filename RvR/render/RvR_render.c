@@ -33,6 +33,7 @@ static uint16_t rvr_render_font_id = 0;
 //-------------------------------------
 
 //Function prototypes
+static void draw(int x, int y, uint8_t index);
 //-------------------------------------
 
 //Function implementations
@@ -171,11 +172,10 @@ void RvR_render_circle(int x, int y, int radius, uint8_t index)
    int y_ = radius;
    int d = 1 - radius;
 
-   //TODO
-   //RvR_draw(x, y + radius, index);
-   //RvR_draw(x, y - radius, index);
-   //RvR_draw(x + radius, y, index);
-   //RvR_draw(x - radius, y, index);
+   draw(x, y + radius, index);
+   draw(x, y - radius, index);
+   draw(x + radius, y, index);
+   draw(x - radius, y, index);
 
    while(x_<y_)
    {
@@ -191,15 +191,15 @@ void RvR_render_circle(int x, int y, int radius, uint8_t index)
          y_ -= 1;
       }
 
-      //RvR_draw(x + x_, y + y_, index);
-      //RvR_draw(x + x_, y - y_, index);
-      //RvR_draw(x - x_, y + y_, index);
-      //RvR_draw(x - x_, y - y_, index);
+      draw(x + x_, y + y_, index);
+      draw(x + x_, y - y_, index);
+      draw(x - x_, y + y_, index);
+      draw(x - x_, y - y_, index);
 
-      //RvR_draw(x + y_, y + x_, index);
-      //RvR_draw(x + y_, y - x_, index);
-      //RvR_draw(x - y_, y + x_, index);
-      //RvR_draw(x - y_, y - x_, index);
+      draw(x + y_, y + x_, index);
+      draw(x + y_, y - x_, index);
+      draw(x - y_, y + x_, index);
+      draw(x - y_, y - x_, index);
    }
 }
 
@@ -295,4 +295,9 @@ void RvR_render_horizontal_line(int x0, int x1, int y, uint8_t index)
       *dst = index;
 }
 
+static void draw(int x, int y, uint8_t index)
+{
+   if(x>=0&&x<RvR_xres()&&y>=0&&y<RvR_yres())
+      RvR_framebuffer()[y * RvR_xres() + x] = index;
+}
 //-------------------------------------

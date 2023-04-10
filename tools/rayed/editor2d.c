@@ -427,7 +427,7 @@ void editor2d_draw()
          RvR_fix16 dirx = RvR_fix16_cos(sp->direction);
          RvR_fix16 diry = RvR_fix16_sin(sp->direction);
          //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(sp->direction);
-         RvR_render_line(x, y, x + (dirx * (grid_size / 2)) / 65536, y + (diry * (grid_size / 2)) / 65536, color_white);
+         RvR_render_line(x*256, y*256, x*256+ (dirx * (grid_size / 2))/256 , y *256+ (diry * (grid_size / 2))/256, color_white);
 
          if(sp->flags & 8)
          {
