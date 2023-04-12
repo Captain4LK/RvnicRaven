@@ -614,10 +614,241 @@ static Map_sprite *sprite_selected()
    RvR_fix16 sin = RvR_fix16_sin(camera.dir);
    RvR_fix16 fovx = RvR_fix16_tan(camera.fov/2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 sin_fov = RvR_fix16_mul(sin,fovx);
+   RvR_fix16 cos_fov = RvR_fix16_mul(cos,fovx);
    RvR_fix16 middle_row = (RvR_yres()/2)+camera.shear;
 
-   while(sp!=NULL)
+   for(;sp!=NULL;sp = sp->next)
    {
+      if(sp->flags&8)
+      {
+         RvR_texture *tex = RvR_texture_get(sp->texture);
+
+         //Translate sprite to world space
+         RvR_fix16 dirx = RvR_fix16_cos(sp->direction);
+         RvR_fix16 diry = RvR_fix16_sin(sp->direction);
+         RvR_fix16 half_width = (tex->width*65536)/(64*2);
+         RvR_fix16 p0x = RvR_fix16_mul(-diry,half_width)+sp->x;
+         RvR_fix16 p0y = RvR_fix16_mul(dirx,half_width)+sp->y;
+         RvR_fix16 p1x = RvR_fix16_mul(diry,half_width)+sp->x;
+         RvR_fix16 p1y = RvR_fix16_mul(-dirx,half_width)+sp->y;
+         //sp.x = x;
+         //sp.y = y;
+         //sp.z = z;
+         //sp.as.wall.dir = dir;
+         //sp.as.wall.u0 = 0;
+         //sp.as.wall.u1 = 65536*256-1;
+
+         //Translate to camera space
+         RvR_fix16 x0 = p0x-camera.x;
+         RvR_fix16 y0 = p0y-camera.y;
+         RvR_fix16 x1 = p1x-camera.x;
+         RvR_fix16 y1 = p1y-camera.y;
+         RvR_fix16 tp0x = RvR_fix16_mul(-x0,sin)+RvR_fix16_mul(y0,cos);
+         RvR_fix16 tp0y = RvR_fix16_mul(x0,cos_fov)+RvR_fix16_mul(y0,sin_fov);
+         RvR_fix16 tp1x = RvR_fix16_mul(-x1,sin)+RvR_fix16_mul(y1,cos);
+         RvR_fix16 tp1y = RvR_fix16_mul(x1,cos_fov)+RvR_fix16_mul(y1,sin_fov);
+
+         //Behind camera
+         if(tp0y<-128&&tp1y<-128)
+            continue;
+
+         //Sprite not facing camera
+         //--> swap p0 and p1 and toggle y-axis mirror flag
+         if(RvR_fix16_mul(tp0x,tp1y)-RvR_fix16_mul(tp1x,tp0y)>0)
+         {
+            RvR_fix16 tmp = tp0x;
+            tp0x = tp1x;
+            tp1x = tmp;
+
+            tmp = tp0y;
+            tp0y = tp1y;
+            tp1y = tmp;
+            //sp.flags^=2;
+         }
+
+         RvR_fix16 sx0;
+         RvR_fix16 sz0;
+         RvR_fix16 sx1;
+         RvR_fix16 sz1;
+
+         //Here we can treat everything as if we have a 90 degree
+         //fov, since the rotation to camera space transforms it to
+         //that
+         //Check if in fov
+         //Left point in fov
+         if(tp0x>=-tp0y)
+         {
+            //Sprite completely out of sight
+            if(tp0x>tp0y)
+               continue;
+
+            sx0 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp0x*(RvR_xres()/2),tp0y),RvR_xres()*65536);
+            sz0 = tp0y;
+         }
+         //Left point to the left of fov
+         else
+         {
+            //Sprite completely out of sight
+            if(tp1x<-tp1y)
+               continue;
+
+            sx0 = 0;
+            RvR_fix16 dx0 = tp1x-tp0x;
+            RvR_fix16 dx1 = tp0x+tp0y;
+            sz0 = RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y+tp1x-tp0x)-tp0x;
+            //su0 = sp.as.wall.u0 + RvR_fix16_div(RvR_fix16_mul(-tp0x-tp0y,sp.as.wall.u1-sp.as.wall.u0),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
+         }
+
+         //Right point in fov
+         if(tp1x<=tp1y)
+         {
+            //sprite completely out of sight
+            if(tp1x<-tp1y)
+               continue;
+
+            sx1 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp1x*(RvR_xres()/2),tp1y),RvR_xres()*65536);
+            sz1 = tp1y;
+         }
+         //Right point to the right of fov
+         else
+         {
+            //sprite completely out of sight
+            if(tp0x>tp0y)
+               continue;
+
+            RvR_fix16 dx0 = tp1x-tp0x;
+            RvR_fix16 dx1 = tp0y-tp0x;
+            sx1 = RvR_xres()*65536;
+            sz1 = tp0x-RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y-tp1x+tp0x);
+            //su1 = RvR_fix16_div(RvR_fix16_mul(dx1,sp.as.wall.u1),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
+         }
+
+         //Near clip sprite 
+         if(sz0<1024||sz1<1024)
+            continue;
+
+         //Far clip sprite
+         if(sz0>32*65536&&sz1>32*65536)
+            continue;
+
+         if(sx0>sx1)
+            continue;
+
+         RvR_fix16 sy0 = RvR_fix16_div(sp->z-camera.z,RvR_non_zero(RvR_fix16_mul(fovy,sz0)));
+         sy0 = RvR_fix16_mul(RvR_yres()*65536,32768-sy0);
+         RvR_fix16 sy1 = RvR_fix16_div(sp->z-camera.z,RvR_non_zero(RvR_fix16_mul(fovy,sz1)));
+         sy1 = RvR_fix16_mul(RvR_yres()*65536,32768-sy1);
+
+
+         RvR_fix16 scale_vertical = texture->height*1024;
+         //RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+         //RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+         //RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
+
+         //int x0 = sx0>>16;
+         //int x1 = sx1>>16;
+
+         RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-camera.z),RvR_fix16_mul(sz0,fovy));
+         RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-camera.z),RvR_fix16_mul(sz1,fovy));
+         cy0 = RvR_yres()*32768-cy0;
+         cy1 = RvR_yres()*32768-cy1;
+         RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(sx1-sx0));
+         RvR_fix16 cy = cy0;
+
+         RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_fix16_mul(sp->as.wall.z0,fovy));
+         RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_fix16_mul(sp->as.wall.z1,fovy));
+         fy0 = RvR_yres()*32768-fy0;
+         fy1 = RvR_yres()*32768-fy1;
+         RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
+         RvR_fix16 fy = fy0;
+
+         RvR_fix16 denom = RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.z0);
+         RvR_fix16 num_step_z = RvR_fix16_div(sp->as.wall.z0-sp->as.wall.z1,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
+         RvR_fix16 num_z = sp->as.wall.z1;
+
+         //RvR_fix16 num_step_u = (RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0));
+         RvR_fix16 num_step_u = RvR_fix16_div(RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0),RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
+         RvR_fix16 num_u = RvR_fix16_mul(sp->as.wall.u0,sp->as.wall.z1);
+
+         //Adjust for fractional part
+         RvR_fix16 xfrac = sp->as.wall.x0-x0*65536;
+         cy-=RvR_fix16_mul(xfrac,step_cy);
+         fy-=RvR_fix16_mul(xfrac,step_fy);
+         num_z-=RvR_fix16_mul(xfrac,num_step_z);
+         num_u-=RvR_fix16_mul(xfrac,num_step_u);
+
+         for(int x = x0;x<x1;x++)
+         {
+            RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(num_z));
+
+            //Clip floor
+            int ybot = RvR_yres()-1;
+            RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
+            while(clip!=NULL)
+            {
+               if(depth>clip->depth&&ybot>clip->limit)
+                  ybot = clip->limit;
+               clip = clip->next;
+            }
+
+            //Clip ceiling
+            int ytop = 0;
+            clip = ray_depth_buffer.ceiling[x];
+            while(clip!=NULL)
+            {
+               if(depth>clip->depth&&ytop<clip->limit)
+                  ytop = clip->limit;
+               clip = clip->next;
+            }
+
+            int wy =  ytop;
+            uint8_t * restrict pix = RvR_framebuffer()+(wy*RvR_xres()+x);
+
+            //Ceiling
+            int y_to = RvR_min(cy>>16,ybot);
+            if(y_to>wy)
+            {
+               wy = y_to;
+               pix = RvR_framebuffer()+(wy*RvR_xres()+x);
+            }
+
+            //Wall
+            y_to = RvR_min((fy>>16)-1,ybot);
+            RvR_fix16 u = RvR_fix16_div(num_u,RvR_non_zero(num_z));
+            RvR_fix16 height = sp->z+scale_vertical-cam->z;
+            RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
+            RvR_fix16 texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
+            const uint8_t * restrict tex = &texture->data[(((uint32_t)u>>18)%texture->width)*texture->height];
+            const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>15))));
+            RvR_fix16 y_and = (1<<RvR_log2(texture->height))-1;
+            for(;wy<=y_to;wy++)
+            {
+               *pix = col[tex[(texture_coord_scaled>>10)&y_and]];
+               pix+=RvR_xres();
+               texture_coord_scaled+=coord_step_scaled;
+            }
+
+            //Floor
+            /*y_to = RvR_min(RvR_yres()-1,port_ybot[x]);
+            if(y_to>wy)
+               port_plane_add(wall->sector,1,x,wy,y_to);
+
+            port_ytop[x] = RvR_yres();
+            port_ybot[x] = 0;*/
+
+            cy+=step_cy;
+            fy+=step_fy;
+            num_z+=num_step_z;
+            num_u+=num_step_u;
+
+            //if(RvR_key_pressed(RVR_KEY_SPACE))
+               //RvR_render_present();
+         }
+
+         continue;
+      }
+
       RvR_ray_pixel_info px = RvR_ray_map_to_screen(&camera,sp->x,sp->y,sp->z);
       if(px.depth<0||px.depth>24 * 65536||px.depth>depth_min)
       {
@@ -696,153 +927,6 @@ static Map_sprite *sprite_selected()
       }
 
       sp = sp->next;
-
-      /*if(x0<0)
-      {
-         u+=(-x0)*step_u;
-         x0 = 0;
-      }*/
-
-      //Draw
-      //const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>15));
-      //uint8_t * restrict dst = NULL;
-      //const uint8_t * restrict tex = NULL;
-      //for(int x = x0;x<x1;x++)
-      /*{
-         //Clip against walls
-         int ys = y0;
-         int ye = y1;
-
-         //Clip floor
-         RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
-         while(clip!=NULL)
-         {
-            if(depth>clip->depth&&ye>clip->limit)
-               ye = clip->limit;
-            clip = clip->next;
-         }
-
-         //Clip ceiling
-         clip = ray_depth_buffer.ceiling[x];
-         while(clip!=NULL)
-         {
-            if(depth>clip->depth&&ys<clip->limit)
-               ys = clip->limit;
-            clip = clip->next;
-         }
-
-         tex = &texture->data[texture->height*(u>>10)];
-         dst = &RvR_framebuffer()[ys*RvR_xres()+x];
-         RvR_fix16 v = (sp->z-cam->z)+(ys-middle_row+1)*step_v;
-
-         if(sp->flags&32)
-         {
-            for(int y = ys;y<ye;y++,dst+=RvR_xres())
-            {
-               uint8_t index = tex[(v>>10)&mask];
-               *dst = RvR_blend(col[index],*dst);
-               v+=step_v;
-            }
-         }
-         else if(sp->flags&64)
-         {
-            for(int y = ys;y<ye;y++,dst+=RvR_xres())
-            {
-               uint8_t index = tex[(v>>10)&mask];
-               *dst = RvR_blend(*dst,col[index]);
-               v+=step_v;
-            }
-         }
-         else
-         {
-            for(int y = ys;y<ye;y++,dst+=RvR_xres())
-            {
-               uint8_t index = tex[(v>>10)&mask];
-               *dst = index?col[index]:*dst;
-               v+=step_v;
-            }
-         }
-
-         u+=step_u;
-      }*/
-
-      /*if(px.depth<0||px.depth>24 * 65536||px.x<-2 * RvR_xres()||px.x>4 * RvR_xres()||px.depth>depth_min)
-         goto next;
-
-      RvR_texture *texture = RvR_texture_get(sp->texture);
-      RvR_fix16 scale_vertical = RvR_yres() * (texture->height * 16*64);
-      RvR_fix16 scale_horizontal = (RvR_xres() / 2) * (texture->width * 16*64);
-      int size_vertical = scale_vertical / RvR_non_zero((fov_factor_y * px.depth) / 65536);
-      int size_horizontal = scale_horizontal / RvR_non_zero((fov_factor_x * px.depth) / 65536);
-
-      //Reject based on non-clipped bounding rect
-      if(mx<px.x - size_horizontal / 2||mx>px.x + size_horizontal / 2)
-         goto next;
-      if(my<px.y - size_vertical||my>px.y)
-         goto next;
-
-      //Clip specific part of sprite
-      int y = px.y - size_vertical;
-      int sy = 0;
-      int ey = size_vertical;
-
-      //Floor and ceiling clip
-      //RvR_fix22_vec3 floor_wpos;
-      RvR_fix16 floor_wposx = sp->x;
-      RvR_fix16 floor_wposy = sp->y;
-      RvR_fix16 floor_wposz = RvR_ray_map_floor_height_at(map,sp->x / 65536, sp->y / 65536);
-      int clip_bottom = RvR_ray_map_to_screen(&camera,floor_wposx,floor_wposy,floor_wposz).y;
-      floor_wposz = RvR_ray_map_ceiling_height_at(map,sp->x / 65536, sp->y / 65536);
-      int clip_top = RvR_ray_map_to_screen(&camera,floor_wposx,floor_wposy,floor_wposz).y;
-      clip_bottom = clip_bottom>RvR_yres()?RvR_yres():clip_bottom;
-      clip_top = clip_top<0?0:clip_top;
-
-      //Clip coordinates to screen/clip_top and clip_bottom
-      //if(x<0)
-      //sx = -x;
-      if(y<clip_top)
-         sy = clip_top - y;
-      //if(x+ex>RvR_xres())
-      //ex = size_horizontal+(RvR_xres()-x-ex);
-      if(y + ey>clip_bottom)
-         ey = size_vertical + (clip_bottom - y - ey);
-      //x = x<0?0:x;
-      y = y<clip_top?clip_top:y;
-
-      //Clip against walls
-      int ey1 = ey;
-      int ys = y;
-
-      //Clip floor
-      const RvR_ray_depth_buffer_entry *clip = RvR_ray_depth_buffer_entry_floor(mx);
-      while(clip!=NULL)
-      {
-         if(px.depth>clip->depth&&y + (ey1 - sy)>clip->limit)
-            ey1 = clip->limit - y + sy;
-         clip = clip->next;
-      }
-
-      //Clip ceiling
-      clip = RvR_ray_depth_buffer_entry_ceiling(mx);
-      while(clip!=NULL)
-      {
-         if(px.depth>clip->depth&&ys<clip->limit)
-         {
-            int diff = ys - clip->limit;
-            ys = clip->limit;
-            ey1 += diff;
-         }
-         clip = clip->next;
-      }
-
-      if(my>sy&&my<ys + ey1)
-      {
-         min = sp;
-         depth_min = px.depth;
-      }
-
-next:
-      sp = sp->next;*/
    }
 
    return min;

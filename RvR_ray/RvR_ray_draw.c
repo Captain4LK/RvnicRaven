@@ -586,7 +586,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.z = z;
       sp.as.wall.dir = dir;
       sp.as.wall.u0 = 0;
-      sp.as.wall.u1 = 65535;
+      sp.as.wall.u1 = 65536*256-1;
 
       //Translate to camera space
       RvR_fix16 x0 = p0x-cam->x;
@@ -1270,8 +1270,6 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
 
    RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-cam->z),RvR_fix16_mul(sp->as.wall.z0,fovy));
    RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-cam->z),RvR_fix16_mul(sp->as.wall.z1,fovy));
-   //RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z0,fovy));
-   //RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z1,fovy));
    cy0 = RvR_yres()*32768-cy0;
    cy1 = RvR_yres()*32768-cy1;
    RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
@@ -1279,8 +1277,6 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
 
    RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_fix16_mul(sp->as.wall.z0,fovy));
    RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_fix16_mul(sp->as.wall.z1,fovy));
-   //RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_fix16_mul(wall->z0,fovy));
-   //RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_fix16_mul(wall->z1,fovy));
    fy0 = RvR_yres()*32768-fy0;
    fy1 = RvR_yres()*32768-fy1;
    RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
@@ -1290,6 +1286,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    RvR_fix16 num_step_z = RvR_fix16_div(sp->as.wall.z0-sp->as.wall.z1,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
    RvR_fix16 num_z = sp->as.wall.z1;
 
+   //RvR_fix16 num_step_u = (RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0));
    RvR_fix16 num_step_u = RvR_fix16_div(RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0),RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
    RvR_fix16 num_u = RvR_fix16_mul(sp->as.wall.u0,sp->as.wall.z1);
 
@@ -1331,7 +1328,6 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       int y_to = RvR_min(cy>>16,ybot);
       if(y_to>wy)
       {
-         ///port_plane_add(wall->sector,0,x,wy,y_to-1);
          wy = y_to;
          pix = RvR_framebuffer()+(wy*RvR_xres()+x);
       }
@@ -1342,7 +1338,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       RvR_fix16 height = sp->z+scale_vertical-cam->z;
       RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
       RvR_fix16 texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
-      const uint8_t * restrict tex = &texture->data[(((uint32_t)u>>10)%texture->width)*texture->height];
+      const uint8_t * restrict tex = &texture->data[(((uint32_t)u>>18)%texture->width)*texture->height];
       const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>15))));
       RvR_fix16 y_and = (1<<RvR_log2(texture->height))-1;
       for(;wy<=y_to;wy++)
@@ -1603,8 +1599,9 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b)
       return 1;
 
    //-------------------------------------
-   //TODO: for billboard sprites both x0 and x1 will be the middle of the sprite
-   //makes the sorting look more correct
+   //TODO: for billboard sprites both x0 and x1 should be the middle of the sprite
+   //might make the sorting look more correct
+
    int64_t dx0 = x01-x00;
    int64_t dz0 = z01-z00;
    int64_t dx1 = x11-x10;
