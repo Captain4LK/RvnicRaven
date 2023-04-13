@@ -176,7 +176,6 @@ void editor_undo()
    if(endpos<0)
       return;
    Ed_action action = undo_buffer[endpos];
-   //printf("%d\n",action);
 
    endpos = WRAP(endpos);
    pos = WRAP(undo_pos - 3);
@@ -189,7 +188,6 @@ void editor_undo()
    redo_write(action);
 
    //Apply undoes
-   //printf("undo %d %d\n",endpos,pos);
    switch(action)
    {
    case ED_FLOOR_HEIGHT: undo_floor_height(pos, endpos); break;
@@ -230,7 +228,6 @@ void editor_redo()
    undo_write(action);
 
    //Apply redoes
-   //printf("redo %d %d\n",endpos,pos);
    switch(action)
    {
    case ED_FLOOR_HEIGHT: redo_floor_height(pos, endpos); break;
@@ -263,14 +260,10 @@ void camera_update()
 {
    RvR_fix16 dirx = RvR_fix16_cos(camera.dir)/8;
    RvR_fix16 diry = RvR_fix16_sin(camera.dir)/8;
-   //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(camera.direction);
-   //direction.x /= 8;
-   //direction.y /= 8;
    int speed = 1;
    RvR_fix16 offx = 0;
    RvR_fix16 offy = 0;
    RvR_fix16 offz = 0;
-   //RvR_fix22_vec3 move_offset = {0};
 
    //Faster movement
    if(RvR_key_down(RVR_KEY_LSHIFT))
@@ -333,30 +326,30 @@ void camera_update()
    }
    camera.dir&= 65535;
 
-   //Update raycasting values
-   //needed by collision
-   //RvR_ray_set_position(camera.pos);
-   //RvR_ray_set_angle(camera.direction);
-   //RvR_ray_set_shear(camera.shear);
-   //-------------------------------------
-
    //Collision
    RvR_fix16 floor_height = 0;
    RvR_fix16 ceiling_height = 0;
    move_with_collision(offx,offy,offz, 1, 1, &floor_height, &ceiling_height);
-   //-------------------------------------
-
-   //Update raycasting values again
-   //might be changed by collision
-   //RvR_ray_set_position(camera.pos);
-   //RvR_ray_set_angle(camera.direction);
-   //RvR_ray_set_shear(camera.shear);
-   //-------------------------------------
 }
 
 static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, int8_t compute_height, int8_t compute_plane, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
 {
    int8_t moves_in_plane = offx!=0||offy!=0;
+   int collide_x = 0;
+   int collide_y = 0;
+
+   //Check x collision
+   for(int y = -((CAMERA_COLL_RADIUS+65535)/65536);y<(CAMERA_COLL_RADIUS+65535)/65536;y++)
+   {
+
+      /*for(int x = -((CAMERA_COLL_RADIUS+65535)/65536);x<(CAMERA_COLL_RADIUS+65535)/65536;x++)
+      {
+         if(compute_height)
+         {
+            RvR_fix16 height = RvR_ray_map_floor_height_at(map,camera.x/65536+x,camera.y/65536+y);
+         }
+      }*/
+   }
 
    if(compute_plane)
    {
@@ -546,14 +539,15 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
       if(x_square2!=x_square1)
          checkSquares(2, 1)
 
-         if(y_square2!=y_square1)
-            checkSquares(1, 2)
+      if(y_square2!=y_square1)
+         checkSquares(1, 2)
 
-            if(x_square2!=x_square1&&y_square2!=y_square1)
-               checkSquares(2, 2)
+      if(x_square2!=x_square1&&y_square2!=y_square1)
+         checkSquares(2, 2)
 
-               if(floor_height!=NULL)
-                  *floor_height = bottom_limit;
+      if(floor_height!=NULL)
+         *floor_height = bottom_limit;
+
       if(ceiling_height!=NULL)
          *ceiling_height = top_limit;
 

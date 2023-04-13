@@ -586,7 +586,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.z = z;
       sp.as.wall.dir = dir;
       sp.as.wall.u0 = 0;
-      sp.as.wall.u1 = 65536*256-1;
+      sp.as.wall.u1 = 65535*tex->width;
 
       //Translate to camera space
       RvR_fix16 x0 = p0x-cam->x;
@@ -686,8 +686,11 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
 
       if(sp.flags&2)
       {
-         sp.as.wall.u0 = 65535-sp.as.wall.u0;
-         sp.as.wall.u1 = 65535-sp.as.wall.u1;
+         //RvR_fix16 tmp = sp.as.wall.u0;
+         //sp.as.wall.u0 = sp.as.wall.u1;
+         //sp.as.wall.u1 = tmp;
+         sp.as.wall.u0 = (tex->width*65535)-sp.as.wall.u0;
+         sp.as.wall.u1 = (tex->width*65535)-sp.as.wall.u1;
       }
 
       sp.depth_sort = sp.as.wall.z1;
@@ -923,6 +926,7 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
    }
 
    RvR_texture *texture = NULL;
+   //printf("wall %d\n",pixel_info->depth);
    RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,pixel_info->depth)/RvR_yres();
    RvR_fix16 texture_coord_scaled = height+(start-middle_row+1)*coord_step_scaled;
 
@@ -1265,8 +1269,8 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
    RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
 
-   int x0 = sp->as.wall.x0>>16;
-   int x1 = sp->as.wall.x1>>16;
+   int x0 = (sp->as.wall.x0+65535)>>16;
+   int x1 = (sp->as.wall.x1+65535)>>16;
 
    RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-cam->z),RvR_fix16_mul(sp->as.wall.z0,fovy));
    RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-cam->z),RvR_fix16_mul(sp->as.wall.z1,fovy));
@@ -1282,13 +1286,21 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
    RvR_fix16 fy = fy0;
 
-   RvR_fix16 denom = RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.z0);
-   RvR_fix16 num_step_z = RvR_fix16_div(sp->as.wall.z0-sp->as.wall.z1,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
-   RvR_fix16 num_z = sp->as.wall.z1;
+   RvR_fix16 denom = RvR_fix16_mul(sp->as.wall.x1-sp->as.wall.x0,RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.z0));
+   RvR_fix16 num_step_z = (sp->as.wall.z0-sp->as.wall.z1);
+   RvR_fix16 num_z = RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.x1-sp->as.wall.x0);
 
-   //RvR_fix16 num_step_u = (RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0));
-   RvR_fix16 num_step_u = RvR_fix16_div(RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0),RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
-   RvR_fix16 num_u = RvR_fix16_mul(sp->as.wall.u0,sp->as.wall.z1);
+   RvR_fix16 num_step_u = (RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0));
+   RvR_fix16 num_u = RvR_fix16_mul(sp->as.wall.x1-sp->as.wall.x0,RvR_fix16_mul(sp->as.wall.u0,sp->as.wall.z1));
+
+   //We don't need as much percision
+   //and this prevents overflow
+   //switch to i64 if you want to change this
+   num_z>>=4;
+   num_u>>=4;
+   num_step_z>>=4;
+   num_step_u>>=4;
+   denom>>=4;
 
    //Adjust for fractional part
    RvR_fix16 xfrac = sp->as.wall.x0-x0*65536;
@@ -1296,6 +1308,8 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    fy-=RvR_fix16_mul(xfrac,step_fy);
    num_z-=RvR_fix16_mul(xfrac,num_step_z);
    num_u-=RvR_fix16_mul(xfrac,num_step_u);
+
+   //printf("sprite %d %d\n",sp->as.wall.z0,sp->as.wall.z1);
 
    for(int x = x0;x<x1;x++)
    {
@@ -1334,198 +1348,30 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
 
       //Wall
       y_to = RvR_min((fy>>16)-1,ybot);
-      RvR_fix16 u = RvR_fix16_div(num_u,RvR_non_zero(num_z));
+      RvR_fix16 u = num_u/RvR_non_zero(num_z);
+      //printf("%d\n",u);
       RvR_fix16 height = sp->z+scale_vertical-cam->z;
       RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
       RvR_fix16 texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
-      const uint8_t * restrict tex = &texture->data[(((uint32_t)u>>18)%texture->width)*texture->height];
+      const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
       const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>15))));
+      //printf("%d\n",u/4);
       RvR_fix16 y_and = (1<<RvR_log2(texture->height))-1;
       for(;wy<=y_to;wy++)
       {
-         *pix = col[tex[(texture_coord_scaled>>10)&y_and]];
+         //uint8_t index = tex[(v>>10)];
+         //*dst = index?col[index]:*dst;
+         uint8_t index = tex[(texture_coord_scaled>>10)&y_and];
+         *pix = index?col[index]:*pix;
          pix+=RvR_xres();
          texture_coord_scaled+=coord_step_scaled;
       }
-
-      //Floor
-      /*y_to = RvR_min(RvR_yres()-1,port_ybot[x]);
-      if(y_to>wy)
-         port_plane_add(wall->sector,1,x,wy,y_to);
-
-      port_ytop[x] = RvR_yres();
-      port_ybot[x] = 0;*/
 
       cy+=step_cy;
       fy+=step_fy;
       num_z+=num_step_z;
       num_u+=num_step_u;
-
-      //if(RvR_key_pressed(RVR_KEY_SPACE))
-         //RvR_render_present();
    }
-#if 0
-   int x0 = sp->sp0.x;
-   int x1 = sp->sp1.x;
-
-   //Shouldn't happen
-   if(x1<0||x0>x1||x0>RVR_XRES)
-      return;
-
-   RvR_texture *texture = RvR_texture_get(sp->texture);
-   int mask = (1<<RvR_log2(texture->height))-1;
-   RvR_fix22 scale_vertical = texture->height*16;
-   int size0 = RVR_YRES*((scale_vertical*1024)/RvR_non_zero((ray_fov_factor_y*sp->sp0.z)/1024));
-   int size1 = RVR_YRES*((scale_vertical*1024)/RvR_non_zero((ray_fov_factor_y*sp->sp1.z)/1024));
-   int y0 = sp->sp0.y;
-   int y1 = sp->sp1.y;
-
-   //Floor and ceiling clip
-   int clip_bottom = RVR_YRES;
-   int clip_top = 0;
-   /*RvR_vec3 floor_wpos;
-   floor_wpos.x = sp->p.x;
-   floor_wpos.y = sp->p.y;
-   floor_wpos.z = RvR_ray_map_floor_height_at(sp->p.x/1024,sp->p.y/1024);
-   int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
-   floor_wpos.z = RvR_ray_map_ceiling_height_at(sp->p.x/1024,sp->p.y/1024);
-   int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
-   clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
-   clip_top = clip_top<0?0:clip_top;*/
-
-   RvR_fix22 depth0 = INT32_MAX/RvR_non_zero(sp->sp0.z);
-   RvR_fix22 depth1 = INT32_MAX/RvR_non_zero(sp->sp1.z);
-   RvR_fix22 step_depth = (depth1-depth0)/RvR_non_zero(x1-x0);
-   RvR_fix22 depth_i = depth0;
-
-   RvR_fix22 st0 = (sp->st0*1024*1024)/RvR_non_zero(sp->sp0.z);
-   RvR_fix22 st1 = (sp->st1*1024*1024)/RvR_non_zero(sp->sp1.z);
-   RvR_fix22 step_u = (st1-st0)/RvR_non_zero(x1-x0);
-   RvR_fix22 u_i = st0;
-
-   RvR_fix22 t0 = y0-size0+512;
-   RvR_fix22 t1 = y1-size1+512;
-   RvR_fix22 step_t = (t1-t0)/RvR_non_zero(x1-x0);
-   RvR_fix22 top = t0;
-
-   RvR_fix22 b0 = y0-1024;
-   RvR_fix22 b1 = y1-1024;
-   RvR_fix22 step_b = (b1-b0)/RvR_non_zero(x1-x0);
-   RvR_fix22 bot = b0;
-
-   const uint8_t * restrict col = NULL;
-   uint8_t * restrict dst = NULL;
-   const uint8_t * restrict tex = NULL;
-
-   RvR_fix22 angle = RvR_ray_get_angle()-sp->angle;
-   RvR_fix22 len = texture->width*16;
-   RvR_fix22 dx0 = sp->p1.x-sp->p0.x;
-   RvR_fix22 dy0 = sp->p1.y-sp->p0.y;
-   RvR_fix22 dx1 = RvR_ray_get_position().x-sp->p0.x;
-   RvR_fix22 dy1 = RvR_ray_get_position().y-sp->p0.y;
-   RvR_fix22 offset = (dx0*dx1+dy0*dy1)/len;
-   RvR_fix22 dist = (dy0*dx1-dx0*dy1)/len;
-
-   RvR_fix22 u_clamp = sp->st0*1024;
-   int clamp_dir = sp->st0<sp->st1;
-   for(int i = x0;i<=x1;i++)
-   {
-      RvR_fix22 depth = INT32_MAX/RvR_non_zero(depth_i);
-      RvR_fix22 u = (u_i/1024)*depth;
-
-      //Most ugly fix ever
-      //Stops the texture coordinate from skipping back and forth due to
-      //fixed point inaccuracies by clamping it to the last value
-      if(clamp_dir)
-         u = RvR_max(u_clamp,u);
-      else
-         u = RvR_min(u_clamp,u);
-      u_clamp = u;
-      u*=texture->width;
-
-      //RvR_fix22 tan = RvR_fix22_tan(angle+ray_x_to_angle[i]);
-      //printf("%d\n",ray_x_to_angle[i]);
-      //printf("%d %d\n",i,offset-(tan*dist)/1024);
-
-      //printf("%d\n",(offset-(tan*depth)/1024)/16);
-
-      RvR_fix22 step_v = (4*ray_fov_factor_y*depth)/RVR_YRES;
-      RvR_fix22 y = top/1024;
-
-      int sy = 0;
-      int ey = bot/1024-top/1024;
-      if(y<clip_top)
-         sy = clip_top-y;
-      if(y+ey>clip_bottom)
-         ey = (clip_bottom-y);
-      y = y<clip_top?clip_top:y;
-
-      int ys = y;
-      int ye = ey;
-
-      //Clip floor
-      RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[i];
-      while(clip!=NULL)
-      {
-         if(depth>clip->depth&&y+(ye-sy)>clip->limit)
-            ye = clip->limit-y+sy;
-         clip = clip->next;
-      }
-
-      //Clip ceiling
-      clip = ray_depth_buffer.ceiling[i];
-      while(clip!=NULL)
-      {
-         if(depth>clip->depth&&ys<clip->limit)
-         {
-            int diff = ys-clip->limit;
-            ys = clip->limit;
-            ye+=diff;
-         }
-         clip = clip->next;
-      }
-
-      RvR_fix22 v = (sp->p.z-RvR_ray_get_position().z)*4096+(ys-ray_middle_row+1)*step_v;
-
-      tex = &texture->data[texture->height*(u>>20)];
-      dst = &RvR_core_framebuffer()[ys*RVR_XRES+i];
-      col = RvR_shade_table(RvR_min(63,depth>>9));
-
-      if(sp->flags&32)
-      {
-         for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
-         {
-            uint8_t index = tex[(v>>16)&mask];
-            *dst = RvR_blend(col[index],*dst);
-            v+=step_v;
-         }
-      }
-      else if(sp->flags&64)
-      {
-         for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
-         {
-            uint8_t index = tex[(v>>16)&mask];
-            *dst = RvR_blend(*dst,col[index]);
-            v+=step_v;
-         }
-      }
-      else
-      {
-         for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
-         {
-            uint8_t index = tex[(v>>16)&mask];
-            *dst = index?col[index]:*dst;
-            v+=step_v;
-         }
-      }
-
-      depth_i+=step_depth;
-      u_i+=step_u;
-
-      top+=step_t;
-      bot+=step_b;
-   }
-#endif
 }
 
 static int ray_sprite_comp(const void *a, const void *b)
