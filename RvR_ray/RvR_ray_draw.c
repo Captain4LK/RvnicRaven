@@ -586,7 +586,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.z = z;
       sp.as.wall.dir = dir;
       sp.as.wall.u0 = 0;
-      sp.as.wall.u1 = 65535*tex->width;
+      sp.as.wall.u1 = 65536*tex->width-1;
 
       //Translate to camera space
       RvR_fix16 x0 = p0x-cam->x;
@@ -684,15 +684,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.as.wall.y1 = RvR_fix16_div(sp.z-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,sp.as.wall.z1)));
       sp.as.wall.y1 = RvR_fix16_mul(RvR_yres()*65536,32768-sp.as.wall.y1);
 
-      if(sp.flags&2)
-      {
-         //RvR_fix16 tmp = sp.as.wall.u0;
-         //sp.as.wall.u0 = sp.as.wall.u1;
-         //sp.as.wall.u1 = tmp;
-         sp.as.wall.u0 = (tex->width*65535)-sp.as.wall.u0;
-         sp.as.wall.u1 = (tex->width*65535)-sp.as.wall.u1;
-      }
-
       sp.depth_sort = sp.as.wall.z1;
       if(sp.as.wall.z0>sp.as.wall.z1)
          sp.depth_sort = sp.as.wall.z0;
@@ -716,6 +707,14 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    sp.as.bill.x = p.x;
    sp.as.bill.depth = p.depth;
 
+   //Near clip
+   if(p.depth<128)
+      return;
+
+   //Far clip
+   if(sp.as.bill.depth>RVR_RAY_MAX_STEPS*65536)
+      return;
+
    RvR_fix16 tpx = x-cam->x;
    RvR_fix16 tpy = y-cam->y;
    RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
@@ -724,17 +723,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    sp.as.bill.x1 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
 
    if(sp.as.bill.x1<0||sp.as.bill.x0>=RvR_xres()*65536)
-      return;
-
-   if(p.depth<128)
-      return;
-
-   //Clipping
-   //Behind camera
-   if(sp.as.bill.depth<=0)
-      return;
-   //Too far away
-   if(sp.as.bill.depth>RVR_RAY_MAX_STEPS*65536)
       return;
 
    sp.depth_sort = sp.as.bill.depth;
@@ -1264,28 +1252,29 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
 static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
 {
    RvR_texture *texture = RvR_texture_get(sp->texture);
-   RvR_fix16 scale_vertical = texture->height*1024;
+   RvR_fix16 scale_vertical = texture->height*1024; //texture height in map coordinates
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
    RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
 
-   int x0 = (sp->as.wall.x0+65535)>>16;
-   int x1 = (sp->as.wall.x1+65535)>>16;
-
    RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-cam->z),RvR_fix16_mul(sp->as.wall.z0,fovy));
    RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(sp->z+scale_vertical-cam->z),RvR_fix16_mul(sp->as.wall.z1,fovy));
-   cy0 = RvR_yres()*32768-cy0;
-   cy1 = RvR_yres()*32768-cy1;
+   cy0 = middle_row*65536-cy0;
+   cy1 = middle_row*65536-cy1;
    RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
    RvR_fix16 cy = cy0;
 
    RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_fix16_mul(sp->as.wall.z0,fovy));
    RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_fix16_mul(sp->as.wall.z1,fovy));
-   fy0 = RvR_yres()*32768-fy0;
-   fy1 = RvR_yres()*32768-fy1;
+   fy0 = middle_row*65536-fy0;
+   fy1 = middle_row*65536-fy1;
    RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(sp->as.wall.x1-sp->as.wall.x0));
    RvR_fix16 fy = fy0;
 
+   //1/z and u/z can be interpolated linearly
+   //Instead of actually calculating 1/z (which would be imprecise for fixed point)
+   //we bring both 1/z and u/z on the common denominator (z0*z1*w) and interpolate
+   //the numerators instead
    RvR_fix16 denom = RvR_fix16_mul(sp->as.wall.x1-sp->as.wall.x0,RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.z0));
    RvR_fix16 num_step_z = (sp->as.wall.z0-sp->as.wall.z1);
    RvR_fix16 num_z = RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.x1-sp->as.wall.x0);
@@ -1293,7 +1282,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    RvR_fix16 num_step_u = (RvR_fix16_mul(sp->as.wall.z0,sp->as.wall.u1)-RvR_fix16_mul(sp->as.wall.z1,sp->as.wall.u0));
    RvR_fix16 num_u = RvR_fix16_mul(sp->as.wall.x1-sp->as.wall.x0,RvR_fix16_mul(sp->as.wall.u0,sp->as.wall.z1));
 
-   //We don't need as much percision
+   //We don't need as much precision
    //and this prevents overflow
    //switch to i64 if you want to change this
    num_z>>=4;
@@ -1303,17 +1292,20 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    denom>>=4;
 
    //Adjust for fractional part
+   int x0 = (sp->as.wall.x0+65535)>>16;
+   int x1 = (sp->as.wall.x1+65535)>>16;
    RvR_fix16 xfrac = sp->as.wall.x0-x0*65536;
    cy-=RvR_fix16_mul(xfrac,step_cy);
    fy-=RvR_fix16_mul(xfrac,step_fy);
    num_z-=RvR_fix16_mul(xfrac,num_step_z);
    num_u-=RvR_fix16_mul(xfrac,num_step_u);
 
-   //printf("sprite %d %d\n",sp->as.wall.z0,sp->as.wall.z1);
-
    for(int x = x0;x<x1;x++)
    {
       RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(num_z));
+
+      int y0 = (cy+65535)/65536;
+      int y1 = fy/65536;
 
       //Clip floor
       int ybot = RvR_yres()-1;
@@ -1339,7 +1331,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       uint8_t * restrict pix = RvR_framebuffer()+(wy*RvR_xres()+x);
 
       //Ceiling
-      int y_to = RvR_min(cy>>16,ybot);
+      int y_to = RvR_min(y0,ybot);
       if(y_to>wy)
       {
          wy = y_to;
@@ -1347,24 +1339,45 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       }
 
       //Wall
-      y_to = RvR_min((fy>>16)-1,ybot);
+      y_to = RvR_min(y1,ybot);
       RvR_fix16 u = num_u/RvR_non_zero(num_z);
-      //printf("%d\n",u);
       RvR_fix16 height = sp->z+scale_vertical-cam->z;
       RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
-      RvR_fix16 texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
+      RvR_fix16 texture_coord_scaled = height+(wy-middle_row+1)*coord_step_scaled;
+      if(sp->flags&2)
+         u = texture->width-u-1;
       const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
       const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>15))));
-      //printf("%d\n",u/4);
-      RvR_fix16 y_and = (1<<RvR_log2(texture->height))-1;
-      for(;wy<=y_to;wy++)
+
+      if(sp->flags&32)
       {
-         //uint8_t index = tex[(v>>10)];
-         //*dst = index?col[index]:*dst;
-         uint8_t index = tex[(texture_coord_scaled>>10)&y_and];
-         *pix = index?col[index]:*pix;
-         pix+=RvR_xres();
-         texture_coord_scaled+=coord_step_scaled;
+         for(;wy<y_to;wy++)
+         {
+            uint8_t index = tex[(texture_coord_scaled>>10)];
+            *pix = RvR_blend(col[index],*pix);
+            pix+=RvR_xres();
+            texture_coord_scaled+=coord_step_scaled;
+         }
+      }
+      else if(sp->flags&64)
+      {
+         for(;wy<y_to;wy++)
+         {
+            uint8_t index = tex[(texture_coord_scaled>>10)];
+            *pix = RvR_blend(*pix,col[index]);
+            pix+=RvR_xres();
+            texture_coord_scaled+=coord_step_scaled;
+         }
+      }
+      else
+      {
+         for(;wy<y_to;wy++)
+         {
+            uint8_t index = tex[(texture_coord_scaled>>10)];
+            *pix = index?col[index]:*pix;
+            pix+=RvR_xres();
+            texture_coord_scaled+=coord_step_scaled;
+         }
       }
 
       cy+=step_cy;

@@ -728,7 +728,6 @@ static Map_sprite *sprite_selected()
          RvR_fix16 sy1 = RvR_fix16_div(sp->z-camera.z,RvR_non_zero(RvR_fix16_mul(fovy,sz1)));
          sy1 = RvR_fix16_mul(RvR_yres()*65536,32768-sy1);
 
-
          RvR_fix16 scale_vertical = tex->height*1024;
          if(mx<(sx0>>16)||mx>=(sx1>>16))
             continue;
