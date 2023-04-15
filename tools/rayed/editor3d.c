@@ -79,14 +79,16 @@ void editor3d_update()
          wy = -1;
       }
 
-      if(RvR_key_down(RVR_KEY_1))
+      //TODO: having this would be usefull but the keys are taken
+      //think of different keybindings
+      /*if(RvR_key_down(RVR_KEY_1))
          wlocation = 0;
       else if(RvR_key_down(RVR_KEY_2))
          wlocation = 1;
       else if(RvR_key_down(RVR_KEY_3))
          wlocation = 2;
       else if(RvR_key_down(RVR_KEY_4))
-         wlocation = 3;
+         wlocation = 3;*/
 
       if(RvR_key_pressed(RVR_KEY_R))
       {
@@ -102,6 +104,17 @@ void editor3d_update()
          sprite_selec->flags |= flag << 5;
       }
 
+      if(RvR_key_pressed(RVR_KEY_1)&&wlocation==4&&sprite_selec!=NULL)
+         sprite_selec->flags^=128;
+
+      if(RvR_key_pressed(RVR_KEY_F)&&wlocation==4&&sprite_selec!=NULL)
+      {
+         int flag = (sprite_selec->flags&6)/2;
+         flag = (flag+1)&3;
+         sprite_selec->flags&=~(uint32_t)6;
+         sprite_selec->flags|=flag*2;
+      }
+
       if(RvR_key_pressed(RVR_KEY_PGUP))
       {
          if(wlocation==0||wlocation==2)
@@ -109,10 +122,7 @@ void editor3d_update()
             if(RvR_key_down(RVR_KEY_LSHIFT))
                editor_ed_flood_floor(wx, wy, 1);
             else
-            {
-               printf("%d %d\n",wx,wy);
                editor_ed_floor(wx, wy, 1);
-            }
          }
          if(wlocation==1||wlocation==3)
          {

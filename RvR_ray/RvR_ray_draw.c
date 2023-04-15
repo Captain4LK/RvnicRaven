@@ -606,6 +606,10 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       //--> swap p0 and p1 and toggle y-axis mirror flag
       if(RvR_fix16_mul(tp0x,tp1y)-RvR_fix16_mul(tp1x,tp0y)>0)
       {
+         //One sided sprite
+         if(sp.flags&128)
+            return;
+
          RvR_fix16 tmp = tp0x;
          tp0x = tp1x;
          tp1x = tmp;
@@ -1142,6 +1146,8 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 sin_fov = RvR_fix16_mul(sin,fovx);
+   RvR_fix16 cos_fov = RvR_fix16_mul(cos,fovx);
    RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
@@ -1149,31 +1155,31 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
 
    RvR_fix16 tpx = sp->x-cam->x;
    RvR_fix16 tpy = sp->y-cam->y;
-   RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
-   tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
+   RvR_fix16 depth = RvR_fix16_mul(tpx,cos_fov)+RvR_fix16_mul(tpy,sin_fov);
+   tpx = RvR_fix16_mul(-tpx,sin)+RvR_fix16_mul(tpy,cos);
 
    //Dimensions
-   RvR_fix16 top = middle_row*65536-RvR_fix16_div(RvR_yres()*(sp->z-cam->z+texture->height*16*64),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
+   RvR_fix16 top = middle_row*65536-RvR_fix16_div(RvR_yres()*(sp->z-cam->z+texture->height*1024),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
    int y0 = (top+65535)/65536;
 
    RvR_fix16 bot = middle_row*65536-RvR_fix16_div(RvR_yres()*(sp->z-cam->z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
    int y1 = (bot-1)/65536;
 
-   RvR_fix16 left = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx+texture->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+   RvR_fix16 left = RvR_xres()*32768+RvR_fix16_div((RvR_xres()/2)*(tpx-texture->width*512),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
    int x0 = (left+65535)/65536;
 
-   RvR_fix16 right = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-texture->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+   RvR_fix16 right = RvR_xres()*32768+RvR_fix16_div((RvR_xres()/2)*(tpx+texture->width*512),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
    int x1 = (right-1)/65536;
 
    //Floor and ceiling clip
    RvR_fix16 cy = middle_row*65536-RvR_fix16_div(RvR_yres()*(RvR_ray_map_floor_height_at(map,sp->x/65536,sp->y/65536)-cam->z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
    int clip_bottom = RvR_min(cy/65536,RvR_yres());
+   y1 = RvR_min(y1,clip_bottom);
 
    cy = middle_row*65536-RvR_fix16_div(RvR_yres()*(RvR_ray_map_ceiling_height_at(map,sp->x/65536,sp->y/65536)-cam->z),RvR_non_zero(RvR_fix16_mul(depth,fovy)));
    int clip_top = RvR_max(cy/65536,0);
-
    y0 = RvR_max(y0,clip_top);
-   y1 = RvR_min(y1,clip_bottom);
+
    x1 = RvR_min(x1,RvR_xres());
    RvR_fix16 step_v = RvR_fix16_mul(fovy,depth)/RvR_yres();
    RvR_fix16 step_u = RvR_fix16_mul(2*fovx,depth)/RvR_xres();
@@ -1183,7 +1189,16 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
    {
       u+=(-x0)*step_u;
       x0 = 0;
+      left = 0;
    }
+
+   //Adjust for fractional part
+   RvR_fix16 xfrac = left-x0*65536;
+   u-=RvR_fix16_mul(xfrac,step_u);
+
+   //Vertical flip
+   if(sp->flags&4)
+      step_v = -step_v;
 
    //Draw
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>15));
@@ -1213,9 +1228,15 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
          clip = clip->next;
       }
 
-      tex = &texture->data[texture->height*(u>>10)];
+      int tu = u/1024;
+      if(sp->flags&2)
+         tu = texture->width-tu-1;
+      tex = &texture->data[texture->height*(tu)];
       dst = &RvR_framebuffer()[ys*RvR_xres()+x];
+
       RvR_fix16 v = (sp->z-cam->z)+(ys-middle_row+1)*step_v+texture->height*1024;
+      if(sp->flags&4)
+         v = texture->height*1024-((sp->z-cam->z)+(ys-middle_row+1)*(-step_v)+texture->height*1024);
 
       if(sp->flags&32)
       {
@@ -1330,7 +1351,6 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       int wy =  ytop;
       uint8_t * restrict pix = RvR_framebuffer()+(wy*RvR_xres()+x);
 
-      //Ceiling
       int y_to = RvR_min(y0,ybot);
       if(y_to>wy)
       {
@@ -1339,16 +1359,25 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       }
 
       //Wall
-      y_to = RvR_min(y1,ybot);
       RvR_fix16 u = num_u/RvR_non_zero(num_z);
+      //Inverting the texture coordinates directly didn't work properly,
+      //so we just invert u here. 
+      //TODO: investigate this
+      if(sp->flags&2)
+         u = texture->width-u-1;
       RvR_fix16 height = sp->z+scale_vertical-cam->z;
       RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
       RvR_fix16 texture_coord_scaled = height+(wy-middle_row+1)*coord_step_scaled;
-      if(sp->flags&2)
-         u = texture->width-u-1;
+      //Vertical flip
+      if(sp->flags&4)
+      {
+         coord_step_scaled = -coord_step_scaled;
+         texture_coord_scaled = texture->height*1024-height+(wy-middle_row+1)*coord_step_scaled;
+      }
       const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
       const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>15))));
 
+      y_to = RvR_min(y1,ybot);
       if(sp->flags&32)
       {
          for(;wy<y_to;wy++)

@@ -1,0 +1,16 @@
+-------------
+|Sprite tags|
+-------------
+
+|bit| Effect          | Implemented |
+|---|-----------------|-------------|
+| 0 | invisible?      | Yes         |
+| 1 | x flip          | Yes         |
+| 2 | y flip          | Yes         |
+| 3 | Wall aligned    | Yes         |
+| 4 | Floor aligned   | No          |
+| 5 | 66% alpha       | Yes         |
+| 6 | 33% alpha       | Yes         |
+| 7 | one sided       | Yes         |
+| 8 | Center origin   | No          |
+|-----------------------------------|

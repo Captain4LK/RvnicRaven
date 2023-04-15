@@ -300,9 +300,9 @@ void editor2d_update()
          sprite_sel = NULL;
       }
       else if(RvR_key_pressed(RVR_KEY_PERIOD))
-         sprite_sel->direction -= RvR_key_down(RVR_KEY_LSHIFT)?32:8;
+         sprite_sel->direction -= RvR_key_down(RVR_KEY_LSHIFT)?32*16:8*16;
       else if(RvR_key_pressed(RVR_KEY_COMMA))
-         sprite_sel->direction += RvR_key_down(RVR_KEY_LSHIFT)?32:8;
+         sprite_sel->direction += RvR_key_down(RVR_KEY_LSHIFT)?32*16:8*16;
    }
 
    if(RvR_key_pressed(RVR_KEY_S))
