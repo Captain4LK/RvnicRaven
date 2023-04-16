@@ -213,7 +213,7 @@ void editor3d_update()
       if(RvR_key_pressed(RVR_KEY_ESCAPE))
          menu = 0;
 
-      texture_selection_scroll += RvR_mouse_wheel_scroll() * -4;
+      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
 
       if(mx / 64<RvR_xres() / 64)
       {
@@ -239,7 +239,7 @@ void editor3d_update()
       if(RvR_key_pressed(RVR_KEY_ESCAPE))
          menu = 0;
 
-      texture_selection_scroll += RvR_mouse_wheel_scroll() * -4;
+      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
 
       if(mx / 64<RvR_xres() / 64)
       {

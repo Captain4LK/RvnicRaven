@@ -47,16 +47,17 @@ typedef struct
 
 typedef struct
 {
-   uint16_t sky_tex;
    uint16_t width;
    uint16_t height;
-   uint32_t sprite_count;
+   uint16_t sky_tex;
    RvR_fix16 *floor;
    RvR_fix16 *ceiling;
    uint16_t *floor_tex;
    uint16_t *ceil_tex;
    uint16_t *wall_ftex;
    uint16_t *wall_ctex;
+
+   uint32_t sprite_count;
    RvR_ray_map_sprite *sprites;
 }RvR_ray_map;
 

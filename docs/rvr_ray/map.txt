@@ -1,0 +1,74 @@
+-----
+|Map|
+-----
+
+---------------
+|Map structure|
+---------------
+
+|------------------------------------------------------------------------------------------------------|
+|Variable    | Type             | Purpose                                                              |
+|------------|------------------|----------------------------------------------------------------------|
+|width       |uint16_t          |Map width                                                             |
+|height      |uint16_t          |Map height                                                            |
+|sky_tex     |uint16_t          |Sky texture, gets rendered in parallax                                |
+|*floor      |RvR_fix16         |Array of floor heights, C order                                       |
+|*ceiling    |RvR_fix16         |Array of ceiling heights, C order                                     |
+|*floor_tex  |uint16_t          |Array of floor textures, C order                                      |
+|*ceil_tex   |uint16_t          |Array of ceiling textures, C order                                    |
+|*wall_ftex  |uint16_t          |Array of floor wall textures (height determined by 'floor'), C order  |
+|*wall_ctex  |uint16_t          |Array of ceiling wall textures (height determined by 'floor'), C order|
+|sprite_count|uint32_t          |Size of 'sprites'                                                     |
+|*sprites    |RvR_ray_map_sprite|See 'sprites.txt'                                                     |
+|------------------------------------------------------------------------------------------------------|
+
+-------------------
+|Map Binary Format|
+-------------------
+
+Maps are compressed using RvnicRaven's built-in crush compression, see 'RvR/compression_crush.txt'.
+After decompressing, the map is stored in the following format:
+
+|------|
+|Map v1|
+|------|
+
+|----------------------------------------------------------------------------------------------|
+|Variable    | Type     | Purpose                                                              |
+|------------|----------|----------------------------------------------------------------------|
+|version     |uint16_t  |Map format version                                                    |
+|sky_tex     |uint16_t  |Sky texture, gets rendered in parallax                                |
+|width       |uint16_t  |Map width                                                             |
+|height      |uint16_t  |Map height                                                            |
+|sprite_count|uint32_t  |Size of 'sprites'                                                     |
+|*floor      |RvR_fix16 |Array of floor heights, C order                                       |
+|*ceiling    |RvR_fix16 |Array of ceiling heights, C order                                     |
+|*floor_tex  |uint16_t  |Array of floor textures, C order                                      |
+|*ceil_tex   |uint16_t  |Array of ceiling textures, C order                                    |
+|*wall_ftex  |uint16_t  |Array of floor wall textures (height determined by 'floor'), C order  |
+|*wall_ctex  |uint16_t  |Array of ceiling wall textures (height determined by 'floor'), C order|
+|*sprites    |Sprites v1|See below                                                             |
+|----------------------------------------------------------------------------------------------|
+
+|----------|
+|Sprites v1|
+|----------|
+
+|--------------------------------------------|
+|Variable | Type    | Purpose                |
+|---------|---------|------------------------|
+|x        |RvR_fix16|x position              |
+|y        |RvR_fix16|y position              |
+|z        |RvR_fix16|z position              |
+|direction|RvR_fix16|Facing/normal angle     |
+|texture  |uint16_t |Texture                 |
+|flags    |uint32_t |Flags, see 'sprites.txt'|
+|extra0   |int32_t  |Game specific           |
+|extra1   |int32_t  |Game specific           |
+|extra2   |int32_t  |Game specific           |
+|--------------------------------------------|
+
+-------------------
+|Related functions|
+-------------------
+

@@ -150,7 +150,7 @@ RvR_ray_map *RvR_ray_map_load_rw(RvR_rw *rw)
 
    //Read and check version
    uint16_t version = RvR_rw_read_u16(rw);
-   RvR_error_check(version==0,"RvR_ray_map_load_rw","Invalid version '%d', expected version '0'\n",version);
+   RvR_error_check(version==1,"RvR_ray_map_load_rw","Invalid version '%d', expected version '1'\n",version);
 
    //Read sky texture
    uint16_t sky_tex = RvR_rw_read_u16(rw);
@@ -220,7 +220,7 @@ void RvR_ray_map_save(const RvR_ray_map *map, const char *path)
    RvR_rw_init_mem(&rw,mem,size,size);
 
    //version
-   RvR_rw_write_u16(&rw,0);
+   RvR_rw_write_u16(&rw,1);
 
    //sky texture
    RvR_rw_write_u16(&rw,map->sky_tex);

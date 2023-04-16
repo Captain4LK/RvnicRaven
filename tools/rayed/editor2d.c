@@ -431,11 +431,11 @@ void editor2d_draw()
 
          if(sp->flags & 8)
          {
-            int half_width = (RvR_texture_get(sp->texture)->width * 8 * grid_size) / 65536;
-            RvR_fix16 p0x = (diry * half_width) + x*65536;
-            RvR_fix16 p0y = (-dirx * half_width) + y*65536;
-            RvR_fix16 p1x = (-diry * half_width) + x*65536;
-            RvR_fix16 p1y = (dirx * half_width) + y*65536;
+            int half_width = (RvR_texture_get(sp->texture)->width*grid_size*2)/256;
+            RvR_fix16 p0x = x*256+(diry*half_width)/256;
+            RvR_fix16 p0y = y*256+(-dirx*half_width)/256;
+            RvR_fix16 p1x = x*256+(-diry*half_width)/256;
+            RvR_fix16 p1y = y*256+(dirx*half_width)/256;
             RvR_render_line(p0x, p0y, p1x, p1y, color_white);
          }
       }
