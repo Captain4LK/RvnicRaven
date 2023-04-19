@@ -1,6 +1,8 @@
 session.vim
 Session.vim
 
+makefile
+
 #executables
 palette-tool
 texture-tool

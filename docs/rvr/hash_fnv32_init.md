@@ -10,8 +10,11 @@ Constant suggested intial hval for fnv32 hash functions.
 
 ## Related
 
-[RvR_rand_pcg](/rvr/rvr/rand_pcg)
+[RVR_HASH_FNV64_INIT](/rvr/rvr/hash_fnv64_init)
 
-[RvR_rand_pcg_next](/rvr/rvr/rand_pcg_next)
+[RvR_fnv32a](/rvr/rvr/fnv32a)
 
-[RvR_rand_pcg_next_range](/rvr/rvr/rand_pcg_next_range)
+[RvR_fnv32a_str](/rvr/rvr/fnv32a_str)
+
+[RvR_fnv32a_buf](/rvr/rvr/fnv32a_buf)
+
