@@ -13,6 +13,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _RVR_LOG_H_
 
 void RvR_log(const char *format, ...);
+
+//Internal
 void RvR_logl(const char *fun, const char *file, unsigned line, const char *format, ...);
 
 #define RvR_log_line(w, ...) RvR_logl(w, __FILE__, __LINE__, __VA_ARGS__)

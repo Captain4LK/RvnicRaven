@@ -54,6 +54,10 @@
 
 [RvR_array_free](array_free)
 
+[RvR_log_line](log_line)
+
+[RvR_error_check](error_check)
+
 ## Functions {#functions}
 
 [RvR_fix16_mul](/rvr/rvr/fix16_mul)
@@ -177,3 +181,35 @@
 [RvR_ppp_decompress_init](ppp_decompress_init)
 
 [RvR_ppp_decompress_pop](ppp_decompress_pop)
+
+[RvR_log](log)
+
+[RvR_malloc_init](malloc_init)
+
+[RvR_malloc](malloc)
+
+[RvR_malloc_inane](malloc_inane)
+
+[RvR_free](free)
+
+[RvR_realloc](realloc)
+
+[RvR_realloc_inane](realloc_inane)
+
+[RvR_malloc_report](malloc_report)
+
+[RvR_malloc_base](malloc_base)
+
+[RvR_pak_add](pak_add)
+
+[RvR_pak_create_from_csv](pak_create_from_csv)
+
+[RvR_pak_flush](pak_flush)
+
+[RvR_lump_add](lump_add)
+
+[RvR_lump_get](lump_get)
+
+[RvR_lump_get_path](lump_get_path)
+
+[RvR_lump_exists](lump_exists)
