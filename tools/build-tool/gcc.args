@@ -1,6 +1,0 @@
--I../../external
--std=c99
--Wall
--Wextra
--pedantic
--Wshadow
