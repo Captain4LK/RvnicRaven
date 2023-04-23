@@ -5,8 +5,14 @@ RvnicRaven is a framework for creating 256 color software-rendered games.
 ## Documentation
 
 * [Overview](rvr/)
-* [texture-tool]()
-* [palette-tool]()
+* File formats:
+    * [Palette]()
+    * [Texture]()A
+    * [pak]()
+    * [csv pak]()
+* Tools:
+    * [texture-tool]()
+    * [palette-tool]()
 
 -------------------------------
 

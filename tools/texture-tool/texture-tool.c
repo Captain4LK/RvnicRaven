@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -25,13 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define OPTPARSE_API static
 #include "optparse.h"
 
-#define RVR_RW_IMPLEMENTATION
-#define RVR_MALLOC_IMPLEMENTATION
-#define RVR_COMPRESS_IMPLEMENTATION
-#include "RvR_log.h"
-#include "RvR_rw.h"
-#include "RvR_malloc.h"
-#include "RvR_compress.h"
+#include "RvR/RvR.h"
 //-------------------------------------
 
 //Internal includes
@@ -198,7 +192,7 @@ int main(int argc, char **argv)
    for(int i = 0; i<sp->width * sp->height; i++)
       RvR_rw_write_u8(&cin, sp->data[i]);
    RvR_rw_init_path(&cout, path_out, "wb");
-   RvR_compress(&cin, &cout, 10);
+   RvR_crush_compress(&cin, &cout, 10);
    RvR_rw_close(&cin);
    RvR_rw_close(&cout);
 
