@@ -393,6 +393,13 @@ void editor3d_draw()
             int index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
             index = texture_list_used_wrap(texture_list_used.data_last - index);
             draw_fit64(x * 64, y * 64, texture_list_used.data[index]);
+
+            RvR_render_font_set(0xF001);
+            const char tmp_font[16];
+            snprintf(tmp_font,16,"%d",texture_list_used.data[index]);
+            RvR_render_rectangle_fill(x*64,y*64,strlen(tmp_font)*4+1,7,color_black);
+            RvR_render_string(x*64+1,y*64+1,1,tmp_font,color_yellow);
+            RvR_render_font_set(0xF000);
          }
       }
 
@@ -409,7 +416,16 @@ void editor3d_draw()
          {
             unsigned index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
             if(index<texture_list.data_used)
+            {
                draw_fit64(x * 64, y * 64, texture_list.data[index]);
+
+               RvR_render_font_set(0xF001);
+               const char tmp_font[16];
+               snprintf(tmp_font,16,"%d",texture_list.data[index]);
+               RvR_render_rectangle_fill(x*64,y*64,strlen(tmp_font)*4+1,7,color_black);
+               RvR_render_string(x*64+1,y*64+1,1,tmp_font,color_yellow);
+               RvR_render_font_set(0xF000);
+            }
          }
       }
 

@@ -232,7 +232,7 @@ void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index)
       {
          for(int x_ = 0; x_<x_dim; x_++)
          {
-            if(draw_font->data[(y_ + oy * y_dim) * draw_font->width + x_ + ox * x_dim])
+            if(!draw_font->data[(y_ + oy * y_dim) * draw_font->width + x_ + ox * x_dim])
                continue;
             //TODO
             for(int m = 0; m<scale; m++)

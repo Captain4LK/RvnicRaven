@@ -95,11 +95,10 @@ void RvR_crush_compress(RvR_rw *in, RvR_rw *out, unsigned level)
    uint8_t *buffer_in = NULL;
    int32_t size = 0;
 
-   int32_t pos = RvR_rw_tell(in);
    RvR_rw_endian_set(in, RVR_RW_LITTLE_ENDIAN);
    RvR_rw_seek(in, 0, SEEK_END);
-   size = RvR_rw_tell(in) - pos;
-   RvR_rw_seek(in, pos, SEEK_SET);
+   size = RvR_rw_tell(in);
+   RvR_rw_seek(in, 0, SEEK_SET);
 
    buffer_in = RvR_malloc(size + 1 + RVR_COMP_HASH2_LEN, "RvR_compress input buffer");
    RvR_rw_read(in, buffer_in, size, 1);

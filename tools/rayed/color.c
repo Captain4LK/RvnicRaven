@@ -33,6 +33,7 @@ uint8_t color_light_gray = 0;
 uint8_t color_dark_gray = 0;
 uint8_t color_black = 0;
 uint8_t color_magenta = 0;
+uint8_t color_yellow = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -50,6 +51,7 @@ void colors_find()
    color_light_gray = find_closest(pal, (RvR_color){.r = 196, .g = 196, .b = 196});
    color_black = find_closest(pal, (RvR_color){.r = 0, .g = 0, .b = 0});
    color_magenta = find_closest(pal, (RvR_color){.r = 255, .g = 0, .b = 255});
+   color_yellow = find_closest(pal, (RvR_color){.r = 255, .g = 255, .b = 100});
 }
 
 static uint8_t find_closest(RvR_color *pal, RvR_color color)

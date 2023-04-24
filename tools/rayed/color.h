@@ -17,6 +17,7 @@ extern uint8_t color_light_gray;
 extern uint8_t color_dark_gray;
 extern uint8_t color_black;
 extern uint8_t color_magenta;
+extern uint8_t color_yellow;
 
 void colors_find();
 
