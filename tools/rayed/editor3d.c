@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -43,6 +43,7 @@ static int menu = 0;
 static uint16_t texture_selected = 0;
 static int texture_selection_scroll = 0;
 static int brush = 0;
+static char menu_input[512] = {0};
 //-------------------------------------
 
 //Function prototypes
@@ -213,6 +214,13 @@ void editor3d_update()
       if(RvR_key_pressed(RVR_KEY_ESCAPE))
          menu = 0;
 
+      if(RvR_key_pressed(RVR_KEY_G))
+      {
+         menu = 3;
+         menu_input[0] = '\0';
+         RvR_text_input_start(menu_input, 64);
+      }
+
       texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
 
       if(mx / 64<RvR_xres() / 64)
@@ -239,6 +247,13 @@ void editor3d_update()
       if(RvR_key_pressed(RVR_KEY_ESCAPE))
          menu = 0;
 
+      if(RvR_key_pressed(RVR_KEY_G))
+      {
+         menu = 4;
+         menu_input[0] = '\0';
+         RvR_text_input_start(menu_input, 64);
+      }
+
       texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
 
       if(mx / 64<RvR_xres() / 64)
@@ -262,6 +277,29 @@ void editor3d_update()
                map_sky_tex_set(texture_list.data[index]);
                menu = 0;
                brush = 0;
+            }
+         }
+      }
+   }
+
+   if(menu==3||menu==4)
+   {
+      if(RvR_key_pressed(RVR_KEY_ENTER))
+      {
+         RvR_text_input_end();
+         menu = 2;
+
+         int selection = strtol(menu_input,NULL,10);
+         //TODO: What we should do: binary search
+         //What I did: slow crap
+         for(int i = 0;i<texture_list.data_used;i++)
+         {
+            if(texture_list.data[i]>=selection)
+            {
+               //TODO: set mouse position?
+               int width = RvR_xres()/64;
+               texture_selection_scroll = i/RvR_non_zero(width);
+               break;
             }
          }
       }
@@ -382,7 +420,7 @@ void editor3d_draw()
       RvR_render_rectangle(8, RvR_yres() - 74, 66, 66, color_white);
       draw_fit64(9, RvR_yres() - 73, texture_selected);
    }
-   else if(menu==1)
+   else if(menu==1||menu==3)
    {
       RvR_render_clear(color_black);
 
@@ -406,7 +444,7 @@ void editor3d_draw()
       if(mx / 64<RvR_xres() / 64)
          RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
    }
-   else if(menu==2)
+   else if(menu==2||menu==4)
    {
       RvR_render_clear(color_black);
 
@@ -431,6 +469,13 @@ void editor3d_draw()
 
       if(mx / 64<RvR_xres() / 64)
          RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
+   }
+
+   if(menu==3||menu==4)
+   {
+      RvR_render_rectangle_fill(0, 0, RvR_xres(), 12, color_dark_gray);
+      RvR_render_string(2,2,1,"Go to: ",color_white);
+      RvR_render_string(35,2,1,menu_input,color_white);
    }
 
    //Draw cursor
