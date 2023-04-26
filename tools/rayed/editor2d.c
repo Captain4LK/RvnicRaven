@@ -114,7 +114,7 @@ void editor2d_update()
          }
          break;
       case 3:
-         if(RvR_key_pressed(RVR_KEY_BACK))
+         if(RvR_key_pressed(RVR_KEY_ESCAPE))
          {
             RvR_text_input_end();
             menu = 0;
@@ -137,7 +137,7 @@ void editor2d_update()
          }
          break;
       case 4:
-         if(RvR_key_pressed(RVR_KEY_BACK))
+         if(RvR_key_pressed(RVR_KEY_ESCAPE))
          {
             RvR_text_input_end();
             menu = 0;
@@ -159,7 +159,7 @@ void editor2d_update()
          }
          break;
       case 5:
-         if(RvR_key_pressed(RVR_KEY_BACK))
+         if(RvR_key_pressed(RVR_KEY_ESCAPE))
          {
             RvR_text_input_end();
             menu = 0;

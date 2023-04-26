@@ -225,7 +225,7 @@ void editor3d_update()
 
       if(mx / 64<RvR_xres() / 64)
       {
-         if(RvR_key_pressed(RVR_BUTTON_LEFT))
+         if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
          {
             int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
             texture_selected = texture_list_used.data[index];
@@ -254,11 +254,15 @@ void editor3d_update()
          RvR_text_input_start(menu_input, 64);
       }
 
+      if(RvR_key_pressed(RVR_KEY_UP))
+      {
+      }
+
       texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
 
       if(mx / 64<RvR_xres() / 64)
       {
-         if(RvR_key_pressed(RVR_BUTTON_LEFT))
+         if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
          {
             unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
             if(index<texture_list.data_used)
