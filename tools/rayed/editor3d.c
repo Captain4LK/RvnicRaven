@@ -254,11 +254,69 @@ void editor3d_update()
          RvR_text_input_start(menu_input, 64);
       }
 
+      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
+      if(texture_selection_scroll<0)
+         texture_selection_scroll = 0;
+
+      int tex_per_row = (RvR_xres())/64;
+      int tex_per_col = (RvR_yres())/64;
+      int index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+      int set_pos = 0;
       if(RvR_key_pressed(RVR_KEY_UP))
       {
+         index-=tex_per_row;
+         mx = (index%tex_per_row)*64+32;
+         my = (index/tex_per_row)*64+32-texture_selection_scroll*64;
+         if(my<0)
+         {
+            texture_selection_scroll--;
+            my+=64;
+         }
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_DOWN))
+      {
+         index+=tex_per_row;
+         mx = (index%tex_per_row)*64+32;
+         my = (index/tex_per_row)*64+32-texture_selection_scroll*64;
+         if(my>tex_per_col*64)
+         {
+            texture_selection_scroll++;
+            my-=64;
+         }
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_LEFT))
+      {
+         index--;
+         mx = (index%tex_per_row)*64+32;
+         my = (index/tex_per_row)*64+32-texture_selection_scroll*64;
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_RIGHT))
+      {
+         index++;
+         mx = (index%tex_per_row)*64+32;
+         my = (index/tex_per_row)*64+32-texture_selection_scroll*64;
+
+         set_pos = 1;
       }
 
-      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
+      if(index<0)
+      {
+         texture_selection_scroll = 0;
+         RvR_mouse_set_pos(32,32);
+         mx = 32;
+         my = 32;
+         index = 0;
+         set_pos = 0;
+      }
+
+      if(set_pos)
+         RvR_mouse_set_pos(mx,my);
 
       if(mx / 64<RvR_xres() / 64)
       {
