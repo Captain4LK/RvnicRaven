@@ -97,7 +97,9 @@ void RvR_crush_compress(RvR_rw *in, RvR_rw *out, unsigned level)
 
    RvR_rw_endian_set(in, RVR_RW_LITTLE_ENDIAN);
    RvR_rw_seek(in, 0, SEEK_END);
-   size = RvR_rw_tell(in);
+
+   //Max size is 2GiB, anything larger will break
+   size = (int32_t)RvR_rw_tell(in);
    RvR_rw_seek(in, 0, SEEK_SET);
 
    buffer_in = RvR_malloc(size + 1 + RVR_COMP_HASH2_LEN, "RvR_compress input buffer");
@@ -156,7 +158,7 @@ static void rvr_comp_crush_rvr_compress(const uint8_t *buf, size_t size, RvR_rw 
       int len = RVR_COMP_MIN_MATCH - 1;
       int offset = RVR_COMP_W_SIZE;
 
-      const int max_match = RvR_min((int)RVR_COMP_MAX_MATCH, (int)size - p);
+      const int max_match = RvR_min((int)RVR_COMP_MAX_MATCH, (int)(size - p));
       const int limit = RvR_max((int)p - RVR_COMP_W_SIZE, 0);
 
       if(head[h1]>=limit)

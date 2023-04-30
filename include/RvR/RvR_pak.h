@@ -16,7 +16,7 @@ void        RvR_pak_add(const char *path);
 void        RvR_pak_create_from_csv(const char *path_csv, const char *path_pak);
 void        RvR_pak_flush();
 void        RvR_lump_add(const char *name, const char *path);
-void       *RvR_lump_get(const char *name, unsigned *size);
+void       *RvR_lump_get(const char *name, uint32_t *size);
 const char *RvR_lump_get_path(const char *name);
 int         RvR_lump_exists(const char *name);
 

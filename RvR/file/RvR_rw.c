@@ -38,7 +38,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void RvR_rw_init_file(RvR_rw *rw, FILE *f)
 {
-   if(rw==NULL||f==NULL)
+   if(rw==NULL)
+      return;
+
+   rw->type = RVR_RW_INVALID;
+   if(f==NULL)
       return;
 
    rw->type = RVR_RW_STD_FILE;
@@ -48,7 +52,11 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f)
 
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
 {
-   if(rw==NULL||path==NULL||mode==NULL)
+   if(rw==NULL)
+      return;
+
+   rw->type = RVR_RW_INVALID;
+   if(path==NULL||mode==NULL)
       return;
 
    rw->type = RVR_RW_STD_FILE_PATH;
@@ -60,7 +68,11 @@ void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
 
 void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len, size_t clen)
 {
-   if(rw==NULL||mem==NULL)
+   if(rw==NULL)
+      return;
+
+   rw->type = RVR_RW_INVALID;
+   if(mem==NULL)
       return;
 
    rw->type = RVR_RW_MEM;
@@ -86,7 +98,11 @@ void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow)
 
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
 {
-   if(rw==NULL||mem==NULL)
+   if(rw==NULL)
+      return;
+
+   rw->type = RVR_RW_INVALID;
+   if(mem==NULL)
       return;
 
    rw->type = RVR_RW_CONST_MEM;
@@ -107,6 +123,11 @@ int RvR_rw_valid(const RvR_rw *rw)
 {
    if(rw==NULL)
       return 0;
+
+   //Invalid file pointer
+   if((rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)&&rw->as.fp==0)
+      return 0;
+
    return rw->type!=RVR_RW_INVALID;
 }
 
@@ -128,6 +149,8 @@ void RvR_rw_close(RvR_rw *rw)
       RvR_free(rw->as.dmem.mem);
    else if(rw->type==RVR_RW_USR)
       rw->as.usr.flush(rw);
+
+   rw->type = RVR_RW_INVALID;
 }
 
 void RvR_rw_flush(RvR_rw *rw)
@@ -329,7 +352,7 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
 
       for(size_t i = 0; i<count; i++)
       {
-         if(rw->as.mem.pos + size>rw->as.mem.size)
+         if(rw->as.mem.pos + (long)size>rw->as.mem.size)
             return 1;
 
          rw->as.mem.csize = RvR_max(rw->as.mem.csize, rw->as.mem.pos);
@@ -346,7 +369,7 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
 
       for(size_t i = 0; i<count; i++)
       {
-         if(rw->as.dmem.pos + size>rw->as.dmem.size)
+         if(rw->as.dmem.pos + (long)size>rw->as.dmem.size)
          {
             rw->as.dmem.size += RvR_max(rw->as.dmem.min_grow, rw->as.dmem.pos + (long)size - rw->as.dmem.size);
             rw->as.dmem.mem = RvR_realloc(rw->as.dmem.mem, rw->as.dmem.size, "RvR_rw dynamic memory rw grow");
@@ -371,14 +394,6 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
    return 0;
 }
 
-int RvR_rw_write_u8(RvR_rw *rw, uint8_t val)
-{
-   if(rw==NULL||!RvR_rw_valid(rw))
-      return 0;
-
-   return RvR_rw_write(rw, &val, 1, 1);
-}
-
 int RvR_rw_printf(RvR_rw *rw, const char *format, ...)
 {
    if(rw==NULL||!RvR_rw_valid(rw)||format==NULL)
@@ -397,77 +412,85 @@ int RvR_rw_printf(RvR_rw *rw, const char *format, ...)
    return ret;
 }
 
-int RvR_rw_write_u16(RvR_rw *rw, uint16_t val)
+size_t RvR_rw_write_u8(RvR_rw *rw, uint8_t val)
 {
    if(rw==NULL||!RvR_rw_valid(rw))
       return 0;
 
-   int res = 0;
+   return RvR_rw_write(rw, &val, 1, 1);
+}
+
+size_t RvR_rw_write_u16(RvR_rw *rw, uint16_t val)
+{
+   if(rw==NULL||!RvR_rw_valid(rw))
+      return 0;
+
+   size_t res = 0;
    if(rw->endian==RVR_RW_LITTLE_ENDIAN)
    {
-      res += RvR_rw_write_u8(rw, (val) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 8) & 255);
+      res += RvR_rw_write_u8(rw, (uint8_t)(val & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 8) & 255));
    }
    else if(rw->endian==RVR_RW_BIG_ENDIAN)
    {
-      res += RvR_rw_write_u8(rw, (val >> 8) & 255);
-      res += RvR_rw_write_u8(rw, (val) & 255);
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 8) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)(val & 255));
    }
 
    return res;
 }
 
-int RvR_rw_write_u32(RvR_rw *rw, uint32_t val)
+size_t RvR_rw_write_u32(RvR_rw *rw, uint32_t val)
 {
    if(rw==NULL||!RvR_rw_valid(rw))
       return 0;
 
-   int res = 0;
+   size_t res = 0;
    if(rw->endian==RVR_RW_LITTLE_ENDIAN)
    {
-      res += RvR_rw_write_u8(rw, (val) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 8) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 16) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 24) & 255);
+      res += RvR_rw_write_u8(rw, (uint8_t)((val) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 8) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 16) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 24) & 255));
    }
    else if(rw->endian==RVR_RW_BIG_ENDIAN)
    {
-      res += RvR_rw_write_u8(rw, (val >> 24) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 16) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 8) & 255);
-      res += RvR_rw_write_u8(rw, (val) & 255);
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 24) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 16) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 8) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val) & 255));
    }
 
    return res;
 }
 
-int RvR_rw_write_u64(RvR_rw *rw, uint64_t val)
+size_t RvR_rw_write_u64(RvR_rw *rw, uint64_t val)
 {
    if(rw==NULL||!RvR_rw_valid(rw))
       return 0;
 
-   int res = 0;
+   size_t res = 0;
    if(rw->endian==RVR_RW_LITTLE_ENDIAN)
    {
-      res += RvR_rw_write_u8(rw, (val) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 8) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 16) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 24) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 32) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 40) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 48) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 56) & 255);
+      res += RvR_rw_write_u8(rw, (uint8_t)((val) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 8) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 16) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 24) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 32) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 40) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 48) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 56) & 255));
    }
    else if(rw->endian==RVR_RW_BIG_ENDIAN)
    {
-      res += RvR_rw_write_u8(rw, (val >> 56) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 48) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 40) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 32) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 24) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 16) & 255);
-      res += RvR_rw_write_u8(rw, (val >> 8) & 255);
-      res += RvR_rw_write_u8(rw, (val) & 255);
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 56) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 48) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 40) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 32) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 24) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 16) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val >> 8) & 255));
+      res += RvR_rw_write_u8(rw, (uint8_t)((val) & 255));
    }
 
    return res;

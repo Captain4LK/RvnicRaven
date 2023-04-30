@@ -106,10 +106,10 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count);
 size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count);
 int    RvR_rw_printf(RvR_rw *rw, const char *format, ...);
 
-int RvR_rw_write_u8(RvR_rw *rw, uint8_t val);
-int RvR_rw_write_u16(RvR_rw *rw, uint16_t val);
-int RvR_rw_write_u32(RvR_rw *rw, uint32_t val);
-int RvR_rw_write_u64(RvR_rw *rw, uint64_t val);
+size_t RvR_rw_write_u8(RvR_rw *rw, uint8_t val);
+size_t RvR_rw_write_u16(RvR_rw *rw, uint16_t val);
+size_t RvR_rw_write_u32(RvR_rw *rw, uint32_t val);
+size_t RvR_rw_write_u64(RvR_rw *rw, uint64_t val);
 
 uint8_t  RvR_rw_read_u8(RvR_rw *rw);
 uint16_t RvR_rw_read_u16(RvR_rw *rw);

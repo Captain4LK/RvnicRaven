@@ -140,7 +140,10 @@ void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
    while(!feof(f)&&!ferror(f))
    {
       //Read path
-      char delim = getc(f);
+      int delim = fgetc(f);
+      if(delim==EOF)
+         break;
+
       char lump_path[RVR_CUTE_PATH_MAX_PATH] = "";
       ungetc(delim, f);
       if(delim=='"')
@@ -265,9 +268,11 @@ void *RvR_lump_get(const char *name, unsigned *size)
          FILE *f = fopen(rvr_pak_paths.data[rvr_pak_lumps.data[i].path], "rb");
          RvR_error_check(f!=NULL, "RvR_lump_get", "failed to open '%s'\n", rvr_pak_paths.data[rvr_pak_lumps.data[i].path]);
          fseek(f, 0, SEEK_END);
-         unsigned fsize = ftell(f);
+         //2 GiB limit, will break with larger files
+         int32_t fsize = (int32_t)ftell(f);
+         RvR_error_check(fsize>=0,"RvR_lump_get","ftell failed\n");
          if(size!=NULL)
-            *size = fsize;
+            *size = (uint32_t)fsize;
          fseek(f, 0, SEEK_SET);
          uint8_t *buffer = RvR_malloc(fsize + 1, "RvR_pak file content");
          fread(buffer, fsize, 1, f);
@@ -335,7 +340,10 @@ static void rvr_pak_add_csv(const char *path)
    {
       //Read path
       char lump_path[RVR_CUTE_PATH_MAX_PATH];
-      char delim = getc(f);
+      int delim = fgetc(f);
+      if(delim==EOF)
+         break;
+
       ungetc(delim, f);
       if(delim=='"')
       {
@@ -678,7 +686,7 @@ static void rvr_pak_close(rvr_pak *p)
 
          //write name (truncated if needed), and trailing zeros
          char zero[12] = {0};
-         int namelen = strlen(e->name);
+         size_t namelen = strlen(e->name);
          RvR_rw_write(p->out, e->name, 1, namelen);
          RvR_rw_write(p->out, zero, 1, 12 - namelen);
 
@@ -855,7 +863,7 @@ static void rvr_pak_append_file(rvr_pak *p, const char *filename, FILE *in)
    rvr_pak_file *e = &p->entries[index];
    memset(e, 0, sizeof(*e));
    strncpy(e->name, filename, 9);
-   e->offset = RvR_rw_tell(p->out);
+   e->offset = (uint32_t)RvR_rw_tell(p->out);
 
    char buf[1 << 15];
    while(!feof(in))
@@ -865,7 +873,7 @@ static void rvr_pak_append_file(rvr_pak *p, const char *filename, FILE *in)
       RvR_rw_write(p->out, buf, 1, bytes);
    }
 
-   e->size = RvR_rw_tell(p->out) - e->offset;
+   e->size = (uint32_t)RvR_rw_tell(p->out) - e->offset;
 
    return;
 

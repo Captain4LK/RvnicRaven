@@ -109,19 +109,19 @@ static void rvr_pal_calculate_colormap()
          //Special case: entry 0 is transparent
          if(i==0)
          {
-            rvr_pal_trans_table[i][j] = j;
+            rvr_pal_trans_table[i][j] = (uint8_t)j;
             continue;
          }
          else if(j==0)
          {
-            rvr_pal_trans_table[i][j] = i;
+            rvr_pal_trans_table[i][j] = (uint8_t)i;
             continue;
          }
 
          int32_t t = 2048 / 3;
-         uint8_t r = RvR_max(0, RvR_min(255, (t * rvr_palette[i].r + (1024 - t) * rvr_palette[j].r) / 1024));
-         uint8_t g = RvR_max(0, RvR_min(255, (t * rvr_palette[i].g + (1024 - t) * rvr_palette[j].g) / 1024));
-         uint8_t b = RvR_max(0, RvR_min(255, (t * rvr_palette[i].b + (1024 - t) * rvr_palette[j].b) / 1024));
+         uint8_t r = (uint8_t)RvR_max(0, RvR_min(255, (t * rvr_palette[i].r + (1024 - t) * rvr_palette[j].r) / 1024));
+         uint8_t g = (uint8_t)RvR_max(0, RvR_min(255, (t * rvr_palette[i].g + (1024 - t) * rvr_palette[j].g) / 1024));
+         uint8_t b = (uint8_t)RvR_max(0, RvR_min(255, (t * rvr_palette[i].b + (1024 - t) * rvr_palette[j].b) / 1024));
 
          rvr_pal_trans_table[i][j] = rvr_pal_find_closest(r, g, b);
       }
@@ -142,7 +142,7 @@ static uint8_t rvr_pal_find_closest(int r, int g, int b)
 
       if(dist<best_dist)
       {
-         best_index = i;
+         best_index = (uint8_t)i;
          best_dist = dist;
       }
    }

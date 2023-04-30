@@ -323,7 +323,7 @@ void RvR_update()
 
    if(rvr_framedelay>rvr_frametime)
    {
-      SDL_Delay(((rvr_framedelay - rvr_frametime) * 1000) / SDL_GetPerformanceFrequency());
+      SDL_Delay((uint32_t)(((rvr_framedelay - rvr_frametime) * 1000) / SDL_GetPerformanceFrequency()));
    }
 
    rvr_delta = (float)(SDL_GetPerformanceCounter() - rvr_framestart) / (float)SDL_GetPerformanceFrequency();
@@ -422,8 +422,8 @@ void RvR_update()
 
    x -= rvr_view_x;
    y -= rvr_view_y;
-   rvr_mouse_x = x / rvr_pixel_scale;
-   rvr_mouse_y = y / rvr_pixel_scale;
+   rvr_mouse_x = (int)((float)x / rvr_pixel_scale);
+   rvr_mouse_y = (int)((float)y / rvr_pixel_scale);
 
    SDL_GetRelativeMouseState(&rvr_mouse_x_rel, &rvr_mouse_y_rel);
    //mouse_x_rel = mouse_x_rel*pixel_scale;
@@ -445,10 +445,10 @@ void RvR_render_present()
    if(SDL_RenderClear(rvr_renderer)!=0)
       RvR_log_line("SDL_RenderClear ", "%s\n", SDL_GetError());
 
-   float width = (float)rvr_view_width;
-   float height = (float)rvr_view_height;
-   float x = rvr_view_x;
-   float y = rvr_view_y;
+   int width = rvr_view_width;
+   int height = rvr_view_height;
+   int x = rvr_view_x;
+   int y = rvr_view_y;
    SDL_Rect dst_rect;
    dst_rect.x = x;
    dst_rect.y = y;
@@ -523,10 +523,8 @@ void RvR_mouse_pos(int *x, int *y)
 
 void RvR_mouse_set_pos(int x, int y)
 {
-   rvr_mouse_x = x;
-   rvr_mouse_y = y;
-   x *= rvr_pixel_scale;
-   y *= rvr_pixel_scale;
+   rvr_mouse_x = (int)((float)x*rvr_pixel_scale);
+   rvr_mouse_y = (int)((float)y*rvr_pixel_scale);
 
    SDL_WarpMouseInWindow(rvr_sdl_window, x, y);
 }
@@ -559,12 +557,12 @@ uint32_t RvR_frame()
 
 int RvR_frametime()
 {
-   return (rvr_frametime * 10000) / SDL_GetPerformanceFrequency();
+   return (int)((rvr_frametime * 10000) / SDL_GetPerformanceFrequency());
 }
 
 int RvR_frametime_average()
 {
-   uint64_t sum = 0;
+   int sum = 0;
    for(int i = 0; i<32; i++) sum += rvr_core_frametimes[i];
    return sum / 32;
 }
@@ -595,12 +593,12 @@ static void rvr_update_viewport()
    if(ratio>(float)RVR_XRES / (float)RVR_YRES)
    {
       rvr_view_height = rvr_window_height;
-      rvr_view_width = ((float)RVR_XRES / (float)RVR_YRES) * (float)rvr_window_height;
+      rvr_view_width = (int)(((float)RVR_XRES / (float)RVR_YRES) * (float)rvr_window_height);
    }
    else
    {
       rvr_view_width = rvr_window_width;
-      rvr_view_height = ((float)RVR_YRES / (float)RVR_XRES) * (float)rvr_window_width;
+      rvr_view_height = (int)(((float)RVR_YRES / (float)RVR_XRES) * (float)rvr_window_width);
    }
 
    rvr_view_x = (rvr_window_width - rvr_view_width) / 2;

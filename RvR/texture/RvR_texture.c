@@ -50,7 +50,7 @@ static int32_t rvr_texture_last_access = 1;
 static struct
 {
    rvr_texture_cache_entry *cache;
-   int cache_used;
+   int16_t cache_used;
 } rvr_texture_cache = {.cache = NULL, .cache_used = 0};
 
 static void rvr_texture_load(uint16_t id);
@@ -99,19 +99,19 @@ static void rvr_texture_load(uint16_t id)
       memset(rvr_textures_cache, 0, sizeof(*rvr_textures_cache) * (UINT16_MAX + 1));
    }
 
-   int index_new = rvr_texture_cache.cache_used;
+   int16_t index_new = rvr_texture_cache.cache_used;
 
    //Cache full --> delete 'oldest' texture
    if(rvr_texture_cache.cache_used==RVR_TEXTURE_MAX)
    {
       //Find 'oldest' texture
       int32_t tex_old = rvr_texture_last_access;
-      int tex_old_index = 0;
+      int16_t tex_old_index = 0;
       for(int i = 0; i<rvr_texture_cache.cache_used; i++)
       {
          if(rvr_texture_cache.cache[i].last_access<tex_old)
          {
-            tex_old_index = i;
+            tex_old_index = (int16_t)i;
             tex_old = rvr_texture_cache.cache[i].last_access;
          }
       }
@@ -147,12 +147,12 @@ static void rvr_texture_load(uint16_t id)
    int32_t size_out;
    uint8_t *mem_pak, *mem_decomp;
    mem_pak = RvR_lump_get(tmp, &size_in);
-   RvR_rw rw_decomp;
+   RvR_rw rw_decomp = {0};
    RvR_rw_init_const_mem(&rw_decomp, mem_pak, size_in);
    mem_decomp = RvR_crush_decompress(&rw_decomp, &size_out);
    RvR_rw_close(&rw_decomp);
 
-   RvR_rw rw;
+   RvR_rw rw = {0};
    RvR_rw_init_const_mem(&rw, mem_decomp, size_out);
 
    int32_t width = RvR_rw_read_u32(&rw);
