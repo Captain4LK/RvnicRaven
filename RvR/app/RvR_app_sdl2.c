@@ -523,8 +523,8 @@ void RvR_mouse_pos(int *x, int *y)
 
 void RvR_mouse_set_pos(int x, int y)
 {
-   rvr_mouse_x = (int)((float)x*rvr_pixel_scale);
-   rvr_mouse_y = (int)((float)y*rvr_pixel_scale);
+   rvr_mouse_x = (int)((float)x * rvr_pixel_scale);
+   rvr_mouse_y = (int)((float)y * rvr_pixel_scale);
 
    SDL_WarpMouseInWindow(rvr_sdl_window, x, y);
 }

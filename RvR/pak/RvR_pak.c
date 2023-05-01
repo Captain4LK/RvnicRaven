@@ -270,7 +270,7 @@ void *RvR_lump_get(const char *name, unsigned *size)
          fseek(f, 0, SEEK_END);
          //2 GiB limit, will break with larger files
          int32_t fsize = (int32_t)ftell(f);
-         RvR_error_check(fsize>=0,"RvR_lump_get","ftell failed\n");
+         RvR_error_check(fsize>=0, "RvR_lump_get", "ftell failed\n");
          if(size!=NULL)
             *size = (uint32_t)fsize;
          fseek(f, 0, SEEK_SET);
