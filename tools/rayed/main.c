@@ -56,7 +56,7 @@ int main(int argc, char **argv)
    }
 
    //Init memory manager
-   //RvR_malloc_init(mem, 1 << 25);
+   RvR_malloc_init(mem, 1 << 25);
 
    //Init RvnicRaven core
    RvR_init("Rayed", 0);

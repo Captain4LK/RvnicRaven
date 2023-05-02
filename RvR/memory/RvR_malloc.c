@@ -18,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "RvR_config.h"
+#include "RvR/RvR_app.h"
 #include "RvR/RvR_log.h"
 #include "RvR/RvR_malloc.h"
 //-------------------------------------
@@ -33,8 +34,16 @@ struct rvr_malloc_memory_node
    //negative size --> free block, not ideal since size_t should be used
    intptr_t size;
    rvr_malloc_memory_node *next;
+   rvr_malloc_memory_node *prev;
 
    void **usr;
+
+   uint8_t tag;
+   uint8_t pad0;
+   uint8_t pad1;
+   uint8_t pad2;
+
+   //uint32_t created;
 
 #if RvR_malloc_reason
    const char *reason;
@@ -102,32 +111,37 @@ void *RvR_malloc(size_t size, const char *reason)
 
    //Allign to pointer size
    size = (uintptr_t)(size + (sizeof(void *) - 1)) & (UINTPTR_MAX - (sizeof(void *) - 1));
+   //RvR_malloc_report();
+
+   intptr_t sz = (intptr_t)size;
 
    //TODO
    //void *mem = rvr_malloc_block_alloc(&rvr_malloc_bmanage, size, reason);
 
    rvr_malloc_memory_node *s = rvr_malloc_sfirst;
-   if(s==NULL)
-      return NULL;
-   for(; s&&-s->size<size; s = s->next);
-   if(s==NULL)
-      return NULL;
+   RvR_error_check(s!=NULL,"RvR_malloc","memory manager broken, prepare to die\n");
+
+   for(; s&&-s->size<sz; s = s->next);
+   RvR_error_check(s!=NULL,"RvR_malloc","no large enough block for allocation of size %zu\n",size);
    s->size = -s->size;
 
-   if(s->size - size>(intptr_t)sizeof(rvr_malloc_memory_node) + (intptr_t)sizeof(void *))  //is there enough space to split the block?
+   if(s->size - sz>(intptr_t)sizeof(rvr_malloc_memory_node) + (intptr_t)sizeof(void *))  //is there enough space to split the block?
    {
-      rvr_malloc_memory_node *p = (rvr_malloc_memory_node *)((char *)s + sizeof(rvr_malloc_memory_node) + size);
+      rvr_malloc_memory_node *p = (rvr_malloc_memory_node *)((char *)s + sizeof(rvr_malloc_memory_node) + sz);
       if(s==rvr_malloc_slast)
          rvr_malloc_slast = p;
-      p->size = -(s->size - size - (intptr_t)sizeof(rvr_malloc_memory_node));
+      p->size = -(s->size - sz - (intptr_t)sizeof(rvr_malloc_memory_node));
       p->next = s->next;
       s->next = p;
-      s->size = size;
+      s->size = sz;
    }
 
 #if RvR_malloc_reason
    s->reason = reason;
 #endif
+   //s->created = RvR_frame();
+   s->tag = RVR_MALLOC_STATIC;
+   s->usr = NULL;
 
    void *mem = (void *)(((char *)s) + sizeof(rvr_malloc_memory_node));
    if(mem!=NULL)
@@ -192,6 +206,9 @@ void RvR_free(void *ptr)
             o->size = -o->size;
          }
 
+         //if(o->usr!=NULL)
+            //*o->usr = NULL;
+
          return;
       }
    }
@@ -254,14 +271,17 @@ void RvR_malloc_report()
       return;
    }
 
-   RvR_log("************** Block size = %zu ***************\n", rvr_malloc_size);
-   RvR_log("Index\tBase\t\t(Offset)\t      Size\tReason\n");
+   RvR_log("***************************** Block size = %zu ******************************\n", rvr_malloc_size);
+   RvR_log("Index\tBase\t\t(Offset)\t      Size\tTag\tReason\n");
    rvr_malloc_memory_node * f = rvr_malloc_sfirst;
    size_t f_total = 0, a_total = 0;
 
    for(int i = 0; f; f = f->next, i++)
    {
-      RvR_log("%4d\t%p\t(%10ld)\t%10" PRIdPTR "\t", i, (void *)f, ((char *)f - (char *)rvr_malloc_sfirst), f->size);
+      if(f->size>0)
+         RvR_log("%4d\t%p\t(%10ld)\t%10" PRIdPTR "      %3" PRIu8 "\t", i, (void *)f, ((char *)f - (char *)rvr_malloc_sfirst), f->size,f->tag);
+      else
+         RvR_log("%4d\t%p\t(%10ld)\t%10" PRIdPTR "         \t", i, (void *)f, ((char *)f - (char *)rvr_malloc_sfirst), f->size);
       if(f->size>0)
          a_total += f->size;
       else
@@ -278,6 +298,24 @@ void RvR_malloc_report()
    }
 
    RvR_log("**************** Block summary : %zu free, %zu allocated\n", f_total, a_total);
+}
+
+void RvR_mem_tag(void *ptr, uint8_t tag)
+{
+   if(!rvr_malloc_bmanage_total)
+      return;
+
+   rvr_malloc_memory_node *o = (rvr_malloc_memory_node *)(((char *)ptr) - sizeof(rvr_malloc_memory_node));
+   o->tag = tag;
+}
+
+void RvR_mem_cache(void *ptr, void **usr)
+{
+   if(!rvr_malloc_bmanage_total)
+      return;
+
+   rvr_malloc_memory_node *o = (rvr_malloc_memory_node *)(((char *)ptr) - sizeof(rvr_malloc_memory_node));
+   o->usr = usr;
 }
 
 static size_t rvr_malloc_block_pointer_size(void *ptr)
