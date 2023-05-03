@@ -14,13 +14,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 typedef enum
 {
-   RVR_MALLOC_STATIC = 0,
-   RVR_MALLOC_CACHE = 1,
+   RVR_MALLOC_FREE = 0,
+   RVR_MALLOC_STATIC = 1,
+   RVR_MALLOC_CACHE = 2,
 
-   RVR_MALLOC_USR0 = 2,
-   RVR_MALLOC_USR1 = 3,
-   RVR_MALLOC_USR2 = 4,
-   RVR_MALLOC_USR3 = 5,
+   RVR_MALLOC_USR0 = 3,
+   RVR_MALLOC_USR1 = 4,
+   RVR_MALLOC_USR2 = 5,
+   RVR_MALLOC_USR3 = 6,
 }RvR_malloc_tag;
 
 void  RvR_malloc_init(void *buffer, size_t size);
@@ -32,7 +33,7 @@ void *RvR_realloc_inane(void *ptr, size_t size);
 void  RvR_malloc_report();
 void *RvR_malloc_base();
 
-void RvR_mem_tag(void *ptr, uint8_t tag);
-void RvR_mem_cache(void *ptr, void **usr);
+void RvR_mem_tag_set(void *ptr, uint8_t tag);
+void RvR_mem_usr_set(void *ptr, void **usr);
 
 #endif

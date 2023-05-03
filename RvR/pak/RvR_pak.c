@@ -73,6 +73,9 @@ static struct
 } rvr_pak_paths;
 
 static rvr_pak_queue *rvr_pak_buffer = NULL;
+
+static uint8_t *rvr_lump_buffer = NULL;
+static size_t rvr_lump_buffer_size = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -274,11 +277,23 @@ void *RvR_lump_get(const char *name, unsigned *size)
          if(size!=NULL)
             *size = (uint32_t)fsize;
          fseek(f, 0, SEEK_SET);
-         uint8_t *buffer = RvR_malloc(fsize + 1, "RvR_pak file content");
-         fread(buffer, fsize, 1, f);
-         buffer[fsize] = 0;
+
+         if(rvr_lump_buffer==NULL||rvr_lump_buffer_size<fsize + 1)
+         {
+            rvr_lump_buffer = RvR_realloc(rvr_lump_buffer, fsize + 1, "RvR_pak lump");
+            rvr_lump_buffer_size = fsize + 1;
+         }
+
+         RvR_mem_tag_set(rvr_lump_buffer, RVR_MALLOC_STATIC);
+         RvR_mem_usr_set(rvr_lump_buffer, (void **)&rvr_lump_buffer);
+
+         fread(rvr_lump_buffer, fsize, 1, f);
+         rvr_lump_buffer[fsize] = 0;
          fclose(f);
-         return buffer;
+
+         RvR_mem_tag_set(rvr_lump_buffer, RVR_MALLOC_CACHE);
+
+         return rvr_lump_buffer;
       }
    }
 
@@ -413,7 +428,7 @@ static void rvr_pak_lumps_push(rvr_pak_lump l)
    {
       rvr_pak_lumps.size = 4;
       rvr_pak_lumps.used = 0;
-      rvr_pak_lumps.data = RvR_malloc(sizeof(*rvr_pak_lumps.data) * rvr_pak_lumps.size, "RvR_pak lumps");
+      rvr_pak_lumps.data = RvR_malloc(sizeof(*rvr_pak_lumps.data) * rvr_pak_lumps.size, "RvR_pak lump buffer");
    }
 
    //Override existing entry
@@ -737,14 +752,24 @@ static void *rvr_pak_extract(rvr_pak *p, unsigned index)
       if(RvR_rw_seek(p->in, e->offset, SEEK_SET)!=0)
          return NULL;
 
-      void *buffer = RvR_malloc(e->size, "RvR_pak file content");
-      if(RvR_rw_read(p->in, buffer, 1, e->size)!=e->size)
+      if(rvr_lump_buffer==NULL||rvr_lump_buffer_size<e->size)
       {
-         RvR_free(buffer);
+         rvr_lump_buffer = RvR_realloc(rvr_lump_buffer, e->size, "RvR_pak lump buffer");
+         rvr_lump_buffer_size = e->size;
+      }
+
+      RvR_mem_tag_set(rvr_lump_buffer, RVR_MALLOC_STATIC);
+      RvR_mem_usr_set(rvr_lump_buffer, (void **)&rvr_lump_buffer);
+
+      if(RvR_rw_read(p->in, rvr_lump_buffer, 1, e->size)!=e->size)
+      {
+         RvR_mem_tag_set(rvr_lump_buffer, RVR_MALLOC_CACHE);
          return NULL;
       }
 
-      return buffer;
+      RvR_mem_tag_set(rvr_lump_buffer, RVR_MALLOC_CACHE);
+
+      return rvr_lump_buffer;
    }
 
 RvR_err:

@@ -25,16 +25,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-//-------------------------------------
-
-//Variables
-//-------------------------------------
-
-//Function prototypes
-//-------------------------------------
-
-//Function implementations
-
 enum
 {
    RVR_COMP_W_BITS = 21, //Window size [17,23]
@@ -79,9 +69,16 @@ typedef struct
    unsigned bit_buf;
    unsigned bit_count;
 }rvr_comp_bits;
+//-------------------------------------
 
-static void     rvr_comp_crush_rvr_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, size_t level);
-static void     rvr_comp_crush_dervr_compress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen);
+//Variables
+static uint8_t *rvr_crush_buffer = NULL;
+static size_t rvr_crush_buffer_size = 0;
+//-------------------------------------
+
+//Function prototypes
+static void     rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, size_t level);
+static void     rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen);
 static int      rvr_comp_update_hash1(int h, int c);
 static int      rvr_comp_update_hash2(int h, int c);
 static int      rvr_comp_get_penalty(int a, int b);
@@ -89,6 +86,10 @@ static void     rvr_comp_bits_init(rvr_comp_bits *b, RvR_rw *inbuf, RvR_rw *outb
 static void     rvr_comp_bits_put(rvr_comp_bits *b, unsigned n, unsigned x);
 static void     rvr_comp_bits_flush(rvr_comp_bits *b);
 static unsigned rvr_comp_bits_get(rvr_comp_bits *b, unsigned n);
+//-------------------------------------
+
+//Function implementations
+
 
 void RvR_crush_compress(RvR_rw *in, RvR_rw *out, unsigned level)
 {
@@ -107,7 +108,7 @@ void RvR_crush_compress(RvR_rw *in, RvR_rw *out, unsigned level)
    buffer_in[size] = 0;
 
    RvR_rw_write_u32(out, size);
-   rvr_comp_crush_rvr_compress(buffer_in, size, out, level);
+   rvr_crush_compress(buffer_in, size, out, level);
 
    RvR_free(buffer_in);
 }
@@ -116,11 +117,21 @@ void *RvR_crush_decompress(RvR_rw *in, int32_t *length)
 {
    *length = RvR_rw_read_u32(in);
 
-   uint8_t *buffer_out = RvR_malloc((*length) + 1, "RvR_malloc output buffer");
-   rvr_comp_crush_dervr_compress(in, buffer_out, *length);
-   buffer_out[*length] = 0;
+   if(rvr_crush_buffer==NULL||rvr_crush_buffer_size<*length + 1)
+   {
+      rvr_crush_buffer = RvR_realloc(rvr_crush_buffer, *length + 1, "RvR_crush_decompress buffer");
+      rvr_crush_buffer_size = *length + 1;
+   }
 
-   return buffer_out;
+   RvR_mem_tag_set(rvr_crush_buffer, RVR_MALLOC_STATIC);
+   RvR_mem_usr_set(rvr_crush_buffer, (void **)&rvr_crush_buffer);
+
+   rvr_crush_decompress(in, rvr_crush_buffer, *length);
+   rvr_crush_buffer[*length] = 0;
+
+   RvR_mem_tag_set(rvr_crush_buffer, RVR_MALLOC_CACHE);
+
+   return rvr_crush_buffer;
 }
 
 //rvr_comp_crush_rvr_compress, rvr_comp_crush_dervr_compress, rvr_comp_update_hash1, rvr_comp_update_hash2, rvr_comp_bits_init, rvr_comp_get_penalty, rvr_comp_bits_put, rvr_comp_bits_get, rvr_comp_bits_flush
@@ -130,7 +141,7 @@ void *RvR_crush_decompress(RvR_rw *in, int32_t *length)
 // Written and placed in the public domain by Ilya Muravyov
 // Additional code by @r-lyeh (public domain). @todo: honor unused args inlen/outlen
 
-static void rvr_comp_crush_rvr_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, size_t level)
+static void rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, size_t level)
 {
    static int head[RVR_COMP_HASH1_SIZE + RVR_COMP_HASH2_SIZE];
    static int prev[RVR_COMP_W_SIZE];
@@ -301,7 +312,7 @@ static void rvr_comp_crush_rvr_compress(const uint8_t *buf, size_t size, RvR_rw 
    rvr_comp_bits_flush(&bits);
 }
 
-static void rvr_comp_crush_dervr_compress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen)
+static void rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen)
 {
    unsigned p = 0;
    int s = 0;

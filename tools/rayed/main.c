@@ -33,13 +33,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
+#define MEM_SIZE (1<<24)
 //-------------------------------------
 
 //Typedefs
 //-------------------------------------
 
 //Variables
-static uint8_t mem[1 << 25];
+static uint8_t mem[MEM_SIZE];
 //-------------------------------------
 
 //Function prototypes
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
    }
 
    //Init memory manager
-   RvR_malloc_init(mem, 1 << 25);
+   RvR_malloc_init(mem, MEM_SIZE);
 
    //Init RvnicRaven core
    RvR_init("Rayed", 0);
