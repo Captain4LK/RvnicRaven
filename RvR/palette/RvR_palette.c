@@ -58,6 +58,7 @@ void RvR_palette_load(uint16_t id)
 
    //Read palette from lump and create rw stream
    mem_pak = RvR_lump_get(tmp, &size_in);
+   RvR_mem_tag_set(mem_pak, RVR_MALLOC_STATIC);
    RvR_rw_init_mem(&rw, mem_pak, size_in, size_in);
 
    //Read palette and perform post processing
@@ -72,7 +73,7 @@ void RvR_palette_load(uint16_t id)
 
    //Cleanup
    RvR_rw_close(&rw);
-   RvR_free(mem_pak);
+   RvR_mem_tag_set(mem_pak, RVR_MALLOC_CACHE);
 
    return;
 }

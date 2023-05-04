@@ -63,14 +63,9 @@ size_t rvr_malloc_size = 0;
 
 void RvR_malloc_init(void *buffer, size_t size)
 {
+   RvR_error_check(!rvr_malloc_init, "RvR_malloc_init", "already initialized\n");
    RvR_error_check(buffer!=NULL, "RvR_malloc_init", "memory buffer is NULL\n");
    RvR_error_check(size!=0, "RvR_malloc_init", "memory buffer size is 0\n");
-
-   if(rvr_malloc_init)
-   {
-      RvR_log_line("RvR_malloc_init", "already initialized\n");
-      return;
-   }
 
    rvr_malloc_first = buffer;
    rvr_malloc_first->size = size - sizeof(rvr_malloc_node);
@@ -94,6 +89,7 @@ void *RvR_malloc(size_t size, const char *reason)
    if(!rvr_malloc_init)
       return malloc(size);
 
+   //Align to pointer size
    size = (uintptr_t)(size + (sizeof(void *) - 1)) & (UINTPTR_MAX - (sizeof(void *) - 1));
 
    rvr_malloc_node *cur = rvr_malloc_next;
@@ -107,7 +103,6 @@ void *RvR_malloc(size_t size, const char *reason)
       //Free cached blocks
       if(cur->tag==RVR_MALLOC_CACHE)
       {
-         RvR_log("freeing cache\n");
          first = cur->prev;
          RvR_free(cur + 1);
 
@@ -120,8 +115,7 @@ void *RvR_malloc(size_t size, const char *reason)
 
       if(cur->tag==RVR_MALLOC_FREE&&cur->size>=size)
       {
-
-         //Can we split the block?
+         //Split block if possible
          if(cur->size - size>sizeof(rvr_malloc_node) + sizeof(void *))
          {
             rvr_malloc_node *p = (rvr_malloc_node *)((char *)cur + sizeof(rvr_malloc_node) + size);
@@ -150,6 +144,7 @@ void *RvR_malloc(size_t size, const char *reason)
    }while(cur!=first);
 
    //Well, shit
+   //At this point all cache has been freed, but we still don't have enough memory
    RvR_log_line("RvR_malloc", "allocation of size %zu failed, out of memory\n", size);
    RvR_malloc_report();
 
@@ -268,7 +263,9 @@ void RvR_malloc_report()
    RvR_log("***************************** Block size = %zu ******************************\n", rvr_malloc_size);
    RvR_log("Index\tBase\t\t(Offset)\t      Size\tTag\tReason\n");
    rvr_malloc_node * f = rvr_malloc_first;
-   size_t f_total = 0, a_total = 0;
+   size_t f_total = 0;
+   size_t a_total = 0;
+   size_t c_total = 0;
 
    int i = 0;
    do
@@ -278,10 +275,13 @@ void RvR_malloc_report()
          RvR_log("%4d\t%p\t(%10ld)\t%10zu      %3" PRIu8 "\t", i, (void *)f, ((char *)f - (char *)rvr_malloc_first), f->size, f->tag);
       else
          RvR_log("%4d\t%p\t(%10ld)\t%10zu         \t", i, (void *)f, ((char *)f - (char *)rvr_malloc_first), f->size);
-      if(f->tag!=RVR_MALLOC_FREE)
-         a_total += f->size;
-      else
+
+      if(f->tag==RVR_MALLOC_FREE)
          f_total += f->size;
+      else if(f->tag==RVR_MALLOC_CACHE)
+         c_total += f->size;
+      else
+         a_total += f->size;
 
 #if RvR_malloc_reason
       if(f->tag!=RVR_MALLOC_FREE)
@@ -296,7 +296,7 @@ void RvR_malloc_report()
       f = f->next;
    }while(f!=rvr_malloc_first);
 
-   RvR_log("**************** Block summary : %zu free, %zu allocated\n", f_total, a_total);
+   RvR_log("**************** Block summary : %zu free, %zu cached, %zu allocated\n", f_total, c_total, a_total);
 }
 
 void RvR_mem_tag_set(void *ptr, uint8_t tag)

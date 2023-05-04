@@ -97,6 +97,7 @@ int main(int argc, char **argv)
       {"in", 'i', OPTPARSE_REQUIRED},
       {"out", 'o', OPTPARSE_REQUIRED},
       {"pal", 'p', OPTPARSE_REQUIRED},
+      {"anim", 'a', OPTPARSE_REQUIRED},
       {"wall", 'w', OPTPARSE_NONE},
       {"sprite", 's', OPTPARSE_NONE},
       {"help", 'h', OPTPARSE_NONE},
@@ -107,6 +108,8 @@ int main(int argc, char **argv)
    const char *path_out = NULL;
    const char *path_pal = NULL;
    uint64_t flags = SPRITE_NONE;
+   uint8_t anim_range = 0;
+   uint8_t anim_speed = 0;
 
    int option;
    struct optparse options;
@@ -120,6 +123,9 @@ int main(int argc, char **argv)
          break;
       case 's':
          flags |= SPRITE_SPRITE;
+         break;
+      case 'a':
+         sscanf(options.optarg,"%" SCNu8 ",%" SCNu8,&anim_range,&anim_speed);
          break;
       case 'h':
          print_help(argv);
@@ -184,11 +190,14 @@ int main(int argc, char **argv)
    //Compress and write to file
    RvR_rw cin;
    RvR_rw cout;
-   int len = sizeof(uint8_t) * sp->width * sp->height + 2 * sizeof(int32_t);
+   int len = sizeof(uint8_t) * sp->width * sp->height + sizeof(int16_t) + 2*sizeof(int8_t) + 2 * sizeof(int32_t);
    uint8_t *mem = RvR_malloc(len,"compression buffer");
    RvR_rw_init_mem(&cin, mem, len, len);
+   RvR_rw_write_u16(&cin, 0);
    RvR_rw_write_u32(&cin, sp->width);
    RvR_rw_write_u32(&cin, sp->height);
+   RvR_rw_write_u8(&cin, anim_range);
+   RvR_rw_write_u8(&cin, anim_speed);
    for(int i = 0; i<sp->width * sp->height; i++)
       RvR_rw_write_u8(&cin, sp->data[i]);
    RvR_rw_init_path(&cout, path_out, "wb");

@@ -105,18 +105,20 @@ RvR_ray_map *RvR_ray_map_load(uint16_t id)
    int32_t size_out;
    uint8_t *mem_pak, *mem_decomp;
    mem_pak = RvR_lump_get(tmp,&size_in);
+   RvR_mem_tag_set(mem_pak,RVR_MALLOC_STATIC);
    RvR_rw rw_decomp;
    RvR_rw_init_const_mem(&rw_decomp,mem_pak,size_in);
    mem_decomp = RvR_crush_decompress(&rw_decomp,&size_out);
+   RvR_mem_tag_set(mem_decomp,RVR_MALLOC_STATIC);
    RvR_rw_close(&rw_decomp);
-   RvR_free(mem_pak);
+   RvR_mem_tag_set(mem_pak,RVR_MALLOC_CACHE);
 
    RvR_rw rw;
    RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
    RvR_ray_map *map = RvR_ray_map_load_rw(&rw);
    RvR_rw_close(&rw);
 
-   RvR_free(mem_decomp);
+   RvR_mem_tag_set(mem_decomp,RVR_MALLOC_CACHE);
 
    return map;
 }
@@ -129,6 +131,7 @@ RvR_ray_map *RvR_ray_map_load_path(const char *path)
    RvR_rw rw_decomp;
    RvR_rw_init_path(&rw_decomp,path,"rb");
    uint8_t *mem = RvR_crush_decompress(&rw_decomp,&size);
+   RvR_mem_tag_set(mem,RVR_MALLOC_STATIC);
    RvR_rw_close(&rw_decomp);
 
    RvR_rw rw;
@@ -136,7 +139,7 @@ RvR_ray_map *RvR_ray_map_load_path(const char *path)
    RvR_ray_map *map = RvR_ray_map_load_rw(&rw);
    RvR_rw_close(&rw);
 
-   RvR_free(mem);
+   RvR_mem_tag_set(mem,RVR_MALLOC_CACHE);
 
    return map;
 

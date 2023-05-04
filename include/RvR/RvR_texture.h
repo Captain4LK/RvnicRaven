@@ -16,6 +16,10 @@ typedef struct
 {
    int32_t width;
    int32_t height;
+
+   uint8_t anim_range;
+   uint8_t anim_speed;
+
    uint8_t data[];
 }RvR_texture;
 
