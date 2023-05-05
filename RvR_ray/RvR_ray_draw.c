@@ -970,11 +970,6 @@ static void ray_span_draw_tex(const RvR_ray_cam *cam, int x0, int x1, int y, RvR
    if(x0>=x1)
       return;
 
-   //TODO: investigate this further
-   //Happens when a floor plane gets drawn at the horizon (should this happen?)
-   if(y==RvR_yres()/2)
-      return;
-
    if(texture==NULL)
       return;
 
@@ -982,8 +977,9 @@ static void ray_span_draw_tex(const RvR_ray_cam *cam, int x0, int x1, int y, RvR
    RvR_fix16 view_cos = RvR_fix16_cos(cam->dir);
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
 
-   RvR_fix16 dy = RvR_yres()/2-y;
+   RvR_fix16 dy = middle_row-y;
    RvR_fix16 depth = RvR_fix16_div(RvR_abs(cam->z-height),RvR_non_zero(fovy));
    depth = RvR_fix16_div(depth*RvR_yres(),RvR_non_zero(RvR_abs(dy)<<16)); //TODO
 

@@ -269,7 +269,6 @@ void RvR_malloc_report()
 
    int i = 0;
    do
-   //for(int i = 0; f->next!=rvr_malloc_first; f = f->next, i++)
    {
       if(f->tag!=RVR_MALLOC_FREE)
          RvR_log("%4d\t%p\t(%10ld)\t%10zu      %3" PRIu8 "\t", i, (void *)f, ((char *)f - (char *)rvr_malloc_first), f->size, f->tag);
