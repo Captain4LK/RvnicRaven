@@ -468,17 +468,17 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
             int skyh = 1<<RvR_log2(texture->height);
             int mask = skyh-1;
 
-            RvR_fix16 angle_step = (skyw*1024)/RvR_xres();
-            RvR_fix16 tex_step = (1024*skyh-1)/RvR_yres();
+            RvR_fix16 angle_step = (skyw*65536)/RvR_xres();
+            RvR_fix16 tex_step = (65536*skyh-1)/RvR_yres();
 
-            RvR_fix16 angle = (cam->dir)*4;
+            RvR_fix16 angle = (cam->dir)*1024;
             angle+=(pl->min-1)*angle_step;
 
             for(int x = pl->min;x<pl->max+1;x++)
             {
                //Sky is rendered fullbright, no lut needed
                uint8_t * restrict pix = &RvR_framebuffer()[(pl->start[x])*RvR_xres()+x-1];
-               const uint8_t * restrict tex = &texture->data[((angle>>10)&(skyw-1))*skyh];
+               const uint8_t * restrict tex = &texture->data[((angle>>16)&(skyw-1))*skyh];
                const uint8_t * restrict col = RvR_shade_table(32);
 
                //Split in two parts: above and below horizon
@@ -496,7 +496,7 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
 
                for(int y = tex_start;y<tex_end+1;y++)
                {
-                  *pix = tex[texture_coord>>10];
+                  *pix = tex[texture_coord>>16];
                   texture_coord+=tex_step;
                   pix+=RvR_xres();
                }
@@ -504,7 +504,7 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
                texture_coord = RvR_min(tex_coord,tex_coord-tex_step*(tex_end-middle));
                for(int y = tex_end+1;y<solid_end+1;y++)
                {
-                  *pix = col[tex[(texture_coord>>10)&mask]];
+                  *pix = col[tex[(texture_coord>>16)&mask]];
                   texture_coord-=tex_step;
                   pix+=RvR_xres();
                }
