@@ -67,11 +67,22 @@ typedef struct
       }wall;
       struct
       {
+         RvR_fix16 x0;
+         RvR_fix16 z0;
+         RvR_fix16 x1;
+         RvR_fix16 z1;
+         RvR_fix16 x2;
+         RvR_fix16 z2;
+         RvR_fix16 x3;
+         RvR_fix16 z3;
       }floor;
    }as;
    RvR_fix16 x;
    RvR_fix16 y;
    RvR_fix16 z;
+
+   RvR_fix16 z_min;
+   RvR_fix16 z_max;
 }ray_sprite;
 //-------------------------------------
 
@@ -106,6 +117,7 @@ static void ray_plane_free(ray_plane *pl);
 
 static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
 static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
+static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
 static int ray_sprite_comp(const void *a, const void *b);
 static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b);
 //-------------------------------------
@@ -132,20 +144,6 @@ void RvR_ray_draw_begin()
    }
 
    RvR_array_length_set(ray_sprites,0);
-
-   //Initialize needed vars
-   /*ray_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
-   ray_fov_factor_y = (RVR_YRES*ray_fov_factor_x*2)/RVR_XRES;
-
-   ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
-
-   ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
-   ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
-
-   ray_cos = RvR_fix22_cos(RvR_ray_get_angle());
-   ray_sin = RvR_fix22_sin(RvR_ray_get_angle());
-   ray_cos_fov = (ray_cos*ray_fov_factor_x)/1024;
-   ray_sin_fov = (ray_sin*ray_fov_factor_x)/1024;*/
 }
 
 void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
@@ -187,7 +185,7 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
       if(sp->flags&8)
          ray_sprite_draw_wall(cam,map,sp);
       else if(sp->flags&16)
-         continue;
+         ray_sprite_draw_floor(cam,map,sp);
       else
          ray_sprite_draw_billboard(cam,map,sp);
    }
@@ -693,12 +691,57 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
          sp.depth_sort = sp.as.wall.z0;
       RvR_array_push(ray_sprites,sp);
 
+      sp.z_min = RvR_min(sp.as.wall.z0,sp.as.wall.z1);
+      sp.z_max = RvR_max(sp.as.wall.z0,sp.as.wall.z1);
+
       return;
    }
 
    //Floor alligned: TODO
    if(flags&16)
    {
+      RvR_texture *tex = RvR_texture_get(sprite);
+
+      //World space coordinates, origin at camera
+      RvR_fix16 dirx = RvR_fix16_cos(dir);
+      RvR_fix16 diry = RvR_fix16_sin(dir);
+      RvR_fix16 half_width = (tex->width*65536)/(64*2);
+      RvR_fix16 x0 = RvR_fix16_mul(-diry,half_width)+x-cam->x;
+      RvR_fix16 y0 = RvR_fix16_mul(dirx,half_width)+y-cam->y;
+      RvR_fix16 x1 = RvR_fix16_mul(diry,half_width)+x-cam->x;
+      RvR_fix16 y1 = RvR_fix16_mul(dirx,half_width)+y-cam->y;
+      RvR_fix16 x2 = RvR_fix16_mul(diry,half_width)+x-cam->x;
+      RvR_fix16 y2 = RvR_fix16_mul(-dirx,half_width)+y-cam->y;
+      RvR_fix16 x3 = RvR_fix16_mul(-diry,half_width)+x-cam->x;
+      RvR_fix16 y3 = RvR_fix16_mul(-dirx,half_width)+y-cam->y;
+
+      //Move to camera space
+      sp.as.floor.x0 = RvR_fix16_mul(-x0,sin)+RvR_fix16_mul(y0,cos);
+      sp.as.floor.z0 = RvR_fix16_mul(x0,cos_fov)+RvR_fix16_mul(y0,sin_fov);
+      sp.as.floor.x1 = RvR_fix16_mul(-x1,sin)+RvR_fix16_mul(y1,cos);
+      sp.as.floor.z1 = RvR_fix16_mul(x1,cos_fov)+RvR_fix16_mul(y1,sin_fov);
+      sp.as.floor.x2 = RvR_fix16_mul(-x2,sin)+RvR_fix16_mul(y2,cos);
+      sp.as.floor.z2 = RvR_fix16_mul(x2,cos_fov)+RvR_fix16_mul(y2,sin_fov);
+      sp.as.floor.x3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
+      sp.as.floor.z3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
+
+      RvR_fix16 depth_min = RvR_min(sp.as.floor.z0,RvR_min(sp.as.floor.z1,RvR_min(sp.as.floor.z2,sp.as.floor.z3)));
+      RvR_fix16 depth_max = RvR_max(sp.as.floor.z0,RvR_max(sp.as.floor.z1,RvR_max(sp.as.floor.z2,sp.as.floor.z3)));
+
+      //Near clip
+      if(depth_max<128)
+         return;
+
+      //Far clip
+      if(depth_min>RVR_RAY_MAX_STEPS*65536)
+         return;
+
+      sp.depth_sort = depth_max;
+      sp.z_min = depth_min;
+      sp.z_max = depth_max;
+
+      RvR_array_push(ray_sprites,sp);
+
       return;
    }
 
@@ -730,6 +773,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       return;
 
    sp.depth_sort = sp.as.bill.depth;
+   sp.z_min = sp.z_max = sp.as.bill.depth;
    RvR_array_push(ray_sprites,sp);
 }
 
@@ -1147,7 +1191,6 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
    RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
-   int mask = (1<<RvR_log2(texture->height))-1;
 
    RvR_fix16 tpx = sp->x-cam->x;
    RvR_fix16 tpy = sp->y-cam->y;
@@ -1412,6 +1455,47 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    }
 }
 
+static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
+{
+   RvR_fix16 verts[8][2];
+   RvR_fix16 verts2[8][2];
+   int verts_count = 4;
+   int verts2_count = 4;
+
+   verts[0][0] = sp->as.floor.x0;
+   verts[0][1] = sp->as.floor.z0;
+   verts[1][0] = sp->as.floor.x1;
+   verts[1][1] = sp->as.floor.z1;
+   verts[2][0] = sp->as.floor.x2;
+   verts[2][1] = sp->as.floor.z2;
+   verts[3][0] = sp->as.floor.x3;
+   verts[3][1] = sp->as.floor.z3;
+
+   //Clip to view
+   //-------------------------------
+   //Clip left
+   verts2_count = 0;
+   RvR_fix16 left = verts[0][0]+verts[0][1];
+   for(int i = 0;i<verts_count;i++)
+   {
+      int p2 = (i+1)%verts_count;
+      RvR_fix16 leftn = verts[p2][0]+verts[p2][1];
+      if(left>=0)
+      {
+         verts2[verts2_count][0] = verts[i][0];
+         verts2[verts2_count][1] = verts[i][1];
+         verts2_count++;
+      }
+      else if((left^leftn)<0)
+      {
+
+      }
+
+      left = leftn;
+   }
+   //-------------------------------
+}
+
 static int ray_sprite_comp(const void *a, const void *b)
 {
    const ray_sprite *sa = a;
@@ -1430,6 +1514,19 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b)
    int64_t z10 = 0;
    int64_t x11 = 0;
    int64_t z11 = 0;
+
+   //Special case for floor aligned
+   if(a->flags&16||b->flags&16)
+   {
+      //a completely behind b
+      if(a->z_min>b->z_max)
+         return 1;
+
+      //If they overlap, only their height
+      //determines the draw order
+      return a->z<=b->z;
+   }
+
    if(a->flags&8)
    {
       x00 = a->as.wall.x0;
@@ -1475,7 +1572,7 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b)
    }
 
    //a completely behind b
-   if(RvR_min(z00,z01)>RvR_max(z10,z11))
+   if(a->z_min>b->z_max)
       return 1;
 
    //x overlap

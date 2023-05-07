@@ -91,10 +91,12 @@ void editor3d_update()
       else if(RvR_key_down(RVR_KEY_4))
          wlocation = 3;*/
 
-      if(RvR_key_pressed(RVR_KEY_R))
+      if(RvR_key_pressed(RVR_KEY_R)&&wlocation==4&&sprite_selec!=NULL)
       {
-         if(wlocation==4&&sprite_selec!=NULL)
-            sprite_selec->flags ^= 8;
+         int flag = (sprite_selec->flags&24)>>3;
+         sprite_selec->flags^=flag<<3;
+         flag = (flag+1)%3;
+         sprite_selec->flags|=flag<<3;
       }
 
       if(RvR_key_pressed(RVR_KEY_T)&&wlocation==4&&sprite_selec!=NULL)
