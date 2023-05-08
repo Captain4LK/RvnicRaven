@@ -1457,13 +1457,14 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
 
 static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
 {
-   RvR_fix16 verts[8][2];
-   RvR_fix16 verts2[8][2];
+   RvR_fix16 verts[8][3];
+   RvR_fix16 verts2[8][3];
    int verts_count = 4;
    int verts2_count = 4;
 
    verts[0][0] = sp->as.floor.x0;
    verts[0][1] = sp->as.floor.z0;
+   verts[0][2] = sp->as.floor.z0-cam->z;
    verts[1][0] = sp->as.floor.x1;
    verts[1][1] = sp->as.floor.z1;
    verts[2][0] = sp->as.floor.x2;
@@ -1486,12 +1487,59 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
          verts2[verts2_count][1] = verts[i][1];
          verts2_count++;
       }
-      else if((left^leftn)<0)
+      if((left^leftn)<0)
       {
-
+         verts2[verts2_count][0] = verts[i][0]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][0]-verts[i][0]);
+         verts2[verts2_count][1] = verts[i][1]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][1]-verts[i][1]);
+         verts2_count++;
       }
 
       left = leftn;
+   }
+   //Clip right
+   verts_count = 0;
+   RvR_fix16 right = verts2[0][0]-verts2[0][1];
+   for(int i = 0;i<verts2_count;i++)
+   {
+      int p2 = (i+1)%verts2_count;
+      RvR_fix16 rightn = verts2[p2][0]-verts2[p2][1];
+      if(right<=0)
+      {
+         verts[verts_count][0] = verts2[i][0];
+         verts[verts_count][1] = verts2[i][1];
+         verts_count++;
+      }
+      if((right^rightn)<0)
+      {
+         verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][0]-verts2[i][0]);
+         verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][1]-verts2[i][1]);
+         verts_count++;
+      }
+
+      right = rightn;
+   }
+
+   //Clip near
+   verts2_count = 0;
+   RvR_fix16 down = verts[0][1]-128;
+   for(int i = 0;i<verts_count;i++)
+   {
+      int p2 = (i+1)%verts_count;
+      RvR_fix16 downn = verts[p2][1]-128;
+      //printf("%d ",RvR_xres()/2+RvR_fix16_div((RvR_xres()/2)*verts[i][0],RvR_non_zero(verts[i][1]))/65536);
+
+      if(down>=0)
+      {
+         verts2[verts2_count][0] = verts[i][0];
+         verts2[verts2_count][1] = verts[i][1];
+         verts2_count++;
+      }
+      if((down^downn)<0)
+      {
+         verts2_count++;
+      }
+
+      down = downn;
    }
    //-------------------------------
 }
