@@ -703,17 +703,17 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       RvR_texture *tex = RvR_texture_get(sprite);
 
       //World space coordinates, origin at camera
-      RvR_fix16 dirx = RvR_fix16_cos(dir);
-      RvR_fix16 diry = RvR_fix16_sin(dir);
+      RvR_fix16 scos = RvR_fix16_cos(dir);
+      RvR_fix16 ssin = RvR_fix16_sin(dir);
       RvR_fix16 half_width = (tex->width*65536)/(64*2);
-      RvR_fix16 x0 = RvR_fix16_mul(-diry,half_width)+x-cam->x;
-      RvR_fix16 y0 = RvR_fix16_mul(dirx,half_width)+y-cam->y;
-      RvR_fix16 x1 = RvR_fix16_mul(diry,half_width)+x-cam->x;
-      RvR_fix16 y1 = RvR_fix16_mul(dirx,half_width)+y-cam->y;
-      RvR_fix16 x2 = RvR_fix16_mul(diry,half_width)+x-cam->x;
-      RvR_fix16 y2 = RvR_fix16_mul(-dirx,half_width)+y-cam->y;
-      RvR_fix16 x3 = RvR_fix16_mul(-diry,half_width)+x-cam->x;
-      RvR_fix16 y3 = RvR_fix16_mul(-dirx,half_width)+y-cam->y;
+      RvR_fix16 x0 = RvR_fix16_mul(-half_width,-ssin)+RvR_fix16_mul(-half_width,scos)+x-cam->x;
+      RvR_fix16 y0 = RvR_fix16_mul(-half_width,scos)+RvR_fix16_mul(-half_width,ssin)+y-cam->y;
+      RvR_fix16 x1 = RvR_fix16_mul(+half_width,-ssin)+RvR_fix16_mul(-half_width,scos)+x-cam->x;
+      RvR_fix16 y1 = RvR_fix16_mul(+half_width,scos)+RvR_fix16_mul(-half_width,ssin)+y-cam->y;
+      RvR_fix16 x2 = RvR_fix16_mul(+half_width,-ssin)+RvR_fix16_mul(+half_width,scos)+x-cam->x;
+      RvR_fix16 y2 = RvR_fix16_mul(+half_width,scos)+RvR_fix16_mul(+half_width,ssin)+y-cam->y;
+      RvR_fix16 x3 = RvR_fix16_mul(-half_width,-ssin)+RvR_fix16_mul(+half_width,scos)+x-cam->x;
+      RvR_fix16 y3 = RvR_fix16_mul(-half_width,scos)+RvR_fix16_mul(+half_width,ssin)+y-cam->y;
 
       //Move to camera space
       sp.as.floor.x0 = RvR_fix16_mul(-x0,sin)+RvR_fix16_mul(y0,cos);
@@ -1461,16 +1461,21 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
    RvR_fix16 verts2[8][3];
    int verts_count = 4;
    int verts2_count = 4;
+   RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
 
    verts[0][0] = sp->as.floor.x0;
    verts[0][1] = sp->as.floor.z0;
-   verts[0][2] = sp->as.floor.z0-cam->z;
+   verts[0][2] = sp->z-cam->z;
    verts[1][0] = sp->as.floor.x1;
    verts[1][1] = sp->as.floor.z1;
+   verts[1][2] = sp->z-cam->z;
    verts[2][0] = sp->as.floor.x2;
    verts[2][1] = sp->as.floor.z2;
+   verts[2][2] = sp->z-cam->z;
    verts[3][0] = sp->as.floor.x3;
    verts[3][1] = sp->as.floor.z3;
+   verts[3][2] = sp->z-cam->z;
 
    //Clip to view
    //-------------------------------
@@ -1485,12 +1490,14 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       {
          verts2[verts2_count][0] = verts[i][0];
          verts2[verts2_count][1] = verts[i][1];
+         verts2[verts2_count][2] = verts[i][2];
          verts2_count++;
       }
       if((left^leftn)<0)
       {
          verts2[verts2_count][0] = verts[i][0]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][0]-verts[i][0]);
          verts2[verts2_count][1] = verts[i][1]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][1]-verts[i][1]);
+         //verts2[verts2_count][2] = verts[i][2]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][2]-verts[i][2]);
          verts2_count++;
       }
 
@@ -1507,12 +1514,14 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       {
          verts[verts_count][0] = verts2[i][0];
          verts[verts_count][1] = verts2[i][1];
+         verts[verts_count][2] = verts2[i][2];
          verts_count++;
       }
       if((right^rightn)<0)
       {
          verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][0]-verts2[i][0]);
          verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][1]-verts2[i][1]);
+         //verts[verts_count][2] = verts2[i][2]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][1]-verts2[i][1]);
          verts_count++;
       }
 
@@ -1521,26 +1530,44 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
 
    //Clip near
    verts2_count = 0;
-   RvR_fix16 down = verts[0][1]-128;
+   RvR_fix16 down = verts[0][1]-1024;
    for(int i = 0;i<verts_count;i++)
    {
       int p2 = (i+1)%verts_count;
-      RvR_fix16 downn = verts[p2][1]-128;
+      RvR_fix16 downn = verts[p2][1]-1024;
       //printf("%d ",RvR_xres()/2+RvR_fix16_div((RvR_xres()/2)*verts[i][0],RvR_non_zero(verts[i][1]))/65536);
 
       if(down>=0)
       {
          verts2[verts2_count][0] = verts[i][0];
          verts2[verts2_count][1] = verts[i][1];
+         verts2[verts2_count][2] = verts[i][2];
          verts2_count++;
       }
       if((down^downn)<0)
       {
+         verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts2[p2][0]-verts2[i][0]);
+         verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts2[p2][1]-verts2[i][1]);
+         //verts[verts_count][2] = verts2[i][2]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts2[p2][1]-verts2[i][1]);
          verts2_count++;
       }
 
       down = downn;
    }
+
+   for(int i = 0;i<verts2_count;i++)
+   {
+      verts2[i][0] = RvR_xres()/2+(verts2[i][0]*(RvR_xres()/2))/RvR_non_zero(verts2[i][1]);
+      verts2[i][2] = RvR_yres()/2-(verts2[i][2]*(RvR_yres()))/RvR_non_zero(RvR_fix16_mul(verts2[i][1],fovy));
+   }
+
+   for(int i = 0;i<verts2_count;i++)
+   {
+      int p2 = (i+1)%verts2_count;
+      RvR_render_line(verts2[i][0]*256+128,verts2[i][2]*256+128,verts2[p2][0]*256+128,verts2[p2][2]*256+128,14);
+      //printf("(%d %d) ",RvR_xres()/2+(verts2[i][0]*(RvR_xres()/2))/RvR_non_zero(verts2[i][1]),RvR_yres()/2-(verts2[i][2]*RvR_yres())/RvR_non_zero(verts2[i][1]));
+   }
+   //puts("");
    //-------------------------------
 }
 
