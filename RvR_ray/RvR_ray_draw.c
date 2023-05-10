@@ -1466,16 +1466,16 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
 
    verts[0][0] = sp->as.floor.x0;
    verts[0][1] = sp->as.floor.z0;
-   verts[0][2] = sp->z-cam->z;
+   verts[0][2] = (sp->z-cam->z)*RvR_yres();
    verts[1][0] = sp->as.floor.x1;
    verts[1][1] = sp->as.floor.z1;
-   verts[1][2] = sp->z-cam->z;
+   verts[1][2] = (sp->z-cam->z)*RvR_yres();
    verts[2][0] = sp->as.floor.x2;
    verts[2][1] = sp->as.floor.z2;
-   verts[2][2] = sp->z-cam->z;
+   verts[2][2] = (sp->z-cam->z)*RvR_yres();
    verts[3][0] = sp->as.floor.x3;
    verts[3][1] = sp->as.floor.z3;
-   verts[3][2] = sp->z-cam->z;
+   verts[3][2] = (sp->z-cam->z)*RvR_yres();
 
    //Clip to view
    //-------------------------------
@@ -1497,12 +1497,15 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       {
          verts2[verts2_count][0] = verts[i][0]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][0]-verts[i][0]);
          verts2[verts2_count][1] = verts[i][1]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][1]-verts[i][1]);
-         //verts2[verts2_count][2] = verts[i][2]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][2]-verts[i][2]);
+         verts2[verts2_count][2] = verts[i][2];
          verts2_count++;
       }
 
       left = leftn;
    }
+   if(verts2_count<=2)
+      return;
+
    //Clip right
    verts_count = 0;
    RvR_fix16 right = verts2[0][0]-verts2[0][1];
@@ -1521,21 +1524,22 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       {
          verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][0]-verts2[i][0]);
          verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][1]-verts2[i][1]);
-         //verts[verts_count][2] = verts2[i][2]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][1]-verts2[i][1]);
+         verts[verts_count][2] = verts2[i][2];
          verts_count++;
       }
 
       right = rightn;
    }
+   if(verts_count<=2)
+      return;
 
-   //Clip near
+   //Clip bottom
    verts2_count = 0;
-   RvR_fix16 down = verts[0][1]-1024;
+   RvR_fix16 down = verts[0][2]+RvR_fix16_mul(verts[0][1],fovy)*(RvR_yres()/2);
    for(int i = 0;i<verts_count;i++)
    {
       int p2 = (i+1)%verts_count;
-      RvR_fix16 downn = verts[p2][1]-1024;
-      //printf("%d ",RvR_xres()/2+RvR_fix16_div((RvR_xres()/2)*verts[i][0],RvR_non_zero(verts[i][1]))/65536);
+      RvR_fix16 downn = verts[p2][2]+RvR_fix16_mul(verts[p2][1],fovy)*(RvR_yres()/2);
 
       if(down>=0)
       {
@@ -1546,28 +1550,136 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       }
       if((down^downn)<0)
       {
-         verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts2[p2][0]-verts2[i][0]);
-         verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts2[p2][1]-verts2[i][1]);
-         //verts[verts_count][2] = verts2[i][2]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts2[p2][1]-verts2[i][1]);
+         verts2[verts2_count][0] = verts[i][0]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts[p2][0]-verts[i][0]);
+         verts2[verts2_count][1] = verts[i][1]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts[p2][1]-verts[i][1]);
+         verts2[verts2_count][2] = verts[i][2];
          verts2_count++;
       }
 
       down = downn;
    }
+   if(verts2_count<=2)
+      return;
 
-   for(int i = 0;i<verts2_count;i++)
-   {
-      verts2[i][0] = RvR_xres()/2+(verts2[i][0]*(RvR_xres()/2))/RvR_non_zero(verts2[i][1]);
-      verts2[i][2] = RvR_yres()/2-(verts2[i][2]*(RvR_yres()))/RvR_non_zero(RvR_fix16_mul(verts2[i][1],fovy));
-   }
-
+   //Clip top
+   verts_count = 0;
+   RvR_fix16 up = verts2[0][2]+RvR_fix16_mul(verts2[0][1],fovy)*(RvR_yres()/2-RvR_yres()-1);
    for(int i = 0;i<verts2_count;i++)
    {
       int p2 = (i+1)%verts2_count;
-      RvR_render_line(verts2[i][0]*256+128,verts2[i][2]*256+128,verts2[p2][0]*256+128,verts2[p2][2]*256+128,14);
+      RvR_fix16 upn = verts2[p2][2]+RvR_fix16_mul(verts2[p2][1],fovy)*(RvR_yres()/2-RvR_yres()-1);
+
+      if(up<=0)
+      {
+         verts[verts_count][0] = verts2[i][0];
+         verts[verts_count][1] = verts2[i][1];
+         verts[verts_count][2] = verts2[i][2];
+         verts_count++;
+      }
+      if((up^upn)<0)
+      {
+         verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(up,RvR_non_zero(up-upn)),verts2[p2][0]-verts2[i][0]);
+         verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(up,RvR_non_zero(up-upn)),verts2[p2][1]-verts2[i][1]);
+         verts[verts_count][2] = verts2[i][2];
+         verts_count++;
+      }
+
+      up = upn;
+   }
+   if(verts_count<=2)
+      return;
+
+   //Project to screen
+   for(int i = 0;i<verts_count;i++)
+   {
+      //verts[i][0] = RvR_max(0,RvR_min(RvR_xres()-1,RvR_xres()/2+(verts[i][0]*(RvR_xres()/2))/RvR_non_zero(verts[i][1])));
+      //verts[i][2] = RvR_max(0,RvR_min(RvR_yres()-1,RvR_yres()/2-(verts[i][2]*(1))/RvR_non_zero(RvR_fix16_mul(verts[i][1],fovy))));
+      verts[i][0] = RvR_max(0,RvR_min(RvR_xres()*65536-1,RvR_xres()*32768+RvR_fix16_div(verts[i][0]*(RvR_xres()/2),RvR_non_zero(verts[i][1]))));
+      verts[i][2] = RvR_max(0,RvR_min(RvR_yres()*65536-1,RvR_yres()*32768-RvR_fix16_div(verts[i][2],RvR_non_zero(RvR_fix16_mul(verts[i][1],fovy)))));
+   }
+   //-------------------------------
+
+   //Rasterize
+   //-------------------------------
+   for(int i = 0;i<verts_count;i++)
+   {
+      int p2 = (i+1)%verts_count;
+      RvR_render_line(verts[i][0]/256,verts[i][2]/256,verts[p2][0]/256,verts[p2][2]/256,14);
+      //RvR_render_line(verts[i][0]*256+128,verts[i][2]*256+128,verts[p2][0]*256+128,verts[p2][2]*256+128,14);
       //printf("(%d %d) ",RvR_xres()/2+(verts2[i][0]*(RvR_xres()/2))/RvR_non_zero(verts2[i][1]),RvR_yres()/2-(verts2[i][2]*RvR_yres())/RvR_non_zero(verts2[i][1]));
    }
-   //puts("");
+
+   //Find left and right of polygon
+   RvR_fix16 xmin = RvR_xres()*65536;
+   RvR_fix16 xmax = 0;
+   int index_minl = 0;
+   int index_minr = 0;
+   int index_max = 0;
+   for(int i = 0;i<verts_count;i++)
+   {
+      if(verts[i][0]>xmax)
+      {
+         xmax = verts[i][0];
+         index_max = i;
+      }
+      if(verts[i][0]<xmin)
+      {
+         xmin = verts[i][0];
+         index_minl = index_minr = i;
+      }
+   }
+
+   if(xmin==xmax)
+      return;
+
+   //Find last left-edge point
+   while(verts[index_minr][0]==xmin)
+      index_minr = (index_minr+1)%verts_count;
+   index_minr = (index_minr-1+verts_count)%verts_count;
+
+   //Find first left edge
+   while(verts[index_minl][0]==xmin)
+      index_minl = (index_minl-1+verts_count)%verts_count;
+   index_minl = (index_minl+1)%verts_count;
+
+   int top_edge_dir = -1;
+   int left_flat = verts[index_minl][2]!=verts[index_minr][2];
+   if(left_flat)
+   {
+      if(verts[index_minl][2]>verts[index_minr][2])
+      {
+         top_edge_dir = 1;
+         int tmp = index_minl;
+         index_minl = index_minr;
+         index_minr = tmp;
+      }
+   }
+   else
+   {
+      int index_next = index_minr;
+      int index_prev = index_minl;
+      index_next = (index_next+1)%verts_count;
+      index_prev = (index_prev-1+verts_count)%verts_count;
+
+      RvR_fix16 dxn = verts[index_next][0]-verts[index_minl][0];
+      RvR_fix16 dyn = verts[index_next][2]-verts[index_minl][2];
+      RvR_fix16 dxp = verts[index_prev][0]-verts[index_minl][0];
+      RvR_fix16 dyp = verts[index_prev][2]-verts[index_minl][2];
+
+      if(RvR_fix16_mul(dxn,dyp)-RvR_fix16_mul(dyn,dxp)<0)
+      {
+         top_edge_dir = 1;
+         int tmp = index_minl;
+         index_minl = index_minr;
+         index_minr = tmp;
+      }
+   }
+
+   int vline_length = (xmax-xmin)/65536-1+left_flat;
+   if(vline_length<=0)
+      return;
+
+
    //-------------------------------
 }
 
