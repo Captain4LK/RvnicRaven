@@ -1463,6 +1463,7 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
    int verts2_count = 4;
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_texture *texture = RvR_texture_get(sp->texture);
 
    verts[0][0] = sp->as.floor.x0;
    verts[0][1] = sp->as.floor.z0;
@@ -1603,83 +1604,123 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
    //-------------------------------
    for(int i = 0;i<verts_count;i++)
    {
-      int p2 = (i+1)%verts_count;
-      RvR_render_line(verts[i][0]/256,verts[i][2]/256,verts[p2][0]/256,verts[p2][2]/256,14);
+      //int p2 = (i+1)%verts_count;
+      //RvR_render_line(verts[i][0]/256,verts[i][2]/256,verts[p2][0]/256,verts[p2][2]/256,14);
       //RvR_render_line(verts[i][0]*256+128,verts[i][2]*256+128,verts[p2][0]*256+128,verts[p2][2]*256+128,14);
       //printf("(%d %d) ",RvR_xres()/2+(verts2[i][0]*(RvR_xres()/2))/RvR_non_zero(verts2[i][1]),RvR_yres()/2-(verts2[i][2]*RvR_yres())/RvR_non_zero(verts2[i][1]));
    }
 
-   //Find left and right of polygon
-   RvR_fix16 xmin = RvR_xres()*65536;
-   RvR_fix16 xmax = 0;
    int index_minl = 0;
-   int index_minr = 0;
-   int index_max = 0;
+   RvR_fix16 xmin = RvR_xres()*65536;
    for(int i = 0;i<verts_count;i++)
    {
-      if(verts[i][0]>xmax)
-      {
-         xmax = verts[i][0];
-         index_max = i;
-      }
       if(verts[i][0]<xmin)
       {
          xmin = verts[i][0];
-         index_minl = index_minr = i;
+         index_minl = i;
       }
    }
 
-   if(xmin==xmax)
-      return;
+   int index_minr = index_minl;
 
-   //Find last left-edge point
-   while(verts[index_minr][0]==xmin)
-      index_minr = (index_minr+1)%verts_count;
-   index_minr = (index_minr-1+verts_count)%verts_count;
+   RvR_fix16 le_y = 0;
+   RvR_fix16 le_dy = 0;
+   RvR_fix16 le_width = 0;
+   RvR_fix16 re_y = 0;
+   RvR_fix16 re_dy = 0;
+   RvR_fix16 re_width = 0;
 
-   //Find first left edge
-   while(verts[index_minl][0]==xmin)
-      index_minl = (index_minl-1+verts_count)%verts_count;
-   index_minl = (index_minl+1)%verts_count;
+   int x = (xmin+65535)/65536;
 
-   int top_edge_dir = -1;
-   int left_flat = verts[index_minl][2]!=verts[index_minr][2];
-   if(left_flat)
+   int prev_start = RvR_yres();
+   int prev_end = RvR_yres();
+   for(;;)
    {
-      if(verts[index_minl][2]>verts[index_minr][2])
+      if(!le_width)
       {
-         top_edge_dir = 1;
-         int tmp = index_minl;
-         index_minl = index_minr;
-         index_minr = tmp;
+         int index_rightl = (index_minl-1+verts_count)%verts_count;
+         le_width = (verts[index_rightl][0]+65535)/65536-(verts[index_minl][0]+65535)/65536;
+         if(le_width<0)
+            return;
+
+         le_dy = RvR_fix16_div(verts[index_rightl][2]-verts[index_minl][2],RvR_non_zero(verts[index_rightl][0]-verts[index_minl][0]));
+         le_y = verts[index_minl][2]+RvR_fix16_mul(le_dy,((verts[index_minl][0]+65535)/65536)*65536-verts[index_minl][0]);
+
+         index_minl = index_rightl;
+      }
+
+      if(!re_width)
+      {
+         int index_rightr = (index_minr+1)%verts_count;
+         re_width = (verts[index_rightr][0]+65535)/65536-(verts[index_minr][0]+65535)/65536;
+         if(re_width<0)
+            return;
+
+         re_dy = RvR_fix16_div(verts[index_rightr][2]-verts[index_minr][2],RvR_non_zero(verts[index_rightr][0]-verts[index_minr][0]));
+         re_y = verts[index_minr][2]+RvR_fix16_mul(re_dy,((verts[index_minr][0]+65535)/65536)*65536-verts[index_minr][0]);
+
+         index_minr = index_rightr;
+      }
+
+      if(!re_width&&!le_width)
+         return;
+
+      int width = RvR_min(le_width,re_width);
+
+      le_width-=width;
+      re_width-=width;
+
+      while(width-->0)
+      {
+         int start = RvR_max(0,RvR_min(RvR_yres()-1,(le_y+65535)/65536));
+         int end = RvR_max(0,RvR_min(RvR_yres()-1,(re_y+65535)/65536));
+
+         RvR_fix16 s0 = prev_start;
+         RvR_fix16 s1 = start;
+         RvR_fix16 e0 = prev_end;
+         RvR_fix16 e1 = end;
+
+         //End spans top
+         for(;s0<s1&&s0<=e0;s0++)
+            ray_span_draw_tex(cam,ray_span_start[s0],x,s0,sp->z,texture);
+
+         //End spans bottom
+         for(;e0>e1&&e0>=s0;e0--)
+            ray_span_draw_tex(cam,ray_span_start[e0],x,e0,sp->z,texture);
+
+         //Start spans top
+         for(;s1<s0&&s1<=e1;s1++)
+            ray_span_start[s1] = x;
+
+         //Start spans bottom
+         for(;e1>e0&&e1>=s1;e1--)
+            ray_span_start[e1] = x;
+
+         prev_start = start;
+         prev_end = end;
+
+         //RvR_render_vertical_line(x,start,end,15);
+         //printf("%d %d %d\n",x,start,end);
+
+         le_y+=le_dy;
+         re_y+=re_dy;
+         x++;
       }
    }
-   else
-   {
-      int index_next = index_minr;
-      int index_prev = index_minl;
-      index_next = (index_next+1)%verts_count;
-      index_prev = (index_prev-1+verts_count)%verts_count;
 
-      RvR_fix16 dxn = verts[index_next][0]-verts[index_minl][0];
-      RvR_fix16 dyn = verts[index_next][2]-verts[index_minl][2];
-      RvR_fix16 dxp = verts[index_prev][0]-verts[index_minl][0];
-      RvR_fix16 dyp = verts[index_prev][2]-verts[index_minl][2];
+   //End remaining
+   //x--;
+   RvR_fix16 s0 = prev_start;
+   RvR_fix16 s1 = prev_end;
+   RvR_fix16 e0 = prev_end;
+   RvR_fix16 e1 = RvR_yres();
+   //End spans top
+   for(;s0<s1;s0++)
+      ray_span_draw_tex(cam,ray_span_start[s0],x,s0,sp->z,texture);
 
-      if(RvR_fix16_mul(dxn,dyp)-RvR_fix16_mul(dyn,dxp)<0)
-      {
-         top_edge_dir = 1;
-         int tmp = index_minl;
-         index_minl = index_minr;
-         index_minr = tmp;
-      }
-   }
-
-   int vline_length = (xmax-xmin)/65536-1+left_flat;
-   if(vline_length<=0)
-      return;
-
-
+   ////End spans bottom
+   //for(;e0>e1&&e0>=s0;e0--)
+      //ray_span_draw_tex(cam,ray_span_start[e0],x,e0,sp->z,texture);
    //-------------------------------
 }
 
