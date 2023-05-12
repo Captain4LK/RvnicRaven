@@ -107,6 +107,11 @@ void editor3d_update()
          sprite_selec->flags |= flag << 5;
       }
 
+      else if(RvR_key_pressed(RVR_KEY_PERIOD)&&wlocation==4&&sprite_selec!=NULL)
+         sprite_selec->direction -= RvR_key_down(RVR_KEY_LSHIFT)?32*16:8*16;
+      else if(RvR_key_pressed(RVR_KEY_COMMA)&&wlocation==4&&sprite_selec!=NULL)
+         sprite_selec->direction += RvR_key_down(RVR_KEY_LSHIFT)?32*16:8*16;
+
       if(RvR_key_pressed(RVR_KEY_1)&&wlocation==4&&sprite_selec!=NULL)
          sprite_selec->flags^=128;
 
