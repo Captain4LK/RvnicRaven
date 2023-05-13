@@ -75,6 +75,9 @@ typedef struct
          RvR_fix16 z2;
          RvR_fix16 x3;
          RvR_fix16 z3;
+
+         //Depth of center point
+         RvR_fix16 depth;
       }floor;
    }as;
    RvR_fix16 x;
@@ -728,6 +731,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.as.floor.z2 = RvR_fix16_mul(x2,cos_fov)+RvR_fix16_mul(y2,sin_fov);
       sp.as.floor.x3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
       sp.as.floor.z3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
+      sp.as.floor.depth  = RvR_fix16_mul(x-cam->x,cos)+RvR_fix16_mul(y-cam->y,sin);
 
       RvR_fix16 depth_min = RvR_min(sp.as.floor.z0,RvR_min(sp.as.floor.z1,RvR_min(sp.as.floor.z2,sp.as.floor.z3)));
       RvR_fix16 depth_max = RvR_max(sp.as.floor.z0,RvR_max(sp.as.floor.z1,RvR_max(sp.as.floor.z2,sp.as.floor.z3)));
@@ -1670,6 +1674,25 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
          int start = RvR_max(0,RvR_min(RvR_yres()-1,(le_y+65535)/65536));
          int end = RvR_max(0,RvR_min(RvR_yres()-1,(re_y+65535)/65536));
 
+         //Clip TODO
+         //Clip floor
+         RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
+         while(clip!=NULL)
+         {
+            if(sp->as.floor.depth>clip->depth&&end>clip->limit)
+               end = clip->limit;
+            clip = clip->next;
+         }
+
+         //Clip ceiling
+         clip = ray_depth_buffer.ceiling[x];
+         while(clip!=NULL)
+         {
+            if(sp->as.floor.depth>clip->depth&&start<clip->limit)
+               start = clip->limit;
+            clip = clip->next;
+         }
+
          RvR_fix16 s0 = prev_start;
          RvR_fix16 s1 = start;
          RvR_fix16 e0 = prev_end;
@@ -1739,6 +1762,7 @@ static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, in
    RvR_fix16 x_and = (1<<x_log)-1;
    RvR_fix16 y_and = (1<<y_log)-1;
 
+   //Rotate texture coordinates according to sprite rotation
    RvR_fix16 sp_sin = RvR_fix16_sin(-sp->dir);
    RvR_fix16 sp_cos = RvR_fix16_cos(-sp->dir);
    RvR_fix16 tmp = tx;
@@ -1747,6 +1771,9 @@ static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, in
    tmp = step_x;
    step_x = RvR_fix16_mul(-sp_sin,step_x)+RvR_fix16_mul(sp_cos,step_y);
    step_y = RvR_fix16_mul(sp_cos,tmp)+RvR_fix16_mul(sp_sin,step_y);
+
+   //Offset texture coordinates
+   //since sprites are anchored in their middle
    tx+=texture->width*512;
    ty+=texture->height*512;
 
