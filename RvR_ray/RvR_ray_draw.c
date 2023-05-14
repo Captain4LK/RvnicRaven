@@ -124,7 +124,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
 static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
 static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
 static int ray_sprite_comp(const void *a, const void *b);
-static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b);
+static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const RvR_ray_cam *cam);
 //-------------------------------------
 
 //Function implementations
@@ -161,7 +161,7 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
       int j = i+1;
       while(j<len)
       {
-         if(ray_sprite_can_back(ray_sprites+i,ray_sprites+j))
+         if(ray_sprite_can_back(ray_sprites+i,ray_sprites+j,cam))
          {
             j++;
          }
@@ -695,10 +695,11 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.depth_sort = sp.as.wall.z1;
       if(sp.as.wall.z0>sp.as.wall.z1)
          sp.depth_sort = sp.as.wall.z0;
-      RvR_array_push(ray_sprites,sp);
 
       sp.z_min = RvR_min(sp.as.wall.z0,sp.as.wall.z1);
       sp.z_max = RvR_max(sp.as.wall.z0,sp.as.wall.z1);
+
+      RvR_array_push(ray_sprites,sp);
 
       return;
    }
@@ -1465,13 +1466,16 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
 
 static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
 {
+   //After clipping we will never have more than 8 vertices
    RvR_fix16 verts[8][3];
    RvR_fix16 verts2[8][3];
    int verts_count = 4;
-   int verts2_count = 4;
+   int verts2_count = 0;
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
    RvR_texture *texture = RvR_texture_get(sp->texture);
+   RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
+   RvR_fix16 middle_row2 = (RvR_yres()/2)-cam->shear;
 
    verts[0][0] = sp->as.floor.x0;
    verts[0][1] = sp->as.floor.z0;
@@ -1544,11 +1548,11 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
 
    //Clip bottom
    verts2_count = 0;
-   RvR_fix16 down = verts[0][2]+RvR_fix16_mul(verts[0][1],fovy)*(RvR_yres()/2);
+   RvR_fix16 down = verts[0][2]+RvR_fix16_mul(verts[0][1],fovy)*middle_row2;
    for(int i = 0;i<verts_count;i++)
    {
       int p2 = (i+1)%verts_count;
-      RvR_fix16 downn = verts[p2][2]+RvR_fix16_mul(verts[p2][1],fovy)*(RvR_yres()/2);
+      RvR_fix16 downn = verts[p2][2]+RvR_fix16_mul(verts[p2][1],fovy)*middle_row2;
 
       if(down>=0)
       {
@@ -1559,8 +1563,8 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       }
       if((down^downn)<0)
       {
-         verts2[verts2_count][0] = verts[i][0]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts[p2][0]-verts[i][0]);
-         verts2[verts2_count][1] = verts[i][1]+RvR_fix16_mul(RvR_fix16_div(down,down-downn),verts[p2][1]-verts[i][1]);
+         verts2[verts2_count][0] = verts[i][0]+RvR_fix16_div(RvR_fix16_mul(down,verts[p2][0]-verts[i][0]),down-downn);
+         verts2[verts2_count][1] = verts[i][1]+RvR_fix16_div(RvR_fix16_mul(down,verts[p2][1]-verts[i][1]),down-downn);
          verts2[verts2_count][2] = verts[i][2];
          verts2_count++;
       }
@@ -1572,11 +1576,11 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
 
    //Clip top
    verts_count = 0;
-   RvR_fix16 up = verts2[0][2]+RvR_fix16_mul(verts2[0][1],fovy)*(RvR_yres()/2-RvR_yres()-1);
+   RvR_fix16 up = verts2[0][2]+RvR_fix16_mul(verts2[0][1],fovy)*(middle_row2-RvR_yres());
    for(int i = 0;i<verts2_count;i++)
    {
       int p2 = (i+1)%verts2_count;
-      RvR_fix16 upn = verts2[p2][2]+RvR_fix16_mul(verts2[p2][1],fovy)*(RvR_yres()/2-RvR_yres()-1);
+      RvR_fix16 upn = verts2[p2][2]+RvR_fix16_mul(verts2[p2][1],fovy)*(middle_row2-RvR_yres());
 
       if(up<=0)
       {
@@ -1602,13 +1606,18 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
    for(int i = 0;i<verts_count;i++)
    {
       verts[i][0] = RvR_max(0,RvR_min(RvR_xres()*65536-1,RvR_xres()*32768+RvR_fix16_div(verts[i][0]*(RvR_xres()/2),RvR_non_zero(verts[i][1]))));
-      verts[i][2] = RvR_max(0,RvR_min(RvR_yres()*65536-1,RvR_yres()*32768-RvR_fix16_div(verts[i][2],RvR_non_zero(RvR_fix16_mul(verts[i][1],fovy)))));
+      verts[i][2] = RvR_max(0,RvR_min(RvR_yres()*65536-1,middle_row*65536-RvR_fix16_div(verts[i][2],RvR_non_zero(RvR_fix16_mul(verts[i][1],fovy)))));
    }
+
+   /*for(int i = 0;i<verts_count;i++)
+   {
+      int p2 = (i+1)%verts_count;
+      RvR_render_line(verts[i][0]/256,verts[i][2]/256,verts[p2][0]/256,verts[p2][2]/256,13);
+   }*/
    //-------------------------------
 
    //Rasterize
    //-------------------------------
-
    int index_minl = 0;
    RvR_fix16 xmin = RvR_xres()*65536;
    for(int i = 0;i<verts_count;i++)
@@ -1673,8 +1682,16 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       {
          int start = RvR_max(0,RvR_min(RvR_yres()-1,(le_y+65535)/65536));
          int end = RvR_max(0,RvR_min(RvR_yres()-1,(re_y+65535)/65536));
+         if(start>end)
+         {
+            int tmp = start;
+            start = end;
+            end = tmp;
+         }
 
-         //Clip TODO
+         //We just clip to the middle of the sprite,
+         //it's fine since floor aligned sprites
+         //aren't supposted to intersect walls
          //Clip floor
          RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
          while(clip!=NULL)
@@ -1716,10 +1733,6 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
 
          prev_start = start;
          prev_end = end;
-
-         //RvR_render_vertical_line(x,start,end,15);
-         //printf("%d %d %d\n",x,start,end);
-
          le_y+=le_dy;
          re_y+=re_dy;
          x++;
@@ -1824,7 +1837,7 @@ static int ray_sprite_comp(const void *a, const void *b)
    return sb->depth_sort-sa->depth_sort;
 }
 
-static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b)
+static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const RvR_ray_cam *cam)
 {
    int64_t x00 = 0;
    int64_t z00 = 0;
@@ -1848,7 +1861,10 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b)
 
       //If they overlap, only their height
       //determines the draw order
-      return a->z<=b->z;
+
+      if(a->z>cam->z||b->z>cam->z)
+         return (a->z)>=(b->z);
+      return (a->z)<=(b->z);
    }
 
    if(a->flags&8)
