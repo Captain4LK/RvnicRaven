@@ -51,6 +51,10 @@ typedef struct
          RvR_fix16 x1;
          RvR_fix16 x;
          RvR_fix16 depth;
+
+         //Camera space coordinates
+         RvR_fix16 wx;
+         RvR_fix16 wy;
       }bill;
       struct
       {
@@ -64,6 +68,12 @@ typedef struct
          RvR_fix16 x1;
          RvR_fix16 y1;
          RvR_fix16 z1;
+
+         //Camera space coordinates
+         RvR_fix16 wx0;
+         RvR_fix16 wy0;
+         RvR_fix16 wx1;
+         RvR_fix16 wy1;
       }wall;
       struct
       {
@@ -76,8 +86,14 @@ typedef struct
          RvR_fix16 x3;
          RvR_fix16 z3;
 
+
          //Depth of center point
          RvR_fix16 depth;
+         RvR_fix16 sx;
+
+         //Camera space coordinates
+         RvR_fix16 wx;
+         RvR_fix16 wy;
       }floor;
    }as;
    RvR_fix16 x;
@@ -125,6 +141,7 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
 static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
 static int ray_sprite_comp(const void *a, const void *b);
 static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const RvR_ray_cam *cam);
+static int ray_wsprite_can_back(const ray_sprite *a, const ray_sprite *b);
 //-------------------------------------
 
 //Function implementations
@@ -624,6 +641,11 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
          sp.flags^=2;
       }
 
+      sp.as.wall.wx0 = tp0x;
+      sp.as.wall.wy0 = tp0y;
+      sp.as.wall.wx1 = tp1x;
+      sp.as.wall.wy1 = tp1y;
+
       //Here we can treat everything as if we have a 90 degree
       //fov, since the rotation to camera space transforms it to
       //that
@@ -732,7 +754,15 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.as.floor.z2 = RvR_fix16_mul(x2,cos_fov)+RvR_fix16_mul(y2,sin_fov);
       sp.as.floor.x3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
       sp.as.floor.z3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
-      sp.as.floor.depth  = RvR_fix16_mul(x-cam->x,cos)+RvR_fix16_mul(y-cam->y,sin);
+      sp.as.floor.depth  = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->y,sin_fov);
+
+      //RvR_fix16 tpx = x-cam->x;
+      //RvR_fix16 tpy = y-cam->y;
+      //RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
+      //tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
+      //sp.as.floor.sx = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+      sp.as.floor.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->x,cos);
+      sp.as.floor.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->x,sin_fov);
 
       RvR_fix16 depth_min = RvR_min(sp.as.floor.z0,RvR_min(sp.as.floor.z1,RvR_min(sp.as.floor.z2,sp.as.floor.z3)));
       RvR_fix16 depth_max = RvR_max(sp.as.floor.z0,RvR_max(sp.as.floor.z1,RvR_max(sp.as.floor.z2,sp.as.floor.z3)));
@@ -745,7 +775,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       if(depth_min>RVR_RAY_MAX_STEPS*65536)
          return;
 
-      sp.depth_sort = depth_max;
+      sp.depth_sort = sp.as.floor.depth;
       sp.z_min = depth_min;
       sp.z_max = depth_max;
 
@@ -777,6 +807,8 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
    sp.as.bill.x0 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx+tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
    sp.as.bill.x1 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+   sp.as.bill.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->x,cos);
+   sp.as.bill.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->x,sin_fov);
 
    if(sp.as.bill.x1<0||sp.as.bill.x0>=RvR_xres()*65536)
       return;
@@ -1360,6 +1392,8 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    num_step_u>>=4;
    denom>>=4;
 
+   //printf("%d %d\n",num_u,num_step_u);
+
    //Adjust for fractional part
    int x0 = (sp->as.wall.x0+65535)>>16;
    int x1 = (sp->as.wall.x1+65535)>>16;
@@ -1608,12 +1642,6 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
       verts[i][0] = RvR_max(0,RvR_min(RvR_xres()*65536-1,RvR_xres()*32768+RvR_fix16_div(verts[i][0]*(RvR_xres()/2),RvR_non_zero(verts[i][1]))));
       verts[i][2] = RvR_max(0,RvR_min(RvR_yres()*65536-1,middle_row*65536-RvR_fix16_div(verts[i][2],RvR_non_zero(RvR_fix16_mul(verts[i][1],fovy)))));
    }
-
-   /*for(int i = 0;i<verts_count;i++)
-   {
-      int p2 = (i+1)%verts_count;
-      RvR_render_line(verts[i][0]/256,verts[i][2]/256,verts[p2][0]/256,verts[p2][2]/256,13);
-   }*/
    //-------------------------------
 
    //Rasterize
@@ -1848,68 +1876,159 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const R
    int64_t x11 = 0;
    int64_t z11 = 0;
 
-   //Special case for floor aligned
-   if(a->flags&16||b->flags&16)
+   //Seperate cases:
+   //wall - wall : full check
+   //sprite - sprite: nothing, only depth compare?
+   //wall - sprite: partial check, only perp dot
+
+   if(a->flags&8&&b->flags&8)
+      return ray_wsprite_can_back(a,b);
+
+   if(!(a->flags&8)&&!(b->flags&8))
    {
-      //a completely behind b
-      if(a->z_min>b->z_max)
-         return 1;
+      //If one is floor sprite, check height
+      if(a->flags&16||b->flags&16)
+      {
+         //a completely behind b
+         if(a->z_min>b->z_max)
+            return 1;
 
-      //TODO: if one of the two is a wall
-      //we could do the completely 
-      //behind check (at least in one direction)
+         if(a->z>cam->z||b->z>cam->z)
+            return (a->z)>=(b->z);
+         return (a->z)<=(b->z);
+      }
 
-      //If they overlap, only their height
-      //determines the draw order
-
-      if(a->z>cam->z||b->z>cam->z)
-         return (a->z)>=(b->z);
-      return (a->z)<=(b->z);
+      return 1;
+      //return a->depth_sort>b->depth_sort;
    }
 
    if(a->flags&8)
    {
-      x00 = a->as.wall.x0;
-      x01 = a->as.wall.x1;
-      z00 = a->as.wall.z0;
-      z01 = a->as.wall.z1;
+      x00 = a->as.wall.wx0;
+      x01 = a->as.wall.wx1;
+      z00 = a->as.wall.wy0;
+      z01 = a->as.wall.wy1;
    }
    else if(a->flags&16)
    {
-      x00 = a->as.wall.x0;
-      x01 = a->as.wall.x1;
-      z00 = a->as.wall.z0;
-      z01 = a->as.wall.z1;
+      x00 = a->as.floor.wx;
+      x01 = a->as.floor.wx;
+      z00 = a->as.floor.wy;
+      z01 = a->as.floor.wy;
    }
    else
    {
-      x00 = a->as.bill.x0;
-      x01 = a->as.bill.x1;
-      z00 = a->as.bill.depth;
-      z01 = a->as.bill.depth;
+      x00 = a->as.bill.wx;
+      x01 = a->as.bill.wx;
+      z00 = a->as.bill.wy;
+      z01 = a->as.bill.wy;
    }
 
    if(b->flags&8)
    {
-      x10 = b->as.wall.x0;
-      x11 = b->as.wall.x1;
-      z10 = b->as.wall.z0;
-      z11 = b->as.wall.z1;
+      x10 = b->as.wall.wx0;
+      x11 = b->as.wall.wx1;
+      z10 = b->as.wall.wy0;
+      z11 = b->as.wall.wy1;
    }
    else if(b->flags&16)
    {
-      x10 = b->as.wall.x0;
-      x11 = b->as.wall.x1;
-      z10 = b->as.wall.z0;
-      z11 = b->as.wall.z1;
+      x10 = b->as.floor.wx;
+      x11 = b->as.floor.wx;
+      z10 = b->as.floor.wy;
+      z11 = b->as.floor.wy;
    }
    else
    {
-      x10 = b->as.bill.x0;
-      x11 = b->as.bill.x1;
-      z10 = b->as.bill.depth;
-      z11 = b->as.bill.depth;
+      x10 = b->as.bill.wx;
+      x11 = b->as.bill.wx;
+      z10 = b->as.bill.wy;
+      z11 = b->as.bill.wy;
    }
+
+   //a completely behind b
+   if(a->z_min>b->z_max)
+   {
+      puts("C");
+      return 1;
+   }
+
+   //x overlap
+   //Can't properly check this
+   /*if(x00>=x11||x01<=x10)
+   {
+      printf("B (%ld %ld) (%ld %ld)\n",x00,x01,x10,x11);
+      return 1;
+   }*/
+
+   //-------------------------------------
+   //TODO: for billboard sprites both x0 and x1 should be the middle of the sprite
+   //might make the sorting look more correct
+   //TODO: only check wall sprite
+
+   if(a->flags&8)
+   {
+      int64_t dx0 = x01-x00;
+      int64_t dz0 = z01-z00;
+      //printf("(%f %f) (%f %f) (%f %f)\n",(x00)/65536.,(z00)/65536.,(x01)/65536.,(z01)/65536.,(x10)/65536.,(z10)/65536.);
+      int64_t cross00 = dx0*(z10-z00)-dz0*(x10-x00);
+
+      if(cross00<=0)
+         return 1;
+   }
+   else
+   {
+      int64_t dx1 = x11-x10;
+      int64_t dz1 = z11-z10;
+      int64_t cross10 = dx1*(z00-z10)-dz1*(x00-x10);
+      //printf("B %ld\n",cross10);
+
+      if(cross10>=0)
+         return 1;
+   }
+
+   /*int64_t dx0 = x01-x00;
+   int64_t dz0 = z01-z00;
+   int64_t dx1 = x11-x10;
+   int64_t dz1 = z11-z10;
+
+   int64_t cross00 = dx0*(z10-z00)-dz0*(x10-x00);
+   int64_t cross01 = dx0*(z11-z00)-dz0*(x11-x00);
+   int64_t cross10 = dx1*(z00-z10)-dz1*(x00-x10);
+   int64_t cross11 = dx1*(z01-z10)-dz1*(x01-x10);
+
+   if(cross00<=0&&cross01<=0)
+      return 1;
+
+   if(cross10>=0&&cross11>=0)
+      return 1;*/
+   //-------------------------------------
+
+   //If one is floor sprite, check height?
+
+   return 0;
+}
+
+static int ray_wsprite_can_back(const ray_sprite *a, const ray_sprite *b)
+{
+   int64_t x00 = 0;
+   int64_t z00 = 0;
+   int64_t x01 = 0;
+   int64_t z01 = 0;
+   int64_t x10 = 0;
+   int64_t z10 = 0;
+   int64_t x11 = 0;
+   int64_t z11 = 0;
+
+   x00 = a->as.wall.x0;
+   x01 = a->as.wall.x1;
+   z00 = a->as.wall.z0;
+   z01 = a->as.wall.z1;
+
+   x10 = b->as.wall.x0;
+   x11 = b->as.wall.x1;
+   z10 = b->as.wall.z0;
+   z11 = b->as.wall.z1;
 
    //a completely behind b
    if(a->z_min>b->z_max)
@@ -1918,10 +2037,6 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const R
    //x overlap
    if(x00>=x11||x01<=x10)
       return 1;
-
-   //-------------------------------------
-   //TODO: for billboard sprites both x0 and x1 should be the middle of the sprite
-   //might make the sorting look more correct
 
    int64_t dx0 = x01-x00;
    int64_t dz0 = z01-z00;
