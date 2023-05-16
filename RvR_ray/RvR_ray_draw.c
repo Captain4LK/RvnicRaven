@@ -47,11 +47,6 @@ typedef struct
    {
       struct
       {
-         RvR_fix16 x0;
-         RvR_fix16 x1;
-         RvR_fix16 x;
-         RvR_fix16 depth;
-
          //Camera space coordinates
          RvR_fix16 wx;
          RvR_fix16 wy;
@@ -141,7 +136,7 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
 static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
 static int ray_sprite_comp(const void *a, const void *b);
 static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const RvR_ray_cam *cam);
-static int ray_wsprite_can_back(const ray_sprite *a, const ray_sprite *b);
+static int ray_wsprite_can_back(const ray_sprite * restrict a, const ray_sprite * restrict b);
 //-------------------------------------
 
 //Function implementations
@@ -790,31 +785,31 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    //Project to screen
    //TODO: get rid of map_to_screen here
    RvR_ray_pixel_info p = RvR_ray_map_to_screen(cam,x,y,z);
-   sp.as.bill.x = p.x;
-   sp.as.bill.depth = p.depth;
+   //sp.as.bill.x = p.x;
+   //sp.as.bill.depth = p.depth;
 
    //Near clip
    if(p.depth<128)
       return;
 
    //Far clip
-   if(sp.as.bill.depth>RVR_RAY_MAX_STEPS*65536)
+   if(p.depth>RVR_RAY_MAX_STEPS*65536)
       return;
 
    RvR_fix16 tpx = x-cam->x;
    RvR_fix16 tpy = y-cam->y;
    RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
    tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
-   sp.as.bill.x0 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx+tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
-   sp.as.bill.x1 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+   RvR_fix16 x0 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx+tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
+   RvR_fix16 x1 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
    sp.as.bill.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->x,cos);
    sp.as.bill.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->x,sin_fov);
 
-   if(sp.as.bill.x1<0||sp.as.bill.x0>=RvR_xres()*65536)
+   if(x1<0||x0>=RvR_xres()*65536)
       return;
 
-   sp.depth_sort = sp.as.bill.depth;
-   sp.z_min = sp.z_max = sp.as.bill.depth;
+   sp.depth_sort = p.depth;
+   sp.z_min = sp.z_max = p.depth;
    RvR_array_push(ray_sprites,sp);
 }
 
@@ -1867,6 +1862,42 @@ static int ray_sprite_comp(const void *a, const void *b)
 
 static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const RvR_ray_cam *cam)
 {
+   //Separate cases:
+   //wall - wall : full check
+   //sprite - sprite: nothing, only depth compare?
+   //wall - sprite: partial check, only perp dot
+
+   //Wall - Wall check is put in
+   //a separate function
+   if(a->flags&8&&b->flags&8)
+      return ray_wsprite_can_back(a,b);
+
+   //Sprite - Sprite check is
+   //a lot simpler
+   if(!(a->flags&8)&&!(b->flags&8))
+   {
+      //If one is floor sprite, check height
+      if(a->flags&16||b->flags&16)
+      {
+         //a completely behind b
+         //We only want to sort them by height if
+         //they overlap on the z-axis
+         if(a->z_min>b->z_max)
+            return 1;
+
+         //If one of the sprites is above the camera, the higher
+         //ones needs to be drawn first
+         if(a->z>cam->z||b->z>cam->z)
+            return (a->z)>=(b->z);
+         //Otherwise, the lower one get's drawn first
+         return (a->z)<=(b->z);
+      }
+
+      //Due to the z sorting before, the sprites
+      //are already sorted by z.
+      return 1;
+   }
+
    int64_t x00 = 0;
    int64_t z00 = 0;
    int64_t x01 = 0;
@@ -1875,33 +1906,6 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const R
    int64_t z10 = 0;
    int64_t x11 = 0;
    int64_t z11 = 0;
-
-   //Seperate cases:
-   //wall - wall : full check
-   //sprite - sprite: nothing, only depth compare?
-   //wall - sprite: partial check, only perp dot
-
-   if(a->flags&8&&b->flags&8)
-      return ray_wsprite_can_back(a,b);
-
-   if(!(a->flags&8)&&!(b->flags&8))
-   {
-      //If one is floor sprite, check height
-      if(a->flags&16||b->flags&16)
-      {
-         //a completely behind b
-         if(a->z_min>b->z_max)
-            return 1;
-
-         if(a->z>cam->z||b->z>cam->z)
-            return (a->z)>=(b->z);
-         return (a->z)<=(b->z);
-      }
-
-      return 1;
-      //return a->depth_sort>b->depth_sort;
-   }
-
    if(a->flags&8)
    {
       x00 = a->as.wall.wx0;
@@ -1948,31 +1952,21 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const R
 
    //a completely behind b
    if(a->z_min>b->z_max)
-   {
-      puts("C");
       return 1;
-   }
 
-   //x overlap
-   //Can't properly check this
-   /*if(x00>=x11||x01<=x10)
-   {
-      printf("B (%ld %ld) (%ld %ld)\n",x00,x01,x10,x11);
-      return 1;
-   }*/
+   //can't check x overlap, since we don't
+   //store/calculate the screen x coordinates.
 
-   //-------------------------------------
-   //TODO: for billboard sprites both x0 and x1 should be the middle of the sprite
-   //might make the sorting look more correct
-   //TODO: only check wall sprite
-
+   //One of the two is a wall
+   //we check the ordering of
+   //the wall and the sprite
    if(a->flags&8)
    {
       int64_t dx0 = x01-x00;
       int64_t dz0 = z01-z00;
-      //printf("(%f %f) (%f %f) (%f %f)\n",(x00)/65536.,(z00)/65536.,(x01)/65536.,(z01)/65536.,(x10)/65536.,(z10)/65536.);
       int64_t cross00 = dx0*(z10-z00)-dz0*(x10-x00);
 
+      //sprite b in front wall a
       if(cross00<=0)
          return 1;
    }
@@ -1981,61 +1975,37 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const R
       int64_t dx1 = x11-x10;
       int64_t dz1 = z11-z10;
       int64_t cross10 = dx1*(z00-z10)-dz1*(x00-x10);
-      //printf("B %ld\n",cross10);
 
+      //sprite a behind wall b
       if(cross10>=0)
          return 1;
    }
 
-   /*int64_t dx0 = x01-x00;
-   int64_t dz0 = z01-z00;
-   int64_t dx1 = x11-x10;
-   int64_t dz1 = z11-z10;
-
-   int64_t cross00 = dx0*(z10-z00)-dz0*(x10-x00);
-   int64_t cross01 = dx0*(z11-z00)-dz0*(x11-x00);
-   int64_t cross10 = dx1*(z00-z10)-dz1*(x00-x10);
-   int64_t cross11 = dx1*(z01-z10)-dz1*(x01-x10);
-
-   if(cross00<=0&&cross01<=0)
-      return 1;
-
-   if(cross10>=0&&cross11>=0)
-      return 1;*/
-   //-------------------------------------
-
-   //If one is floor sprite, check height?
-
    return 0;
 }
 
-static int ray_wsprite_can_back(const ray_sprite *a, const ray_sprite *b)
+static int ray_wsprite_can_back(const ray_sprite * restrict a, const ray_sprite * restrict b)
 {
-   int64_t x00 = 0;
-   int64_t z00 = 0;
-   int64_t x01 = 0;
-   int64_t z01 = 0;
-   int64_t x10 = 0;
-   int64_t z10 = 0;
-   int64_t x11 = 0;
-   int64_t z11 = 0;
+   //NOTE(Captain4LK): We use 64 bit precision here, 
+   //you could do it without, but I haven't
+   //really checked how well that works,
+   //especially with very long wall sprites
+   int64_t x00 = a->as.wall.wx0;
+   int64_t x01 = a->as.wall.wx1;
+   int64_t z00 = a->as.wall.wy0;
+   int64_t z01 = a->as.wall.wy1;
 
-   x00 = a->as.wall.x0;
-   x01 = a->as.wall.x1;
-   z00 = a->as.wall.z0;
-   z01 = a->as.wall.z1;
-
-   x10 = b->as.wall.x0;
-   x11 = b->as.wall.x1;
-   z10 = b->as.wall.z0;
-   z11 = b->as.wall.z1;
+   int64_t x10 = b->as.wall.wx0;
+   int64_t x11 = b->as.wall.wx1;
+   int64_t z10 = b->as.wall.wy0;
+   int64_t z11 = b->as.wall.wy1;
 
    //a completely behind b
    if(a->z_min>b->z_max)
       return 1;
 
-   //x overlap
-   if(x00>=x11||x01<=x10)
+   //No screen x overlap
+   if(a->as.wall.x0>=b->as.wall.x1||a->as.wall.x1<=b->as.wall.x0)
       return 1;
 
    int64_t dx0 = x01-x00;
@@ -2043,18 +2013,21 @@ static int ray_wsprite_can_back(const ray_sprite *a, const ray_sprite *b)
    int64_t dx1 = x11-x10;
    int64_t dz1 = z11-z10;
 
+   //2d cross product/perp dot product
    int64_t cross00 = dx0*(z10-z00)-dz0*(x10-x00);
    int64_t cross01 = dx0*(z11-z00)-dz0*(x11-x00);
    int64_t cross10 = dx1*(z00-z10)-dz1*(x00-x10);
    int64_t cross11 = dx1*(z01-z10)-dz1*(x01-x10);
 
+   //All points of b in front of a
    if(cross00<=0&&cross01<=0)
       return 1;
 
+   //All points of a behind b
    if(cross10>=0&&cross11>=0)
       return 1;
-   //-------------------------------------
 
+   //Need swapping
    return 0;
 }
 //-------------------------------------
