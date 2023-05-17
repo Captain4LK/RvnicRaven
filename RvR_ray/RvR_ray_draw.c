@@ -48,12 +48,12 @@ typedef struct
       struct
       {
          //Camera space coordinates
+         //wy is depth
          RvR_fix16 wx;
          RvR_fix16 wy;
       }bill;
       struct
       {
-         RvR_fix16 dir;
          RvR_fix16 u0;
          RvR_fix16 u1;
 
@@ -65,6 +65,7 @@ typedef struct
          RvR_fix16 z1;
 
          //Camera space coordinates
+         //wy is depth
          RvR_fix16 wx0;
          RvR_fix16 wy0;
          RvR_fix16 wx1;
@@ -81,12 +82,8 @@ typedef struct
          RvR_fix16 x3;
          RvR_fix16 z3;
 
-
-         //Depth of center point
-         RvR_fix16 depth;
-         RvR_fix16 sx;
-
          //Camera space coordinates
+         //wy is depth
          RvR_fix16 wx;
          RvR_fix16 wy;
       }floor;
@@ -134,6 +131,7 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
 static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
 static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
 static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
+
 static int ray_sprite_comp(const void *a, const void *b);
 static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const RvR_ray_cam *cam);
 static int ray_wsprite_can_back(const ray_sprite * restrict a, const ray_sprite * restrict b);
@@ -165,14 +163,27 @@ void RvR_ray_draw_begin()
 
 void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
 {
+   //Sprites get sorted from back to front
+
+   //First sprites get sorted by depth.
+   //This is not accurate for wall sprites
    qsort(ray_sprites,RvR_array_length(ray_sprites),sizeof(*ray_sprites),ray_sprite_comp);
+
+   //This is essentially Newells Algorithm,
+   //If you know a faster way to do this, please
+   //tell me.
    int len = RvR_array_length(ray_sprites);
    for(int i = 0;i<len;i++)
    {
+      //swaps is used to mark which sprites have been swapped before
+      //and thus for detecting double swaps
       int swaps = 0;
       int j = i+1;
       while(j<len)
       {
+         //ray_sprite_can_back calculates wether sprite i
+         //can be drawn behind sprite j 
+         //and thus if they are ordered correctly.
          if(ray_sprite_can_back(ray_sprites+i,ray_sprites+j,cam))
          {
             j++;
@@ -186,6 +197,8 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
          }
          else
          {
+            //Place sprite j in front of sprite i,
+            //shifting everything else to the right.
             ray_sprite tmp = ray_sprites[j];
             for(int w = j;w>i;w--)
                ray_sprites[w] = ray_sprites[w-1];
@@ -196,6 +209,7 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
       }
    }
 
+   //Render sprites
    for(int i = 0;i<RvR_array_length(ray_sprites);i++)
    {
       ray_sprite *sp = ray_sprites+i;
@@ -600,7 +614,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.x = x;
       sp.y = y;
       sp.z = z;
-      sp.as.wall.dir = dir;
       sp.as.wall.u0 = 0;
       sp.as.wall.u1 = 65536*tex->width-1;
 
@@ -749,13 +762,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.as.floor.z2 = RvR_fix16_mul(x2,cos_fov)+RvR_fix16_mul(y2,sin_fov);
       sp.as.floor.x3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
       sp.as.floor.z3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
-      sp.as.floor.depth  = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->y,sin_fov);
 
-      //RvR_fix16 tpx = x-cam->x;
-      //RvR_fix16 tpy = y-cam->y;
-      //RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
-      //tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
-      //sp.as.floor.sx = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
       sp.as.floor.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->x,cos);
       sp.as.floor.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->x,sin_fov);
 
@@ -770,7 +777,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       if(depth_min>RVR_RAY_MAX_STEPS*65536)
          return;
 
-      sp.depth_sort = sp.as.floor.depth;
+      sp.depth_sort = sp.as.floor.wy;
       sp.z_min = depth_min;
       sp.z_max = depth_max;
 
@@ -1719,7 +1726,7 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
          RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
          while(clip!=NULL)
          {
-            if(sp->as.floor.depth>clip->depth&&end>clip->limit)
+            if(sp->as.floor.wy>clip->depth&&end>clip->limit)
                end = clip->limit;
             clip = clip->next;
          }
@@ -1728,7 +1735,7 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
          clip = ray_depth_buffer.ceiling[x];
          while(clip!=NULL)
          {
-            if(sp->as.floor.depth>clip->depth&&start<clip->limit)
+            if(sp->as.floor.wy>clip->depth&&start<clip->limit)
                start = clip->limit;
             clip = clip->next;
          }
@@ -1981,6 +1988,7 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const R
          return 1;
    }
 
+   //Need swapping
    return 0;
 }
 
