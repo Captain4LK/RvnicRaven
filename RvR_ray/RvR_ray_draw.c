@@ -41,7 +41,14 @@ typedef struct
 {
    uint32_t flags;
    uint16_t texture;
-   RvR_fix16 depth_sort;
+
+   RvR_fix16 x;
+   RvR_fix16 y;
+   RvR_fix16 z;
+   RvR_fix16 dir;
+
+   RvR_fix16 z_min;
+   RvR_fix16 z_max;
 
    union
    {
@@ -58,10 +65,8 @@ typedef struct
          RvR_fix16 u1;
 
          RvR_fix16 x0;
-         RvR_fix16 y0;
          RvR_fix16 z0;
          RvR_fix16 x1;
-         RvR_fix16 y1;
          RvR_fix16 z1;
 
          //Camera space coordinates
@@ -88,13 +93,6 @@ typedef struct
          RvR_fix16 wy;
       }floor;
    }as;
-   RvR_fix16 x;
-   RvR_fix16 y;
-   RvR_fix16 z;
-   RvR_fix16 dir;
-
-   RvR_fix16 z_min;
-   RvR_fix16 z_max;
 }ray_sprite;
 //-------------------------------------
 
@@ -717,15 +715,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       if(sp.as.wall.x0>sp.as.wall.x1)
          return;
 
-      sp.as.wall.y0 = RvR_fix16_div(sp.z-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,sp.as.wall.z0)));
-      sp.as.wall.y0 = RvR_fix16_mul(RvR_yres()*65536,32768-sp.as.wall.y0);
-      sp.as.wall.y1 = RvR_fix16_div(sp.z-cam->z,RvR_non_zero(RvR_fix16_mul(fovy,sp.as.wall.z1)));
-      sp.as.wall.y1 = RvR_fix16_mul(RvR_yres()*65536,32768-sp.as.wall.y1);
-
-      sp.depth_sort = sp.as.wall.z1;
-      if(sp.as.wall.z0>sp.as.wall.z1)
-         sp.depth_sort = sp.as.wall.z0;
-
       sp.z_min = RvR_min(sp.as.wall.z0,sp.as.wall.z1);
       sp.z_max = RvR_max(sp.as.wall.z0,sp.as.wall.z1);
 
@@ -777,7 +766,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       if(depth_min>RVR_RAY_MAX_STEPS*65536)
          return;
 
-      sp.depth_sort = sp.as.floor.wy;
       sp.z_min = depth_min;
       sp.z_max = depth_max;
 
@@ -815,7 +803,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    if(x1<0||x0>=RvR_xres()*65536)
       return;
 
-   sp.depth_sort = p.depth;
    sp.z_min = sp.z_max = p.depth;
    RvR_array_push(ray_sprites,sp);
 }
@@ -1864,7 +1851,7 @@ static int ray_sprite_comp(const void *a, const void *b)
    const ray_sprite *sa = a;
    const ray_sprite *sb = b;
 
-   return sb->depth_sort-sa->depth_sort;
+   return sb->z_max-sa->z_max;
 }
 
 static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const RvR_ray_cam *cam)
