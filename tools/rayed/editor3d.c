@@ -1006,6 +1006,312 @@ static Map_sprite *sprite_selected()
          continue;
       }
 
+      if(sp->flags&16)
+      {
+         RvR_texture *tex = RvR_texture_get(sp->texture);
+
+         //World space coordinates, origin at camera
+         RvR_fix16 scos = RvR_fix16_cos(sp->direction);
+         RvR_fix16 ssin = RvR_fix16_sin(sp->direction);
+         RvR_fix16 half_width = (tex->width*65536)/(64*2);
+         RvR_fix16 half_height = (tex->height*65536)/(64*2);
+         RvR_fix16 x0 = RvR_fix16_mul(-half_width,-ssin)+RvR_fix16_mul(-half_height,scos)+sp->x-camera.x;
+         RvR_fix16 y0 = RvR_fix16_mul(-half_width,scos)+RvR_fix16_mul(-half_height,ssin)+sp->y-camera.y;
+         RvR_fix16 x1 = RvR_fix16_mul(+half_width,-ssin)+RvR_fix16_mul(-half_height,scos)+sp->x-camera.x;
+         RvR_fix16 y1 = RvR_fix16_mul(+half_width,scos)+RvR_fix16_mul(-half_height,ssin)+sp->y-camera.y;
+         RvR_fix16 x2 = RvR_fix16_mul(+half_width,-ssin)+RvR_fix16_mul(+half_height,scos)+sp->x-camera.x;
+         RvR_fix16 y2 = RvR_fix16_mul(+half_width,scos)+RvR_fix16_mul(+half_height,ssin)+sp->y-camera.y;
+         RvR_fix16 x3 = RvR_fix16_mul(-half_width,-ssin)+RvR_fix16_mul(+half_height,scos)+sp->x-camera.x;
+         RvR_fix16 y3 = RvR_fix16_mul(-half_width,scos)+RvR_fix16_mul(+half_height,ssin)+sp->y-camera.y;
+
+         //Move to camera space
+         RvR_fix16 cx0 = RvR_fix16_mul(-x0,sin)+RvR_fix16_mul(y0,cos);
+         RvR_fix16 cz0 = RvR_fix16_mul(x0,cos_fov)+RvR_fix16_mul(y0,sin_fov);
+         RvR_fix16 cx1 = RvR_fix16_mul(-x1,sin)+RvR_fix16_mul(y1,cos);
+         RvR_fix16 cz1 = RvR_fix16_mul(x1,cos_fov)+RvR_fix16_mul(y1,sin_fov);
+         RvR_fix16 cx2 = RvR_fix16_mul(-x2,sin)+RvR_fix16_mul(y2,cos);
+         RvR_fix16 cz2 = RvR_fix16_mul(x2,cos_fov)+RvR_fix16_mul(y2,sin_fov);
+         RvR_fix16 cx3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
+         RvR_fix16 cz3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
+
+         RvR_fix16 wx = RvR_fix16_mul(-sp->x-camera.x,sin)+RvR_fix16_mul(sp->y-camera.x,cos);
+         RvR_fix16 wy = RvR_fix16_mul(sp->x-camera.x,cos_fov)+RvR_fix16_mul(sp->y-camera.x,sin_fov);
+
+         RvR_fix16 z_min = RvR_min(cz0,RvR_min(cz1,RvR_min(cz2,cz3)));
+         RvR_fix16 z_max = RvR_max(cz0,RvR_max(cz1,RvR_max(cz2,cz3)));
+
+         //Near clip
+         if(z_max<128)
+            continue;
+
+         //Far clip
+         if(z_min>32*65536)
+            continue;
+
+         if(wy>depth_min)
+            continue;
+
+         //RvR_fix16 z_min = depth_min;
+         //RvR_fix16 z_max = depth_max;
+
+          //After clipping we will never have more than 8 vertices
+         RvR_fix16 verts[8][3];
+         RvR_fix16 verts2[8][3];
+         int verts_count = 4;
+         int verts2_count = 0;
+         RvR_fix16 fovx = RvR_fix16_tan(camera.fov/2);
+         RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+         //RvR_texture *texture = RvR_texture_get(sp->texture);
+         RvR_fix16 middle_row = (RvR_yres()/2)+camera.shear;
+         RvR_fix16 middle_row2 = (RvR_yres()/2)-camera.shear;
+
+         verts[0][0] = cx0;
+         verts[0][1] = cz0;
+         verts[0][2] = (sp->z-camera.z)*RvR_yres();
+         verts[1][0] = cx1;
+         verts[1][1] = cz1;
+         verts[1][2] = (sp->z-camera.z)*RvR_yres();
+         verts[2][0] = cx2;
+         verts[2][1] = cz2;
+         verts[2][2] = (sp->z-camera.z)*RvR_yres();
+         verts[3][0] = cx3;
+         verts[3][1] = cz3;
+         verts[3][2] = (sp->z-camera.z)*RvR_yres();
+
+         //Clip to view
+         //-------------------------------
+         //Clip left
+         verts2_count = 0;
+         RvR_fix16 left = verts[0][0]+verts[0][1];
+         for(int i = 0;i<verts_count;i++)
+         {
+            int p2 = (i+1)%verts_count;
+            RvR_fix16 leftn = verts[p2][0]+verts[p2][1];
+            if(left>=0)
+            {
+               verts2[verts2_count][0] = verts[i][0];
+               verts2[verts2_count][1] = verts[i][1];
+               verts2[verts2_count][2] = verts[i][2];
+               verts2_count++;
+            }
+            if((left^leftn)<0)
+            {
+               verts2[verts2_count][0] = verts[i][0]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][0]-verts[i][0]);
+               verts2[verts2_count][1] = verts[i][1]+RvR_fix16_mul(RvR_fix16_div(left,left-leftn),verts[p2][1]-verts[i][1]);
+               verts2[verts2_count][2] = verts[i][2];
+               verts2_count++;
+            }
+
+            left = leftn;
+         }
+         if(verts2_count<=2)
+            continue;
+
+         //Clip right
+         verts_count = 0;
+         RvR_fix16 right = verts2[0][0]-verts2[0][1];
+         for(int i = 0;i<verts2_count;i++)
+         {
+            int p2 = (i+1)%verts2_count;
+            RvR_fix16 rightn = verts2[p2][0]-verts2[p2][1];
+            if(right<=0)
+            {
+               verts[verts_count][0] = verts2[i][0];
+               verts[verts_count][1] = verts2[i][1];
+               verts[verts_count][2] = verts2[i][2];
+               verts_count++;
+            }
+            if((right^rightn)<0)
+            {
+               verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][0]-verts2[i][0]);
+               verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(right,right-rightn),verts2[p2][1]-verts2[i][1]);
+               verts[verts_count][2] = verts2[i][2];
+               verts_count++;
+            }
+
+            right = rightn;
+         }
+         if(verts_count<=2)
+            continue;
+
+         //Clip bottom
+         verts2_count = 0;
+         RvR_fix16 down = verts[0][2]+RvR_fix16_mul(verts[0][1],fovy)*middle_row2;
+         for(int i = 0;i<verts_count;i++)
+         {
+            int p2 = (i+1)%verts_count;
+            RvR_fix16 downn = verts[p2][2]+RvR_fix16_mul(verts[p2][1],fovy)*middle_row2;
+
+            if(down>=0)
+            {
+               verts2[verts2_count][0] = verts[i][0];
+               verts2[verts2_count][1] = verts[i][1];
+               verts2[verts2_count][2] = verts[i][2];
+               verts2_count++;
+            }
+            if((down^downn)<0)
+            {
+               verts2[verts2_count][0] = verts[i][0]+RvR_fix16_div(RvR_fix16_mul(down,verts[p2][0]-verts[i][0]),down-downn);
+               verts2[verts2_count][1] = verts[i][1]+RvR_fix16_div(RvR_fix16_mul(down,verts[p2][1]-verts[i][1]),down-downn);
+               verts2[verts2_count][2] = verts[i][2];
+               verts2_count++;
+            }
+
+            down = downn;
+         }
+         if(verts2_count<=2)
+            continue;
+
+         //Clip top
+         verts_count = 0;
+         RvR_fix16 up = verts2[0][2]+RvR_fix16_mul(verts2[0][1],fovy)*(middle_row2-RvR_yres());
+         for(int i = 0;i<verts2_count;i++)
+         {
+            int p2 = (i+1)%verts2_count;
+            RvR_fix16 upn = verts2[p2][2]+RvR_fix16_mul(verts2[p2][1],fovy)*(middle_row2-RvR_yres());
+
+            if(up<=0)
+            {
+               verts[verts_count][0] = verts2[i][0];
+               verts[verts_count][1] = verts2[i][1];
+               verts[verts_count][2] = verts2[i][2];
+               verts_count++;
+            }
+            if((up^upn)<0)
+            {
+               verts[verts_count][0] = verts2[i][0]+RvR_fix16_mul(RvR_fix16_div(up,RvR_non_zero(up-upn)),verts2[p2][0]-verts2[i][0]);
+               verts[verts_count][1] = verts2[i][1]+RvR_fix16_mul(RvR_fix16_div(up,RvR_non_zero(up-upn)),verts2[p2][1]-verts2[i][1]);
+               verts[verts_count][2] = verts2[i][2];
+               verts_count++;
+            }
+
+            up = upn;
+         }
+         if(verts_count<=2)
+            continue;
+
+         //Project to screen
+         for(int i = 0;i<verts_count;i++)
+         {
+            verts[i][0] = RvR_max(0,RvR_min(RvR_xres()*65536-1,RvR_xres()*32768+RvR_fix16_div(verts[i][0]*(RvR_xres()/2),RvR_non_zero(verts[i][1]))));
+            verts[i][2] = RvR_max(0,RvR_min(RvR_yres()*65536-1,middle_row*65536-RvR_fix16_div(verts[i][2],RvR_non_zero(RvR_fix16_mul(verts[i][1],fovy)))));
+         }
+         //-------------------------------
+
+         //Rasterize
+         //-------------------------------
+         int index_minl = 0;
+         RvR_fix16 xmin = RvR_xres()*65536;
+         for(int i = 0;i<verts_count;i++)
+         {
+            if(verts[i][0]<xmin)
+            {
+               xmin = verts[i][0];
+               index_minl = i;
+            }
+         }
+
+         int index_minr = index_minl;
+
+         RvR_fix16 le_y = 0;
+         RvR_fix16 le_dy = 0;
+         RvR_fix16 le_width = 0;
+         RvR_fix16 re_y = 0;
+         RvR_fix16 re_dy = 0;
+         RvR_fix16 re_width = 0;
+
+         int x = (xmin+65535)/65536;
+
+         int prev_start = RvR_yres();
+         int prev_end = 0;
+         for(;x<=mx;)
+         {
+            if(!le_width)
+            {
+               int index_rightl = (index_minl-1+verts_count)%verts_count;
+               le_width = (verts[index_rightl][0]+65535)/65536-(verts[index_minl][0]+65535)/65536;
+               if(le_width<0)
+                  break;
+
+               le_dy = RvR_fix16_div(verts[index_rightl][2]-verts[index_minl][2],RvR_non_zero(verts[index_rightl][0]-verts[index_minl][0]));
+               le_y = verts[index_minl][2]+RvR_fix16_mul(le_dy,((verts[index_minl][0]+65535)/65536)*65536-verts[index_minl][0]);
+
+               index_minl = index_rightl;
+            }
+
+            if(!re_width)
+            {
+               int index_rightr = (index_minr+1)%verts_count;
+               re_width = (verts[index_rightr][0]+65535)/65536-(verts[index_minr][0]+65535)/65536;
+               if(re_width<0)
+                  break;
+
+               re_dy = RvR_fix16_div(verts[index_rightr][2]-verts[index_minr][2],RvR_non_zero(verts[index_rightr][0]-verts[index_minr][0]));
+               re_y = verts[index_minr][2]+RvR_fix16_mul(re_dy,((verts[index_minr][0]+65535)/65536)*65536-verts[index_minr][0]);
+
+               index_minr = index_rightr;
+            }
+
+            if(!re_width&&!le_width)
+               break;
+
+            int width = RvR_min(le_width,re_width);
+
+            le_width-=width;
+            re_width-=width;
+
+            while(width-->0)
+            {
+               if(x==mx)
+               {
+                  int start = RvR_max(0,RvR_min(RvR_yres()-1,(le_y+65535)/65536));
+                  int end = RvR_max(0,RvR_min(RvR_yres()-1,(re_y+65535)/65536));
+                  if(start>end)
+                  {
+                     int tmp = start;
+                     start = end;
+                     end = tmp;
+                  }
+
+                  //We just clip to the middle of the sprite,
+                  //it's fine since floor aligned sprites
+                  //aren't supposted to intersect walls
+                  //Clip floor
+                  //RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
+                  const RvR_ray_depth_buffer_entry *clip = RvR_ray_depth_buffer_entry_floor(x);
+                  while(clip!=NULL)
+                  {
+                     if(wy>clip->depth&&end>clip->limit)
+                        end = clip->limit;
+                     clip = clip->next;
+                  }
+
+                  //Clip ceiling
+                  //clip = ray_depth_buffer.ceiling[x];
+                  clip = RvR_ray_depth_buffer_entry_ceiling(x);
+                  while(clip!=NULL)
+                  {
+                     if(wy>clip->depth&&start<clip->limit)
+                        start = clip->limit;
+                     clip = clip->next;
+                  }
+
+                  if(my>start&&my<end)
+                  {
+                     min = sp;
+                     depth_min = wy;
+                  }
+               }
+
+               le_y+=le_dy;
+               re_y+=re_dy;
+               x++;
+            }
+         }
+
+         continue;
+      }
+
       RvR_ray_pixel_info px = RvR_ray_map_to_screen(&camera,sp->x,sp->y,sp->z);
       if(px.depth<0||px.depth>24 * 65536||px.depth>depth_min)
          continue;
