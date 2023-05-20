@@ -752,8 +752,8 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.as.floor.x3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
       sp.as.floor.z3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
 
-      sp.as.floor.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->x,cos);
-      sp.as.floor.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->x,sin_fov);
+      sp.as.floor.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->y,cos);
+      sp.as.floor.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->y,sin_fov);
 
       RvR_fix16 depth_min = RvR_min(sp.as.floor.z0,RvR_min(sp.as.floor.z1,RvR_min(sp.as.floor.z2,sp.as.floor.z3)));
       RvR_fix16 depth_max = RvR_max(sp.as.floor.z0,RvR_max(sp.as.floor.z1,RvR_max(sp.as.floor.z2,sp.as.floor.z3)));
@@ -1787,8 +1787,8 @@ static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, in
    RvR_fix16 y_log = RvR_log2(texture->height);
    RvR_fix16 step_x = RvR_fix16_div(RvR_fix16_mul(view_sin,cam->z-sp->z),RvR_non_zero(dy*65536));
    RvR_fix16 step_y = RvR_fix16_div(RvR_fix16_mul(view_cos,cam->z-sp->z),RvR_non_zero(dy*65536));
-   RvR_fix16 tx = (cam->x-sp->x+texture->width*0)+RvR_fix16_mul(view_cos,depth)+(x0-RvR_xres()/2)*step_x;
-   RvR_fix16 ty = -(cam->y-sp->y+texture->height*0)-RvR_fix16_mul(view_sin,depth)+(x0-RvR_xres()/2)*step_y;
+   RvR_fix16 tx = (cam->x-sp->x)+RvR_fix16_mul(view_cos,depth)+(x0-RvR_xres()/2)*step_x;
+   RvR_fix16 ty = -(cam->y-sp->y)-RvR_fix16_mul(view_sin,depth)+(x0-RvR_xres()/2)*step_y;
    RvR_fix16 x_and = (1<<x_log)-1;
    RvR_fix16 y_and = (1<<y_log)-1;
 

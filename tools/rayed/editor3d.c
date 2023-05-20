@@ -1034,8 +1034,7 @@ static Map_sprite *sprite_selected()
          RvR_fix16 cx3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
          RvR_fix16 cz3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
 
-         RvR_fix16 wx = RvR_fix16_mul(-sp->x-camera.x,sin)+RvR_fix16_mul(sp->y-camera.x,cos);
-         RvR_fix16 wy = RvR_fix16_mul(sp->x-camera.x,cos_fov)+RvR_fix16_mul(sp->y-camera.x,sin_fov);
+         RvR_fix16 wy = RvR_fix16_mul(sp->x-camera.x,cos_fov)+RvR_fix16_mul(sp->y-camera.y,sin_fov);
 
          RvR_fix16 z_min = RvR_min(cz0,RvR_min(cz1,RvR_min(cz2,cz3)));
          RvR_fix16 z_max = RvR_max(cz0,RvR_max(cz1,RvR_max(cz2,cz3)));
@@ -1222,8 +1221,6 @@ static Map_sprite *sprite_selected()
 
          int x = (xmin+65535)/65536;
 
-         int prev_start = RvR_yres();
-         int prev_end = 0;
          for(;x<=mx;)
          {
             if(!le_width)
