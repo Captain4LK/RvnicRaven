@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -11,7 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
-#include "../RvR/RvnicRaven.h"
+#include "RvR/RvR.h"
 //-------------------------------------
 
 //Internal includes
@@ -21,12 +21,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
+#define MEM_SIZE (1<<24)
 //-------------------------------------
 
 //Typedefs
 //-------------------------------------
 
 //Variables
+static uint8_t mem[MEM_SIZE];
 //-------------------------------------
 
 //Function prototypes
@@ -37,9 +39,10 @@ static void loop();
 
 int main(int argc, char **argv)
 {
-   RvR_malloc_init(1<<25,1<<26);
-   RvR_core_init("RvnicRaven - stargazer",0);
-   RvR_core_mouse_relative(1);
+   RvR_malloc_init(mem, MEM_SIZE);
+
+   RvR_init("RvnicRaven - stargazer",0);
+   RvR_mouse_relative(1);
 
    RvR_pak_add("data/main.csv");
 
@@ -50,17 +53,17 @@ int main(int argc, char **argv)
    config_read("settings.ini");
 
    RvR_palette_load(0);
-   RvR_draw_font_set(0xF000);
+   RvR_render_font_set(0xF000);
 
    sprites_init();
 
    //Second framebuffer for effects
-   RvR_texture_create(65535,RVR_XRES,RVR_YRES);
+   RvR_texture_create(65535,RvR_xres(),RvR_yres());
 
    state_init(STATE_GAME_INVENTORY);
    state_init(STATE_TITLE);
 
-   while(RvR_core_running())
+   while(RvR_running())
    {
       loop();
    }
@@ -70,11 +73,11 @@ int main(int argc, char **argv)
 
 static void loop()
 {
-   RvR_core_update();
+   RvR_update();
 
    state_update();
    state_draw();
 
-   RvR_core_render_present();
+   RvR_render_present();
 }
 //-------------------------------------

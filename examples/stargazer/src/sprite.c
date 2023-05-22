@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -12,7 +12,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../RvR/RvnicRaven.h"
+#include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -29,8 +30,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Typedefs
 typedef struct
 {
-   RvR_vec3 p;
-   RvR_fix22 depth;
+   RvR_fix16 x;
+   RvR_fix16 y;
+   RvR_fix16 z;
+   RvR_fix16 depth;
    uint16_t texture;
    uint16_t flags;
 }Sprite_draw;
@@ -45,13 +48,13 @@ struct
    uint32_t data_size;
 }sprite_stack = {0};
 
-static RvR_fix22 view_fov_factor_x;
-static RvR_fix22 view_fov_factor_y;
-static RvR_fix22 view_sin;
-static RvR_fix22 view_cos;
-static RvR_fix22 view_sin_fov;
-static RvR_fix22 view_cos_fov;
-static RvR_fix22 view_middle_row;
+static RvR_fix16 view_fov_factor_x;
+static RvR_fix16 view_fov_factor_y;
+static RvR_fix16 view_sin;
+static RvR_fix16 view_cos;
+static RvR_fix16 view_sin_fov;
+static RvR_fix16 view_cos_fov;
+static RvR_fix16 view_middle_row;
 
 Sprite sprites[1<<16];
 //-------------------------------------
@@ -82,18 +85,18 @@ void sprite_draw_begin()
 {
    sprite_stack.data_used = 0;
 
-   view_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
+   /*view_fov_factor_x = RvR_fix16_tan(RvR_ray_get_fov()/2);
    view_fov_factor_y = (RVR_YRES*view_fov_factor_x*2)/RVR_XRES;
    view_cos = RvR_fix22_cos(RvR_ray_get_angle());
    view_sin = RvR_fix22_sin(RvR_ray_get_angle());
    view_cos_fov = (view_cos*view_fov_factor_x)/1024;
    view_sin_fov = (view_sin*view_fov_factor_x)/1024;
-   view_middle_row = RVR_YRES/2+RvR_ray_get_shear();
+   view_middle_row = RVR_YRES/2+RvR_ray_get_shear();*/
 }
 
-void sprite_draw(RvR_vec3 pos, RvR_fix22 dir, int32_t sprite)
+void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t sprite)
 {
-   if(sprite<0||sprite>UINT16_MAX)
+   /*if(sprite<0||sprite>UINT16_MAX)
       return;
 
    const Sprite *sp = sprites+sprite;
@@ -194,12 +197,12 @@ void sprite_draw(RvR_vec3 pos, RvR_fix22 dir, int32_t sprite)
    if(sprite_new.depth>RVR_RAY_MAX_STEPS*1024)
       return;
 
-   sprite_stack_push(&sprite_new);
+   sprite_stack_push(&sprite_new);*/
 }
 
 void sprite_draw_end()
 {
-   //Sort sprites
+   /*//Sort sprites
    qsort(sprite_stack.data,sprite_stack.data_used,sizeof(*sprite_stack.data),sprite_cmp);
 
    //Draw sprites
@@ -283,7 +286,7 @@ void sprite_draw_end()
 
          tex = &texture->data[texture->height*(u>>16)];
          dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
-         RvR_fix22 v = (sp->p.z-RvR_ray_get_position().z)*4096+(ys-view_middle_row+1)*step_v+texture->height*65536;
+         RvR_fix16 v = (sp->p.z-RvR_ray_get_position().z)*4096+(ys-view_middle_row+1)*step_v+texture->height*65536;
 
          if(sp->flags&32)
          {
@@ -315,7 +318,7 @@ void sprite_draw_end()
 
          u+=step_u;
       }
-   }
+   }*/
 }
 
 static void sprite_stack_push(const Sprite_draw *s)
@@ -323,8 +326,8 @@ static void sprite_stack_push(const Sprite_draw *s)
    if(sprite_stack.data==NULL)
    {
       sprite_stack.data_size = 64;
-      sprite_stack.data = RvR_malloc(sizeof(*sprite_stack.data)*sprite_stack.data_size);
-      sprite_stack.data_proxy = RvR_malloc(sizeof(*sprite_stack.data_proxy)*sprite_stack.data_size);
+      sprite_stack.data = RvR_malloc(sizeof(*sprite_stack.data)*sprite_stack.data_size,"Sprite stack");
+      sprite_stack.data_proxy = RvR_malloc(sizeof(*sprite_stack.data_proxy)*sprite_stack.data_size,"Sprite stack proxy");
    }
 
    sprite_stack.data_proxy[sprite_stack.data_used] = sprite_stack.data_used;
@@ -333,8 +336,8 @@ static void sprite_stack_push(const Sprite_draw *s)
    if(sprite_stack.data_used==sprite_stack.data_size)
    {
       sprite_stack.data_size+=64;
-      sprite_stack.data = RvR_realloc(sprite_stack.data,sizeof(*sprite_stack.data)*sprite_stack.data_size);
-      sprite_stack.data_proxy = RvR_realloc(sprite_stack.data_proxy,sizeof(*sprite_stack.data_proxy)*sprite_stack.data_size);
+      sprite_stack.data = RvR_realloc(sprite_stack.data,sizeof(*sprite_stack.data)*sprite_stack.data_size,"Sprite stack data grow");
+      sprite_stack.data_proxy = RvR_realloc(sprite_stack.data_proxy,sizeof(*sprite_stack.data_proxy)*sprite_stack.data_size,"Sprite stack data_proxy grow");
    }
 }
 

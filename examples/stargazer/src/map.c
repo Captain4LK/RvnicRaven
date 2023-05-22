@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -11,7 +11,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
-#include "../RvR/RvnicRaven.h"
+#include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -32,6 +33,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static RvR_ray_map *map = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -42,14 +44,15 @@ static uint32_t ai_from_tex(uint16_t tex);
 
 void map_load(uint16_t id)
 {
-   RvR_ray_map_load(id);
+   RvR_ray_map_free(map);
+   map = RvR_ray_map_load(id);
 }
 
 void map_init()
 {
-   for(int i = 0;i<RvR_ray_map_sprite_count();i++)
+   for(int i = 0;i<map->sprite_count;i++)
    {
-      RvR_ray_map_sprite *s = RvR_ray_map_sprite_get(i);
+      RvR_ray_map_sprite *s = map->sprites+i;
 
       uint32_t extra[3];
       extra[0] = s->extra0;
@@ -57,7 +60,9 @@ void map_init()
       extra[2] = s->extra2;
 
       Entity *e = entity_new();
-      e->pos = s->pos;
+      e->x = s->x;
+      e->y = s->y;
+      e->z = s->z;
       e->direction = s->direction;
       e->sprite = s->texture;
       entity_add(e);
@@ -69,7 +74,9 @@ void map_init()
       if(s->texture==36864)
       {
          Card *c = card_new();
-         c->pos = e->pos;
+         c->x = e->x;
+         c->y = e->y;
+         c->z = e->z;
          card_add(c);
          player.entity = e;
          player_create_new();
@@ -90,5 +97,10 @@ static uint32_t ai_from_tex(uint16_t tex)
    }
 
    return 0;
+}
+
+RvR_ray_map *map_current()
+{
+   return NULL;
 }
 //-------------------------------------

@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -11,7 +11,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
-#include "../../RvR/RvnicRaven.h"
+#include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -21,6 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "../entity.h"
 #include "../ai.h"
 #include "../game.h"
+#include "../map.h"
 #include "ai_elevator.h"
 //-------------------------------------
 
@@ -32,8 +34,8 @@ typedef struct
 {
    uint8_t state;
    int32_t tick;
-   RvR_fix22 top;
-   RvR_fix22 bottom;
+   RvR_fix16 top;
+   RvR_fix16 bottom;
 }AI_elevator_state;
 //-------------------------------------
 
@@ -47,7 +49,7 @@ typedef struct
 
 void ai_elevator_init(Entity *e, const uint32_t extra[3])
 {
-   AI_elevator_state *state = RvR_malloc(sizeof(*state));
+   AI_elevator_state *state = RvR_malloc(sizeof(*state),"AI:elevator state");
    e->ai_data = state;
    e->sprite = -1;
 
@@ -70,9 +72,9 @@ void ai_elevator_run(Entity *e)
    {
    case 0: //Rise
       {
-         RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
+         RvR_fix16 z = RvR_ray_map_floor_height_at(map_current(),e->x/65536,e->y/65536);
          z = RvR_min(state->top,z+48);
-         RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
+         RvR_ray_map_floor_height_set(map_current(),e->x/65536,e->y/65536,z);
 
          if(z>=state->top)
          {
@@ -83,9 +85,9 @@ void ai_elevator_run(Entity *e)
       break;
    case 1: //Lower
       {
-         RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
+         RvR_fix16 z = RvR_ray_map_floor_height_at(map_current(),e->x/65536,e->y/65536);
          z = RvR_max(state->bottom,z-48);
-         RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
+         RvR_ray_map_floor_height_set(map_current(),e->x/65536,e->y/65536,z);
 
          if(z<=state->bottom)
          {
@@ -94,13 +96,13 @@ void ai_elevator_run(Entity *e)
          }
       }
       break;
-   case 2: //Still bottom
+   case 2: //Wait bottom
       {
          if(state->tick--<=0)
             state->state = 0;
       }
       break;
-   case 3: //Still top 
+   case 3: //Wait top 
       {
          if(state->tick--<=0)
             state->state = 1;

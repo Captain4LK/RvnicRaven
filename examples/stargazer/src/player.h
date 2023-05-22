@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 typedef struct
 {
    Entity *entity;
+   RvR_ray_cam cam;
 
    int16_t shear;
 }Player;

@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -16,7 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
-#include "../RvR/RvnicRaven.h"
+#include "RvR/RvR.h"
 #include "config.h"
 #include "game.h"
 #include "message.h"
@@ -114,7 +114,7 @@ void message_draw(uint8_t index)
    int y = 2;
    for(int i = 0;i<MESSAGE_MAX&&message!=-1;i++)
    {
-      RvR_draw_string(2,y,1,messages[message].msg,index);
+      RvR_render_string(2,y,1,messages[message].msg,index);
       message = messages[message].next;
       y+=8;
    }

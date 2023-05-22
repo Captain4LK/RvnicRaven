@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -15,7 +15,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "../RvR/RvnicRaven.h"
+#include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -73,7 +74,7 @@ void grid_build()
    RvR_ray_map *map = RvR_ray_map_get();
    grid.width = map->width;
    grid.height = map->height;
-   grid.grid = RvR_malloc(sizeof(*grid.grid)*grid.width*grid.height);
+   grid.grid = RvR_malloc(sizeof(*grid.grid)*grid.width*grid.height,"map grid");
 
    //Calculate whether a cell is solid
    for(int i = 0;i<grid.width*grid.height;i++)
@@ -96,10 +97,10 @@ void grid_build()
 
 void grid_entity_remove(Entity *e)
 {
-   int l = (e->pos.x-e->col_radius)/1024;
-   int r = (e->pos.x+e->col_radius)/1024;
-   int t = (e->pos.y-e->col_radius)/1024;
-   int b = (e->pos.y+e->col_radius)/1024;
+   int l = (e->x-e->col_radius)/1024;
+   int r = (e->x+e->col_radius)/1024;
+   int t = (e->y-e->col_radius)/1024;
+   int b = (e->y+e->col_radius)/1024;
 
    for(int y = t;y<=b;y++)
    {
@@ -124,10 +125,10 @@ void grid_entity_remove(Entity *e)
 
 void grid_entity_add(Entity *e)
 {
-   int l = (e->pos.x-e->col_radius)/1024;
-   int r = (e->pos.x+e->col_radius)/1024;
-   int t = (e->pos.y-e->col_radius)/1024;
-   int b = (e->pos.y+e->col_radius)/1024;
+   int l = (e->x-e->col_radius)/1024;
+   int r = (e->x+e->col_radius)/1024;
+   int t = (e->y-e->col_radius)/1024;
+   int b = (e->y+e->col_radius)/1024;
 
    for(int y = t;y<=b;y++)
    {
@@ -147,11 +148,14 @@ void grid_entity_add(Entity *e)
    }
 }
 
-void grid_entity_update_pos(Entity *e, RvR_vec3 new_pos)
+void grid_entity_update_pos(Entity *e, RvR_fix16 nx, RvR_fix16 ny, RvR_fix16 nz)
 {
+   //TODO(Captain4LK): what's the point of this? Is it supposed to only update z pos?
    if(e->pos.x!=new_pos.x&&e->pos.y==new_pos.y)
    {
-      e->pos = new_pos;
+      e->x = nx;
+      e->y = ny;
+      e->z = nz;
       return;
    }
 
@@ -162,10 +166,10 @@ void grid_entity_update_pos(Entity *e, RvR_vec3 new_pos)
 
 void grid_card_remove(Card *c)
 {
-   int l = (c->pos.x-CARD_RADIUS)/1024;
-   int r = (c->pos.x+CARD_RADIUS)/1024;
-   int t = (c->pos.y-CARD_RADIUS)/1024;
-   int b = (c->pos.y+CARD_RADIUS)/1024;
+   int l = (c->x-CARD_RADIUS)/1024;
+   int r = (c->x+CARD_RADIUS)/1024;
+   int t = (c->y-CARD_RADIUS)/1024;
+   int b = (c->y+CARD_RADIUS)/1024;
 
    for(int y = t;y<=b;y++)
    {
@@ -190,10 +194,10 @@ void grid_card_remove(Card *c)
 
 void grid_card_add(Card *c)
 {
-   int l = (c->pos.x-CARD_RADIUS)/1024;
-   int r = (c->pos.x+CARD_RADIUS)/1024;
-   int t = (c->pos.y-CARD_RADIUS)/1024;
-   int b = (c->pos.y+CARD_RADIUS)/1024;
+   int l = (c->x-CARD_RADIUS)/1024;
+   int r = (c->x+CARD_RADIUS)/1024;
+   int t = (c->y-CARD_RADIUS)/1024;
+   int b = (c->y+CARD_RADIUS)/1024;
 
    for(int y = t;y<=b;y++)
    {
@@ -213,8 +217,9 @@ void grid_card_add(Card *c)
    }
 }
 
-void grid_card_update_pos(Card *c, RvR_vec3 new_pos)
+void grid_card_update_pos(Card *c, RvR_fix16 nx, RvR_fix16 ny, RvR_fix16 nz)
 {
+   //TODO(Captain4LK): what's the point of this? Is it supposed to only update z pos?
    if(c->pos.x!=new_pos.x&&c->pos.y==new_pos.y)
    {
       c->pos = new_pos;
@@ -228,10 +233,10 @@ void grid_card_update_pos(Card *c, RvR_vec3 new_pos)
 
 void grid_entity_use(Entity *e)
 {
-   int l = (e->pos.x-e->col_radius)/1024-1;
-   int r = (e->pos.x+e->col_radius)/1024+1;
-   int t = (e->pos.y-e->col_radius)/1024-1;
-   int b = (e->pos.y+e->col_radius)/1024+1;
+   int l = (e->x-e->col_radius)/1024-1;
+   int r = (e->x+e->col_radius)/1024+1;
+   int t = (e->y-e->col_radius)/1024-1;
+   int b = (e->y+e->col_radius)/1024+1;
 
    uint32_t count = grid_counter_next();
 
@@ -277,7 +282,7 @@ static Grid_entity *grid_entity_new()
 {
    if(grid_entity_pool==NULL)
    {
-      Grid_entity *ne = RvR_malloc(sizeof(*ne)*256);
+      Grid_entity *ne = RvR_malloc(sizeof(*ne)*256,"Grid_entity pool");
       memset(ne,0,sizeof(*ne)*256);
       
       for(int i = 0;i<256-1;i++)
@@ -310,7 +315,7 @@ static Grid_card *grid_card_new()
 {
    if(grid_card_pool==NULL)
    {
-      Grid_card *nc = RvR_malloc(sizeof(*nc)*256);
+      Grid_card *nc = RvR_malloc(sizeof(*nc)*256,"Grid_card pool");
       memset(nc,0,sizeof(*nc)*256);
       
       for(int i = 0;i<256-1;i++)

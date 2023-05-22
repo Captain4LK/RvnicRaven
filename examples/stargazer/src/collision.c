@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "../RvR/RvnicRaven.h"
+#include "RvR/RvR.h"
 //-------------------------------------
 
 //Internal includes

@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -48,11 +48,11 @@ Grid_square *grid_square(int x, int y);
 
 void grid_entity_remove(Entity *e);
 void grid_entity_add(Entity *e);
-void grid_entity_update_pos(Entity *e, RvR_vec3 new_pos);
+void grid_entity_update_pos(Entity *e, RvR_fix16 nx, RvR_fix16 ny, RvR_fix16 nz);
 
 void grid_card_remove(Card *c);
 void grid_card_add(Card *c);
-void grid_card_update_pos(Card *c, RvR_vec3 new_pos);
+void grid_card_update_pos(Card *c, RvR_fix16 nx, RvR_fix16 ny, RvR_fix16 nz);
 
 void grid_entity_use(Entity *e);
 

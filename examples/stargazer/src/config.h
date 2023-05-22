@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -17,12 +17,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define CAMERA_COLL_STEP_HEIGHT (1024/4)
 #define GRAVITY 16
 #define MESSAGE_MAX 5
-#define MESSAGE_TIMEOUT (RVR_FPS*4)
+#define MESSAGE_TIMEOUT (RvR_fps()*4)
 
 #define CAMERA_SHEAR_SPEED 3
 #define CAMERA_SHEAR_MAX 1024
-#define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX*RVR_YRES)/1024)
-#define CAMERA_SHEAR_STEP_FRAME ((RVR_YRES*CAMERA_SHEAR_SPEED)/(RVR_FPS*4))
+#define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX*RvR_yres())/1024)
+#define CAMERA_SHEAR_STEP_FRAME ((RvR_yres()*CAMERA_SHEAR_SPEED)/(RvR_fps()*4))
 
 #define MAX_VERTICAL_SPEED 256
 #define JUMP_SPEED 128

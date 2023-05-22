@@ -15,4 +15,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void map_load(uint16_t id);
 void map_init();
 
+RvR_ray_map *map_current();
+
 #endif

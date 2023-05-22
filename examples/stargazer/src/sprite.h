@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -23,7 +23,7 @@ extern Sprite sprites[1<<16];
 
 void sprites_init(void);
 void sprite_draw_begin();
-void sprite_draw(RvR_vec3 pos, RvR_fix22 dir, int32_t sprite);
+void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t sprite);
 void sprite_draw_end();
 
 #endif

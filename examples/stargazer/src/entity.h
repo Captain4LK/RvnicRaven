@@ -36,19 +36,23 @@ struct Entity
    //-------------------------------------
 
    //Collision
-   RvR_vec3 pos;
-   RvR_vec3 vel;
+   RvR_fix16 x;
+   RvR_fix16 y;
+   RvR_fix16 z;
+   RvR_fix16 vx;
+   RvR_fix16 vy;
+   RvR_fix16 vz;
    int on_ground;
-   RvR_fix22 direction;
-   RvR_fix22 col_height;
-   RvR_fix22 col_radius; //col_radius==0 --> no collider
+   RvR_fix16 direction;
+   RvR_fix16 col_height;
+   RvR_fix16 col_radius; //col_radius==0 --> no collider
 
    //bit0: shootable
    uint32_t col_flags;
    //-------------------------------------
 
    //Drawing
-   RvR_fix22 vis_zoff;
+   RvR_fix16 vis_zoff;
    int32_t sprite;
    //-------------------------------------
 
