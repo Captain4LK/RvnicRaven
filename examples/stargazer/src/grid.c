@@ -71,7 +71,7 @@ void grid_build()
       RvR_free(grid.grid);
    }
 
-   RvR_ray_map *map = RvR_ray_map_get();
+   RvR_ray_map *map = map_current();
    grid.width = map->width;
    grid.height = map->height;
    grid.grid = RvR_malloc(sizeof(*grid.grid)*grid.width*grid.height,"map grid");
@@ -79,8 +79,8 @@ void grid_build()
    //Calculate whether a cell is solid
    for(int i = 0;i<grid.width*grid.height;i++)
    {
-      RvR_fix22 floor = map->floor[i];
-      RvR_fix22 ceiling = map->ceiling[i];
+      RvR_fix16 floor = map->floor[i];
+      RvR_fix16 ceiling = map->ceiling[i];
 
       grid.grid[i].blocked = floor>=ceiling;
       grid.grid[i].entities = NULL;
@@ -97,10 +97,10 @@ void grid_build()
 
 void grid_entity_remove(Entity *e)
 {
-   int l = (e->x-e->col_radius)/1024;
-   int r = (e->x+e->col_radius)/1024;
-   int t = (e->y-e->col_radius)/1024;
-   int b = (e->y+e->col_radius)/1024;
+   int l = (e->x-e->col_radius)/65536;
+   int r = (e->x+e->col_radius)/65536;
+   int t = (e->y-e->col_radius)/65536;
+   int b = (e->y+e->col_radius)/65536;
 
    for(int y = t;y<=b;y++)
    {
@@ -125,10 +125,10 @@ void grid_entity_remove(Entity *e)
 
 void grid_entity_add(Entity *e)
 {
-   int l = (e->x-e->col_radius)/1024;
-   int r = (e->x+e->col_radius)/1024;
-   int t = (e->y-e->col_radius)/1024;
-   int b = (e->y+e->col_radius)/1024;
+   int l = (e->x-e->col_radius)/65536;
+   int r = (e->x+e->col_radius)/65536;
+   int t = (e->y-e->col_radius)/65536;
+   int b = (e->y+e->col_radius)/65536;
 
    for(int y = t;y<=b;y++)
    {
@@ -151,7 +151,7 @@ void grid_entity_add(Entity *e)
 void grid_entity_update_pos(Entity *e, RvR_fix16 nx, RvR_fix16 ny, RvR_fix16 nz)
 {
    //TODO(Captain4LK): what's the point of this? Is it supposed to only update z pos?
-   if(e->pos.x!=new_pos.x&&e->pos.y==new_pos.y)
+   if(e->x!=nx&&e->y==ny)
    {
       e->x = nx;
       e->y = ny;
@@ -160,16 +160,19 @@ void grid_entity_update_pos(Entity *e, RvR_fix16 nx, RvR_fix16 ny, RvR_fix16 nz)
    }
 
    grid_entity_remove(e);
-   e->pos = new_pos;
+   e->x = nx;
+   e->y = ny;
+   e->z = nz;
+   //e->pos = new_pos;
    grid_entity_add(e);
 }
 
 void grid_card_remove(Card *c)
 {
-   int l = (c->x-CARD_RADIUS)/1024;
-   int r = (c->x+CARD_RADIUS)/1024;
-   int t = (c->y-CARD_RADIUS)/1024;
-   int b = (c->y+CARD_RADIUS)/1024;
+   int l = (c->x-CARD_RADIUS)/65536;
+   int r = (c->x+CARD_RADIUS)/65536;
+   int t = (c->y-CARD_RADIUS)/65536;
+   int b = (c->y+CARD_RADIUS)/65536;
 
    for(int y = t;y<=b;y++)
    {
@@ -194,10 +197,10 @@ void grid_card_remove(Card *c)
 
 void grid_card_add(Card *c)
 {
-   int l = (c->x-CARD_RADIUS)/1024;
-   int r = (c->x+CARD_RADIUS)/1024;
-   int t = (c->y-CARD_RADIUS)/1024;
-   int b = (c->y+CARD_RADIUS)/1024;
+   int l = (c->x-CARD_RADIUS)/65536;
+   int r = (c->x+CARD_RADIUS)/65536;
+   int t = (c->y-CARD_RADIUS)/65536;
+   int b = (c->y+CARD_RADIUS)/65536;
 
    for(int y = t;y<=b;y++)
    {
@@ -220,23 +223,29 @@ void grid_card_add(Card *c)
 void grid_card_update_pos(Card *c, RvR_fix16 nx, RvR_fix16 ny, RvR_fix16 nz)
 {
    //TODO(Captain4LK): what's the point of this? Is it supposed to only update z pos?
-   if(c->pos.x!=new_pos.x&&c->pos.y==new_pos.y)
+   if(c->x!=nx&&c->y==ny)
    {
-      c->pos = new_pos;
+      //c->pos = new_pos;
+      c->x = nx;
+      c->y = ny;
+      c->z = nz;
       return;
    }
 
    grid_card_remove(c);
-   c->pos = new_pos;
+   //c->pos = new_pos;
+   c->x = nx;
+   c->y = ny;
+   c->z = nz;
    grid_card_add(c);
 }
 
 void grid_entity_use(Entity *e)
 {
-   int l = (e->x-e->col_radius)/1024-1;
-   int r = (e->x+e->col_radius)/1024+1;
-   int t = (e->y-e->col_radius)/1024-1;
-   int b = (e->y+e->col_radius)/1024+1;
+   int l = (e->x-e->col_radius)/65536-1;
+   int r = (e->x+e->col_radius)/65536+1;
+   int t = (e->y-e->col_radius)/65536-1;
+   int b = (e->y+e->col_radius)/65536+1;
 
    uint32_t count = grid_counter_next();
 

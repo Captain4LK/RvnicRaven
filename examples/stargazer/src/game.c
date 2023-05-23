@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdint.h>
 #include <string.h>
 #include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -93,7 +94,7 @@ next:
 void game_draw()
 {
    if(fade_timer==FADE_TIME)
-      memcpy(RvR_texture_get(65535)->data,RvR_core_framebuffer(),RVR_XRES*RVR_YRES);
+      memcpy(RvR_texture_get(65535)->data,RvR_framebuffer(),RvR_xres()*RvR_yres());
 
    RvR_ray_draw_begin();
    sprite_draw_begin();
@@ -102,7 +103,7 @@ void game_draw()
    Entity *e = entities;
    while(e!=NULL)
    {
-      sprite_draw(e->pos,e->direction,e->sprite);
+      //sprite_draw(e->pos,e->direction,e->sprite);
       e = e->next;
    }
 
@@ -110,7 +111,7 @@ void game_draw()
    Card *c = cards;
    while(c!=NULL)
    {
-      sprite_draw(c->pos,0,32768);
+      //sprite_draw(c->pos,0,32768);
       c = c->next;
    }
 
