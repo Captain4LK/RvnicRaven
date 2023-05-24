@@ -115,19 +115,19 @@ void game_draw()
       c = c->next;
    }
 
-   RvR_ray_draw_map();
+   RvR_ray_draw_map(&player.cam,map_current());
 
    sprite_draw_end();
-   RvR_ray_draw_end();
+   RvR_ray_draw_end(&player.cam,map_current());
    
    if(fade_timer--)
    {
       RvR_texture *fade = RvR_texture_get(65535);
-      RvR_draw_texture(fade,0,0);
+      RvR_render_texture(fade,0,0);
       for(int i = 0;i<(1<<19)/FADE_TIME;i++)
       {
          fade_state = (17*fade_state+33)&((1<<19)-1);
-         if(fade_state<RVR_XRES*RVR_YRES)
+         if(fade_state<RvR_xres()*RvR_yres())
             fade->data[fade_state] = 0;
       }
    }
@@ -144,7 +144,7 @@ void game_init()
 
 void game_set()
 {
-   RvR_core_mouse_relative(1);
+   RvR_mouse_relative(1);
    fade_timer = FADE_TIME;
    fade_state = 0; //TODO: random number
 }

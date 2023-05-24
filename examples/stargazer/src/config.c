@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -42,7 +42,8 @@ static const char *keytostr(RvR_key key);
 
 void config_read(const char *path)
 {
-   RvR_rw rw = {0};
+   //TODO(Captain4LK): do I want to add this back to RvnicRaven?
+   /*RvR_rw rw = {0};
    RvR_rw_init_path(&rw,path,"r");
 
    if(!RvR_rw_valid(&rw))
@@ -62,7 +63,7 @@ void config_read(const char *path)
    RvR_ini_read(config,&config_use,RVR_CONFIG_KEY,"use"); 
    RvR_ini_read(config,&config_inventory,RVR_CONFIG_KEY,"inventory"); 
 
-   RvR_ini_free(config);
+   RvR_ini_free(config);*/
 }
 
 void config_write(const char *path)

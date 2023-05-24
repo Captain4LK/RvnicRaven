@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -45,7 +45,7 @@ Entity *entity_new()
 {
    if(entity_pool==NULL)
    {
-      Entity *ne = RvR_malloc(sizeof(*ne)*256);
+      Entity *ne = RvR_malloc(sizeof(*ne)*256,"Entity pool");
       memset(ne,0,sizeof(*ne)*256);
       
       for(int i = 0;i<256-1;i++)

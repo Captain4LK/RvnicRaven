@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -41,7 +41,7 @@ Card *card_new()
 {
    if(card_pool==NULL)
    {
-      Card *nc = RvR_malloc(sizeof(*nc)*256);
+      Card *nc = RvR_malloc(sizeof(*nc)*256,"Card pool");
       memset(nc,0,sizeof(*nc)*256);
       
       for(int i = 0;i<256-1;i++)
@@ -95,6 +95,8 @@ void card_remove(Card *c)
 void card_copy(Card *dst, const Card *src)
 {
    dst->type = src->type;
-   dst->pos = src->pos;
+   dst->x = src->x;
+   dst->y = src->y;
+   dst->z = src->z;
 }
 //-------------------------------------

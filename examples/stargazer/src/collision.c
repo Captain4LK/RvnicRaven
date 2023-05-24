@@ -1,7 +1,7 @@
 /*
 RvnicRaven - stargazer
 
-Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -34,17 +34,17 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static void collision_intersects(Entity *a, Entity *b, RvR_fix22 *depth, RvR_vec2 *normal);
+static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 normaly);
 //-------------------------------------
 
 //Function implementations
 
-void collision_move(Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
+void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
 {
    if(e->removed)
       return;
 
-   int8_t moves_in_plane = (e->vel.x>>6)!=0||(e->vel.y>>6)!=0;
+   int8_t moves_in_plane = (e->vel.x)!=0||(e->vel.y)!=0;
 
    if(floor_height!=NULL)
       *floor_height = INT32_MIN;
@@ -53,11 +53,11 @@ void collision_move(Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_heigh
 
    Entity *col = entities;
    Entity cur = {0};
-   cur.pos.x = e->pos.x+(e->vel.x>>6);
-   cur.pos.y = e->pos.y+(e->vel.y>>6);
+   cur.pos.x = e->pos.x+(e->vel.x);
+   cur.pos.y = e->pos.y+(e->vel.y);
    cur.pos.z = e->pos.z+e->vel.z;
-   cur.col_radius = 256;
-   cur.col_height = 768;
+   cur.col_radius = 256*64;
+   cur.col_height = 768*64;
    while(col!=NULL)
    {
       if(col==e)
@@ -71,14 +71,15 @@ void collision_move(Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_heigh
       if(col->pos.z+col->col_height<(cur.pos.z))
          goto next;
 
-      RvR_fix22 depth;
-      RvR_vec2 normal;
+      RvR_fix16 depth;
+      RvR_fix16 normx;
+      RvR_fix16 normy;
 
-      collision_intersects(&cur,col,&depth,&normal);
+      collision_intersects(&cur,col,&depth,&normx,&normy);
       if(depth>0)
       {
          //Compare collision resolution posiblilities
-         RvR_fix22 depth_z;
+         RvR_fix16 depth_z;
          if(cur.pos.z>col->pos.z)
             depth_z = (col->pos.z+col->col_height)-(cur.pos.z);
          else
@@ -86,16 +87,18 @@ void collision_move(Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_heigh
 
          if(RvR_abs(depth_z)>depth)
          {
-            cur.pos.x-=(normal.x*depth)/1024;
-            cur.pos.y-=(normal.y*depth)/1024;
+            cur.x-=RvR_fix16_mul(normx,depth);
+            cur.y-=RvR_fix16_mul(normy,depth);
+            //cur.pos.x-=(normal.x*depth)/1024;
+            //cur.pos.y-=(normal.y*depth)/1024;
          }
          else
          {
-            cur.pos.z+=depth_z;
-            if(floor_height!=NULL&&depth_z>0&&col->pos.z+col->col_height>*floor_height)
-               *floor_height = col->pos.z+col->col_height;
-            else if(ceiling_height!=NULL&&depth_z<0&&col->pos.z<*ceiling_height)
-               *ceiling_height = col->pos.z;
+            cur.z+=depth_z;
+            if(floor_height!=NULL&&depth_z>0&&col->z+col->col_height>*floor_height)
+               *floor_height = col->z+col->col_height;
+            else if(ceiling_height!=NULL&&depth_z<0&&col->z<*ceiling_height)
+               *ceiling_height = col->z;
          }
       }
 
@@ -103,14 +106,17 @@ next:
       col = col->next;
    }
 
-   RvR_vec3 offset;
-   offset.x = cur.pos.x-e->pos.x;
-   offset.y = cur.pos.y-e->pos.y;
-   offset.z = cur.pos.z-e->pos.z;
-   RvR_vec3 old_pos = cur.pos;
-   old_pos.x-=offset.x;
-   old_pos.y-=offset.y;
-   old_pos.z-=offset.z;
+   //RvR_vec3 offset;
+   RvR_fix16 offx = cur.x-e->x;
+   RvR_fix16 offy = cur.y-e->y;
+   RvR_fix16 offz = cur.z-e->z;
+   RvR_fix16 oldx = cur.x;
+   RvR_fix16 oldy = cur.y;
+   RvR_fix16 oldz = cur.z;
+   //RvR_vec3 old_pos = cur.pos;
+   oldx-=offx;
+   oldy-=offy;
+   oldz-=offz;
 
    int16_t x_square_new, y_square_new;
 
@@ -309,7 +315,7 @@ next:
       e->vel.x = e->vel.y = 0;
 }
 
-static void collision_intersects(Entity *a, Entity *b, RvR_fix22 *depth, RvR_vec2 *normal)
+static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 normaly)
 {
    normal->x = 0;
    normal->y = 0;
