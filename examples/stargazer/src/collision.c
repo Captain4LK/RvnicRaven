@@ -34,7 +34,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 normaly);
+static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 *normaly);
 //-------------------------------------
 
 //Function implementations
@@ -44,7 +44,7 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
    if(e->removed)
       return;
 
-   int8_t moves_in_plane = (e->vel.x)!=0||(e->vel.y)!=0;
+   int8_t moves_in_plane = (e->vx)!=0||(e->vy)!=0;
 
    if(floor_height!=NULL)
       *floor_height = INT32_MIN;
@@ -53,9 +53,9 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
 
    Entity *col = entities;
    Entity cur = {0};
-   cur.pos.x = e->pos.x+(e->vel.x);
-   cur.pos.y = e->pos.y+(e->vel.y);
-   cur.pos.z = e->pos.z+e->vel.z;
+   cur.x = e->x+(e->vx);
+   cur.y = e->y+(e->vy);
+   cur.z = e->z+e->vz;
    cur.col_radius = 256*64;
    cur.col_height = 768*64;
    while(col!=NULL)
@@ -66,9 +66,9 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
          goto next;
       if(col->col_radius==0)
          goto next;
-      if(col->pos.z>(cur.pos.z)+cur.col_height)
+      if(col->z>(cur.z)+cur.col_height)
          goto next;
-      if(col->pos.z+col->col_height<(cur.pos.z))
+      if(col->z+col->col_height<(cur.z))
          goto next;
 
       RvR_fix16 depth;
@@ -80,10 +80,10 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
       {
          //Compare collision resolution posiblilities
          RvR_fix16 depth_z;
-         if(cur.pos.z>col->pos.z)
-            depth_z = (col->pos.z+col->col_height)-(cur.pos.z);
+         if(cur.z>col->z)
+            depth_z = (col->z+col->col_height)-(cur.z);
          else
-            depth_z = -((cur.pos.z+cur.col_height)-col->pos.z);
+            depth_z = -((cur.z+cur.col_height)-col->z);
 
          if(RvR_abs(depth_z)>depth)
          {
@@ -120,43 +120,51 @@ next:
 
    int16_t x_square_new, y_square_new;
 
-   RvR_vec2 corner; // BBox corner in the movement direction
-   RvR_vec2 corner_new;
+   RvR_fix16 cornerx;
+   RvR_fix16 cornery;
+   RvR_fix16 corner_newx;
+   RvR_fix16 corner_newy;
+   //RvR_vec2 corner; // BBox corner in the movement direction
+   //RvR_vec2 corner_new;
 
-   int16_t x_dir = offset.x>0?1:-1;
-   int16_t y_dir = offset.y>0?1:-1;
+   int16_t x_dir = offx>0?1:-1;
+   int16_t y_dir = offy>0?1:-1;
 
-   corner.x = e->pos.x+x_dir*CAMERA_COLL_RADIUS;
-   corner.y = e->pos.y+y_dir*CAMERA_COLL_RADIUS;
+   cornerx = e->x+x_dir*CAMERA_COLL_RADIUS;
+   cornery = e->y+y_dir*CAMERA_COLL_RADIUS;
 
-   int16_t x_square = RvR_div_round_down(corner.x,1024);
-   int16_t y_square = RvR_div_round_down(corner.y,1024);
+   //int16_t x_square = RvR_div_round_down(corner.x,1024);
+   //int16_t y_square = RvR_div_round_down(corner.y,1024);
+   int16_t x_square = (cornerx/65536);
+   int16_t y_square = (cornery/65536);
 
-   corner_new.x = corner.x+offset.x;
-   corner_new.y = corner.y+offset.y;
+   corner_newx = cornerx+offx;
+   corner_newy = cornery+offy;
 
-   x_square_new = RvR_div_round_down(corner_new.x,1024);
-   y_square_new = RvR_div_round_down(corner_new.y,1024);
+   //x_square_new = RvR_div_round_down(corner_new.x,1024);
+   //y_square_new = RvR_div_round_down(corner_new.y,1024);
+   x_square_new = (corner_newx/65536);
+   y_square_new = (corner_newy/65536);
 
-   RvR_fix22 bottom_limit = -RvR_fix22_infinity;
-   RvR_fix22 top_limit = RvR_fix22_infinity;
+   RvR_fix16 bottom_limit = -1024*65536;
+   RvR_fix16 top_limit = 1024*65536;
 
-   RvR_fix22 curr_ceil_height = RvR_fix22_infinity;
+   RvR_fix16 curr_ceil_height = 1024*65536;
 
 
    int can_step = 0;
    int did_step = 0;
-   if(e->vel.z<=0)
+   if(e->vz<=0)
       can_step = 1;
 
-   bottom_limit = e->pos.z;
-   top_limit = e->pos.z+e->col_height;
+   bottom_limit = e->z;
+   top_limit = e->z+e->col_height;
 
-   curr_ceil_height = RvR_ray_map_ceiling_height_at(x_square,y_square);
+   curr_ceil_height = RvR_ray_map_ceiling_height_at(map_current(),x_square,y_square);
 
    // checks a single square for collision against the camera
 #define collCheck(dir,s1,s2)\
-   RvR_fix22 height = RvR_ray_map_floor_height_at(s1,s2);\
+   RvR_fix16 height = RvR_ray_map_floor_height_at(map_current(),s1,s2);\
    if(height>bottom_limit||curr_ceil_height-height<e->col_height)\
    { \
       dir##_collides = 1;\
@@ -167,7 +175,7 @@ next:
       } \
    } \
    {\
-      RvR_fix22 height2 = RvR_ray_map_ceiling_height_at(s1,s2);\
+      RvR_fix16 height2 = RvR_ray_map_ceiling_height_at(map_current(),s1,s2);\
       if((height2<top_limit)||((height2-height)<\
       (e->col_height)))\
          dir##_collides = 1;\
@@ -181,8 +189,9 @@ next:
    }\
    if(!dir##_collides)\
    { /* now also check for coll on the neighbouring square */ \
-      int16_t dir2##_square2 = RvR_div_round_down(corner.dir2-dir2##_dir *\
-      CAMERA_COLL_RADIUS*2,1024);\
+      /*int16_t dir2##_square2 = RvR_div_round_down(corner.dir2-dir2##_dir */\
+      /*CAMERA_COLL_RADIUS*2,1024);*/\
+      int16_t dir2##_square2 = ((corner##dir2-dir2##_dir * CAMERA_COLL_RADIUS*2)/65536);\
       if(dir2##_square2!=dir2##_square)\
       {\
          if(x)\
@@ -208,8 +217,8 @@ next:
       {
          #define collHandle(dir)\
          if (dir##_collides)\
-            corner_new.dir = (dir##_square)*1024+\
-            1024/2+dir##_dir*(1024/2)-\
+            corner_new##dir = (dir##_square)*65536+\
+            65536/2+dir##_dir*(65536/2)-\
             dir##_dir;\
 
          collHandle(x)
@@ -222,17 +231,17 @@ next:
          elevators due to vertical only movement. This code can get executed
          when force == 1. */
 
-         RvR_vec2 square_pos;
-         RvR_vec2 new_pos;
+         //RvR_vec2 square_pos;
+         //RvR_vec2 new_pos;
 
-         square_pos.x = x_square*1024;
-         square_pos.y = y_square*1024;
+         RvR_fix16 square_posx = x_square*65536;
+         RvR_fix16 square_posy = y_square*65536;
 
-         new_pos.x = RvR_max(square_pos.x+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.x+1024-CAMERA_COLL_RADIUS-1,e->pos.x));
-         new_pos.y = RvR_max(square_pos.y+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.y+1024-CAMERA_COLL_RADIUS-1,e->pos.y));
+         RvR_fix16 new_posx = RvR_max(square_posx+CAMERA_COLL_RADIUS+1,RvR_min(square_posx+65536-CAMERA_COLL_RADIUS-1,e->x));
+         RvR_fix16 new_posy = RvR_max(square_posy+CAMERA_COLL_RADIUS+1,RvR_min(square_posy+65536-CAMERA_COLL_RADIUS-1,e->y));
 
-         corner_new.x = corner.x+(new_pos.x-e->pos.x);
-         corner_new.y = corner.y+(new_pos.y-e->pos.y);
+         corner_newx = cornerx+(new_posx-e->x);
+         corner_newy = cornery+(new_posy-e->y);
       }
    }
    else 
@@ -246,35 +255,40 @@ next:
 
          if (xy_collides)
          {
-            corner_new = corner;
+            corner_newx = cornerx;
+            corner_newy = cornery;
          }
       }
    }
 
-   RvR_vec3 new_pos;
-   new_pos.x = corner_new.x-x_dir*CAMERA_COLL_RADIUS;
-   new_pos.y = corner_new.y-y_dir*CAMERA_COLL_RADIUS;
-   new_pos.z = e->pos.z+offset.z;
-   grid_entity_update_pos(e,new_pos);
+   //RvR_vec3 new_pos;
+   RvR_fix16 new_posx = corner_newx-x_dir*CAMERA_COLL_RADIUS;
+   RvR_fix16 new_posy = corner_newy-y_dir*CAMERA_COLL_RADIUS;
+   RvR_fix16 new_posz = e->z+offz;
+   grid_entity_update_pos(e,new_posx,new_posy,new_posz);
 
-   int16_t x_square1 = RvR_div_round_down(e->pos.x-CAMERA_COLL_RADIUS,1024);
+   //int16_t x_square1 = RvR_div_round_down(e->pos.x-CAMERA_COLL_RADIUS,1024);
+   int16_t x_square1 = ((e->x-CAMERA_COLL_RADIUS)/65536);
 
-   int16_t x_square2 = RvR_div_round_down(e->pos.x+CAMERA_COLL_RADIUS,1024);
+   //int16_t x_square2 = RvR_div_round_down(e->pos.x+CAMERA_COLL_RADIUS,1024);
+   int16_t x_square2 = ((e->x+CAMERA_COLL_RADIUS)/65536);
 
-   int16_t y_square1 = RvR_div_round_down(e->pos.y-CAMERA_COLL_RADIUS,1024);
+   //int16_t y_square1 = RvR_div_round_down(e->pos.y-CAMERA_COLL_RADIUS,1024);
+   int16_t y_square1 = ((e->y-CAMERA_COLL_RADIUS)/65536);
 
-   int16_t y_square2 = RvR_div_round_down(e->pos.y+CAMERA_COLL_RADIUS,1024);
+   //int16_t y_square2 = RvR_div_round_down(e->pos.y+CAMERA_COLL_RADIUS,1024);
+   int16_t y_square2 = ((e->y+CAMERA_COLL_RADIUS)/65536);
 
-   bottom_limit = RvR_ray_map_floor_height_at(x_square1,y_square1);
-   top_limit = RvR_ray_map_ceiling_height_at(x_square1,y_square1);
+   bottom_limit = RvR_ray_map_floor_height_at(map_current(),x_square1,y_square1);
+   top_limit = RvR_ray_map_ceiling_height_at(map_current(),x_square1,y_square1);
 
-   RvR_fix22 height;
+   RvR_fix16 height;
 
 #define checkSquares(s1,s2)\
    {\
-      height = RvR_ray_map_floor_height_at(x_square##s1,y_square##s2);\
+      height = RvR_ray_map_floor_height_at(map_current(),x_square##s1,y_square##s2);\
       bottom_limit = RvR_max(bottom_limit,height);\
-      height = RvR_ray_map_ceiling_height_at(x_square##s1,y_square##s2);\
+      height = RvR_ray_map_ceiling_height_at(map_current(),x_square##s1,y_square##s2);\
       top_limit = RvR_min(top_limit,height);\
    }
 
@@ -292,40 +306,43 @@ next:
    if(ceiling_height!=NULL&&*ceiling_height>top_limit)
       *ceiling_height = top_limit;
 
-   if(e->pos.z<bottom_limit&&did_step)
-      e->vis_zoff = RvR_min(e->pos.z-bottom_limit,e->vis_zoff);
+   if(e->z<bottom_limit&&did_step)
+      e->vis_zoff = RvR_min(e->z-bottom_limit,e->vis_zoff);
 
-   e->pos.z = RvR_clamp(e->pos.z,bottom_limit,top_limit-e->col_height);
+   e->z = RvR_clamp(e->z,bottom_limit,top_limit-e->col_height);
 
 #undef checkSquares
 #undef collCheckOrtho
 #undef collHandle
 #undef collCheck
 
-   if((e->vel.x>>6)!=(e->pos.x-old_pos.x))
-      e->vel.x = (e->pos.x-old_pos.x)<<6;
-   if((e->vel.y>>6)!=(e->pos.y-old_pos.y))
-      e->vel.y = (e->pos.y-old_pos.y)<<6;
+   if((e->vx)!=(e->x-oldx))
+      e->vx = (e->x-oldx);
+   if((e->vy)!=(e->y-oldy))
+      e->vy = (e->y-oldy);
 
    //Lower velocity/friction
-   e->vel.x = (e->vel.x*900)/1024;
-   e->vel.y = (e->vel.y*900)/1024;
-   RvR_fix22 vel_mag = (e->vel.x*e->vel.x+e->vel.y*e->vel.y)/1024;
+   //e->vx = (e->vel.x*900)/1024;
+   //e->vy = (e->vel.y*900)/1024;
+   e->vx = RvR_fix16_mul(e->vx,57600);
+   e->vy = RvR_fix16_mul(e->vy,57600);
+   //RvR_fix22 vel_mag = (e->vel.x*e->vel.x+e->vel.y*e->vel.y)/1024;
+   RvR_fix16 vel_mag = RvR_fix16_mul(e->vx,e->vx)+RvR_fix16_mul(e->vy,e->vy);
    if(vel_mag<128)
-      e->vel.x = e->vel.y = 0;
+      e->vx = e->vy = 0;
 }
 
-static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 normaly)
+static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 *normaly)
 {
-   normal->x = 0;
-   normal->y = 0;
+   *normalx = 0;
+   *normaly = 0;
    *depth = 0;
 
    if(a->removed||b->removed)
       return;
 
-   RvR_fix22 dx = b->pos.x-a->pos.x;
-   RvR_fix22 dy = b->pos.y-a->pos.y;
+   RvR_fix16 dx = b->x-a->x;
+   RvR_fix16 dy = b->y-a->y;
 
    //Early out, overflow protection
    if(RvR_abs(dx)>a->col_radius+b->col_radius)
@@ -333,20 +350,23 @@ static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix
    if(RvR_abs(dy)>a->col_radius+b->col_radius)
       return;
 
-   RvR_fix22 depth2 = (dx*dx+dy*dy)/1024;
-   RvR_fix22 r = a->col_radius+b->col_radius;
+   //RvR_fix16 depth2 = (dx*dx+dy*dy)/1024;
+   RvR_fix16 depth2 = RvR_fix16_mul(dx,dx)+RvR_fix16_mul(dy,dy);
+   RvR_fix16 r = a->col_radius+b->col_radius;
    if(depth2<r)
    {
-      *depth = RvR_fix22_sqrt(depth2);
+      *depth = RvR_fix16_sqrt(depth2);
       if(*depth==0)
       {
-         normal->x = 0;
-         normal->y = 1024;
+         *normalx = 0;
+         *normaly = 65536;
       }
       else
       {
-         normal->x = (dx*1024)/(*depth);
-         normal->y = (dy*1024)/(*depth);
+         //normal->x = (dx*1024)/(*depth);
+         //normal->y = (dy*1024)/(*depth);
+         *normalx = RvR_fix16_div(dx,*depth);
+         *normaly = RvR_fix16_div(dy,*depth);
       }
       *depth = r-*depth;
    }
