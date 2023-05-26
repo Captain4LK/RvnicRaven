@@ -193,6 +193,7 @@ void player_update()
    player.cam.y = player.entity->y;
    player.cam.z = player.entity->z+player.entity->vis_zoff+CAMERA_COLL_HEIGHT_BELOW;
    player.cam.dir = player.entity->direction;
+   player.cam.fov = 16384;
    player.cam.shear = player.shear;
    //RvR_vec3 rpos = player.entity->pos;
    //rpos.z+=CAMERA_COLL_HEIGHT_BELOW;

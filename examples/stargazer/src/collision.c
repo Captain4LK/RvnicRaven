@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdint.h>
 #include <string.h>
 #include "RvR/RvR.h"
+#include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
@@ -21,6 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "sprite.h"
 #include "entity.h"
 #include "collision.h"
+#include "map.h"
 #include "grid.h"
 //-------------------------------------
 

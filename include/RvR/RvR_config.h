@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVR_CONFIG_H_
 
-#define RVR_XRES_MAX 320
-#define RVR_YRES_MAX 240
+#define RVR_XRES_MAX 640
+#define RVR_YRES_MAX 480
 
 #endif

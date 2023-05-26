@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _CONFIG_H_
 
-#define CAMERA_COLL_HEIGHT_BELOW 800
+#define CAMERA_COLL_HEIGHT_BELOW (800*64)
 #define CAMERA_COLL_RADIUS 256
 #define CAMERA_COLL_STEP_HEIGHT (1024/4)
 #define GRAVITY 16

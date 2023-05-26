@@ -44,7 +44,8 @@ static uint32_t ai_from_tex(uint16_t tex);
 
 void map_load(uint16_t id)
 {
-   RvR_ray_map_free(map);
+   if(map!=NULL)
+      RvR_ray_map_free(map);
    map = RvR_ray_map_load(id);
 }
 
@@ -101,6 +102,6 @@ static uint32_t ai_from_tex(uint16_t tex)
 
 RvR_ray_map *map_current()
 {
-   return NULL;
+   return map;
 }
 //-------------------------------------
