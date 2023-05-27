@@ -330,7 +330,7 @@ next:
    e->vy = RvR_fix16_mul(e->vy,57600);
    //RvR_fix22 vel_mag = (e->vel.x*e->vel.x+e->vel.y*e->vel.y)/1024;
    RvR_fix16 vel_mag = RvR_fix16_mul(e->vx,e->vx)+RvR_fix16_mul(e->vy,e->vy);
-   if(vel_mag<128)
+   if(vel_mag<4)
       e->vx = e->vy = 0;
 }
 

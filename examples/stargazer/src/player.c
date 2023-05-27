@@ -72,8 +72,8 @@ void player_update()
    int x,y;
    RvR_mouse_relative_pos(&x,&y);
    //RvR_vec2 direction = RvR_vec2_rot(player.entity->direction);
-   RvR_fix16 dirx = RvR_fix16_cos(player.entity->direction);
-   RvR_fix16 diry = RvR_fix16_sin(player.entity->direction);
+   RvR_fix16 dirx = RvR_fix16_cos(player.entity->direction)/64;
+   RvR_fix16 diry = RvR_fix16_sin(player.entity->direction)/64;
 
    dirx+=dirx/4;
    diry+=diry/4;
@@ -107,12 +107,12 @@ void player_update()
 
    //RvR_fix22 vel_len = RvR_fix22_sqrt((player.entity->vel.x*player.entity->vel.x+player.entity->vel.y*player.entity->vel.y)/1024);
    RvR_fix16 vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
-   if(vel_len>196*64)
+   if(vel_len>8192)
    {
       //player.entity->vel.x = (player.entity->vel.x*196*64)/vel_len;
       //player.entity->vel.y = (player.entity->vel.y*196*64)/vel_len;
-      player.entity->vx = RvR_fix16_div(player.entity->vx*196*64,vel_len);
-      player.entity->vy = RvR_fix16_div(player.entity->vy*196*64,vel_len);
+      player.entity->vx = RvR_fix16_div(RvR_fix16_mul(player.entity->vx,8192),vel_len);
+      player.entity->vy = RvR_fix16_div(RvR_fix16_mul(player.entity->vy,8192),vel_len);
    }
 
    //Mouse look: x-axis
