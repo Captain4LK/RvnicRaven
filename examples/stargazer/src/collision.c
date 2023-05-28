@@ -324,11 +324,8 @@ next:
       e->vy = (e->y-oldy);
 
    //Lower velocity/friction
-   //e->vx = (e->vel.x*900)/1024;
-   //e->vy = (e->vel.y*900)/1024;
    e->vx = RvR_fix16_mul(e->vx,57600);
    e->vy = RvR_fix16_mul(e->vy,57600);
-   //RvR_fix22 vel_mag = (e->vel.x*e->vel.x+e->vel.y*e->vel.y)/1024;
    RvR_fix16 vel_mag = RvR_fix16_mul(e->vx,e->vx)+RvR_fix16_mul(e->vy,e->vy);
    if(vel_mag<4)
       e->vx = e->vy = 0;
@@ -352,7 +349,6 @@ static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix
    if(RvR_abs(dy)>a->col_radius+b->col_radius)
       return;
 
-   //RvR_fix16 depth2 = (dx*dx+dy*dy)/1024;
    RvR_fix16 depth2 = RvR_fix16_mul(dx,dx)+RvR_fix16_mul(dy,dy);
    RvR_fix16 r = a->col_radius+b->col_radius;
    if(depth2<r)
@@ -365,8 +361,6 @@ static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix
       }
       else
       {
-         //normal->x = (dx*1024)/(*depth);
-         //normal->y = (dy*1024)/(*depth);
          *normalx = RvR_fix16_div(dx,*depth);
          *normaly = RvR_fix16_div(dy,*depth);
       }

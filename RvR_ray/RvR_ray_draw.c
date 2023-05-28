@@ -306,8 +306,13 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
       uint16_t ftex = old_ftex;
       uint16_t ctex = old_ctex;
 
-      RvR_fix16 deltax = RvR_abs(RvR_fix16_div(65536,RvR_non_zero(r.dirx)));
-      RvR_fix16 deltay = RvR_abs(RvR_fix16_div(65536,RvR_non_zero(r.diry)));
+      RvR_fix16 deltax;
+      if(RvR_abs(r.dirx)<=2) deltax = INT32_MAX; //Edge cases, would overflow otherwise
+      else deltax = RvR_abs(RvR_fix16_div(65536,r.dirx));
+
+      RvR_fix16 deltay;
+      if(RvR_abs(r.diry)<=2) deltay = INT32_MAX; //Edge cases, would overflow otherwise
+      else deltay = RvR_abs(RvR_fix16_div(65536,r.diry));
 
       RvR_fix16 stepx;
       RvR_fix16 stepy;
@@ -1053,7 +1058,7 @@ static void ray_span_draw_tex(const RvR_ray_cam *cam, int x0, int x1, int y, RvR
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
    RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
 
-   RvR_fix16 dy = middle_row-y;
+   RvR_fix16 dy = RvR_non_zero(middle_row-y); //Horizon is at infinity, use 1 above instead
    RvR_fix16 depth = RvR_fix16_div(RvR_abs(cam->z-height),RvR_non_zero(fovy));
    depth = RvR_fix16_div(depth*RvR_yres(),RvR_non_zero(RvR_abs(dy)<<16)); //TODO
 

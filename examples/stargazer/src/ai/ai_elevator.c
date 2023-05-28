@@ -73,7 +73,7 @@ void ai_elevator_run(Entity *e)
    case 0: //Rise
       {
          RvR_fix16 z = RvR_ray_map_floor_height_at(map_current(),e->x/65536,e->y/65536);
-         z = RvR_min(state->top,z+48);
+         z = RvR_min(state->top,z+48*64);
          RvR_ray_map_floor_height_set(map_current(),e->x/65536,e->y/65536,z);
 
          if(z>=state->top)
@@ -86,7 +86,7 @@ void ai_elevator_run(Entity *e)
    case 1: //Lower
       {
          RvR_fix16 z = RvR_ray_map_floor_height_at(map_current(),e->x/65536,e->y/65536);
-         z = RvR_max(state->bottom,z-48);
+         z = RvR_max(state->bottom,z-48*64);
          RvR_ray_map_floor_height_set(map_current(),e->x/65536,e->y/65536,z);
 
          if(z<=state->bottom)

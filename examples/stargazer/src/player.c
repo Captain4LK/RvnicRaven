@@ -61,6 +61,13 @@ void player_create_new()
    player.entity->cards[0].rank = 9;
    player.entity->cards[0].durability = -1;
 
+   player.cam.x = player.entity->x;
+   player.cam.y = player.entity->y;
+   player.cam.z = player.entity->z+player.entity->vis_zoff+CAMERA_COLL_HEIGHT_BELOW;
+   player.cam.dir = player.entity->direction;
+   player.cam.fov = 16384;
+   player.cam.shear = player.shear = 0;
+
    //if(player.entity!=NULL)
       //entity_free(player.entity);
    //player.entity = entity_new();
@@ -71,7 +78,6 @@ void player_update()
    //Input
    int x,y;
    RvR_mouse_relative_pos(&x,&y);
-   //RvR_vec2 direction = RvR_vec2_rot(player.entity->direction);
    RvR_fix16 dirx = RvR_fix16_cos(player.entity->direction)/64;
    RvR_fix16 diry = RvR_fix16_sin(player.entity->direction)/64;
 
@@ -105,19 +111,16 @@ void player_update()
    if(RvR_key_pressed(config_use))
       grid_entity_use(player.entity);
 
-   //RvR_fix22 vel_len = RvR_fix22_sqrt((player.entity->vel.x*player.entity->vel.x+player.entity->vel.y*player.entity->vel.y)/1024);
    RvR_fix16 vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
    if(vel_len>8192)
    {
-      //player.entity->vel.x = (player.entity->vel.x*196*64)/vel_len;
-      //player.entity->vel.y = (player.entity->vel.y*196*64)/vel_len;
       player.entity->vx = RvR_fix16_div(RvR_fix16_mul(player.entity->vx,8192),vel_len);
       player.entity->vy = RvR_fix16_div(RvR_fix16_mul(player.entity->vy,8192),vel_len);
    }
 
    //Mouse look: x-axis
    if(x!=0)
-      player.entity->direction+=(x*128)/32;
+      player.entity->direction+=(x*128*4)/32;
 
    //Shearing (fake looking up/down)
    //Drift back to 0
@@ -184,7 +187,7 @@ void player_update()
    }
 
    if(player.entity->vis_zoff<0)
-      player.entity->vis_zoff+=RvR_min(-player.entity->vis_zoff,64);
+      player.entity->vis_zoff+=RvR_min(-player.entity->vis_zoff,64*64);
    //-------------------------------------
 
    //Update raycasting values again
@@ -207,8 +210,10 @@ void player_update()
    //vel_len = RvR_fix22_sqrt((player.entity->vel.x*player.entity->vel.x+player.entity->vel.y*player.entity->vel.y)/1024);
    vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
    //RvR_fix22 bob_factor = (vel_len*1024)/8192;
-   RvR_fix16 bob_factor = (vel_len*1024)/8192;
-   player.cam.z+=(RvR_fix16_sin((4096*game_tick)/30)*bob_factor)/(1024*32);
+   RvR_fix16 bob_factor = vel_len/8;
+   player.cam.z+=RvR_fix16_sin(
+   //RvR_fix22 bob_factor = (vel_len*1024)/8192;
+   //pos.z+=(RvR_fix22_sin((4096*game_tick)/30)*bob_factor)/(1024*32);
    //RvR_ray_set_position(pos);
    //-------------------------------------
 }
