@@ -96,6 +96,9 @@ void sprite_draw_begin()
 
 void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t sprite)
 {
+   const Sprite *sp = sprites+sprite;
+   RvR_ray_draw_sprite(&player.cam,x,y,z,dir,sp->tex[0],0);
+   //void               RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags);
    /*if(sprite<0||sprite>UINT16_MAX)
       return;
 

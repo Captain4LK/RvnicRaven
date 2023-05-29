@@ -103,7 +103,7 @@ void game_draw()
    Entity *e = entities;
    while(e!=NULL)
    {
-      //sprite_draw(e->pos,e->direction,e->sprite);
+      sprite_draw(e->x,e->y,e->z,e->direction,e->sprite);
       e = e->next;
    }
 
@@ -111,7 +111,7 @@ void game_draw()
    Card *c = cards;
    while(c!=NULL)
    {
-      //sprite_draw(c->pos,0,32768);
+      sprite_draw(c->x,c->y,c->z,0,32768);
       c = c->next;
    }
 

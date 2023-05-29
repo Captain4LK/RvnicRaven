@@ -190,31 +190,18 @@ void player_update()
       player.entity->vis_zoff+=RvR_min(-player.entity->vis_zoff,64*64);
    //-------------------------------------
 
-   //Update raycasting values again
-   //might be changed by collision
+   //Update cam position and direction
    player.cam.x = player.entity->x;
    player.cam.y = player.entity->y;
    player.cam.z = player.entity->z+player.entity->vis_zoff+CAMERA_COLL_HEIGHT_BELOW;
    player.cam.dir = player.entity->direction;
    player.cam.fov = 16384;
    player.cam.shear = player.shear;
-   //RvR_vec3 rpos = player.entity->pos;
-   //rpos.z+=CAMERA_COLL_HEIGHT_BELOW;
-   //rpos.z+=player.entity->vis_zoff;
-   //RvR_ray_set_position(rpos);
-   //RvR_ray_set_angle(player.entity->direction);
-   //RvR_ray_set_shear(player.shear);
 
    //View bobbing
-   //RvR_vec3 pos = RvR_ray_get_position();
-   //vel_len = RvR_fix22_sqrt((player.entity->vel.x*player.entity->vel.x+player.entity->vel.y*player.entity->vel.y)/1024);
    vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
-   //RvR_fix22 bob_factor = (vel_len*1024)/8192;
-   RvR_fix16 bob_factor = vel_len/8;
-   player.cam.z+=RvR_fix16_sin(
-   //RvR_fix22 bob_factor = (vel_len*1024)/8192;
-   //pos.z+=(RvR_fix22_sin((4096*game_tick)/30)*bob_factor)/(1024*32);
-   //RvR_ray_set_position(pos);
+   RvR_fix16 bob_factor = vel_len/(4);
+   player.cam.z+=RvR_fix16_mul(RvR_fix16_sin(game_tick*2184),bob_factor);
    //-------------------------------------
 }
 //-------------------------------------
