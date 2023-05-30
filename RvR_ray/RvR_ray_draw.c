@@ -789,7 +789,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    //sp.as.bill.depth = p.depth;
 
    //Near clip
-   if(p.depth<128)
+   if(p.depth<8192)
       return;
 
    //Far clip
