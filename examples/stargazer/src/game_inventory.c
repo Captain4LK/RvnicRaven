@@ -187,7 +187,7 @@ void game_inventory_init()
          double dist = 128.0;
          if(root!=0.0)
             dist = (32.0*64.0)/sqrt((x-RvR_xres())*(x-RvR_xres())+(y-RvR_yres())*(y-RvR_yres()));
-         dist_table[y*RvR_xres()*2+x] = RvR_min((RvR_fix16)(dist*65536),131071);
+         dist_table[y*RvR_xres()*2+x] = RvR_min((RvR_fix16)(dist*65536),8388544);
          double ang = (0.5*64*atan2(y-RvR_yres(),x-RvR_xres()))/3.14159265358979323846;
          ang_table[y*RvR_xres()*2+x] = ang*65536;
       }
