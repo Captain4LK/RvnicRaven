@@ -58,7 +58,7 @@ void player_create_new()
    //Starting inventory
    //Health
    player.entity->cards[0].type = CARD_HEARTS;
-   player.entity->cards[0].rank = 9;
+   player.entity->cards[0].rank = 10;
    player.entity->cards[0].durability = -1;
 
    player.cam.x = player.entity->x;

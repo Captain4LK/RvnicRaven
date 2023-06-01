@@ -102,6 +102,21 @@ void entity_remove(Entity *e)
    e->removed = 1;
 }
 
+unsigned entity_health(const Entity *e)
+{
+   if(e==NULL)
+      return 0;
+
+   unsigned health = 0;
+   for(int i = 0;i<e->cards_size;i++)
+   {
+      if(e->cards[i].type==CARD_HEARTS)
+         health+=e->cards[i].rank;
+   }
+
+   return health;
+}
+
 Gendex gendex_get(Entity *e)
 {
    return (Gendex){.generation = e->generation, .index = e};

@@ -75,6 +75,8 @@ void entity_free(Entity *e);
 void entity_add(Entity *e);
 void entity_remove(Entity *e);
 
+unsigned entity_health(const Entity *e);
+
 Gendex gendex_get(Entity *e);
 Entity *gendex_try(Gendex gen);
 

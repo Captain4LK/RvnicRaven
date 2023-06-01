@@ -132,6 +132,10 @@ void game_draw()
       }
    }
 
+   char tmp[128];
+   snprintf(tmp,128,"%d",entity_health(player.entity));
+   RvR_render_string(4,RvR_yres()-32,3,tmp,30);
+
    message_draw(31);
 }
 
