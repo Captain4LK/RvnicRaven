@@ -782,33 +782,34 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    //Billboard
    RvR_texture *tex = RvR_texture_get(sprite);
 
-   //Project to screen
-   //TODO: get rid of map_to_screen here
-   RvR_ray_pixel_info p = RvR_ray_map_to_screen(cam,x,y,z);
-   //sp.as.bill.x = p.x;
-   //sp.as.bill.depth = p.depth;
-
-   //Near clip
-   if(p.depth<8192)
-      return;
-
-   //Far clip
-   if(p.depth>RVR_RAY_MAX_STEPS*65536)
-      return;
-
    RvR_fix16 tpx = x-cam->x;
    RvR_fix16 tpy = y-cam->y;
    RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
-   tpx = RvR_fix16_mul(tpx,sin)-RvR_fix16_mul(tpy,cos);
-   RvR_fix16 x0 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx+tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
-   RvR_fix16 x1 = RvR_xres()*32768-RvR_fix16_div((RvR_xres()/2)*(tpx-tex->width*8*64),RvR_non_zero(RvR_fix16_mul(depth,fovx)));
-   sp.as.bill.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->x,cos);
-   sp.as.bill.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->x,sin_fov);
+   tpx = RvR_fix16_mul(-tpx,sin)+RvR_fix16_mul(tpy,cos);
 
-   if(x1<0||x0>=RvR_xres()*65536)
+   //Near clip
+   if(depth<8192)
       return;
 
-   sp.z_min = sp.z_max = p.depth;
+   //Far clip
+   if(depth>RVR_RAY_MAX_STEPS*65536)
+      return;
+
+   //Outside of screen
+   //Left of screen
+   if(-tpx-tex->width*512>RvR_fix16_mul(depth,fovx))
+      return;
+
+   //Right of screen
+   if(tpx-tex->width*512>RvR_fix16_mul(depth,fovx))
+      return;
+
+   //TODO(Captain4LK): clip bottom/top?
+
+   sp.as.bill.wx = RvR_fix16_mul(-(x-cam->x),sin)+RvR_fix16_mul(y-cam->y,cos);
+   sp.as.bill.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->y,sin_fov);
+   sp.z_min = sp.z_max = sp.as.bill.wy;
+
    RvR_array_push(ray_sprites,sp);
 }
 
@@ -1871,8 +1872,8 @@ static int ray_sprite_can_back(const ray_sprite *a, const ray_sprite *b, const R
    if(a->flags&8&&b->flags&8)
       return ray_wsprite_can_back(a,b);
 
-   //Sprite - Sprite check is
-   //a lot simpler
+   //Sprite - Sprite check
+   //is a lot simpler
    if(!(a->flags&8)&&!(b->flags&8))
    {
       //If one is floor sprite, check height
