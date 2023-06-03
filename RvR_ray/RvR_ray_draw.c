@@ -590,12 +590,14 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    sp.z = z;
    sp.dir = dir;
 
+   RvR_texture *tex = RvR_texture_get(sprite);
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
    RvR_fix16 cos = RvR_fix16_cos(cam->dir);
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
    RvR_fix16 sin_fov = RvR_fix16_mul(sin,fovx);
    RvR_fix16 cos_fov = RvR_fix16_mul(cos,fovx);
+   RvR_fix16 middle_row = (RvR_yres()/2)+cam->shear;
 
    //tagged as invisible
    if(flags&1)
@@ -604,8 +606,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    //Wall aligned
    if(flags&8)
    {
-      RvR_texture *tex = RvR_texture_get(sprite);
-
       //Translate sprite to world space
       RvR_fix16 dirx = RvR_fix16_cos(dir);
       RvR_fix16 diry = RvR_fix16_sin(dir);
@@ -731,8 +731,6 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    //Floor alligned
    if(flags&16)
    {
-      RvR_texture *tex = RvR_texture_get(sprite);
-
       //World space coordinates, origin at camera
       RvR_fix16 scos = RvR_fix16_cos(dir);
       RvR_fix16 ssin = RvR_fix16_sin(dir);
@@ -757,7 +755,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
       sp.as.floor.x3 = RvR_fix16_mul(-x3,sin)+RvR_fix16_mul(y3,cos);
       sp.as.floor.z3 = RvR_fix16_mul(x3,cos_fov)+RvR_fix16_mul(y3,sin_fov);
 
-      sp.as.floor.wx = RvR_fix16_mul(-x-cam->x,sin)+RvR_fix16_mul(y-cam->y,cos);
+      sp.as.floor.wx = RvR_fix16_mul(-(x-cam->x),sin)+RvR_fix16_mul(y-cam->y,cos);
       sp.as.floor.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->y,sin_fov);
 
       RvR_fix16 depth_min = RvR_min(sp.as.floor.z0,RvR_min(sp.as.floor.z1,RvR_min(sp.as.floor.z2,sp.as.floor.z3)));
@@ -780,12 +778,10 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    }
 
    //Billboard
-   RvR_texture *tex = RvR_texture_get(sprite);
-
-   RvR_fix16 tpx = x-cam->x;
-   RvR_fix16 tpy = y-cam->y;
-   RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
-   tpx = RvR_fix16_mul(-tpx,sin)+RvR_fix16_mul(tpy,cos);
+   sp.as.bill.wx = RvR_fix16_mul(-(x-cam->x),sin)+RvR_fix16_mul(y-cam->y,cos);
+   sp.as.bill.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->y,sin_fov);
+   sp.z_min = sp.z_max = sp.as.bill.wy;
+   RvR_fix16 depth = RvR_fix16_mul(x-cam->x,cos)+RvR_fix16_mul(y-cam->y,sin); //Separate depth, so that the near/far clip is not dependent on fov
 
    //Near clip
    if(depth<8192)
@@ -795,20 +791,21 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    if(depth>RVR_RAY_MAX_STEPS*65536)
       return;
 
-   //Outside of screen
    //Left of screen
-   if(-tpx-tex->width*512>RvR_fix16_mul(depth,fovx))
+   if(-sp.as.bill.wx-tex->width*512>sp.as.bill.wy)
       return;
 
    //Right of screen
-   if(tpx-tex->width*512>RvR_fix16_mul(depth,fovx))
+   if(sp.as.bill.wx-tex->width*512>sp.as.bill.wy)
       return;
 
-   //TODO(Captain4LK): clip bottom/top?
+   //Above screen
+   if(middle_row*RvR_fix16_mul(depth,fovy)<RvR_yres()*(z-cam->z))
+      return;
 
-   sp.as.bill.wx = RvR_fix16_mul(-(x-cam->x),sin)+RvR_fix16_mul(y-cam->y,cos);
-   sp.as.bill.wy = RvR_fix16_mul(x-cam->x,cos_fov)+RvR_fix16_mul(y-cam->y,sin_fov);
-   sp.z_min = sp.z_max = sp.as.bill.wy;
+   //Below screen
+   if((middle_row-RvR_yres())*RvR_fix16_mul(depth,fovy)>RvR_yres()*(z-cam->z+tex->height*1024))
+      return;
 
    RvR_array_push(ray_sprites,sp);
 }
@@ -1230,7 +1227,7 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
 
    RvR_fix16 tpx = sp->x-cam->x;
    RvR_fix16 tpy = sp->y-cam->y;
-   RvR_fix16 depth = RvR_fix16_mul(tpx,cos_fov)+RvR_fix16_mul(tpy,sin_fov);
+   RvR_fix16 depth = RvR_fix16_mul(tpx,cos)+RvR_fix16_mul(tpy,sin);
    tpx = RvR_fix16_mul(-tpx,sin)+RvR_fix16_mul(tpy,cos);
 
    //Dimensions
