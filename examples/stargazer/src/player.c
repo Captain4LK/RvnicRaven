@@ -78,11 +78,11 @@ void player_update()
    //Input
    int x,y;
    RvR_mouse_relative_pos(&x,&y);
-   RvR_fix16 dirx = RvR_fix16_cos(player.entity->direction)/64;
-   RvR_fix16 diry = RvR_fix16_sin(player.entity->direction)/64;
+   RvR_fix16 dirx = RvR_fix16_cos(player.entity->direction);
+   RvR_fix16 diry = RvR_fix16_sin(player.entity->direction);
 
-   dirx+=dirx/4;
-   diry+=diry/4;
+   //dirx+=dirx/4;
+   //diry+=diry/4;
 
    //Forward/Backward movement
    if(RvR_key_down(config_move_forward))
@@ -112,11 +112,6 @@ void player_update()
       grid_entity_use(player.entity);
 
    RvR_fix16 vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
-   if(vel_len>8192)
-   {
-      player.entity->vx = RvR_fix16_div(RvR_fix16_mul(player.entity->vx,8192),vel_len);
-      player.entity->vy = RvR_fix16_div(RvR_fix16_mul(player.entity->vy,8192),vel_len);
-   }
 
    //Mouse look: x-axis
    if(x!=0)
@@ -133,7 +128,6 @@ void player_update()
    if(y!=0&&shearing)
       player.shear = RvR_max(RvR_min(player.shear-(y*128)/64,CAMERA_SHEAR_MAX_PIXELS),-CAMERA_SHEAR_MAX_PIXELS);
 
-   player.entity->vz-=GRAVITY;
    //Only for testing --> flying basically
    //if(RvR_core_key_down(RVR_KEY_PGDN))
       //player.vertical_speed = -step*100;
@@ -144,8 +138,9 @@ void player_update()
    if(RvR_key_pressed(config_jump)&&player.entity->on_ground)
    {
       //sound_play(SOUND_PLAYER_JUMP,ai_index_get(player.entity),255);
-      player.entity->vz = JUMP_SPEED;
+      player.entity->vz = 764586;
    }
+   player.entity->vz-=58254;
 
    //Inventory
    if(RvR_key_pressed(config_inventory))
@@ -166,14 +161,13 @@ void player_update()
       player_weapon_rotate(-1);*/
 
    //Cap player speed
-   player.entity->vz = RvR_max(-MAX_VERTICAL_SPEED,RvR_min(player.entity->vz,MAX_VERTICAL_SPEED));
+   //player.entity->vz = RvR_max(-MAX_VERTICAL_SPEED,RvR_min(player.entity->vz,MAX_VERTICAL_SPEED));
    //-------------------------------------
 
    //Collision
    RvR_fix16 floor_height = 0;
    RvR_fix16 ceiling_height = 0;
    collision_move(player.entity,&floor_height,&ceiling_height);
-   player.entity->on_ground = 0;
 
    //Reset verticall speed if ceiling was hit
    if(player.entity->z+player.entity->col_height>=ceiling_height)
@@ -182,25 +176,34 @@ void player_update()
    //Enable jumping if on ground
    if(player.entity->z==floor_height)
    {
+      if(!player.entity->on_ground)
+         player.entity->vis_zoff = (player.entity->vz)/48;
       player.entity->on_ground = 1;
       player.entity->vz = 0;
    }
+   else
+   {
+      player.entity->on_ground = 0;
+   }
 
-   if(player.entity->vis_zoff<0)
-      player.entity->vis_zoff+=RvR_min(-player.entity->vis_zoff,64*64);
+   //if(player.entity->vis_zoff<0)
+      //player.entity->vis_zoff+=RvR_min(-player.entity->vis_zoff/4,64*64);
+   player.vis_off_vel+=RvR_fix16_mul(player.entity->vz-player.vis_off_vel,28762);
+   RvR_fix16 dz = player.entity->z+CAMERA_COLL_HEIGHT_BELOW-player.cam.z;
+   player.vis_off_vel+=RvR_fix16_mul(dz*64,6144);
+   player.cam.z+=player.vis_off_vel/64;
    //-------------------------------------
 
    //Update cam position and direction
    player.cam.x = player.entity->x;
    player.cam.y = player.entity->y;
-   player.cam.z = player.entity->z+player.entity->vis_zoff+CAMERA_COLL_HEIGHT_BELOW;
    player.cam.dir = player.entity->direction;
    player.cam.fov = 16384;
    player.cam.shear = player.shear;
 
    //View bobbing
    vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
-   RvR_fix16 bob_factor = vel_len/(4);
+   RvR_fix16 bob_factor = vel_len/1024;
    player.cam.z+=RvR_fix16_mul(RvR_fix16_sin(game_tick*2184),bob_factor);
    //-------------------------------------
 }

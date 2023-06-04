@@ -55,9 +55,9 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
 
    Entity *col = entities;
    Entity cur = {0};
-   cur.x = e->x+(e->vx);
-   cur.y = e->y+(e->vy);
-   cur.z = e->z+e->vz;
+   cur.x = e->x+(e->vx/48);
+   cur.y = e->y+(e->vy/48);
+   cur.z = e->z+e->vz/64;
    cur.col_radius = 256*64;
    cur.col_height = 768*64;
    while(col!=NULL)
@@ -318,16 +318,16 @@ next:
 #undef collHandle
 #undef collCheck
 
-   if((e->vx)!=(e->x-oldx))
-      e->vx = (e->x-oldx);
-   if((e->vy)!=(e->y-oldy))
-      e->vy = (e->y-oldy);
+   if((e->vx/48)!=(e->x-oldx))
+      e->vx = (e->x-oldx)*48;
+   if((e->vy/48)!=(e->y-oldy))
+      e->vy = (e->y-oldy)*48;
 
    //Lower velocity/friction
-   e->vx = RvR_fix16_mul(e->vx,57600);
-   e->vy = RvR_fix16_mul(e->vy,57600);
-   RvR_fix16 vel_mag = RvR_fix16_mul(e->vx,e->vx)+RvR_fix16_mul(e->vy,e->vy);
-   if(vel_mag<4)
+   e->vx = RvR_fix16_mul(e->vx,54784);
+   e->vy = RvR_fix16_mul(e->vy,54784);
+   RvR_fix16 vel_mag = RvR_fix16_sqrt(RvR_fix16_mul(e->vx,e->vx)+RvR_fix16_mul(e->vy,e->vy));
+   if(vel_mag<4096)
       e->vx = e->vy = 0;
 }
 
