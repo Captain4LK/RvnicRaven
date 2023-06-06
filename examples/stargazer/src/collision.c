@@ -37,9 +37,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function prototypes
 static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 *normaly);
+
+static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height);
+static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height);
 //-------------------------------------
 
 //Function implementations
+
+//NOTE(Captain4LK): Collision rework summary
+//- Resolve x,y,z seperately (in three steps)
+//- Only move along x/y/z axis in x/y/z step
 
 void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
 {
@@ -366,5 +373,31 @@ static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix
       }
       *depth = r-*depth;
    }
+}
+
+static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
+{
+   if(e==NULL||e->removed)
+      return;
+
+   //No velocity, no movement
+   if(e->vx/48==0)
+      return 0;
+
+   newx = e->x+e->vx/48;
+   newy = e->y;
+}
+
+static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
+{
+   if(e==NULL||e->removed)
+      return;
+
+   //No velocity, no movement
+   if(e->vy/48==0)
+      return 0;
+
+   newx = e->x;
+   newy = e->y+e->vy/48;
 }
 //-------------------------------------
