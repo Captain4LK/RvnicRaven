@@ -40,6 +40,7 @@ static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix
 
 static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height);
 static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height);
+static void collision_movez(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height);
 //-------------------------------------
 
 //Function implementations
@@ -52,6 +53,19 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
 {
    if(e->removed)
       return;
+
+   collision_movex(e,floor_height,ceiling_height);
+   collision_movey(e,floor_height,ceiling_height);
+   collision_movez(e,floor_height,ceiling_height);
+
+   //Lower velocity/friction
+   e->vx = RvR_fix16_mul(e->vx,54784);
+   e->vy = RvR_fix16_mul(e->vy,54784);
+   RvR_fix16 vel_mag = RvR_fix16_sqrt(RvR_fix16_mul(e->vx,e->vx)+RvR_fix16_mul(e->vy,e->vy));
+   if(vel_mag<4096)
+      e->vx = e->vy = 0;
+
+   return;
 
    int8_t moves_in_plane = (e->vx)!=0||(e->vy)!=0;
 
@@ -330,12 +344,12 @@ next:
    if((e->vy/48)!=(e->y-oldy))
       e->vy = (e->y-oldy)*48;
 
-   //Lower velocity/friction
+   /*//Lower velocity/friction
    e->vx = RvR_fix16_mul(e->vx,54784);
    e->vy = RvR_fix16_mul(e->vy,54784);
    RvR_fix16 vel_mag = RvR_fix16_sqrt(RvR_fix16_mul(e->vx,e->vx)+RvR_fix16_mul(e->vy,e->vy));
    if(vel_mag<4096)
-      e->vx = e->vy = 0;
+      e->vx = e->vy = 0;*/
 }
 
 static void collision_intersects(Entity *a, Entity *b, RvR_fix16 *depth, RvR_fix16 *normalx, RvR_fix16 *normaly)
@@ -384,8 +398,61 @@ static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
    if(e->vx/48==0)
       return 0;
 
-   newx = e->x+e->vx/48;
-   newy = e->y;
+   RvR_fix16 newx = e->x+e->vx/48;
+   RvR_fix16 newy = e->y;
+
+   RvR_fix16 bottom_limit = e->z;
+   RvR_fix16 top_limit = e->z+e->col_height;
+
+   //Map collision
+   if(e->vx>=0)
+   {
+      int left = (e->x+e->col_radius)/65536;
+      int right = (newx+e->col_radius)/65536;
+      int top = (newy-e->col_radius)/65536;
+      int bottom = (newy+e->col_radius)/65536;
+
+      for(int y = top;y<=bottom;y++)
+      {
+         for(int x = left+1;x<=right;x++)
+         {
+            RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
+            RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
+
+            //Collision
+            if(floor>bottom_limit||ceiling<top_limit)
+            {
+               newx = RvR_min(newx,x*65536-e->col_radius-1);
+            }
+         }
+      }
+   }
+   else
+   {
+      int left = (newx-e->col_radius)/65536;
+      int right = (e->x-e->col_radius)/65536;
+      int top = (newy-e->col_radius)/65536;
+      int bottom = (newy+e->col_radius)/65536;
+
+      for(int y = top;y<=bottom;y++)
+      {
+         for(int x = left;x<right;x++)
+         {
+            RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
+            RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
+
+            //Collision
+            if(floor>bottom_limit||ceiling<top_limit)
+            {
+               newx = RvR_max(newx,x*65536+65537+e->col_radius);
+            }
+         }
+      }
+   }
+
+   grid_entity_update_pos(e,newx,newy,e->z);
+
+   //Entity collision
 }
 
 static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
@@ -397,7 +464,95 @@ static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
    if(e->vy/48==0)
       return 0;
 
-   newx = e->x;
-   newy = e->y+e->vy/48;
+   RvR_fix16 newx = e->x;
+   RvR_fix16 newy = e->y+e->vy/48;
+
+   RvR_fix16 bottom_limit = e->z;
+   RvR_fix16 top_limit = e->z+e->col_height;
+
+   //Map collision
+   if(e->vy>=0)
+   {
+      int left = (newx-e->col_radius)/65536;
+      int right = (newx+e->col_radius)/65536;
+      int top = (e->y+e->col_radius)/65536;
+      int bottom = (newy+e->col_radius)/65536;
+
+      for(int y = top+1;y<=bottom;y++)
+      {
+         for(int x = left;x<=right;x++)
+         {
+            RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
+            RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
+
+            //Collision
+            if(floor>bottom_limit||ceiling<top_limit)
+            {
+               newy = y*65536-e->col_radius-1;
+            }
+         }
+      }
+   }
+   else
+   {
+      int left = (newx-e->col_radius)/65536;
+      int right = (newx+e->col_radius)/65536;
+      int top = (newy-e->col_radius)/65536;
+      int bottom = (e->y-e->col_radius)/65536;
+
+      for(int y = top;y<bottom;y++)
+      {
+         for(int x = left;x<=right;x++)
+         {
+            RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
+            RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
+
+            //Collision
+            if(floor>bottom_limit||ceiling<top_limit)
+            {
+               newy = y*65536+65536+e->col_radius+1;
+            }
+         }
+      }
+   }
+
+   grid_entity_update_pos(e,newx,newy,e->z);
+
+   //Entity collision
+}
+
+static void collision_movez(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
+{
+   if(e==NULL||e->removed)
+      return;
+
+   int left = (e->x-e->col_radius)/65536;
+   int right = (e->x+e->col_radius)/65536;
+   int top = (e->y-e->col_radius)/65536;
+   int bottom = (e->y+e->col_radius)/65536;
+   RvR_fix16 floor_max = INT32_MIN;
+   RvR_fix16 ceiling_min = INT32_MAX;
+
+   for(int y = top;y<=bottom;y++)
+   {
+      for(int x = left;x<=right;x++)
+      {
+         RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
+         RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
+         
+         if(floor>floor_max)
+            floor_max = floor;
+         if(ceiling<ceiling_min)
+            ceiling_min = ceiling;
+      }
+   }
+
+   *floor_height = floor_max;
+   *ceiling_height = ceiling_min;
+
+   e->z = RvR_min(ceiling_min,RvR_max(e->z+e->vz/64,floor_max));
+
+   //No need to update grid here
+   //grid_entity_update_pos(e,newx,newy,e->z);
 }
 //-------------------------------------
