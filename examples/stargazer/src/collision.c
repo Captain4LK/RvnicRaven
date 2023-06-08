@@ -404,6 +404,9 @@ static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
    RvR_fix16 bottom_limit = e->z;
    RvR_fix16 top_limit = e->z+e->col_height;
 
+   if(e->vz<=0)
+      bottom_limit+=CAMERA_COLL_STEP_HEIGHT;
+
    //Map collision
    if(e->vx>=0)
    {
@@ -411,11 +414,53 @@ static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
       int right = (newx+e->col_radius)/65536;
       int top = (newy-e->col_radius)/65536;
       int bottom = (newy+e->col_radius)/65536;
+      int middlex = (e->x)/65536;
 
       for(int y = top;y<=bottom;y++)
       {
-         for(int x = left+1;x<=right;x++)
+         for(int x = middlex;x<=right;x++)
          {
+            //Sprite collision
+            Grid_square *s = grid_square(x,y);
+            if(s!=NULL)
+            {
+               Grid_entity *ge = s->entities;
+               for(;ge!=NULL;ge = ge->next)
+               {
+                  //Itself
+                  if(ge->ent==e)
+                     continue;
+
+                  //Removed
+                  if(ge->ent->removed)
+                     continue;
+
+                  //0 radius
+                  if(ge->ent->col_radius==0)
+                     continue;
+
+                  //no z overlap
+                  if(col->z>(cur.z)+cur.col_height||col->z+col->col_height<(cur.z))
+                     continue;
+
+                  //No y overlap
+                  RvR_fix16 dy = RvR_abs(ge->ent->y-e->y);
+                  RvR_fix16 tot_rad = ge->ent->col_radius+e->col_radius;
+                  if(dy>=tot_rad)
+                     continue;
+
+                  //Behind old pos
+                  if(ge->ent->x<e->x)
+                     continue;
+
+                  //Potential collision
+                  newx = RvR_min(newx,ge->ent->x-RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dy,dy))-1);
+               }
+            }
+
+            if(x<left+1)
+               continue;
+
             RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
             RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
 
@@ -426,6 +471,9 @@ static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
             }
          }
       }
+
+      //Don't move farther than original position
+      newx = RvR_max(newx,e->x);
    }
    else
    {
@@ -433,11 +481,50 @@ static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
       int right = (e->x-e->col_radius)/65536;
       int top = (newy-e->col_radius)/65536;
       int bottom = (newy+e->col_radius)/65536;
+      int middlex = (e->x)/65536;
 
       for(int y = top;y<=bottom;y++)
       {
-         for(int x = left;x<right;x++)
+         for(int x = left;x<=middlex;x++)
+         //for(int x = left;x<right;x++)
          {
+            //Sprite collision
+            Grid_square *s = grid_square(x,y);
+            if(s!=NULL)
+            {
+               Grid_entity *ge = s->entities;
+               for(;ge!=NULL;ge = ge->next)
+               {
+                  //Itself
+                  if(ge->ent==e)
+                     continue;
+
+                  //Removed
+                  if(ge->ent->removed)
+                     continue;
+
+                  //0 radius
+                  if(ge->ent->col_radius==0)
+                     continue;
+
+                  //No y overlap
+                  RvR_fix16 dy = RvR_abs(ge->ent->y-e->y);
+                  RvR_fix16 tot_rad = ge->ent->col_radius+e->col_radius;
+                  if(dy>=tot_rad)
+                     continue;
+
+                  //Infront of old pos
+                  if(ge->ent->x>e->x)
+                     continue;
+
+                  //Potential collision
+                  newx = RvR_max(newx,ge->ent->x+RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dy,dy))+1);
+               }
+            }
+
+            if(x>=right)
+               continue;
+
             RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
             RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
 
@@ -448,11 +535,12 @@ static void collision_movex(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
             }
          }
       }
+
+      //Don't move farther than original position
+      newx = RvR_min(newx,e->x);
    }
 
    grid_entity_update_pos(e,newx,newy,e->z);
-
-   //Entity collision
 }
 
 static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
@@ -470,6 +558,9 @@ static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
    RvR_fix16 bottom_limit = e->z;
    RvR_fix16 top_limit = e->z+e->col_height;
 
+   if(e->vz<=0)
+      bottom_limit+=CAMERA_COLL_STEP_HEIGHT;
+
    //Map collision
    if(e->vy>=0)
    {
@@ -477,21 +568,63 @@ static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
       int right = (newx+e->col_radius)/65536;
       int top = (e->y+e->col_radius)/65536;
       int bottom = (newy+e->col_radius)/65536;
+      int middley = (e->y)/65536;
 
-      for(int y = top+1;y<=bottom;y++)
+      for(int y = middley;y<=bottom;y++)
+      //for(int y = top+1;y<=bottom;y++)
       {
          for(int x = left;x<=right;x++)
          {
+            //Sprite collision
+            Grid_square *s = grid_square(x,y);
+            if(s!=NULL)
+            {
+               Grid_entity *ge = s->entities;
+               for(;ge!=NULL;ge = ge->next)
+               {
+                  //Itself
+                  if(ge->ent==e)
+                     continue;
+
+                  //Removed
+                  if(ge->ent->removed)
+                     continue;
+
+                  //0 radius
+                  if(ge->ent->col_radius==0)
+                     continue;
+
+                  //No y overlap
+                  RvR_fix16 dx = RvR_abs(ge->ent->x-e->x);
+                  RvR_fix16 tot_rad = ge->ent->col_radius+e->col_radius;
+                  if(dx>=tot_rad)
+                     continue;
+
+                  //Behind old pos
+                  if(ge->ent->y<e->y)
+                     continue;
+
+                  //Potential collision
+                  newy = RvR_min(newy,ge->ent->y-RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dx,dx))-1);
+               }
+            }
+
+            if(y<top+1)
+               continue;
+
             RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
             RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
 
             //Collision
             if(floor>bottom_limit||ceiling<top_limit)
             {
-               newy = y*65536-e->col_radius-1;
+               newy = RvR_min(newy,y*65536-e->col_radius-1);
             }
          }
       }
+
+      //Don't move farther than original position
+      newy = RvR_max(newy,e->y);
    }
    else
    {
@@ -499,26 +632,66 @@ static void collision_movey(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
       int right = (newx+e->col_radius)/65536;
       int top = (newy-e->col_radius)/65536;
       int bottom = (e->y-e->col_radius)/65536;
+      int middley = (e->y)/65536;
 
-      for(int y = top;y<bottom;y++)
+      for(int y = top;y<=middley;y++)
+      //for(int y = top;y<bottom;y++)
       {
          for(int x = left;x<=right;x++)
          {
+            //Sprite collision
+            Grid_square *s = grid_square(x,y);
+            if(s!=NULL)
+            {
+               Grid_entity *ge = s->entities;
+               for(;ge!=NULL;ge = ge->next)
+               {
+                  //Itself
+                  if(ge->ent==e)
+                     continue;
+
+                  //Removed
+                  if(ge->ent->removed)
+                     continue;
+
+                  //0 radius
+                  if(ge->ent->col_radius==0)
+                     continue;
+
+                  //No y overlap
+                  RvR_fix16 dx = RvR_abs(ge->ent->x-e->x);
+                  RvR_fix16 tot_rad = ge->ent->col_radius+e->col_radius;
+                  if(dx>=tot_rad)
+                     continue;
+
+                  //Infront of old pos
+                  if(ge->ent->y>e->y)
+                     continue;
+
+                  //Potential collision
+                  newy = RvR_max(newy,ge->ent->y+RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dx,dx))+1);
+               }
+            }
+            
+            if(y>=bottom)
+               continue;
+
             RvR_fix16 floor = RvR_ray_map_floor_height_at(map_current(),x,y);
             RvR_fix16 ceiling = RvR_ray_map_ceiling_height_at(map_current(),x,y);
 
             //Collision
             if(floor>bottom_limit||ceiling<top_limit)
             {
-               newy = y*65536+65536+e->col_radius+1;
+               newy = RvR_max(newy,y*65536+65536+e->col_radius+1);
             }
          }
       }
+
+      //Don't move farther than original position
+      newy = RvR_min(newy,e->y);
    }
 
    grid_entity_update_pos(e,newx,newy,e->z);
-
-   //Entity collision
 }
 
 static void collision_movez(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
@@ -550,7 +723,7 @@ static void collision_movez(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceili
    *floor_height = floor_max;
    *ceiling_height = ceiling_min;
 
-   e->z = RvR_min(ceiling_min,RvR_max(e->z+e->vz/64,floor_max));
+   e->z = RvR_min(ceiling_min-e->col_height,RvR_max(e->z+e->vz/64,floor_max));
 
    //No need to update grid here
    //grid_entity_update_pos(e,newx,newy,e->z);

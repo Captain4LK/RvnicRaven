@@ -48,7 +48,7 @@ static uint32_t move_start_tick = 0;
 void player_create_new()
 {
    player.entity->col_height = 65536;
-   player.entity->col_radius = 24576;
+   player.entity->col_radius = 16384;
    player.entity->cards_size = 71;
    player.entity->cards = RvR_malloc(sizeof(*player.entity->cards)*player.entity->cards_size,"AI:player state");
    
