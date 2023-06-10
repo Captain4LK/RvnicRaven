@@ -9,6 +9,8 @@ src=$src $(find RvR_ray/ -name "*.h")
 src="$src $(find include/ -name "*.h")"
 src=$src $(find tools/ -name "*.c")
 src=$src $(find tools/ -name "*.h")
+src=$src $(find examples/ -name "*.c")
+src=$src $(find examples/ -name "*.h")
 echo "$src"
 
 uncrustify -c uncrustify.cfg --no-backup --replace $src
