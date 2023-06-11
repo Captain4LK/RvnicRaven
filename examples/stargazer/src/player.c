@@ -111,7 +111,7 @@ void player_update()
    if(RvR_key_pressed(config_use))
       grid_entity_use(player.entity);
 
-   RvR_fix16 vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
+   //RvR_fix16 vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
 
    //Mouse look: x-axis
    if(x!=0)
@@ -202,7 +202,7 @@ void player_update()
    player.cam.shear = player.shear;
 
    //View bobbing
-   vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
+   RvR_fix16 vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
    RvR_fix16 bob_factor = vel_len/1024;
    player.cam.z+=RvR_fix16_mul(RvR_fix16_sin(game_tick*2184),bob_factor);
    //-------------------------------------

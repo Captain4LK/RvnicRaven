@@ -36,8 +36,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static void collision_movex(Entity *e);
-static void collision_movey(Entity *e);
+static void collision_movex(Entity *e, RvR_fix16 *vx, RvR_fix16 *vy);
+static void collision_movey(Entity *e, RvR_fix16 *vx, RvR_fix16 *vy);
 static void collision_movez(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height);
 
 static void collision_project(RvR_fix16 vx, RvR_fix16 vy, RvR_fix16 bx, RvR_fix16 by, RvR_fix16 *ox, RvR_fix16 *oy);
@@ -50,9 +50,46 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
    if(e->removed)
       return;
 
-   collision_movex(e);
-   collision_movey(e);
+   RvR_fix16 vx = e->vx;
+   RvR_fix16 vy = e->vy;
+   RvR_fix16 nvx = vx;
+   RvR_fix16 nvy = vy;
+
+   RvR_fix16 len_v = RvR_fix16_sqrt(RvR_fix16_mul(e->vx/48,e->vx/48)+RvR_fix16_mul(e->vy/48,e->vy/48));
+   RvR_fix16 tot_len = 0;
+   for(int i = 0;i<4;i++)
+   {
+      RvR_fix16 ox = e->x;
+      RvR_fix16 oy = e->y;
+
+      nvx = e->vx;
+      nvx = e->vy;
+      collision_movex(e,&nvx,&nvy);
+      collision_movey(e,&nvx,&nvy);
+
+      RvR_fix16 dx = (e->x-ox);
+      RvR_fix16 dy = (e->y-oy);
+      tot_len+=RvR_fix16_sqrt(RvR_fix16_mul(dx,dx)+RvR_fix16_mul(dy,dy));
+      if(tot_len>=len_v)
+         break;
+
+      //Scale vector down
+      RvR_fix16 len_n = RvR_fix16_sqrt(RvR_fix16_mul(nvx,nvx)+RvR_fix16_mul(nvy,nvy));
+      if(len_n==0)
+         break;
+      if(len_n/48+tot_len>len_v)
+      {
+         RvR_fix16 scale = RvR_fix16_div((len_v-tot_len)*48,RvR_non_zero(len_n));
+         nvx = RvR_fix16_mul(nvx,scale);
+         nvy = RvR_fix16_mul(nvy,scale);
+      }
+
+      e->vx = nvx;
+      e->vy = nvy;
+   }
    collision_movez(e,floor_height,ceiling_height);
+   e->vx = vx;
+   e->vy = vy;
 
    //Lower velocity/friction
    e->vx = RvR_fix16_mul(e->vx,54784);
@@ -62,7 +99,7 @@ void collision_move(Entity *e, RvR_fix16 *floor_height, RvR_fix16 *ceiling_heigh
       e->vx = e->vy = 0;
 }
 
-static void collision_movex(Entity *e)
+static void collision_movex(Entity *e, RvR_fix16 *vx, RvR_fix16 *vy)
 {
    if(e==NULL||e->removed)
       return;
@@ -131,7 +168,7 @@ static void collision_movex(Entity *e)
                   //Potential collision
                   RvR_fix16 cx = ge->ent->x-RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dy,dy))-1;
                   if(cx<=newx)
-                     collision_project(e->vx,e->vy,-(ge->ent->y-e->y),ge->ent->x-e->x,NULL,&nvy);
+                     collision_project(e->vx,e->vy,-(ge->ent->y-e->y),ge->ent->x-cx,&nvx,&nvy);
                   newx = RvR_min(newx,cx);
                }
             }
@@ -156,8 +193,8 @@ static void collision_movex(Entity *e)
       //Don't move farther than original position
       if(newx>=e->x)
       {
-         e->vx = nvx;
-         e->vy = nvy;
+         *vx = nvx;
+         *vy = nvy;
       }
       newx = RvR_max(newx,e->x);
    }
@@ -210,9 +247,8 @@ static void collision_movex(Entity *e)
                   //Potential collision
                   RvR_fix16 cx = ge->ent->x+RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dy,dy))+1;
                   if(cx>=newx)
-                     collision_project(e->vx,e->vy,-(ge->ent->y-e->y),ge->ent->x-e->x,NULL,&nvy);
+                     collision_project(e->vx,e->vy,-(ge->ent->y-e->y),ge->ent->x-cx,&nvx,&nvy);
                   newx = RvR_max(newx,cx);
-                  //newx = RvR_max(newx,ge->ent->x+RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dy,dy))+1);
                }
             }
 
@@ -237,8 +273,8 @@ static void collision_movex(Entity *e)
       //Don't move farther than original position
       if(newx<=e->x)
       {
-         e->vx = nvx;
-         e->vy = nvy;
+         *vx = nvx;
+         *vy = nvy;
       }
       newx = RvR_min(newx,e->x);
    }
@@ -246,7 +282,7 @@ static void collision_movex(Entity *e)
    grid_entity_update_pos(e,newx,newy,e->z);
 }
 
-static void collision_movey(Entity *e)
+static void collision_movey(Entity *e, RvR_fix16 *vx, RvR_fix16 *vy)
 {
    if(e==NULL||e->removed)
       return;
@@ -316,7 +352,7 @@ static void collision_movey(Entity *e)
                   //Potential collision
                   RvR_fix16 cy = ge->ent->y-RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dx,dx))-1;
                   if(cy<=newy)
-                     collision_project(e->vx,e->vy,-(ge->ent->y-e->y),ge->ent->x-e->x,&nvx,NULL);
+                     collision_project(e->vx,e->vy,-(ge->ent->y-cy),ge->ent->x-e->x,&nvx,&nvy);
                   newy = RvR_min(newy,cy);
                   //newy = RvR_min(newy,ge->ent->y-RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dx,dx))-1);
                }
@@ -342,8 +378,8 @@ static void collision_movey(Entity *e)
       //Don't move farther than original position
       if(newy>=e->y)
       {
-         e->vx = nvx;
-         e->vy = nvy;
+         *vx = nvx;
+         *vy = nvy;
       }
       newy = RvR_max(newy,e->y);
    }
@@ -396,7 +432,7 @@ static void collision_movey(Entity *e)
                   //Potential collision
                   RvR_fix16 cy = ge->ent->y+RvR_fix16_sqrt(RvR_fix16_mul(tot_rad,tot_rad)-RvR_fix16_mul(dx,dx))+1;
                   if(cy>=newy)
-                     collision_project(e->vx,e->vy,-(ge->ent->y-e->y),ge->ent->x-e->x,&nvx,NULL);
+                     collision_project(e->vx,e->vy,-(ge->ent->y-cy),ge->ent->x-e->x,&nvx,&nvy);
                   newy = RvR_max(newy,cy);
                }
             }
@@ -421,8 +457,8 @@ static void collision_movey(Entity *e)
       //Don't move farther than original position
       if(newy<=e->y)
       {
-         e->vx = nvx;
-         e->vy = nvy;
+         *vx = nvx;
+         *vy = nvy;
       }
       newy = RvR_min(newy,e->y);
    }
@@ -516,9 +552,7 @@ static void collision_project(RvR_fix16 vx, RvR_fix16 vy, RvR_fix16 bx, RvR_fix1
    RvR_fix16 ab = RvR_fix16_mul(vx,bx)+RvR_fix16_mul(vy,by);
    RvR_fix16 factor = RvR_fix16_div(ab,RvR_non_zero(b2));
 
-   if(ox!=NULL)
-      *ox = RvR_fix16_mul(bx,factor);
-   if(oy!=NULL)
-      *oy = RvR_fix16_mul(by,factor);
+   *ox = RvR_fix16_mul(bx,factor);
+   *oy = RvR_fix16_mul(by,factor);
 }
 //-------------------------------------

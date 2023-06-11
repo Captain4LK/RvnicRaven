@@ -42,6 +42,8 @@ struct Entity
    RvR_fix16 vx;
    RvR_fix16 vy;
    RvR_fix16 vz;
+   RvR_fix16 px;
+   RvR_fix16 py;
    int on_ground;
    RvR_fix16 direction;
    RvR_fix16 col_height;

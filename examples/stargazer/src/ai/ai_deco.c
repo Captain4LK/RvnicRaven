@@ -45,7 +45,7 @@ void ai_deco_init(Entity *e, const uint32_t extra[3])
 {
    e->ai_data = NULL;
 
-   e->col_radius = 23808;
+   e->col_radius = 16384;
    e->col_height = 49152;
 }
 
