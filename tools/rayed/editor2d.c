@@ -290,7 +290,7 @@ void editor2d_update()
    {
       sprite_move->x = ((mx + scroll_x) * 65536) / grid_size;
       sprite_move->y = ((my + scroll_y) * 65536) / grid_size;
-      sprite_move->z = RvR_ray_map_floor_height_at(map,sprite_move->x / 65536, sprite_move->y / 65536);
+      sprite_move->z = RvR_ray_map_floor_height_at(map, sprite_move->x / 65536, sprite_move->y / 65536);
    }
    else if(sprite_sel!=NULL)
    {
@@ -300,9 +300,9 @@ void editor2d_update()
          sprite_sel = NULL;
       }
       else if(RvR_key_pressed(RVR_KEY_PERIOD))
-         sprite_sel->direction -= RvR_key_down(RVR_KEY_LSHIFT)?32*16:8*16;
+         sprite_sel->direction -= RvR_key_down(RVR_KEY_LSHIFT)?32 * 16:8 * 16;
       else if(RvR_key_pressed(RVR_KEY_COMMA))
-         sprite_sel->direction += RvR_key_down(RVR_KEY_LSHIFT)?32*16:8*16;
+         sprite_sel->direction += RvR_key_down(RVR_KEY_LSHIFT)?32 * 16:8 * 16;
    }
 
    if(RvR_key_pressed(RVR_KEY_S))
@@ -317,7 +317,7 @@ void editor2d_update()
       ms->flags = 0;
       ms->x = ((mx + scroll_x) * 65536) / grid_size;
       ms->y = ((my + scroll_y) * 65536) / grid_size;
-      ms->z = RvR_ray_map_floor_height_at(map,ms->x / 65536, ms->y / 65536);
+      ms->z = RvR_ray_map_floor_height_at(map, ms->x / 65536, ms->y / 65536);
 
       map_sprite_add(ms);
    }
@@ -335,7 +335,7 @@ void editor2d_update()
    {
       mouse_scroll = 0;
       RvR_mouse_relative(0);
-      RvR_mouse_set_pos(RvR_xres()/ 2, RvR_yres()/ 2);
+      RvR_mouse_set_pos(RvR_xres() / 2, RvR_yres() / 2);
    }
 
    if(mouse_scroll)
@@ -351,26 +351,26 @@ void editor2d_update()
       camera_update();
    }
 
-   scroll_x = (camera.x * grid_size) / 65536- RvR_xres()/ 2;
-   scroll_y = (camera.y * grid_size) / 65536- RvR_yres()/ 2;
+   scroll_x = (camera.x * grid_size) / 65536 - RvR_xres() / 2;
+   scroll_y = (camera.y * grid_size) / 65536 - RvR_yres() / 2;
 
    if(RvR_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)
    {
-      int scrollx = ((scroll_x + RvR_xres()/ 2) * 65536) / grid_size;
-      int scrolly = ((scroll_y + RvR_yres()/ 2) * 65536) / grid_size;
+      int scrollx = ((scroll_x + RvR_xres() / 2) * 65536) / grid_size;
+      int scrolly = ((scroll_y + RvR_yres() / 2) * 65536) / grid_size;
 
       grid_size += 4;
-      scroll_x = (scrollx * grid_size) / 65536- RvR_xres()/ 2;
-      scroll_y = (scrolly * grid_size) / 65536- RvR_yres()/ 2;
+      scroll_x = (scrollx * grid_size) / 65536 - RvR_xres() / 2;
+      scroll_y = (scrolly * grid_size) / 65536 - RvR_yres() / 2;
    }
    if(RvR_key_pressed(RVR_KEY_NP_SUB)&&grid_size>4)
    {
-      int scrollx = ((scroll_x + RvR_xres()/ 2) * 65536) / grid_size;
-      int scrolly = ((scroll_y + RvR_yres()/ 2) * 1024) / grid_size;
+      int scrollx = ((scroll_x + RvR_xres() / 2) * 65536) / grid_size;
+      int scrolly = ((scroll_y + RvR_yres() / 2) * 1024) / grid_size;
 
       grid_size -= 4;
-      scroll_x = (scrollx * grid_size) / 65536- RvR_xres()/ 2;
-      scroll_y = (scrolly * grid_size) / 65536- RvR_yres()/ 2;
+      scroll_x = (scrollx * grid_size) / 65536 - RvR_xres() / 2;
+      scroll_y = (scrolly * grid_size) / 65536 - RvR_yres() / 2;
    }
 }
 
@@ -381,9 +381,9 @@ void editor2d_draw()
    if(menu==8)
    {
       int scroll = 0;
-      if(map_list_scroll>RvR_yres()/ 10)
-         scroll = map_list_scroll - RvR_yres()- 10;
-      for(int i = 0; i<=RvR_yres()/ 10; i++)
+      if(map_list_scroll>RvR_yres() / 10)
+         scroll = map_list_scroll - RvR_yres() - 10;
+      for(int i = 0; i<=RvR_yres() / 10; i++)
       {
          int index = i + scroll;
          if(index<map_list->data_used)
@@ -394,18 +394,18 @@ void editor2d_draw()
 
    int sx = scroll_x / grid_size;
    int sy = scroll_y / grid_size;
-   for(int y = -1; y<=RvR_yres()/ grid_size + 1; y++)
+   for(int y = -1; y<=RvR_yres() / grid_size + 1; y++)
    {
-      for(int x = -1; x<=RvR_xres()/ grid_size + 1; x++)
+      for(int x = -1; x<=RvR_xres() / grid_size + 1; x++)
       {
          {
             int tx = (x + sx) * grid_size - scroll_x;
             int ty = (y + sy) * grid_size - scroll_y;
 
-            uint16_t ftex = RvR_ray_map_floor_tex_at(map,x + sx, y + sy);
-            uint16_t ctex = RvR_ray_map_ceil_tex_at(map,x + sx, y + sy);
-            RvR_fix16 fheight = RvR_ray_map_floor_height_at(map,x + sx, y + sy);
-            RvR_fix16 cheight = RvR_ray_map_ceiling_height_at(map,x + sx, y + sy);
+            uint16_t ftex = RvR_ray_map_floor_tex_at(map, x + sx, y + sy);
+            uint16_t ctex = RvR_ray_map_ceil_tex_at(map, x + sx, y + sy);
+            RvR_fix16 fheight = RvR_ray_map_floor_height_at(map, x + sx, y + sy);
+            RvR_fix16 cheight = RvR_ray_map_ceiling_height_at(map, x + sx, y + sy);
 
             if(!map_tile_comp(ftex, ctex, fheight, cheight, x + sx, y + sy - 1))
                RvR_render_horizontal_line(tx, tx + grid_size, ty, color_light_gray);
@@ -419,23 +419,23 @@ void editor2d_draw()
    Map_sprite *sp = map_sprites;
    while(sp!=NULL)
    {
-      int x = (sp->x * grid_size) / 65536- scroll_x;
-      int y = (sp->y * grid_size) / 65536- scroll_y;
-      if(x>-grid_size * 2&&x<RvR_xres()+ grid_size * 2&&y>-grid_size * 2&&y<RvR_yres()+ grid_size * 2)
+      int x = (sp->x * grid_size) / 65536 - scroll_x;
+      int y = (sp->y * grid_size) / 65536 - scroll_y;
+      if(x>-grid_size * 2&&x<RvR_xres() + grid_size * 2&&y>-grid_size * 2&&y<RvR_yres() + grid_size * 2)
       {
          RvR_render_circle(x, y, grid_size / 4, color_white);
          RvR_fix16 dirx = RvR_fix16_cos(sp->direction);
          RvR_fix16 diry = RvR_fix16_sin(sp->direction);
          //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(sp->direction);
-         RvR_render_line(x*256, y*256, x*256+ (dirx * (grid_size / 2))/256 , y *256+ (diry * (grid_size / 2))/256, color_white);
+         RvR_render_line(x * 256, y * 256, x * 256 + (dirx * (grid_size / 2)) / 256, y * 256 + (diry * (grid_size / 2)) / 256, color_white);
 
          if(sp->flags & 8)
          {
-            int half_width = (RvR_texture_get(sp->texture)->width*grid_size*2)/256;
-            RvR_fix16 p0x = x*256+(diry*half_width)/256;
-            RvR_fix16 p0y = y*256+(-dirx*half_width)/256;
-            RvR_fix16 p1x = x*256+(-diry*half_width)/256;
-            RvR_fix16 p1y = y*256+(dirx*half_width)/256;
+            int half_width = (RvR_texture_get(sp->texture)->width * grid_size * 2) / 256;
+            RvR_fix16 p0x = x * 256 + (diry * half_width) / 256;
+            RvR_fix16 p0y = y * 256 + (-dirx * half_width) / 256;
+            RvR_fix16 p1x = x * 256 + (-diry * half_width) / 256;
+            RvR_fix16 p1y = y * 256 + (dirx * half_width) / 256;
             RvR_render_line(p0x, p0y, p1x, p1y, color_white);
          }
       }
@@ -447,15 +447,15 @@ void editor2d_draw()
    //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(camera.direction);
    RvR_fix16 dirx = RvR_fix16_cos(camera.dir);
    RvR_fix16 diry = RvR_fix16_sin(camera.dir);
-   int dsx = (dirx * grid_size)/256 ;
-   int dsy = (diry * grid_size)/256 ;
-   RvR_render_line(RvR_xres() *128+ dsx / 2, RvR_yres()*128+ dsy / 2, RvR_xres()*128- dsx / 2, RvR_yres()*128- dsy / 2, color_white);
-   dirx = RvR_fix16_cos(camera.dir+32*128);
-   diry = RvR_fix16_sin(camera.dir+32*128);
-   RvR_render_line(RvR_xres()*128 + dsx / 2, RvR_yres()*128 + dsy / 2, RvR_xres()*128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres()*128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
-   dirx = RvR_fix16_cos(camera.dir-32*128);
-   diry = RvR_fix16_sin(camera.dir-32*128);
-   RvR_render_line(RvR_xres()*128 + dsx / 2, RvR_yres()*128 + dsy / 2, RvR_xres()*128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres()*128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
+   int dsx = (dirx * grid_size) / 256;
+   int dsy = (diry * grid_size) / 256;
+   RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 - dsx / 2, RvR_yres() * 128 - dsy / 2, color_white);
+   dirx = RvR_fix16_cos(camera.dir + 32 * 128);
+   diry = RvR_fix16_sin(camera.dir + 32 * 128);
+   RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres() * 128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
+   dirx = RvR_fix16_cos(camera.dir - 32 * 128);
+   diry = RvR_fix16_sin(camera.dir - 32 * 128);
+   RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres() * 128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
 
    //Draw cursor
    int mx, my;
@@ -465,8 +465,8 @@ void editor2d_draw()
    }
    else
    {
-      mx = RvR_xres()/ 2;
-      my = RvR_yres()/ 2;
+      mx = RvR_xres() / 2;
+      my = RvR_yres() / 2;
    }
 
    RvR_render_horizontal_line(mx - 4, mx - 1, my, color_magenta);
@@ -474,12 +474,12 @@ void editor2d_draw()
    RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
    RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
 
-   RvR_render_rectangle_fill(0, RvR_yres()- 12, RvR_xres(), 12, color_dark_gray);
+   RvR_render_rectangle_fill(0, RvR_yres() - 12, RvR_xres(), 12, color_dark_gray);
    char tmp[1024];
 
    switch(menu)
    {
-   case -2: snprintf(tmp, 1024, "Saved map to %s", map_path_get()); RvR_render_string(5, RvR_yres()- 10, 1, tmp, color_white); break;
+   case -2: snprintf(tmp, 1024, "Saved map to %s", map_path_get()); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
    case -1: RvR_render_string(5, RvR_yres() - 10, 1, "Invalid input", color_white); break;
    case 0: snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
    case 1: RvR_render_string(5, RvR_yres() - 10, 1, "(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit", color_white); break;

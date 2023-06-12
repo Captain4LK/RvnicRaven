@@ -39,7 +39,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static uint8_t mem[1<<25];
+static uint8_t mem[1 << 25];
 //-------------------------------------
 
 //Function prototypes
@@ -50,18 +50,18 @@ static uint8_t mem[1<<25];
 static uint32_t vm_syscall(RvR_vm *vm, int32_t code)
 {
    puts("SYSCALL");
-   printf("%d\n",vm->regs[10]);
+   printf("%d\n", vm->regs[10]);
    return 0;
 }
 
 int main(int argc, char **argv)
 {
-   RvR_malloc_init(mem,1<<25);
+   RvR_malloc_init(mem, 1 << 25);
 
    RvR_vm vm = {0};
    RvR_rw rw = {0};
-   RvR_rw_init_path(&rw,"test.bin","rb");
-   RvR_vm_create(&vm,&rw);
+   RvR_rw_init_path(&rw, "test.bin", "rb");
+   RvR_vm_create(&vm, &rw);
    vm.sys = &vm_syscall;
    RvR_rw_close(&rw);
 

@@ -45,7 +45,7 @@ void texture_list_create()
    if(texture_list.data==NULL)
    {
       texture_list.data_size = 16;
-      texture_list.data = RvR_malloc(sizeof(*texture_list.data) * texture_list.data_size,"rayed texture list");
+      texture_list.data = RvR_malloc(sizeof(*texture_list.data) * texture_list.data_size, "rayed texture list");
    }
    texture_list.data_used = 0;
    texture_sky = 0;
@@ -61,7 +61,7 @@ void texture_list_create()
       if(texture_list.data_used==texture_list.data_size)
       {
          texture_list.data_size += 16;
-         texture_list.data = RvR_realloc(texture_list.data, sizeof(*texture_list.data) * texture_list.data_size,"rayed texture list grow");
+         texture_list.data = RvR_realloc(texture_list.data, sizeof(*texture_list.data) * texture_list.data_size, "rayed texture list grow");
       }
    }
 }

@@ -5,7 +5,7 @@ Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] 
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -41,11 +41,11 @@ Card *card_new()
 {
    if(card_pool==NULL)
    {
-      Card *nc = RvR_malloc(sizeof(*nc)*256,"Card pool");
-      memset(nc,0,sizeof(*nc)*256);
-      
-      for(int i = 0;i<256-1;i++)
-         nc[i].next = &nc[i+1];
+      Card *nc = RvR_malloc(sizeof(*nc) * 256, "Card pool");
+      memset(nc, 0, sizeof(*nc) * 256);
+
+      for(int i = 0; i<256 - 1; i++)
+         nc[i].next = &nc[i + 1];
       card_pool = &nc[0];
    }
 
@@ -54,7 +54,7 @@ Card *card_new()
    n->next = NULL;
    n->prev_next = NULL;
 
-   memset(n,0,sizeof(*n));
+   memset(n, 0, sizeof(*n));
 
    return n;
 }
@@ -68,7 +68,7 @@ void card_free(Card *c)
    if(c->next!=NULL)
       c->next->prev_next = c->prev_next;
 
-   c->next = card_pool; 
+   c->next = card_pool;
    card_pool = c;
 }
 

@@ -5,7 +5,7 @@ Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutan
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -64,7 +64,7 @@ void ai_on_use(Entity *e, Entity *trigger)
    switch(e->ai_type)
    {
    case 0: break; //no ai
-   case 2: ai_door_on_use(e,trigger); break;
+   case 2: ai_door_on_use(e, trigger); break;
    }
 }
 
@@ -93,10 +93,10 @@ void ai_init(Entity *e, uint32_t ai_type, const uint32_t extra[3])
    switch(e->ai_type)
    {
    case 0: break; //no ai
-   case 1: ai_elevator_init(e,extra); break;
-   case 2: ai_door_init(e,extra); break;
-   case 3: ai_deco_init(e,extra); break;
-   case 4: ai_block_init(e,extra); break;
+   case 1: ai_elevator_init(e, extra); break;
+   case 2: ai_door_init(e, extra); break;
+   case 3: ai_deco_init(e, extra); break;
+   case 4: ai_block_init(e, extra); break;
    }
 }
 //-------------------------------------

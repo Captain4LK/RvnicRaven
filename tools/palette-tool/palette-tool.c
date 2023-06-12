@@ -163,7 +163,7 @@ static void print_help(char **argv)
 
 static Palette *palette_pal(FILE *f)
 {
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
 
    fscanf(f, "JASC-PAL\n0100\n%d\n", &p->colors_used);
    for(int i = 0; i<p->colors_used; i++)
@@ -174,7 +174,7 @@ static Palette *palette_pal(FILE *f)
 static Palette *palette_png(FILE *f)
 {
    Sprite_rgb *s = image_load(f);
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
    memset(p, 0, sizeof(*p));
    p->colors_used = MIN(256, s->width * s->height);
    for(int i = 0; i<p->colors_used; i++)
@@ -186,7 +186,7 @@ static Palette *palette_png(FILE *f)
 
 static Palette *palette_gpl(FILE *f)
 {
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
    if(!p)
       return NULL;
    memset(p, 0, sizeof(*p));
@@ -215,7 +215,7 @@ static Palette *palette_gpl(FILE *f)
 static Palette *palette_hex(FILE *f)
 {
 
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
    if(!p)
       return NULL;
    memset(p, 0, sizeof(*p));
@@ -271,10 +271,10 @@ static int chartoi(char in)
 
 static Sprite_rgb *sprite_rgb_create(int width, int height)
 {
-   Sprite_rgb *s = RvR_malloc(sizeof(*s),"RGB sprite");
+   Sprite_rgb *s = RvR_malloc(sizeof(*s), "RGB sprite");
    s->width = width;
    s->height = height;
-   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height,"RGB sprite pixel data");
+   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height, "RGB sprite pixel data");
    return s;
 }
 

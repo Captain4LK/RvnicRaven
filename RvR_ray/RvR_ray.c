@@ -39,11 +39,11 @@ void RvR_ray_cast_multi_hit(const RvR_ray_map *map, RvR_ray r, RvR_ray_hit_resul
 
    RvR_fix16 current_posx = r.x;
    RvR_fix16 current_posy = r.y;
-   RvR_fix16 current_squarex = r.x/65536;
-   RvR_fix16 current_squarey = r.y/65536;
+   RvR_fix16 current_squarex = r.x / 65536;
+   RvR_fix16 current_squarey = r.y / 65536;
 
-   RvR_fix16 deltax = RvR_abs(RvR_fix16_div(65536,RvR_non_zero(r.dirx)));
-   RvR_fix16 deltay = RvR_abs(RvR_fix16_div(65536,RvR_non_zero(r.diry)));
+   RvR_fix16 deltax = RvR_abs(RvR_fix16_div(65536, RvR_non_zero(r.dirx)));
+   RvR_fix16 deltay = RvR_abs(RvR_fix16_div(65536, RvR_non_zero(r.diry)));
 
    RvR_fix16 stepx;
    RvR_fix16 stepy;
@@ -54,38 +54,38 @@ void RvR_ray_cast_multi_hit(const RvR_ray_map *map, RvR_ray r, RvR_ray_hit_resul
    if(r.dirx<0)
    {
       stepx = -1;
-      side_distx = RvR_fix16_mul(r.x-current_squarex*65536,deltax);
+      side_distx = RvR_fix16_mul(r.x - current_squarex * 65536, deltax);
    }
    else
    {
       stepx = 1;
-      side_distx = RvR_fix16_mul(current_squarex*65536+65536-r.x,deltax);
+      side_distx = RvR_fix16_mul(current_squarex * 65536 + 65536 - r.x, deltax);
    }
 
    if(r.diry<0)
    {
       stepy = -1;
-      side_disty = RvR_fix16_mul(r.y-current_squarey*65536,deltay);
+      side_disty = RvR_fix16_mul(r.y - current_squarey * 65536, deltay);
    }
    else
    {
       stepy = 1;
-      side_disty = RvR_fix16_mul(current_squarey*65536+65536-r.y,deltay);
+      side_disty = RvR_fix16_mul(current_squarey * 65536 + 65536 - r.y, deltay);
    }
 
-   for(unsigned i = 0;i<max_steps;i++)
+   for(unsigned i = 0; i<max_steps; i++)
    {
       // DDA step
       if(side_distx<side_disty)
       {
-         side_distx+=deltax;
-         current_squarex+=stepx;
+         side_distx += deltax;
+         current_squarex += stepx;
          side = 0;
       }
       else
       {
-         side_disty+=deltay;
-         current_squarey+=stepy;
+         side_disty += deltay;
+         current_squarey += stepy;
          side = 1;
       }
 
@@ -97,33 +97,33 @@ void RvR_ray_cast_multi_hit(const RvR_ray_map *map, RvR_ray r, RvR_ray_hit_resul
 
       if(!side)
       {
-         h.distance = (side_distx-deltax);
-         h.posy = r.y+RvR_fix16_mul(h.distance,r.diry);
-         h.posx = current_squarex*65536;
+         h.distance = (side_distx - deltax);
+         h.posy = r.y + RvR_fix16_mul(h.distance, r.diry);
+         h.posx = current_squarex * 65536;
          h.direction = 3;
          if(stepx==-1)
          {
             h.direction = 1;
-            h.posx+=65536;
+            h.posx += 65536;
          }
       }
       else
       {
-         h.distance = (side_disty-deltay);
-         h.posx = r.x+RvR_fix16_mul(h.distance,r.dirx);
-         h.posy = current_squarey*65536;
+         h.distance = (side_disty - deltay);
+         h.posx = r.x + RvR_fix16_mul(h.distance, r.dirx);
+         h.posy = current_squarey * 65536;
          h.direction = 2;
          if(stepy==-1)
          {
             h.direction = 0;
-            h.posy+=65536;
+            h.posy += 65536;
          }
       }
-      
-      if(RvR_ray_map_inbounds(map,current_squarex,current_squarey))
+
+      if(RvR_ray_map_inbounds(map, current_squarex, current_squarey))
       {
-         h.wall_ftex = RvR_ray_map_wall_ftex_at_us(map,current_squarex,current_squarey);
-         h.wall_ctex = RvR_ray_map_wall_ctex_at_us(map,current_squarex,current_squarey);
+         h.wall_ftex = RvR_ray_map_wall_ftex_at_us(map, current_squarex, current_squarey);
+         h.wall_ctex = RvR_ray_map_wall_ctex_at_us(map, current_squarex, current_squarey);
       }
       else
       {
@@ -132,50 +132,50 @@ void RvR_ray_cast_multi_hit(const RvR_ray_map *map, RvR_ray r, RvR_ray_hit_resul
       }
 
       h.fheight = 0;
-      h.cheight = (127*65536)/8;
+      h.cheight = (127 * 65536) / 8;
       h.floor_tex = map->sky_tex;
       h.ceil_tex = map->sky_tex;
 
       switch(h.direction)
       {
       case 0:
-         h.texture_coord = (h.posx)&65535;
-         if(RvR_ray_map_inbounds(map,current_squarex,current_squarey+1))
+         h.texture_coord = (h.posx) & 65535;
+         if(RvR_ray_map_inbounds(map, current_squarex, current_squarey + 1))
          {
-            h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex,current_squarey+1);
-            h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex,current_squarey+1);
-            h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex,h.squarey+1);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex,h.squarey+1);
+            h.fheight = RvR_ray_map_floor_height_at_us(map, current_squarex, current_squarey + 1);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(map, current_squarex, current_squarey + 1);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(map, h.squarex, h.squarey + 1);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map, h.squarex, h.squarey + 1);
          }
          break;
       case 1:
-         h.texture_coord = (-h.posy)&65535;
-         if(RvR_ray_map_inbounds(map,current_squarex+1,current_squarey))
+         h.texture_coord = (-h.posy) & 65535;
+         if(RvR_ray_map_inbounds(map, current_squarex + 1, current_squarey))
          {
-            h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex+1,current_squarey);
-            h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex+1,current_squarey);
-            h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex+1,h.squarey);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex+1,h.squarey);
+            h.fheight = RvR_ray_map_floor_height_at_us(map, current_squarex + 1, current_squarey);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(map, current_squarex + 1, current_squarey);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(map, h.squarex + 1, h.squarey);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map, h.squarex + 1, h.squarey);
          }
          break;
       case 2:
-         h.texture_coord = (-h.posx)&65535;
-         if(RvR_ray_map_inbounds(map,current_squarex,current_squarey-1))
+         h.texture_coord = (-h.posx) & 65535;
+         if(RvR_ray_map_inbounds(map, current_squarex, current_squarey - 1))
          {
-            h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex,current_squarey-1);
-            h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex,current_squarey-1);
-            h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex,h.squarey-1);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex,h.squarey-1);
+            h.fheight = RvR_ray_map_floor_height_at_us(map, current_squarex, current_squarey - 1);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(map, current_squarex, current_squarey - 1);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(map, h.squarex, h.squarey - 1);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map, h.squarex, h.squarey - 1);
          }
          break;
       case 3:
-         h.texture_coord = (h.posy)&65535;
-         if(RvR_ray_map_inbounds(map,current_squarex-1,current_squarey))
+         h.texture_coord = (h.posy) & 65535;
+         if(RvR_ray_map_inbounds(map, current_squarex - 1, current_squarey))
          {
-            h.fheight = RvR_ray_map_floor_height_at_us(map,current_squarex-1,current_squarey);
-            h.cheight = RvR_ray_map_ceiling_height_at_us(map,current_squarex-1,current_squarey);
-            h.floor_tex = RvR_ray_map_floor_tex_at_us(map,h.squarex-1,h.squarey);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map,h.squarex-1,h.squarey);
+            h.fheight = RvR_ray_map_floor_height_at_us(map, current_squarex - 1, current_squarey);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(map, current_squarex - 1, current_squarey);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(map, h.squarex - 1, h.squarey);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(map, h.squarex - 1, h.squarey);
          }
          break;
       default:

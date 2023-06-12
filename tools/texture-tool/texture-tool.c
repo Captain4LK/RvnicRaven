@@ -125,7 +125,7 @@ int main(int argc, char **argv)
          flags |= SPRITE_SPRITE;
          break;
       case 'a':
-         sscanf(options.optarg,"%" SCNu8 ",%" SCNu8,&anim_range,&anim_speed);
+         sscanf(options.optarg, "%" SCNu8 ",%" SCNu8, &anim_range, &anim_speed);
          break;
       case 'h':
          print_help(argv);
@@ -190,8 +190,8 @@ int main(int argc, char **argv)
    //Compress and write to file
    RvR_rw cin;
    RvR_rw cout;
-   int len = sizeof(uint8_t) * sp->width * sp->height + sizeof(int16_t) + 2*sizeof(int8_t) + 2 * sizeof(int32_t);
-   uint8_t *mem = RvR_malloc(len,"compression buffer");
+   int len = sizeof(uint8_t) * sp->width * sp->height + sizeof(int16_t) + 2 * sizeof(int8_t) + 2 * sizeof(int32_t);
+   uint8_t *mem = RvR_malloc(len, "compression buffer");
    RvR_rw_init_mem(&cin, mem, len, len);
    RvR_rw_write_u16(&cin, 0);
    RvR_rw_write_u32(&cin, sp->width);
@@ -291,7 +291,7 @@ static Sprite_pal *texture_load(const char *path, const char *path_pal)
 
 static Palette *palette_pal(FILE *f)
 {
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
 
    fscanf(f, "JASC-PAL\n0100\n%d\n", &p->colors_used);
    for(int i = 0; i<p->colors_used; i++)
@@ -302,7 +302,7 @@ static Palette *palette_pal(FILE *f)
 static Palette *palette_png(FILE *f)
 {
    Sprite_rgb *s = image_load(f);
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
    memset(p, 0, sizeof(*p));
    p->colors_used = MIN(256, s->width * s->height);
    for(int i = 0; i<p->colors_used; i++)
@@ -314,7 +314,7 @@ static Palette *palette_png(FILE *f)
 
 static Palette *palette_gpl(FILE *f)
 {
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
    if(!p)
       return NULL;
    memset(p, 0, sizeof(*p));
@@ -343,7 +343,7 @@ static Palette *palette_gpl(FILE *f)
 static Palette *palette_hex(FILE *f)
 {
 
-   Palette *p = RvR_malloc(sizeof(*p),"Palette");
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
    if(!p)
       return NULL;
    memset(p, 0, sizeof(*p));
@@ -399,20 +399,20 @@ static int chartoi(char in)
 
 static Sprite_rgb *sprite_rgb_create(int width, int height)
 {
-   Sprite_rgb *s = RvR_malloc(sizeof(*s),"RGB sprite");
+   Sprite_rgb *s = RvR_malloc(sizeof(*s), "RGB sprite");
    s->width = width;
    s->height = height;
-   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height,"RGB sprite pixel data");
+   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height, "RGB sprite pixel data");
 
    return s;
 }
 
 static Sprite_pal *sprite_pal_create(int width, int height)
 {
-   Sprite_pal *s = RvR_malloc(sizeof(*s),"Indexed sprite");
+   Sprite_pal *s = RvR_malloc(sizeof(*s), "Indexed sprite");
    s->width = width;
    s->height = height;
-   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height,"Indexed sprite pixel data");
+   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height, "Indexed sprite pixel data");
 
    return s;
 }

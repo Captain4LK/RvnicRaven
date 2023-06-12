@@ -76,15 +76,15 @@ void draw_fit64(int x, int y, uint16_t tex)
       texsy = RvR_abs(y) * stepy;
    }
    if(x + draw_end_x>RvR_xres())
-      draw_end_x = fwidth + (RvR_xres()- x - draw_end_x);
+      draw_end_x = fwidth + (RvR_xres() - x - draw_end_x);
    if(y + draw_end_y>RvR_yres())
-      draw_end_y = fheight + (RvR_yres()- y - draw_end_y);
+      draw_end_y = fheight + (RvR_yres() - y - draw_end_y);
 
    x = x<0?0:x;
    y = y<0?0:y;
 
    uint8_t * restrict dst = &RvR_framebuffer()[x + y * RvR_xres()];
-   int dst_step = -((draw_end_y - draw_start_y)) * RvR_xres()+ 1;
+   int dst_step = -((draw_end_y - draw_start_y)) * RvR_xres() + 1;
    texx = texsx;
 
    for(int x1 = draw_start_x; x1<draw_end_x; x1++)

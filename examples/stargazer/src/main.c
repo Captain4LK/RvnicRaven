@@ -5,7 +5,7 @@ Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] 
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -21,7 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define MEM_SIZE (1<<24)
+#define MEM_SIZE (1 << 24)
 //-------------------------------------
 
 //Typedefs
@@ -41,13 +41,13 @@ int main(int argc, char **argv)
 {
    RvR_malloc_init(mem, MEM_SIZE);
 
-   RvR_init("RvnicRaven - stargazer",0);
+   RvR_init("RvnicRaven - stargazer", 0);
    RvR_mouse_relative(1);
 
    RvR_pak_add("data/main.csv");
 
    //User defined overwrites (used for modding)
-   for(int i = 1;i<argc;i++)
+   for(int i = 1; i<argc; i++)
       RvR_pak_add(argv[i]);
 
    config_read("settings.ini");
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
    sprites_init();
 
    //Second framebuffer for effects
-   RvR_texture_create(65535,RvR_xres(),RvR_yres());
+   RvR_texture_create(65535, RvR_xres(), RvR_yres());
 
    state_init(STATE_GAME_INVENTORY);
    state_init(STATE_TITLE);

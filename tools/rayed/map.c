@@ -73,7 +73,7 @@ void map_load(const char *path)
    printf("%d Sprites\n", map->sprite_count);
    for(int i = 0; i<map->sprite_count; i++)
    {
-      RvR_ray_map_sprite *s = map->sprites+i;
+      RvR_ray_map_sprite *s = map->sprites + i;
       Map_sprite *ms = map_sprite_new();
 
       ms->texture = s->texture;
@@ -130,7 +130,7 @@ void map_save()
       sprite_count++;
    }
    map->sprite_count = sprite_count;
-   map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count,"RvR_ray map sprites grow");
+   map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count, "RvR_ray map sprites grow");
    s = map_sprites;
    for(int i = 0; s!=NULL; i++)
    {
@@ -147,7 +147,7 @@ void map_save()
    }
 
    puts(map_path);
-   RvR_ray_map_save(map,map_path);
+   RvR_ray_map_save(map, map_path);
 }
 
 void map_set_path(const char *path)
@@ -167,7 +167,7 @@ void map_path_add(const char *path)
    {
       path_list.data_used = 0;
       path_list.data_size = 1;
-      path_list.data = RvR_malloc(sizeof(*path_list.data) * path_list.data_size,"rayed map path list");
+      path_list.data = RvR_malloc(sizeof(*path_list.data) * path_list.data_size, "rayed map path list");
    }
 
    for(unsigned i = 0; i<path_list.data_used; i++)
@@ -180,7 +180,7 @@ void map_path_add(const char *path)
    if(path_list.data_used>=path_list.data_size)
    {
       path_list.data_size += 1;
-      path_list.data = RvR_realloc(path_list.data, sizeof(*path_list.data) * path_list.data_size,"rayed map path list grow");
+      path_list.data = RvR_realloc(path_list.data, sizeof(*path_list.data) * path_list.data_size, "rayed map path list grow");
    }
 }
 
@@ -190,7 +190,7 @@ static void map_list_add(const char *path)
    {
       map_list.data_used = 0;
       map_list.data_size = 1;
-      map_list.data = RvR_malloc(sizeof(*map_list.data) * map_list.data_size,"rayed map list");
+      map_list.data = RvR_malloc(sizeof(*map_list.data) * map_list.data_size, "rayed map list");
    }
 
    for(unsigned i = 0; i<map_list.data_used; i++)
@@ -203,25 +203,25 @@ static void map_list_add(const char *path)
    if(map_list.data_used>=map_list.data_size)
    {
       map_list.data_size += 1;
-      map_list.data = RvR_realloc(map_list.data, sizeof(*map_list.data) * map_list.data_size,"rayed map list grow");
+      map_list.data = RvR_realloc(map_list.data, sizeof(*map_list.data) * map_list.data_size, "rayed map list grow");
    }
 }
 
 int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix16 fheight, RvR_fix16 cheight, int x, int y)
 {
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return 0;
 
-   if(ftex!=RvR_ray_map_floor_tex_at(map,x, y))
+   if(ftex!=RvR_ray_map_floor_tex_at(map, x, y))
       return 0;
 
-   if(ctex!=RvR_ray_map_ceil_tex_at(map,x, y))
+   if(ctex!=RvR_ray_map_ceil_tex_at(map, x, y))
       return 0;
 
-   if(fheight!=RvR_ray_map_floor_height_at(map,x, y))
+   if(fheight!=RvR_ray_map_floor_height_at(map, x, y))
       return 0;
 
-   if(cheight!=RvR_ray_map_ceiling_height_at(map,x, y))
+   if(cheight!=RvR_ray_map_ceiling_height_at(map, x, y))
       return 0;
 
    return 1;
@@ -267,7 +267,7 @@ Map_sprite *map_sprite_new()
 {
    if(map_sprite_pool==NULL)
    {
-      Map_sprite *ms = RvR_malloc(sizeof(*ms) * 256,"rayed map sprite pool");
+      Map_sprite *ms = RvR_malloc(sizeof(*ms) * 256, "rayed map sprite pool");
       memset(ms, 0, sizeof(*ms) * 256);
 
       for(int i = 0; i<255; i++)

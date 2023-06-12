@@ -30,7 +30,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //#defines
 #define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX * RvR_yres()) / 65536)
-#define CAMERA_SHEAR_STEP_FRAME ((RvR_yres()* CAMERA_SHEAR_SPEED) / (RvR_fps()* 4))
+#define CAMERA_SHEAR_STEP_FRAME ((RvR_yres() * CAMERA_SHEAR_SPEED) / (RvR_fps() * 4))
 
 #define WRAP(p) ((p) & (UNDO_BUFFER_SIZE - 1))
 #define UNDO_RECORD (UINT16_MAX)
@@ -126,7 +126,7 @@ static void flood_wall_ctex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, R
 
 void editor_init()
 {
-   undo_buffer = RvR_malloc(sizeof(*undo_buffer) * UNDO_BUFFER_SIZE,"rayed undo buffer");
+   undo_buffer = RvR_malloc(sizeof(*undo_buffer) * UNDO_BUFFER_SIZE, "rayed undo buffer");
    memset(undo_buffer, 0, sizeof(*undo_buffer) * UNDO_BUFFER_SIZE);
 
    camera.fov = 16384;
@@ -258,8 +258,8 @@ void editor_undo_reset()
 
 void camera_update()
 {
-   RvR_fix16 dirx = RvR_fix16_cos(camera.dir)/8;
-   RvR_fix16 diry = RvR_fix16_sin(camera.dir)/8;
+   RvR_fix16 dirx = RvR_fix16_cos(camera.dir) / 8;
+   RvR_fix16 diry = RvR_fix16_sin(camera.dir) / 8;
    int speed = 1;
    RvR_fix16 offx = 0;
    RvR_fix16 offy = 0;
@@ -287,14 +287,14 @@ void camera_update()
       if(RvR_key_down(RVR_KEY_LALT))
          camera.shear += CAMERA_SHEAR_STEP_FRAME;
       else
-         offz = speed * 64*64;
+         offz = speed * 64 * 64;
    }
    else if(RvR_key_down(RVR_KEY_Z))
    {
       if(RvR_key_down(RVR_KEY_LALT))
          camera.shear -= CAMERA_SHEAR_STEP_FRAME;
       else
-         offz = -speed * 64*64;
+         offz = -speed * 64 * 64;
    }
 
    camera.shear = RvR_max(-CAMERA_SHEAR_MAX_PIXELS, RvR_min(CAMERA_SHEAR_MAX_PIXELS, camera.shear));
@@ -309,7 +309,7 @@ void camera_update()
       }
       else
       {
-         camera.dir-= 64*8;
+         camera.dir -= 64 * 8;
       }
    }
    else if(RvR_key_down(RVR_KEY_RIGHT))
@@ -321,15 +321,15 @@ void camera_update()
       }
       else
       {
-         camera.dir+= 64*8;
+         camera.dir += 64 * 8;
       }
    }
-   camera.dir&= 65535;
+   camera.dir &= 65535;
 
    //Collision
    RvR_fix16 floor_height = 0;
    RvR_fix16 ceiling_height = 0;
-   move_with_collision(offx,offy,offz, 1, 1, &floor_height, &ceiling_height);
+   move_with_collision(offx, offy, offz, 1, 1, &floor_height, &ceiling_height);
 }
 
 static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, int8_t compute_height, int8_t compute_plane, RvR_fix16 *floor_height, RvR_fix16 *ceiling_height)
@@ -339,7 +339,7 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
    int collide_y = 0;
 
    //Check x collision
-   for(int y = -((CAMERA_COLL_RADIUS+65535)/65536);y<(CAMERA_COLL_RADIUS+65535)/65536;y++)
+   for(int y = -((CAMERA_COLL_RADIUS + 65535) / 65536); y<(CAMERA_COLL_RADIUS + 65535) / 65536; y++)
    {
 
       /*for(int x = -((CAMERA_COLL_RADIUS+65535)/65536);x<(CAMERA_COLL_RADIUS+65535)/65536;x++)
@@ -371,22 +371,22 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
       //int16_t x_square = RvR_div_round_down(corner.x, 1024);
       //int16_t y_square = RvR_div_round_down(corner.y, 1024);
       //TODO: why round down?
-      int16_t x_square = (cornerx/65536);
-      int16_t y_square = (cornery/65536);
+      int16_t x_square = (cornerx / 65536);
+      int16_t y_square = (cornery / 65536);
 
       corner_newx = cornerx + offx;
       corner_newy = cornery + offy;
 
       //x_square_new = RvR_div_round_down(corner_new.x, 1024);
       //y_square_new = RvR_div_round_down(corner_new.y, 1024);
-      x_square_new = (corner_newx/65536);
-      y_square_new = (corner_newy/65536);
+      x_square_new = (corner_newx / 65536);
+      y_square_new = (corner_newy / 65536);
 
       //TODO
-      RvR_fix16 bottom_limit = -128*65536;
-      RvR_fix16 top_limit = 128*65536;
+      RvR_fix16 bottom_limit = -128 * 65536;
+      RvR_fix16 top_limit = 128 * 65536;
 
-      RvR_fix16 curr_ceil_height = 128*65536;
+      RvR_fix16 curr_ceil_height = 128 * 65536;
 
       if(compute_height)
       {
@@ -394,28 +394,28 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
 
          top_limit = camera.z + CAMERA_COLL_HEIGHT_ABOVE;
 
-         curr_ceil_height = RvR_ray_map_ceiling_height_at(map,x_square, y_square);
+         curr_ceil_height = RvR_ray_map_ceiling_height_at(map, x_square, y_square);
       }
 
       // checks a single square for collision against the camera
 #define collCheck(dir, s1, s2) \
    if(compute_height) \
    { \
-      RvR_fix16 height = RvR_ray_map_floor_height_at(map,s1, s2); \
+      RvR_fix16 height = RvR_ray_map_floor_height_at(map, s1, s2); \
       if(height>bottom_limit|| \
          curr_ceil_height - height< \
          CAMERA_COLL_HEIGHT_BELOW + CAMERA_COLL_HEIGHT_ABOVE) \
       dir ## _collides = 1; \
       else \
       { \
-         RvR_fix16 height2 = RvR_ray_map_ceiling_height_at(map,s1, s2); \
+         RvR_fix16 height2 = RvR_ray_map_ceiling_height_at(map, s1, s2); \
          if((height2<top_limit)||((height2 - height)< \
                                   (CAMERA_COLL_HEIGHT_ABOVE + CAMERA_COLL_HEIGHT_BELOW))) \
          dir ## _collides = 1; \
       } \
    } \
    else \
-   dir ## _collides = RvR_ray_map_floor_height_at(map,s1, s2)>CAMERA_COLL_STEP_HEIGHT;
+   dir ## _collides = RvR_ray_map_floor_height_at(map, s1, s2)>CAMERA_COLL_STEP_HEIGHT;
 
       // check collision against non-diagonal square
 #define collCheckOrtho(dir, dir2, s1, s2, x) \
@@ -425,7 +425,7 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
    } \
    if(!dir ## _collides) \
    {    /* now also check for coll on the neighbouring square */ \
-      int16_t dir2 ## _square2 = (corner ## dir2 - dir2## _dir * CAMERA_COLL_RADIUS*2)/65536; \
+      int16_t dir2 ## _square2 = (corner ## dir2 - dir2 ## _dir * CAMERA_COLL_RADIUS * 2) / 65536; \
       if(dir2 ## _square2!=dir2 ## _square) \
       { \
          if(x) \
@@ -435,8 +435,8 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
       } \
    }
       //int16_t dir2##_square2 = RvR_div_round_down(corner.dir2-dir2##_dir *
-      //int16_t dir2 ## _square2 = (corner ## dir2 - dir2## _dir * CAMERA_COLL_RADIUS*2)/65536; RvR_div_round_down(corner ## dir2 - dir2 ## _dir * 
-                                                    //CAMERA_COLL_RADIUS * 2, 1024);
+      //int16_t dir2 ## _square2 = (corner ## dir2 - dir2## _dir * CAMERA_COLL_RADIUS*2)/65536; RvR_div_round_down(corner ## dir2 - dir2 ## _dir *
+      //CAMERA_COLL_RADIUS * 2, 1024);
 
       int8_t x_collides = 0;
       collCheckOrtho(x, y, x_square_new, y_square, 1)
@@ -450,9 +450,9 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
          {
             #define collHandle(dir) \
    if (dir ## _collides) \
-   corner_new ## dir = (dir ## _square)*65536+ \
-                    65536/ 2 + dir ## _dir * (65536/ 2) - \
-                    dir ## _dir; \
+   corner_new ## dir = (dir ## _square)*65536 + \
+                       65536 / 2 + dir ## _dir * (65536 / 2) - \
+                       dir ## _dir; \
 
             collHandle(x)
             collHandle(y)
@@ -475,8 +475,8 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
             square_posx = x_square * 65536;
             square_posy = y_square * 65536;
 
-            new_posx = RvR_max(square_posx + CAMERA_COLL_RADIUS + 1, RvR_min(square_posx + 65536- CAMERA_COLL_RADIUS - 1, camera.x));
-            new_posy = RvR_max(square_posy + CAMERA_COLL_RADIUS + 1, RvR_min(square_posy + 65536- CAMERA_COLL_RADIUS - 1, camera.y));
+            new_posx = RvR_max(square_posx + CAMERA_COLL_RADIUS + 1, RvR_min(square_posx + 65536 - CAMERA_COLL_RADIUS - 1, camera.x));
+            new_posy = RvR_max(square_posy + CAMERA_COLL_RADIUS + 1, RvR_min(square_posy + 65536 - CAMERA_COLL_RADIUS - 1, camera.y));
 
             corner_newx = cornerx + (new_posx - camera.x);
             corner_newy = cornery + (new_posy - camera.y);
@@ -511,10 +511,10 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
       camera.z += offz;
 
       //int16_t x_square1 = RvR_div_round_down(camera.pos.x-CAMERA_COLL_RADIUS,1024);
-      int16_t x_square1 = (camera.x-CAMERA_COLL_RADIUS)/65536;
-      int16_t x_square2 = (camera.x+CAMERA_COLL_RADIUS)/65536;
-      int16_t y_square1 = (camera.y-CAMERA_COLL_RADIUS)/65536;
-      int16_t y_square2 = (camera.y+CAMERA_COLL_RADIUS)/65536;
+      int16_t x_square1 = (camera.x - CAMERA_COLL_RADIUS) / 65536;
+      int16_t x_square2 = (camera.x + CAMERA_COLL_RADIUS) / 65536;
+      int16_t y_square1 = (camera.y - CAMERA_COLL_RADIUS) / 65536;
+      int16_t y_square2 = (camera.y + CAMERA_COLL_RADIUS) / 65536;
       //printf("(%d %d) (%d %d)\n",x_square1,y_square1,x_square2,y_square2);
 
       //int16_t x_square2 = RvR_div_round_down(camera.pos.x + CAMERA_COLL_RADIUS, 1024);
@@ -523,30 +523,30 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
 
       //int16_t y_square2 = RvR_div_round_down(camera.pos.y + CAMERA_COLL_RADIUS, 1024);
 
-      RvR_fix16 bottom_limit = RvR_ray_map_floor_height_at(map,x_square1, y_square1);
-      RvR_fix16 top_limit = RvR_ray_map_ceiling_height_at(map,x_square1, y_square1);
+      RvR_fix16 bottom_limit = RvR_ray_map_floor_height_at(map, x_square1, y_square1);
+      RvR_fix16 top_limit = RvR_ray_map_ceiling_height_at(map, x_square1, y_square1);
 
       RvR_fix16 height;
 
 #define checkSquares(s1, s2) \
    { \
-      height = RvR_ray_map_floor_height_at(map,x_square ## s1, y_square ## s2); \
+      height = RvR_ray_map_floor_height_at(map, x_square ## s1, y_square ## s2); \
       bottom_limit = RvR_max(bottom_limit, height); \
-      height = RvR_ray_map_ceiling_height_at(map,x_square ## s1, y_square ## s2); \
+      height = RvR_ray_map_ceiling_height_at(map, x_square ## s1, y_square ## s2); \
       top_limit = RvR_min(top_limit, height); \
    }
 
       if(x_square2!=x_square1)
          checkSquares(2, 1)
 
-      if(y_square2!=y_square1)
-         checkSquares(1, 2)
+         if(y_square2!=y_square1)
+            checkSquares(1, 2)
 
-      if(x_square2!=x_square1&&y_square2!=y_square1)
-         checkSquares(2, 2)
+            if(x_square2!=x_square1&&y_square2!=y_square1)
+               checkSquares(2, 2)
 
-      if(floor_height!=NULL)
-         *floor_height = bottom_limit;
+               if(floor_height!=NULL)
+                  *floor_height = bottom_limit;
 
       if(ceiling_height!=NULL)
          *ceiling_height = top_limit;
@@ -668,10 +668,10 @@ static void undo_floor_height(int pos, int endpos)
       height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
-      RvR_fix16 old_height = RvR_ray_map_floor_height_at(map,x, y);
+      RvR_fix16 old_height = RvR_ray_map_floor_height_at(map, x, y);
 
       redo_record_height(x, y, old_height);
-      RvR_ray_map_floor_height_set(map,x, y, height);
+      RvR_ray_map_floor_height_set(map, x, y, height);
    }
 }
 
@@ -683,10 +683,10 @@ static void redo_floor_height(int pos, int endpos)
       height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos + 1);
-      RvR_fix16 old_height = RvR_ray_map_floor_height_at(map,x, y);
+      RvR_fix16 old_height = RvR_ray_map_floor_height_at(map, x, y);
 
       undo_record_height(x, y, old_height);
-      RvR_ray_map_floor_height_set(map,x, y, height);
+      RvR_ray_map_floor_height_set(map, x, y, height);
    }
 }
 
@@ -698,10 +698,10 @@ static void undo_ceiling_height(int pos, int endpos)
       height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
-      RvR_fix16 old_height = RvR_ray_map_ceiling_height_at(map,x, y);
+      RvR_fix16 old_height = RvR_ray_map_ceiling_height_at(map, x, y);
 
       redo_record_height(x, y, old_height);
-      RvR_ray_map_ceiling_height_set(map,x, y, height);
+      RvR_ray_map_ceiling_height_set(map, x, y, height);
    }
 }
 
@@ -713,10 +713,10 @@ static void redo_ceiling_height(int pos, int endpos)
       height += ((uint32_t)undo_buffer[pos]) << 16;        pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos + 1);
-      RvR_fix16 old_height = RvR_ray_map_ceiling_height_at(map,x, y);
+      RvR_fix16 old_height = RvR_ray_map_ceiling_height_at(map, x, y);
 
       undo_record_height(x, y, old_height);
-      RvR_ray_map_ceiling_height_set(map,x, y, height);
+      RvR_ray_map_ceiling_height_set(map, x, y, height);
    }
 }
 
@@ -734,8 +734,8 @@ static void undo_flood_floor_height(int pos, int endpos)
       x = undo_buffer[pos];        pos = WRAP(pos - 1);
 
       if(old_height==INT32_MIN)
-         old_height = RvR_ray_map_floor_height_at(map,x, y);
-      RvR_ray_map_floor_height_set(map,x, y, height);
+         old_height = RvR_ray_map_floor_height_at(map, x, y);
+      RvR_ray_map_floor_height_set(map, x, y, height);
 
       redo_write(x);
       redo_write(y);
@@ -759,8 +759,8 @@ static void redo_flood_floor_height(int pos, int endpos)
       x = undo_buffer[pos];        pos = WRAP(pos + 1);
 
       if(old_height==INT32_MIN)
-         old_height = RvR_ray_map_floor_height_at(map,x, y);
-      RvR_ray_map_floor_height_set(map,x, y, height);
+         old_height = RvR_ray_map_floor_height_at(map, x, y);
+      RvR_ray_map_floor_height_set(map, x, y, height);
 
       undo_write(x);
       undo_write(y);
@@ -784,8 +784,8 @@ static void undo_flood_ceiling_height(int pos, int endpos)
       x = undo_buffer[pos]; pos = WRAP(pos - 1);
 
       if(old_height==INT32_MIN)
-         old_height = RvR_ray_map_ceiling_height_at(map,x, y);
-      RvR_ray_map_ceiling_height_set(map,x, y, height);
+         old_height = RvR_ray_map_ceiling_height_at(map, x, y);
+      RvR_ray_map_ceiling_height_set(map, x, y, height);
 
       redo_write(x);
       redo_write(y);
@@ -809,8 +809,8 @@ static void redo_flood_ceiling_height(int pos, int endpos)
       x = undo_buffer[pos]; pos = WRAP(pos + 1);
 
       if(old_height==INT32_MIN)
-         old_height = RvR_ray_map_ceiling_height_at(map,x, y);
-      RvR_ray_map_ceiling_height_set(map,x, y, height);
+         old_height = RvR_ray_map_ceiling_height_at(map, x, y);
+      RvR_ray_map_ceiling_height_set(map, x, y, height);
 
       undo_write(x);
       undo_write(y);
@@ -827,10 +827,10 @@ static void undo_floor_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
-      uint16_t old_tex = RvR_ray_map_floor_tex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_floor_tex_at(map, x, y);
 
       redo_record_tex(x, y, old_tex);
-      RvR_ray_map_floor_tex_set(map,x, y, tex);
+      RvR_ray_map_floor_tex_set(map, x, y, tex);
    }
 }
 
@@ -841,10 +841,10 @@ static void redo_floor_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];    pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];    pos = WRAP(pos + 1);
-      uint16_t old_tex = RvR_ray_map_floor_tex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_floor_tex_at(map, x, y);
 
       undo_record_tex(x, y, old_tex);
-      RvR_ray_map_floor_tex_set(map,x, y, tex);
+      RvR_ray_map_floor_tex_set(map, x, y, tex);
    }
 }
 
@@ -855,10 +855,10 @@ static void undo_ceiling_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
-      uint16_t old_tex = RvR_ray_map_ceil_tex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_ceil_tex_at(map, x, y);
 
       redo_record_tex(x, y, old_tex);
-      RvR_ray_map_ceil_tex_set(map,x, y, tex);
+      RvR_ray_map_ceil_tex_set(map, x, y, tex);
    }
 }
 
@@ -869,10 +869,10 @@ static void redo_ceiling_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];    pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];    pos = WRAP(pos + 1);
-      uint16_t old_tex = RvR_ray_map_ceil_tex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_ceil_tex_at(map, x, y);
 
       undo_record_tex(x, y, old_tex);
-      RvR_ray_map_ceil_tex_set(map,x, y, tex);
+      RvR_ray_map_ceil_tex_set(map, x, y, tex);
    }
 }
 
@@ -883,10 +883,10 @@ static void undo_floor_wall_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
-      uint16_t old_tex = RvR_ray_map_wall_ftex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_wall_ftex_at(map, x, y);
 
       redo_record_tex(x, y, old_tex);
-      RvR_ray_map_wall_ftex_set(map,x, y, tex);
+      RvR_ray_map_wall_ftex_set(map, x, y, tex);
    }
 }
 
@@ -897,10 +897,10 @@ static void redo_floor_wall_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];    pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];    pos = WRAP(pos + 1);
-      uint16_t old_tex = RvR_ray_map_wall_ftex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_wall_ftex_at(map, x, y);
 
       undo_record_tex(x, y, old_tex);
-      RvR_ray_map_wall_ftex_set(map,x, y, tex);
+      RvR_ray_map_wall_ftex_set(map, x, y, tex);
    }
 }
 
@@ -911,10 +911,10 @@ static void undo_ceiling_wall_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos - 1);
       int16_t y = undo_buffer[pos];        pos = WRAP(pos - 1);
       int16_t x = undo_buffer[pos];        pos = WRAP(pos - 1);
-      uint16_t old_tex = RvR_ray_map_wall_ctex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_wall_ctex_at(map, x, y);
 
       redo_record_tex(x, y, old_tex);
-      RvR_ray_map_wall_ctex_set(map,x, y, tex);
+      RvR_ray_map_wall_ctex_set(map, x, y, tex);
    }
 }
 
@@ -925,10 +925,10 @@ static void redo_ceiling_wall_tex(int pos, int endpos)
       uint16_t tex = undo_buffer[pos]; pos = WRAP(pos + 1);
       int16_t y = undo_buffer[pos];    pos = WRAP(pos + 1);
       int16_t x = undo_buffer[pos];    pos = WRAP(pos + 1);
-      uint16_t old_tex = RvR_ray_map_wall_ctex_at(map,x, y);
+      uint16_t old_tex = RvR_ray_map_wall_ctex_at(map, x, y);
 
       undo_record_tex(x, y, old_tex);
-      RvR_ray_map_wall_ctex_set(map,x, y, tex);
+      RvR_ray_map_wall_ctex_set(map, x, y, tex);
    }
 }
 
@@ -944,8 +944,8 @@ static void undo_flood_floor_tex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos - 1);
       x = undo_buffer[pos]; pos = WRAP(pos - 1);
 
-      old_tex = RvR_ray_map_floor_tex_at(map,x, y);
-      RvR_ray_map_floor_tex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_floor_tex_at(map, x, y);
+      RvR_ray_map_floor_tex_set(map, x, y, tex);
 
       redo_write(x);
       redo_write(y);
@@ -966,8 +966,8 @@ static void redo_flood_floor_tex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos + 1);
       x = undo_buffer[pos]; pos = WRAP(pos + 1);
 
-      old_tex = RvR_ray_map_floor_tex_at(map,x, y);
-      RvR_ray_map_floor_tex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_floor_tex_at(map, x, y);
+      RvR_ray_map_floor_tex_set(map, x, y, tex);
 
       undo_write(x);
       undo_write(y);
@@ -988,8 +988,8 @@ static void undo_flood_ceiling_tex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos - 1);
       x = undo_buffer[pos]; pos = WRAP(pos - 1);
 
-      old_tex = RvR_ray_map_ceil_tex_at(map,x, y);
-      RvR_ray_map_ceil_tex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_ceil_tex_at(map, x, y);
+      RvR_ray_map_ceil_tex_set(map, x, y, tex);
 
       redo_write(x);
       redo_write(y);
@@ -1010,8 +1010,8 @@ static void redo_flood_ceiling_tex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos + 1);
       x = undo_buffer[pos]; pos = WRAP(pos + 1);
 
-      old_tex = RvR_ray_map_ceil_tex_at(map,x, y);
-      RvR_ray_map_ceil_tex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_ceil_tex_at(map, x, y);
+      RvR_ray_map_ceil_tex_set(map, x, y, tex);
 
       undo_write(x);
       undo_write(y);
@@ -1032,8 +1032,8 @@ static void undo_flood_wall_ftex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos - 1);
       x = undo_buffer[pos]; pos = WRAP(pos - 1);
 
-      old_tex = RvR_ray_map_wall_ftex_at(map,x, y);
-      RvR_ray_map_wall_ftex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_wall_ftex_at(map, x, y);
+      RvR_ray_map_wall_ftex_set(map, x, y, tex);
 
       redo_write(x);
       redo_write(y);
@@ -1054,8 +1054,8 @@ static void redo_flood_wall_ftex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos + 1);
       x = undo_buffer[pos]; pos = WRAP(pos + 1);
 
-      old_tex = RvR_ray_map_wall_ftex_at(map,x, y);
-      RvR_ray_map_wall_ftex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_wall_ftex_at(map, x, y);
+      RvR_ray_map_wall_ftex_set(map, x, y, tex);
 
       undo_write(x);
       undo_write(y);
@@ -1076,8 +1076,8 @@ static void undo_flood_wall_ctex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos - 1);
       x = undo_buffer[pos]; pos = WRAP(pos - 1);
 
-      old_tex = RvR_ray_map_wall_ctex_at(map,x, y);
-      RvR_ray_map_wall_ctex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_wall_ctex_at(map, x, y);
+      RvR_ray_map_wall_ctex_set(map, x, y, tex);
 
       redo_write(x);
       redo_write(y);
@@ -1098,8 +1098,8 @@ static void redo_flood_wall_ctex(int pos, int endpos)
       y = undo_buffer[pos]; pos = WRAP(pos + 1);
       x = undo_buffer[pos]; pos = WRAP(pos + 1);
 
-      old_tex = RvR_ray_map_wall_ctex_at(map,x, y);
-      RvR_ray_map_wall_ctex_set(map,x, y, tex);
+      old_tex = RvR_ray_map_wall_ctex_at(map, x, y);
+      RvR_ray_map_wall_ctex_set(map, x, y, tex);
 
       undo_write(x);
       undo_write(y);
@@ -1111,16 +1111,16 @@ static void redo_flood_wall_ctex(int pos, int endpos)
 void editor_ed_floor(int16_t x, int16_t y, int fac)
 {
    undo_begin(ED_FLOOR_HEIGHT);
-   undo_record_height(x, y, RvR_ray_map_floor_height_at(map,x, y));
-   RvR_ray_map_floor_height_set(map,x, y, RvR_ray_map_floor_height_at(map,x, y) + 128*64 * fac);
+   undo_record_height(x, y, RvR_ray_map_floor_height_at(map, x, y));
+   RvR_ray_map_floor_height_set(map, x, y, RvR_ray_map_floor_height_at(map, x, y) + 128 * 64 * fac);
    undo_end();
 }
 
 void editor_ed_ceiling(int16_t x, int16_t y, int fac)
 {
    undo_begin(ED_CEILING_HEIGHT);
-   undo_record_height(x, y, RvR_ray_map_ceiling_height_at(map,x, y));
-   RvR_ray_map_ceiling_height_set(map,x, y, RvR_ray_map_ceiling_height_at(map,x, y) + 128*64 * fac);
+   undo_record_height(x, y, RvR_ray_map_ceiling_height_at(map, x, y));
+   RvR_ray_map_ceiling_height_set(map, x, y, RvR_ray_map_ceiling_height_at(map, x, y) + 128 * 64 * fac);
    undo_end();
 }
 
@@ -1129,13 +1129,13 @@ void editor_ed_flood_floor(int16_t x, int16_t y, int fac)
    if(fac==0)
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
    undo_begin(ED_FLOOD_FLOOR_HEIGHT);
 
-   RvR_fix16 height = RvR_ray_map_floor_height_at(map,x, y);
-   uint16_t ftex = RvR_ray_map_floor_tex_at(map,x, y);
+   RvR_fix16 height = RvR_ray_map_floor_height_at(map, x, y);
+   uint16_t ftex = RvR_ray_map_floor_tex_at(map, x, y);
 
    flood_floor_height(x, y, ftex, height, fac);
 
@@ -1150,13 +1150,13 @@ void editor_ed_flood_ceiling(int16_t x, int16_t y, int fac)
    if(fac==0)
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
    undo_begin(ED_FLOOD_CEILING_HEIGHT);
 
-   RvR_fix16 height = RvR_ray_map_ceiling_height_at(map,x, y);
-   uint16_t ctex = RvR_ray_map_ceil_tex_at(map,x, y);
+   RvR_fix16 height = RvR_ray_map_ceiling_height_at(map, x, y);
+   uint16_t ctex = RvR_ray_map_ceil_tex_at(map, x, y);
 
    flood_ceiling_height(x, y, ctex, height, fac);
 
@@ -1168,9 +1168,9 @@ void editor_ed_flood_ceiling(int16_t x, int16_t y, int fac)
 
 static void flood_floor_height(int16_t x, int16_t y, uint16_t ftex, RvR_fix16 height, int fac)
 {
-   if(RvR_ray_map_inbounds(map,x, y)&&RvR_ray_map_floor_height_at(map,x, y)==height&&RvR_ray_map_floor_tex_at(map,x, y)==ftex)
+   if(RvR_ray_map_inbounds(map, x, y)&&RvR_ray_map_floor_height_at(map, x, y)==height&&RvR_ray_map_floor_tex_at(map, x, y)==ftex)
    {
-      RvR_ray_map_floor_height_set(map,x, y, height + fac * 128*64);
+      RvR_ray_map_floor_height_set(map, x, y, height + fac * 128 * 64);
       undo_write(x);
       undo_write(y);
 
@@ -1183,9 +1183,9 @@ static void flood_floor_height(int16_t x, int16_t y, uint16_t ftex, RvR_fix16 he
 
 static void flood_ceiling_height(int16_t x, int16_t y, uint16_t ctex, RvR_fix16 height, int fac)
 {
-   if(RvR_ray_map_inbounds(map,x, y)&&RvR_ray_map_ceiling_height_at(map,x, y)==height&&RvR_ray_map_ceil_tex_at(map,x, y)==ctex)
+   if(RvR_ray_map_inbounds(map, x, y)&&RvR_ray_map_ceiling_height_at(map, x, y)==height&&RvR_ray_map_ceil_tex_at(map, x, y)==ctex)
    {
-      RvR_ray_map_ceiling_height_set(map,x, y, height + fac * 128*64);
+      RvR_ray_map_ceiling_height_set(map, x, y, height + fac * 128 * 64);
       undo_write(x);
       undo_write(y);
 
@@ -1198,9 +1198,9 @@ static void flood_ceiling_height(int16_t x, int16_t y, uint16_t ctex, RvR_fix16 
 
 static void flood_floor_tex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, RvR_fix16 height)
 {
-   if(RvR_ray_map_inbounds(map,x, y)&&RvR_ray_map_floor_height_at(map,x, y)==height&&RvR_ray_map_floor_tex_at(map,x, y)==tex)
+   if(RvR_ray_map_inbounds(map, x, y)&&RvR_ray_map_floor_height_at(map, x, y)==height&&RvR_ray_map_floor_tex_at(map, x, y)==tex)
    {
-      RvR_ray_map_floor_tex_set(map,x, y, ftex);
+      RvR_ray_map_floor_tex_set(map, x, y, ftex);
       undo_write(x);
       undo_write(y);
 
@@ -1213,9 +1213,9 @@ static void flood_floor_tex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, R
 
 static void flood_ceiling_tex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, RvR_fix16 height)
 {
-   if(RvR_ray_map_inbounds(map,x, y)&&RvR_ray_map_ceiling_height_at(map,x, y)==height&&RvR_ray_map_ceil_tex_at(map,x, y)==tex)
+   if(RvR_ray_map_inbounds(map, x, y)&&RvR_ray_map_ceiling_height_at(map, x, y)==height&&RvR_ray_map_ceil_tex_at(map, x, y)==tex)
    {
-      RvR_ray_map_ceil_tex_set(map,x, y, ctex);
+      RvR_ray_map_ceil_tex_set(map, x, y, ctex);
       undo_write(x);
       undo_write(y);
 
@@ -1228,9 +1228,9 @@ static void flood_ceiling_tex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex,
 
 static void flood_wall_ftex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, RvR_fix16 height)
 {
-   if(RvR_ray_map_inbounds(map,x, y)&&RvR_ray_map_floor_height_at(map,x, y)==height&&RvR_ray_map_wall_ftex_at(map,x, y)==tex)
+   if(RvR_ray_map_inbounds(map, x, y)&&RvR_ray_map_floor_height_at(map, x, y)==height&&RvR_ray_map_wall_ftex_at(map, x, y)==tex)
    {
-      RvR_ray_map_wall_ftex_set(map,x, y, ftex);
+      RvR_ray_map_wall_ftex_set(map, x, y, ftex);
       undo_write(x);
       undo_write(y);
 
@@ -1243,9 +1243,9 @@ static void flood_wall_ftex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, R
 
 static void flood_wall_ctex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, RvR_fix16 height)
 {
-   if(RvR_ray_map_inbounds(map,x, y)&&RvR_ray_map_ceiling_height_at(map,x, y)==height&&RvR_ray_map_wall_ctex_at(map,x, y)==tex)
+   if(RvR_ray_map_inbounds(map, x, y)&&RvR_ray_map_ceiling_height_at(map, x, y)==height&&RvR_ray_map_wall_ctex_at(map, x, y)==tex)
    {
-      RvR_ray_map_wall_ctex_set(map,x, y, ctex);
+      RvR_ray_map_wall_ctex_set(map, x, y, ctex);
       undo_write(x);
       undo_write(y);
 
@@ -1261,15 +1261,15 @@ void editor_ed_floor_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   if(RvR_ray_map_floor_tex_at(map,x, y)==tex)
+   if(RvR_ray_map_floor_tex_at(map, x, y)==tex)
       return;
 
    undo_begin(ED_FLOOR_TEXTURE);
-   undo_record_tex(x, y, RvR_ray_map_floor_tex_at(map,x, y));
-   RvR_ray_map_floor_tex_set(map,x, y, tex);
+   undo_record_tex(x, y, RvR_ray_map_floor_tex_at(map, x, y));
+   RvR_ray_map_floor_tex_set(map, x, y, tex);
    undo_end();
 }
 
@@ -1278,15 +1278,15 @@ void editor_ed_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   if(RvR_ray_map_ceil_tex_at(map,x, y)==tex)
+   if(RvR_ray_map_ceil_tex_at(map, x, y)==tex)
       return;
 
    undo_begin(ED_CEILING_TEXTURE);
-   undo_record_tex(x, y, RvR_ray_map_ceil_tex_at(map,x, y));
-   RvR_ray_map_ceil_tex_set(map,x, y, tex);
+   undo_record_tex(x, y, RvR_ray_map_ceil_tex_at(map, x, y));
+   RvR_ray_map_ceil_tex_set(map, x, y, tex);
    undo_end();
 }
 
@@ -1295,15 +1295,15 @@ void editor_ed_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   if(RvR_ray_map_wall_ftex_at(map,x, y)==tex)
+   if(RvR_ray_map_wall_ftex_at(map, x, y)==tex)
       return;
 
    undo_begin(ED_FLOOR_WALL_TEXTURE);
-   undo_record_tex(x, y, RvR_ray_map_wall_ftex_at(map,x, y));
-   RvR_ray_map_wall_ftex_set(map,x, y, tex);
+   undo_record_tex(x, y, RvR_ray_map_wall_ftex_at(map, x, y));
+   RvR_ray_map_wall_ftex_set(map, x, y, tex);
    undo_end();
 }
 
@@ -1312,15 +1312,15 @@ void editor_ed_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   if(RvR_ray_map_wall_ctex_at(map,x, y)==tex)
+   if(RvR_ray_map_wall_ctex_at(map, x, y)==tex)
       return;
 
    undo_begin(ED_CEILING_WALL_TEXTURE);
-   undo_record_tex(x, y, RvR_ray_map_wall_ctex_at(map,x, y));
-   RvR_ray_map_wall_ctex_set(map,x, y, tex);
+   undo_record_tex(x, y, RvR_ray_map_wall_ctex_at(map, x, y));
+   RvR_ray_map_wall_ctex_set(map, x, y, tex);
    undo_end();
 }
 
@@ -1329,11 +1329,11 @@ void editor_ed_flood_floor_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   RvR_fix16 height = RvR_ray_map_floor_height_at(map,x, y);
-   uint16_t ftex = RvR_ray_map_floor_tex_at(map,x, y);
+   RvR_fix16 height = RvR_ray_map_floor_height_at(map, x, y);
+   uint16_t ftex = RvR_ray_map_floor_tex_at(map, x, y);
 
    if(ftex==tex)
       return;
@@ -1350,11 +1350,11 @@ void editor_ed_flood_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   RvR_fix16 height = RvR_ray_map_ceiling_height_at(map,x, y);
-   uint16_t ctex = RvR_ray_map_ceil_tex_at(map,x, y);
+   RvR_fix16 height = RvR_ray_map_ceiling_height_at(map, x, y);
+   uint16_t ctex = RvR_ray_map_ceil_tex_at(map, x, y);
 
    if(ctex==tex)
       return;
@@ -1371,11 +1371,11 @@ void editor_ed_flood_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   RvR_fix16 height = RvR_ray_map_floor_height_at(map,x, y);
-   uint16_t ftex = RvR_ray_map_wall_ftex_at(map,x, y);
+   RvR_fix16 height = RvR_ray_map_floor_height_at(map, x, y);
+   uint16_t ftex = RvR_ray_map_wall_ftex_at(map, x, y);
 
    if(ftex==tex)
       return;
@@ -1392,11 +1392,11 @@ void editor_ed_flood_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex)
    if(!texture_valid(tex))
       return;
 
-   if(!RvR_ray_map_inbounds(map,x, y))
+   if(!RvR_ray_map_inbounds(map, x, y))
       return;
 
-   RvR_fix16 height = RvR_ray_map_ceiling_height_at(map,x, y);
-   uint16_t ctex = RvR_ray_map_wall_ctex_at(map,x, y);
+   RvR_fix16 height = RvR_ray_map_ceiling_height_at(map, x, y);
+   uint16_t ctex = RvR_ray_map_wall_ctex_at(map, x, y);
 
    if(ctex==tex)
       return;

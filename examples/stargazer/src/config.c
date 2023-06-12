@@ -5,7 +5,7 @@ Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] 
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -55,13 +55,13 @@ void config_read(const char *path)
    RvR_config config = RvR_ini_parse(&rw);
    RvR_rw_close(&rw);
 
-   RvR_ini_read(config,&config_move_forward,RVR_CONFIG_KEY,"forward"); 
-   RvR_ini_read(config,&config_move_backward,RVR_CONFIG_KEY,"backward"); 
-   RvR_ini_read(config,&config_strafe_left,RVR_CONFIG_KEY,"strafe_left"); 
-   RvR_ini_read(config,&config_strafe_right,RVR_CONFIG_KEY,"strafe_right"); 
-   RvR_ini_read(config,&config_jump,RVR_CONFIG_KEY,"jump"); 
-   RvR_ini_read(config,&config_use,RVR_CONFIG_KEY,"use"); 
-   RvR_ini_read(config,&config_inventory,RVR_CONFIG_KEY,"inventory"); 
+   RvR_ini_read(config,&config_move_forward,RVR_CONFIG_KEY,"forward");
+   RvR_ini_read(config,&config_move_backward,RVR_CONFIG_KEY,"backward");
+   RvR_ini_read(config,&config_strafe_left,RVR_CONFIG_KEY,"strafe_left");
+   RvR_ini_read(config,&config_strafe_right,RVR_CONFIG_KEY,"strafe_right");
+   RvR_ini_read(config,&config_jump,RVR_CONFIG_KEY,"jump");
+   RvR_ini_read(config,&config_use,RVR_CONFIG_KEY,"use");
+   RvR_ini_read(config,&config_inventory,RVR_CONFIG_KEY,"inventory");
 
    RvR_ini_free(config);*/
 }
@@ -69,19 +69,19 @@ void config_read(const char *path)
 void config_write(const char *path)
 {
    RvR_rw rw = {0};
-   RvR_rw_init_path(&rw,path,"w");
+   RvR_rw_init_path(&rw, path, "w");
 
    if(!RvR_rw_valid(&rw))
       return;
 
-   RvR_rw_printf(&rw,";Action\n");
-   RvR_rw_printf(&rw,"forward=%s\n",keytostr(config_move_forward));
-   RvR_rw_printf(&rw,"backward=%s\n",keytostr(config_move_backward));
-   RvR_rw_printf(&rw,"strafe_left=%s\n",keytostr(config_strafe_left));
-   RvR_rw_printf(&rw,"strafe_right=%s\n",keytostr(config_strafe_right));
-   RvR_rw_printf(&rw,"jump=%s\n",keytostr(config_jump));
-   RvR_rw_printf(&rw,"use=%s\n",keytostr(config_use));
-   RvR_rw_printf(&rw,"inventory=%s\n",keytostr(config_inventory));
+   RvR_rw_printf(&rw, ";Action\n");
+   RvR_rw_printf(&rw, "forward=%s\n", keytostr(config_move_forward));
+   RvR_rw_printf(&rw, "backward=%s\n", keytostr(config_move_backward));
+   RvR_rw_printf(&rw, "strafe_left=%s\n", keytostr(config_strafe_left));
+   RvR_rw_printf(&rw, "strafe_right=%s\n", keytostr(config_strafe_right));
+   RvR_rw_printf(&rw, "jump=%s\n", keytostr(config_jump));
+   RvR_rw_printf(&rw, "use=%s\n", keytostr(config_use));
+   RvR_rw_printf(&rw, "inventory=%s\n", keytostr(config_inventory));
 
    RvR_rw_close(&rw);
 }
@@ -165,7 +165,7 @@ static const char *keytostr(RvR_key key)
    case RVR_KEY_9: return "9";
 
    case RVR_KEY_COMMA: return ",";
-   case RVR_KEY_PERIOD: return "."; 
+   case RVR_KEY_PERIOD: return ".";
 
    case RVR_BUTTON_LEFT: return "mouse_1";
    case RVR_BUTTON_RIGHT: return "mouse_2";

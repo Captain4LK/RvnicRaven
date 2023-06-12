@@ -13,14 +13,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _CONFIG_H_
 
 #define CAMERA_SHEAR_SPEED 3
-#define CAMERA_SHEAR_MAX (512*64)
+#define CAMERA_SHEAR_MAX (512 * 64)
 
 #define UNDO_BUFFER_SIZE (1 << 22)
 #define TEXTURE_MRU_SIZE (1 << 7)
 
-#define CAMERA_COLL_RADIUS (256*64)
-#define CAMERA_COLL_HEIGHT_BELOW (800*64)
-#define CAMERA_COLL_HEIGHT_ABOVE (200*64)
-#define CAMERA_COLL_STEP_HEIGHT (65536/ 4)
+#define CAMERA_COLL_RADIUS (256 * 64)
+#define CAMERA_COLL_HEIGHT_BELOW (800 * 64)
+#define CAMERA_COLL_HEIGHT_ABOVE (200 * 64)
+#define CAMERA_COLL_STEP_HEIGHT (65536 / 4)
 
 #endif

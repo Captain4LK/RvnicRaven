@@ -5,7 +5,7 @@ Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] 
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -94,7 +94,7 @@ next:
 void game_draw()
 {
    if(fade_timer==FADE_TIME)
-      memcpy(RvR_texture_get(65535)->data,RvR_framebuffer(),RvR_xres()*RvR_yres());
+      memcpy(RvR_texture_get(65535)->data, RvR_framebuffer(), RvR_xres() * RvR_yres());
 
    RvR_ray_draw_begin();
    sprite_draw_begin();
@@ -103,7 +103,7 @@ void game_draw()
    Entity *e = entities;
    while(e!=NULL)
    {
-      sprite_draw(e->x,e->y,e->z,e->direction,e->sprite);
+      sprite_draw(e->x, e->y, e->z, e->direction, e->sprite);
       e = e->next;
    }
 
@@ -111,30 +111,30 @@ void game_draw()
    Card *c = cards;
    while(c!=NULL)
    {
-      sprite_draw(c->x,c->y,c->z,0,32768);
+      sprite_draw(c->x, c->y, c->z, 0, 32768);
       c = c->next;
    }
 
-   RvR_ray_draw_map(&player.cam,map_current());
+   RvR_ray_draw_map(&player.cam, map_current());
 
    sprite_draw_end();
-   RvR_ray_draw_end(&player.cam,map_current());
-   
+   RvR_ray_draw_end(&player.cam, map_current());
+
    if(fade_timer--)
    {
       RvR_texture *fade = RvR_texture_get(65535);
-      RvR_render_texture(fade,0,0);
-      for(int i = 0;i<(1<<19)/FADE_TIME;i++)
+      RvR_render_texture(fade, 0, 0);
+      for(int i = 0; i<(1 << 19) / FADE_TIME; i++)
       {
-         fade_state = (17*fade_state+33)&((1<<19)-1);
-         if(fade_state<RvR_xres()*RvR_yres())
+         fade_state = (17 * fade_state + 33) & ((1 << 19) - 1);
+         if(fade_state<RvR_xres() * RvR_yres())
             fade->data[fade_state] = 0;
       }
    }
 
    char tmp[128];
-   snprintf(tmp,128,"%d",entity_health(player.entity));
-   RvR_render_string(4,RvR_yres()-32,3,tmp,30);
+   snprintf(tmp, 128, "%d", entity_health(player.entity));
+   RvR_render_string(4, RvR_yres() - 32, 3, tmp, 30);
 
    message_draw(31);
 }

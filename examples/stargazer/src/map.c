@@ -5,7 +5,7 @@ Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] 
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 //External includes
@@ -51,9 +51,9 @@ void map_load(uint16_t id)
 
 void map_init()
 {
-   for(int i = 0;i<map->sprite_count;i++)
+   for(int i = 0; i<map->sprite_count; i++)
    {
-      RvR_ray_map_sprite *s = map->sprites+i;
+      RvR_ray_map_sprite *s = map->sprites + i;
 
       uint32_t extra[3];
       extra[0] = s->extra0;
@@ -69,7 +69,7 @@ void map_init()
       entity_add(e);
 
       //Init ai
-      ai_init(e,ai_from_tex(s->texture),extra);
+      ai_init(e, ai_from_tex(s->texture), extra);
 
       //Player
       if(s->texture==36864)
