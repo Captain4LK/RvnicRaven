@@ -28,41 +28,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-typedef struct
-{
-   RvR_fix16 x;
-   RvR_fix16 y;
-   RvR_fix16 z;
-   RvR_fix16 depth;
-   uint16_t texture;
-   uint16_t flags;
-}Sprite_draw;
 //-------------------------------------
 
 //Variables
-struct
-{
-   Sprite_draw * restrict data;
-   uint_fast16_t * restrict data_proxy;
-   uint32_t data_used;
-   uint32_t data_size;
-} sprite_stack = {0};
-
-static RvR_fix16 view_fov_factor_x;
-static RvR_fix16 view_fov_factor_y;
-static RvR_fix16 view_sin;
-static RvR_fix16 view_cos;
-static RvR_fix16 view_sin_fov;
-static RvR_fix16 view_cos_fov;
-static RvR_fix16 view_middle_row;
-
 Sprite sprites[1 << 16];
 //-------------------------------------
 
 //Function prototypes
-static void sprite_stack_push(const Sprite_draw *s);
-
-static int sprite_cmp(const void *a, const void *b);
 //-------------------------------------
 
 //Function implementations
@@ -83,7 +55,6 @@ void sprites_init(void)
 
 void sprite_draw_begin()
 {
-   sprite_stack.data_used = 0;
 }
 
 void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t sprite)
@@ -97,32 +68,4 @@ void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t s
 
 void sprite_draw_end()
 {}
-
-static void sprite_stack_push(const Sprite_draw *s)
-{
-   if(sprite_stack.data==NULL)
-   {
-      sprite_stack.data_size = 64;
-      sprite_stack.data = RvR_malloc(sizeof(*sprite_stack.data) * sprite_stack.data_size, "Sprite stack");
-      sprite_stack.data_proxy = RvR_malloc(sizeof(*sprite_stack.data_proxy) * sprite_stack.data_size, "Sprite stack proxy");
-   }
-
-   sprite_stack.data_proxy[sprite_stack.data_used] = sprite_stack.data_used;
-   sprite_stack.data[sprite_stack.data_used++] = *s;
-
-   if(sprite_stack.data_used==sprite_stack.data_size)
-   {
-      sprite_stack.data_size += 64;
-      sprite_stack.data = RvR_realloc(sprite_stack.data, sizeof(*sprite_stack.data) * sprite_stack.data_size, "Sprite stack data grow");
-      sprite_stack.data_proxy = RvR_realloc(sprite_stack.data_proxy, sizeof(*sprite_stack.data_proxy) * sprite_stack.data_size, "Sprite stack data_proxy grow");
-   }
-}
-
-static int sprite_cmp(const void *a, const void *b)
-{
-   const Sprite_draw *sa = a;
-   const Sprite_draw *sb = b;
-
-   return sb->depth - sa->depth;
-}
 //-------------------------------------

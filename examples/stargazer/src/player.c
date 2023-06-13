@@ -81,9 +81,6 @@ void player_update()
    RvR_fix16 dirx = RvR_fix16_cos(player.entity->direction);
    RvR_fix16 diry = RvR_fix16_sin(player.entity->direction);
 
-   //dirx+=dirx/4;
-   //diry+=diry/4;
-
    //Forward/Backward movement
    if(RvR_key_down(config_move_forward))
    {
@@ -110,8 +107,6 @@ void player_update()
 
    if(RvR_key_pressed(config_use))
       grid_entity_use(player.entity);
-
-   //RvR_fix16 vel_len = RvR_fix16_sqrt(RvR_fix16_mul(player.entity->vx,player.entity->vx)+RvR_fix16_mul(player.entity->vy,player.entity->vy));
 
    //Mouse look: x-axis
    if(x!=0)
@@ -160,10 +155,6 @@ void player_update()
    if(player_weapon_ammo(player.weapon)==0)
       player_weapon_rotate(-1);*/
 
-   //Cap player speed
-   //player.entity->vz = RvR_max(-MAX_VERTICAL_SPEED,RvR_min(player.entity->vz,MAX_VERTICAL_SPEED));
-   //-------------------------------------
-
    //Collision
    RvR_fix16 floor_height = 0;
    RvR_fix16 ceiling_height = 0;
@@ -186,8 +177,6 @@ void player_update()
       player.entity->on_ground = 0;
    }
 
-   //if(player.entity->vis_zoff<0)
-   //player.entity->vis_zoff+=RvR_min(-player.entity->vis_zoff/4,64*64);
    player.vis_off_vel += RvR_fix16_mul(player.entity->vz - player.vis_off_vel, 28762);
    RvR_fix16 dz = player.entity->z + CAMERA_COLL_HEIGHT_BELOW - player.cam.z;
    player.vis_off_vel += RvR_fix16_mul(dz * 64, 6144);
