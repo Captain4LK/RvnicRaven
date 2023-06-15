@@ -63,7 +63,7 @@ void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t s
       return;
 
    const Sprite *sp = sprites + sprite;
-   RvR_ray_draw_sprite(&player.cam, x, y, z, dir, sp->tex[0], 0);
+   RvR_ray_draw_sprite(&player.cam, x, y, z, dir, sp->tex[0], 0,NULL);
 }
 
 void sprite_draw_end()

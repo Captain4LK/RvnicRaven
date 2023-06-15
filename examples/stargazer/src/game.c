@@ -118,7 +118,7 @@ void game_draw()
    RvR_ray_draw_map(&player.cam, map_current());
 
    sprite_draw_end();
-   RvR_ray_draw_end(&player.cam, map_current());
+   RvR_ray_draw_end(&player.cam, map_current(),NULL);
 
    if(fade_timer--)
    {

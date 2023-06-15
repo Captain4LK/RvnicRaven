@@ -94,10 +94,18 @@ struct RvR_ray_depth_buffer_entry
    RvR_ray_depth_buffer_entry *next;
 };
 
+typedef struct
+{
+   int x;
+   int y;
+   RvR_fix16 depth;
+   void *ref;
+}RvR_ray_selection;
+
 void               RvR_ray_draw_begin();
-void               RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map);
+void               RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map, RvR_ray_selection *select);
 void               RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map);
-void               RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags);
+void               RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags, void *ref);
 RvR_ray_pixel_info RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z);
 
 const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_floor(int x);

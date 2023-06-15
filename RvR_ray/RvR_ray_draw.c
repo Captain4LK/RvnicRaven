@@ -41,6 +41,7 @@ typedef struct
 {
    uint32_t flags;
    uint16_t texture;
+   void *ref;
 
    RvR_fix16 x;
    RvR_fix16 y;
@@ -125,9 +126,9 @@ static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent);
 static ray_plane *ray_plane_new();
 static void ray_plane_free(ray_plane *pl);
 
-static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
-static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
-static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp);
+static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
+static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
+static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
 static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
 
 static int ray_sprite_comp(const void *a, const void *b);
@@ -159,7 +160,7 @@ void RvR_ray_draw_begin()
    RvR_array_length_set(ray_sprites, 0);
 }
 
-void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
+void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map, RvR_ray_selection *select)
 {
    //Sprites get sorted from back to front
 
@@ -207,16 +208,22 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map)
       }
    }
 
+   if(select!=NULL)
+   {
+      select->depth = RVR_RAY_MAX_STEPS*65536;
+      select->ref = NULL;
+   }
+
    //Render sprites
    for(int i = 0; i<RvR_array_length(ray_sprites); i++)
    {
       ray_sprite *sp = ray_sprites + i;
       if(sp->flags & 8)
-         ray_sprite_draw_wall(cam, map, sp);
+         ray_sprite_draw_wall(cam, map, sp,select);
       else if(sp->flags & 16)
-         ray_sprite_draw_floor(cam, map, sp);
+         ray_sprite_draw_floor(cam, map, sp,select);
       else
-         ray_sprite_draw_billboard(cam, map, sp);
+         ray_sprite_draw_billboard(cam, map, sp,select);
    }
 }
 
@@ -580,7 +587,7 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
    //-------------------------------------
 }
 
-void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags)
+void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags, void *ref)
 {
    ray_sprite sp = {0};
    sp.flags = flags;
@@ -589,6 +596,7 @@ void RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_f
    sp.y = y;
    sp.z = z;
    sp.dir = dir;
+   sp.ref = ref;
 
    RvR_texture *tex = RvR_texture_get(sprite);
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
@@ -1213,7 +1221,7 @@ static void ray_plane_free(ray_plane *pl)
    ray_plane_pool = pl;
 }
 
-static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
+static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select)
 {
    RvR_fix16 cos = RvR_fix16_cos(cam->dir);
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
@@ -1310,6 +1318,13 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
       if(sp->flags & 4)
          v = texture->height * 1024 - ((sp->z - cam->z) + (ys - middle_row + 1) * (-step_v) + texture->height * 1024);
 
+      if(select!=NULL&&select->x==x&&select->y>=ys&&select->y<ye&&select->depth>depth)
+      {
+         //Check for transparent pixels
+         if(tex[(v+step_v*(select->y-ys))>>10])
+            select->ref = sp->ref;
+      }
+
       if(sp->flags & 32)
       {
          for(int y = ys; y<ye; y++, dst += RvR_xres())
@@ -1342,7 +1357,7 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
    }
 }
 
-static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
+static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select)
 {
    RvR_texture *texture = RvR_texture_get(sp->texture);
    RvR_fix16 scale_vertical = texture->height * 1024; //texture height in map coordinates
@@ -1451,7 +1466,16 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       const uint8_t * restrict tex = &texture->data[(((uint32_t)u) % texture->width) * texture->height];
       const uint8_t * restrict col = RvR_shade_table(RvR_max(0, RvR_min(63, (depth >> 15))));
 
+
       y_to = RvR_min(y1, ybot);
+
+      if(select!=NULL&&select->x==x&&select->y>=wy&&select->y<y_to&&select->depth>depth)
+      {
+         //Check for transparent pixels
+         if(tex[(texture_coord_scaled+coord_step_scaled*(select->y-wy))>>10])
+            select->ref = sp->ref;
+      }
+
       if(sp->flags & 32)
       {
          for(; wy<y_to; wy++)
@@ -1490,7 +1514,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
    }
 }
 
-static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp)
+static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select)
 {
    //After clipping we will never have more than 8 vertices
    RvR_fix16 verts[8][3];
