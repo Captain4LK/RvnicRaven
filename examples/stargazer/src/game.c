@@ -25,6 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "game.h"
 #include "map.h"
 #include "ai.h"
+#include "state.h"
 #include "message.h"
 //-------------------------------------
 
@@ -89,6 +90,9 @@ next:
 
       c = next;
    }
+
+   if(RvR_key_pressed(RVR_KEY_T))
+      state_set(STATE_GAME_CARD);
 }
 
 void game_draw()
@@ -103,7 +107,7 @@ void game_draw()
    Entity *e = entities;
    while(e!=NULL)
    {
-      sprite_draw(e->x, e->y, e->z, e->direction, e->sprite);
+      sprite_draw(e->x, e->y, e->z, e->direction, e->sprite,NULL);
       e = e->next;
    }
 
@@ -111,13 +115,14 @@ void game_draw()
    Card *c = cards;
    while(c!=NULL)
    {
-      sprite_draw(c->x, c->y, c->z, 0, 32768);
+      sprite_draw(c->x, c->y, c->z, 0, 32768,NULL);
       c = c->next;
    }
 
    RvR_ray_draw_map(&player.cam, map_current());
 
    sprite_draw_end();
+
    RvR_ray_draw_end(&player.cam, map_current(),NULL);
 
    if(fade_timer--)

@@ -23,7 +23,7 @@ extern Sprite sprites[1 << 16];
 
 void sprites_init(void);
 void sprite_draw_begin();
-void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t sprite);
+void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t sprite, void *ref);
 void sprite_draw_end();
 
 #endif

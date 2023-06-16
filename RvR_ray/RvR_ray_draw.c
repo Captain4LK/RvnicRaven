@@ -1322,7 +1322,10 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
       {
          //Check for transparent pixels
          if(tex[(v+step_v*(select->y-ys))>>10])
+         {
+            select->depth = depth;
             select->ref = sp->ref;
+         }
       }
 
       if(sp->flags & 32)
@@ -1473,7 +1476,10 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       {
          //Check for transparent pixels
          if(tex[(texture_coord_scaled+coord_step_scaled*(select->y-wy))>>10])
+         {
+            select->depth = depth;
             select->ref = sp->ref;
+         }
       }
 
       if(sp->flags & 32)
