@@ -95,6 +95,8 @@ void card_remove(Card *c)
 void card_copy(Card *dst, const Card *src)
 {
    dst->type = src->type;
+   dst->rank = src->rank;
+   dst->durability = src->durability;
    dst->x = src->x;
    dst->y = src->y;
    dst->z = src->z;

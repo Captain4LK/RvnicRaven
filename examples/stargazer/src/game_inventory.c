@@ -154,13 +154,13 @@ void game_inventory_draw()
 
       uint16_t tex = 33024;
       if(player.entity->cards[i].type!=CARD_NONE&&i!=card_drag)
-         tex = 33280 + 13 * player.entity->cards[i].type + player.entity->cards[i].rank;
+         tex = 33280 + 13 * player.entity->cards[i].type + (player.entity->cards[i].rank-1);
 
       RvR_render_texture(RvR_texture_get(tex), 10 + x, 10 + y);
    }
    if(card_drag!=-1)
    {
-      uint16_t tex = 33280 + 13 * player.entity->cards[card_drag].type + player.entity->cards[card_drag].rank;
+      uint16_t tex = 33280 + 13 * player.entity->cards[card_drag].type + (player.entity->cards[card_drag].rank-1);
       RvR_render_texture(RvR_texture_get(tex), mx + card_drag_x, my + card_drag_y);
    }
 

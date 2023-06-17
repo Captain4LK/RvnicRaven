@@ -78,6 +78,8 @@ void map_init()
          c->x = e->x;
          c->y = e->y;
          c->z = e->z;
+         c->type = CARD_HEARTS;
+         c->rank = 1;
          card_add(c);
          player.entity = e;
          player_create_new();
