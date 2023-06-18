@@ -25,6 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "ai/ai_door.h"
 #include "ai/ai_deco.h"
 #include "ai/ai_block.h"
+#include "ai/ai_officer.h"
 //-------------------------------------
 
 //#defines
@@ -53,6 +54,7 @@ void ai_run(Entity *e)
    case 2: ai_door_run(e); break;
    case 3: ai_deco_run(e); break;
    case 4: ai_block_run(e); break;
+   case 5: ai_officer_run(e); break;
    }
 }
 
@@ -80,6 +82,7 @@ void ai_free(Entity *e)
    case 2: ai_door_free(e); break;
    case 3: ai_deco_free(e); break;
    case 4: ai_block_free(e); break;
+   case 5: ai_officer_free(e); break;
    }
 }
 
@@ -97,6 +100,7 @@ void ai_init(Entity *e, uint32_t ai_type, const uint32_t extra[3])
    case 2: ai_door_init(e, extra); break;
    case 3: ai_deco_init(e, extra); break;
    case 4: ai_block_init(e, extra); break;
+   case 5: ai_officer_init(e, extra); break;
    }
 }
 //-------------------------------------

@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "config.h"
 #include "card.h"
+#include "card_text.h"
 #include "sprite.h"
 #include "entity.h"
 #include "player.h"
@@ -119,12 +120,6 @@ void game_card_draw()
             fade->data[fade_state] = 0;
       }
    }
-
-   //char tmp[128];
-   //snprintf(tmp, 128, "%d", entity_health(player.entity));
-   //RvR_render_string(4, RvR_yres() - 32, 3, tmp, 30);
-
-   //message_draw(31);
 }
 
 void game_card_init()
@@ -200,7 +195,10 @@ void game_card_view_draw()
    RvR_ray_draw_end(&player.cam, map_current(),NULL);
 
    RvR_render_rectangle_fill(RvR_xres()/2-96,RvR_yres()/2-128,192,256,10);
-   RvR_render_string(RvR_xres()/2-96,RvR_yres()/2-128,1,"Ace of Hearts",24);
+
+   const char *title = card_title(selected);
+   RvR_render_string(RvR_xres()/2-strlen(title)*3,RvR_yres()/2-128,1,title,24);
+
    uint16_t tex = 33280 + 13 * selected->type + (selected->rank-1);
    RvR_texture *texture = RvR_texture_get(tex);
    RvR_render_texture(texture, RvR_xres()/2-texture->width/2,RvR_yres()/2-texture->height/2-texture->height);
