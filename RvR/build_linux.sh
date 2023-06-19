@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-CFLAGS="-Wall -Wextra -Wshadow -Wconversion -Wno-sign-conversion -std=c99 -pedantic -Og -g3 -I./ -I../include/ -I./include/ -fsanitize=undefined"
+CFLAGS="-Wall -Wextra -Wshadow -Wconversion -Wno-sign-conversion -std=c99 -pedantic -O3 -g -I./ -I../include/ -I./include/"
 printf "
 .POSIX:
 CC      = gcc

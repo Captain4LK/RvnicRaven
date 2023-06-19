@@ -44,10 +44,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void ai_officer_init(Entity *e, const uint32_t extra[3])
 {
    e->ai_data = NULL;
-   e->sprite = -1;
+   e->sprite = 16427;
 
-   e->col_radius = extra[0];
-   e->col_height = extra[1];
+   e->col_radius = 16384;
+   e->col_height = 50162;
 }
 
 void ai_officer_free(Entity *e)

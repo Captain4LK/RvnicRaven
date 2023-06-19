@@ -51,6 +51,19 @@ void sprites_init(void)
       sprites[i].tex[0] = i;
       sprites[i].flag[0] = 0;
    }
+
+   //TODO: load from file?
+
+   //Officer
+   sprites[16427].rot = 1;
+   sprites[16427].tex[0] = 16427;
+   sprites[16427].tex[1] = 16428;
+   sprites[16427].tex[2] = 16429;
+   sprites[16427].tex[3] = 16430;
+   sprites[16427].tex[4] = 16431;
+   sprites[16427].tex[5] = 16432;
+   sprites[16427].tex[6] = 16433;
+   sprites[16427].tex[7] = 16434;
 }
 
 void sprite_draw_begin()
@@ -63,7 +76,15 @@ void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t s
       return;
 
    const Sprite *sp = sprites + sprite;
-   RvR_ray_draw_sprite(&player.cam, x, y, z, dir, sp->tex[0], 0,ref);
+   if(!sp->rot)
+   {
+      RvR_ray_draw_sprite(&player.cam, x, y, z, dir, sp->tex[0], 0,ref);
+      return;
+   }
+
+   RvR_fix16 rot = RvR_fix16_atan2(player.entity->y-y,player.entity->x-x);
+   rot = (rot+4096-dir)&65535;
+   RvR_ray_draw_sprite(&player.cam,x,y,z,dir,sp->tex[(rot/8192)&7],0,ref);
 }
 
 void sprite_draw_end()

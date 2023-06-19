@@ -20,6 +20,7 @@ RvR_fix16 RvR_fix16_div(RvR_fix16 a, RvR_fix16 b);
 RvR_fix16 RvR_fix16_cos(RvR_fix16 a);
 RvR_fix16 RvR_fix16_sin(RvR_fix16 a);
 RvR_fix16 RvR_fix16_tan(RvR_fix16 a);
+RvR_fix16 RvR_fix16_atan2(RvR_fix16 y, RvR_fix16 x);
 
 RvR_fix16 RvR_fix16_sqrt(RvR_fix16 a);
 

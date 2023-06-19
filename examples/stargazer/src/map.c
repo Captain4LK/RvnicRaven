@@ -96,6 +96,7 @@ static uint32_t ai_from_tex(uint16_t tex)
    case 36865: return 1; //elevator
    case 36866: return 2; //door
    case 36867: return 4; //blocker
+   case 16427: return 5; //officer
    default: return 3; //default is decoration
    }
 
