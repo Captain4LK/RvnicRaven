@@ -101,4 +101,13 @@ void card_copy(Card *dst, const Card *src)
    dst->y = src->y;
    dst->z = src->z;
 }
+
+void card_health(Card *c, int health)
+{
+   if(c==NULL)
+      return;
+
+   c->type = CARD_HEARTS;
+   c->rank = health;
+}
 //-------------------------------------

@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "RvR/RvR.h"
 #include "RvR/RvR_ray.h"
 //-------------------------------------
@@ -45,6 +46,18 @@ void ai_officer_init(Entity *e, const uint32_t extra[3])
 {
    e->ai_data = NULL;
    e->sprite = 16427;
+
+   //Inventory
+   //--> 50 health?
+   e->cards_size = 16;
+   e->cards = RvR_malloc(sizeof(*e->cards)*e->cards_size,"AI officer cards");
+   memset(e->cards,0,sizeof(*e->cards)*e->cards_size);
+
+   card_health(&e->cards[0],10);
+   card_health(&e->cards[1],10);
+   card_health(&e->cards[2],10);
+   card_health(&e->cards[3],10);
+   card_health(&e->cards[4],10);
 
    e->col_radius = 16384;
    e->col_height = 50162;

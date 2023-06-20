@@ -44,7 +44,9 @@ Card *card_new();
 void card_free(Card *c);
 void card_add(Card *c);
 void card_remove(Card *c);
-
 void card_copy(Card *dst, const Card *src);
+
+//Card initializers
+void card_health(Card *c, int health);
 
 #endif

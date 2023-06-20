@@ -71,6 +71,8 @@ void entity_free(Entity *e)
       return;
 
    ai_free(e);
+   if(e->cards!=NULL)
+      RvR_free(e->cards);
    grid_entity_remove(e);
 
    *e->prev_next = e->next;
