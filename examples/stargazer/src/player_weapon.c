@@ -11,21 +11,21 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 #include "RvR/RvR.h"
 #include "RvR/RvR_ray.h"
 //-------------------------------------
 
 //Internal includes
-#include "../config.h"
-#include "../card.h"
-#include "../sprite.h"
-#include "../entity.h"
-#include "../ai.h"
-#include "../game.h"
-#include "../player.h"
-#include "../grid.h"
-#include "ai_officer.h"
+#include "config.h"
+#include "game.h"
+#include "card.h"
+#include "sprite.h"
+#include "entity.h"
+#include "player.h"
+#include "player_weapon.h"
+#include "collision.h"
+#include "grid.h"
+#include "state.h"
 //-------------------------------------
 
 //#defines
@@ -42,31 +42,31 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-void ai_officer_init(Entity *e, const uint32_t extra[3])
+void player_weapon_update(Player *p)
 {
-   e->ai_data = NULL;
-   e->sprite = 16427;
+   if(p==NULL)
+      return;
 
-   //Inventory
-   //--> 50 health?
-   e->cards_size = 16;
-   e->cards = RvR_malloc(sizeof(*e->cards)*e->cards_size,"AI officer cards");
-   memset(e->cards,0,sizeof(*e->cards)*e->cards_size);
-
-   card_health(&e->cards[0],10);
-   card_health(&e->cards[1],10);
-   card_health(&e->cards[2],10);
-   card_health(&e->cards[3],10);
-   card_health(&e->cards[4],10);
-
-   e->col_radius = 16384;
-   e->col_height = 50162;
+   switch(p->wstate.state)
+   {
+   case P_WEAPON_NONE:
+      break;
+   case P_WEAPON_SWITCH:
+      break;
+   }
 }
 
-void ai_officer_free(Entity *e)
+void player_weapon_switch(Player *p, int card_slot)
 {
-}
+   if(p==NULL)
+      return;
 
-void ai_officer_run(Entity *e)
-{}
+   //if(weapon==P_WEAPON_NONE||weapon==P_WEAPON_SWITCH)
+      //return;
+
+   p->wstate.as.wswitch.from = p->wstate.state;
+   p->wstate.as.wswitch.to = weapon;
+   p->wstate.state = P_WEAPON_SWITCH;
+   p->wstate.substate = 0;
+}
 //-------------------------------------

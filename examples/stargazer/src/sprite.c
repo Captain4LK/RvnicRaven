@@ -55,6 +55,8 @@ void sprites_init(void)
    //TODO: load from file?
 
    //Officer
+   //-------------------------------------
+   //Walk 0
    sprites[16427].rot = 1;
    sprites[16427].tex[0] = 16427;
    sprites[16427].tex[1] = 16428;
@@ -64,6 +66,17 @@ void sprites_init(void)
    sprites[16427].tex[5] = 16432;
    sprites[16427].tex[6] = 16433;
    sprites[16427].tex[7] = 16434;
+   //Walk 1
+   sprites[16435].rot = 1;
+   sprites[16435].tex[0] = 16435;
+   sprites[16435].tex[1] = 16428;
+   sprites[16435].tex[2] = 16429;
+   sprites[16435].tex[3] = 16430;
+   sprites[16435].tex[4] = 16431;
+   sprites[16435].tex[5] = 16432;
+   sprites[16435].tex[6] = 16433;
+   sprites[16435].tex[7] = 16434;
+   //-------------------------------------
 }
 
 void sprite_draw_begin()

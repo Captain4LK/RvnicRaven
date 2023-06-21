@@ -109,5 +109,6 @@ void card_health(Card *c, int health)
 
    c->type = CARD_HEARTS;
    c->rank = health;
+   c->durability = -1;
 }
 //-------------------------------------

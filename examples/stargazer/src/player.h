@@ -12,7 +12,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _PLAYER_H_
 
-typedef struct
+typedef struct Player Player;
+
+#include "player_weapon.h"
+
+struct Player
 {
    Entity *entity;
    RvR_ray_cam cam;
@@ -20,7 +24,9 @@ typedef struct
    int16_t shear;
 
    RvR_fix16 vis_off_vel;
-}Player;
+
+   P_weapon_state wstate;
+};
 
 extern Player player;
 
