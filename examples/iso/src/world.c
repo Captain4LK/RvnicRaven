@@ -34,7 +34,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-World *world_new(const char *name)
+World *world_new(const char *name, World_size size)
 {
    if(name==NULL)
       return NULL;
@@ -46,6 +46,36 @@ World *world_new(const char *name)
    snprintf(w->base_path,UTIL_PATH_MAX,"./saves/%s",name);
    util_mkdir(w->base_path);
 
+   w->size = size;
+   int dim = world_size_to_dim(size);
+   w->regions = RvR_malloc(sizeof(*w->regions)*dim*dim,"World regions");
+   w->region_map = RvR_malloc(sizeof(*w->region_map)*dim*dim,"World region map");
+
    return w;
+}
+
+void world_free(World *w)
+{
+   if(w==NULL)
+      return;
+
+   RvR_free(w->regions);
+   RvR_free(w->region_map);
+   RvR_free(w);
+}
+
+unsigned world_size_to_dim(World_size size)
+{
+   switch(size)
+   {
+   case WORLD_SMALL:
+      return 32;
+   case WORLD_MEDIUM:
+      return 64;
+   case WORLD_LARGE:
+      return 128;
+   }
+
+   return 0;
 }
 //-------------------------------------

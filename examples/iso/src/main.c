@@ -12,13 +12,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include "RvR/RvR.h"
+#include "chunk.h"
+#include "region.h"
+#include "world.h"
 //-------------------------------------
 
 //Internal includes
 //-------------------------------------
 
 //#defines
-#define MEM_SIZE (1 << 24)
+#define MEM_SIZE (1 << 27)
 //-------------------------------------
 
 //Typedefs
@@ -50,6 +53,21 @@ int main(int argc, char **argv)
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
 
+   World *w = world_new("test",WORLD_SMALL);
+   Region *r = region_create(w,0,0);
+
+   while(RvR_running())
+   {
+      loop();
+   }
+
    return 0;
+}
+
+static void loop()
+{
+   RvR_update();
+
+   RvR_render_present();
 }
 //-------------------------------------

@@ -12,11 +12,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _CHUNK_H_
 
-typedef struct
-{
-   uint32_t x;
-   uint32_t y;
-   uint32_t data[16*16*16];
-}Chunk;
+#include "world_defs.h"
+
+Chunk *chunk_generate(World *w, unsigned x, unsigned y, unsigned z);
+Chunk *chunk_load(World *w, unsigned x, unsigned y, unsigned z, int generate_if_missing);
 
 #endif

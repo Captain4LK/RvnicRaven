@@ -12,13 +12,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _REGION_H_
 
-#include "chunk.h"
-#include "util.h"
+#include "world_defs.h"
 
-typedef struct
-{
-   char path[UTIL_PATH_MAX];
-   int32_t offset[16*16*16];
-}Region;
+//Regions are tagged RVR_MALLOC_CACHE, with the world regions array as usr
+Region *region_create(World *w, unsigned x, unsigned y);
+Region *region_load(World *w, unsigned x, unsigned y, int create_if_missing);
 
 #endif

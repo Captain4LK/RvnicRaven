@@ -12,16 +12,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _WORLD_H_
 
-#include "region.h"
-#include "util.h"
-
-typedef struct
-{
-   char base_path[UTIL_PATH_MAX];
-   Region *regions[16*16];
-}World;
+#include "world_defs.h"
 
 void world_load(const char *base_path);
-World *world_new(const char *name);
+World *world_new(const char *name, World_size size);
+void world_free(World *w);
+
+unsigned world_size_to_dim(World_size size);
 
 #endif

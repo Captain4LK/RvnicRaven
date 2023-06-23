@@ -1,16 +1,14 @@
-- 16x16x16 tile chunks
-- 16x16x16 chunks are one region
-   - since world fixed size, region files can be generated at world gen
-   - all chunks of region stored in one file (sparse)
-   - file layout:
-      - version
-      - address of end of last chunk (for easier insertion of new chunks)
-      - lookup table for addresses of chunks (-1 for missing)
-         - int32 index
-         - 16384 bytes
-      - individual chunks are compressed
+- Tile is 32bit int
+   - 14 bits block (0 empty)
+   - 14 bits floor (0 empty)
+   - 4 bits tags:
+      - slope
+      - block is object
+- 32x32x32 tile chunks
+- Only sites can be visited (with all "chunks" loaded at once)
+- Fast travel on chunk scale map
 
 - fixed world size
    - Parameters:
-      - 256 x 256 chunks --> 16 x 16 regions
+      - 2048 x 2048 chunks
       - 16 chunks high
