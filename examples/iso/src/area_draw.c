@@ -11,63 +11,26 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "RvR/RvR.h"
-#include "region.h"
-#include "area.h"
-#include "world.h"
 //-------------------------------------
 
 //Internal includes
+#include "area_draw.h"
+#include "area.h"
 //-------------------------------------
 
 //#defines
-#define MEM_SIZE (1 << 27)
 //-------------------------------------
 
 //Typedefs
 //-------------------------------------
 
 //Variables
-static uint8_t mem[MEM_SIZE];
 //-------------------------------------
 
 //Function prototypes
-static void loop();
 //-------------------------------------
 
 //Function implementations
-
-int main(int argc, char **argv)
-{
-   RvR_malloc_init(mem, MEM_SIZE);
-
-   RvR_init("RvnicRaven - iso", 0);
-   RvR_mouse_relative(1);
-
-   RvR_pak_add("data/main.csv");
-
-   //User defined overwrites (used for modding)
-   for(int i = 1; i<argc; i++)
-      RvR_pak_add(argv[i]);
-
-   RvR_palette_load(0);
-   RvR_render_font_set(0xF000);
-
-   World *w = world_new("test",WORLD_SMALL);
-   Area *a = area_create(w,0,0,1,1,1,0);
-
-   while(RvR_running())
-   {
-      loop();
-   }
-
-   return 0;
-}
-
-static void loop()
-{
-   RvR_update();
-
-   RvR_render_present();
-}
 //-------------------------------------

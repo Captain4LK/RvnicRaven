@@ -18,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "util.h"
 #include "world.h"
+#include "region.h"
 //-------------------------------------
 
 //#defines
@@ -46,6 +47,8 @@ World *world_new(const char *name, World_size size)
    snprintf(w->base_path,UTIL_PATH_MAX,"./saves/%s",name);
    util_mkdir(w->base_path);
 
+   region_file_create(w);
+
    w->size = size;
    int dim = world_size_to_dim(size);
    w->regions = RvR_malloc(sizeof(*w->regions)*dim*dim,"World regions");
@@ -69,11 +72,11 @@ unsigned world_size_to_dim(World_size size)
    switch(size)
    {
    case WORLD_SMALL:
-      return 32;
+      return 16;
    case WORLD_MEDIUM:
-      return 64;
+      return 32;
    case WORLD_LARGE:
-      return 128;
+      return 64;
    }
 
    return 0;

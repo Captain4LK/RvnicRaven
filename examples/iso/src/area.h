@@ -8,13 +8,13 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _CHUNK_H_
+#ifndef _AREA_H_
 
-#define _CHUNK_H_
+#define _AREA_H_
 
 #include "world_defs.h"
 
-Chunk *chunk_generate(World *w, unsigned x, unsigned y, unsigned z);
-Chunk *chunk_load(World *w, unsigned x, unsigned y, unsigned z, int generate_if_missing);
+Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, uint8_t dimz, uint16_t id);
+Area *area_load(World *w, uint16_t id);
 
 #endif

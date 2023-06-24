@@ -5,10 +5,11 @@
       - slope
       - block is object
 - 32x32x32 tile chunks
+- Regions store biome/elevation/etc. data for 32x32 chunks
 - Only sites can be visited (with all "chunks" loaded at once)
 - Fast travel on chunk scale map
 
 - fixed world size
    - Parameters:
       - 2048 x 2048 chunks
-      - 16 chunks high
+      - 8 chunks high
