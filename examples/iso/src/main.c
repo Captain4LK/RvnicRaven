@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR/RvR.h"
 #include "region.h"
 #include "area.h"
+#include "area_draw.h"
 #include "world.h"
 //-------------------------------------
 
@@ -29,6 +30,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static uint8_t mem[MEM_SIZE];
+
+static Area *area;
+static World *world;
+static Camera camera;
 //-------------------------------------
 
 //Function prototypes
@@ -42,7 +47,6 @@ int main(int argc, char **argv)
    RvR_malloc_init(mem, MEM_SIZE);
 
    RvR_init("RvnicRaven - iso", 0);
-   RvR_mouse_relative(1);
 
    RvR_pak_add("data/main.csv");
 
@@ -53,8 +57,11 @@ int main(int argc, char **argv)
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
 
-   World *w = world_new("test",WORLD_SMALL);
-   Area *a = area_create(w,0,0,1,1,1,0);
+   world = world_new("test",WORLD_SMALL);
+   area = area_create(world,0,0,1,1,1,0);
+   camera.x = 16;
+   camera.y = 0;
+   camera.z = 1;
 
    while(RvR_running())
    {
@@ -67,6 +74,23 @@ int main(int argc, char **argv)
 static void loop()
 {
    RvR_update();
+
+   if(RvR_key_pressed(RVR_KEY_LEFT))
+      camera.x--;
+   if(RvR_key_pressed(RVR_KEY_RIGHT))
+      camera.x++;
+   if(RvR_key_pressed(RVR_KEY_UP))
+      camera.y--;
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+      camera.y++;
+
+   if(RvR_key_pressed(RVR_KEY_Z))
+      camera.z++;
+   if(RvR_key_pressed(RVR_KEY_X))
+      camera.z--;
+
+   RvR_render_clear(0);
+   area_draw(world,area,&camera);
 
    RvR_render_present();
 }

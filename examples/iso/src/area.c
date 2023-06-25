@@ -55,6 +55,9 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    a->tiles = NULL;
    a->tiles = RvR_malloc(sizeof(*a->tiles)*(dimx*32)*(dimy*32)*(dimz*32),"Area tiles");
 
+   for(int i = 0;i<32*32*32;i++)
+      a->tiles[i] = 1 | (1<<14);
+
    return a;
 
 RvR_err:
@@ -81,5 +84,16 @@ RvR_err:
       RvR_free(a);
 
    return NULL;
+}
+
+uint32_t area_tile(const Area *a, int x, int y, int z)
+{
+   if(x<0||y<0||z<0)
+      return 0;
+   
+   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+      return 0;
+
+   return a->tiles[z*32*32+y*32+x];
 }
 //-------------------------------------
