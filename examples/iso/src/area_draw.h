@@ -16,5 +16,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "camera.h"
 
 void area_draw(const World *w, const Area *a, const Camera *c);
+void area_draw_new(const World *w, const Area *a, const Camera *c);
 
 #endif

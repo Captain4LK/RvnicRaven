@@ -49,7 +49,7 @@ int tile_has_floor(uint32_t tile)
    if(tile_is_slope(tile))
       return 0;
 
-   return ((tile<<14)&((1<<14)-1))>0;
+   return ((tile>>14)&((1<<14)-1))>0;
 }
 
 int tile_has_object(uint32_t tile)
@@ -61,12 +61,16 @@ int tile_has_draw_wall(uint32_t tile)
 {
    if(!tile_discovered(tile))
       return 1;
+
+   return tile_has_wall(tile);
 }
 
 int tile_has_draw_floor(uint32_t tile)
 {
    if(!tile_discovered(tile))
       return 1;
+
+   return tile_has_floor(tile);
 }
 
 int tile_is_slope(uint32_t tile)

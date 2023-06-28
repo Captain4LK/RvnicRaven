@@ -58,7 +58,7 @@ int main(int argc, char **argv)
    RvR_render_font_set(0xF000);
 
    world = world_new("test",WORLD_SMALL);
-   area = area_create(world,0,0,1,1,1,0);
+   area = area_create(world,0,0,4,4,4,0);
    camera.x = 16;
    camera.y = 0;
    camera.z = 1;
