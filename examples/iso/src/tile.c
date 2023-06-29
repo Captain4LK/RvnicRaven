@@ -26,6 +26,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+//For walls and floors (floor is wall tex + 1)
+static const Tile_descriptor tile_block_lut[] =
+{
+   {1,-1},
+   {1,0},
+};
 //-------------------------------------
 
 //Function prototypes
@@ -86,5 +92,27 @@ int tile_visible(uint32_t tile)
 int tile_discovered(uint32_t tile)
 {
    return !!(tile&(1<<30));
+}
+
+Tile_descriptor tile_wall_texture(uint32_t tile)
+{
+   uint32_t wall_tile = (tile&((1<<14)-1));
+
+   return tile_block_lut[wall_tile-1];
+}
+
+uint16_t tile_object_texture(uint32_t tile)
+{
+   uint32_t floor_tile = ((tile>>14)&((1<<14)-1));
+
+   return 2+floor_tile+1;
+}
+
+uint16_t tile_floor_texture(uint32_t tile)
+{
+}
+
+uint16_t tile_slope_texture(uint32_t tile)
+{
 }
 //-------------------------------------

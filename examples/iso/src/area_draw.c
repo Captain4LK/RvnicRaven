@@ -29,10 +29,17 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static const uint8_t luts[][256] = 
+{
+   {64,64,64,64,64,64,64,64,64,64,64},
+};
 //-------------------------------------
 
 //Function prototypes
-static void area_draw_wall(const RvR_texture *tex, int x, int y, uint8_t mode);
+//static void area_draw_wall(const RvR_texture *tex, int x, int y, uint8_t mode);
+
+static void area_draw_wall(const RvR_texture *tex, const uint8_t *lut, int x, int y);
+static void area_draw_wall2(const RvR_texture *tex, const uint8_t *lut, int x, int y);
 //-------------------------------------
 
 //Function implementations
@@ -44,7 +51,7 @@ void area_draw(const World *w, const Area *a, const Camera *c)
 
    for(int z = a->dimz*32-1;z>=0;z--)
    {
-      int origin_y = (16*c->y-20*(z-c->z)-24)/16;
+      int origin_y = (16*c->y-20*(z-c->z))/16;
       int origin_x = -origin_y+c->x+c->y;
       int origin_z = z;
       int y = origin_y;
@@ -58,8 +65,8 @@ void area_draw(const World *w, const Area *a, const Camera *c)
          if(min>max)
             break;
 
-         min = RvR_max(0,min-3);
-         max = RvR_min(a->dimx*32,max-1);
+         min = RvR_max(0,min-1);
+         max = RvR_min(a->dimx*32,max+2);
 
          for(int x = max;x>=min;x--)
          {
@@ -71,10 +78,15 @@ void area_draw(const World *w, const Area *a, const Camera *c)
             uint32_t right = area_tile(a,x,y+1,z);
             uint32_t up = area_tile(a,x,y,z-1);
 
-            if(!tile_has_floor(tile)||!tile_has_wall(front)||!tile_has_wall(right))
+            //if(!tile_has_floor(tile)||!tile_has_wall(front)||!tile_has_wall(right))
             {
                RvR_texture *tex = RvR_texture_get(0);
-               RvR_render_texture(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
+               //RvR_render_texture(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
+               if(RvR_key_down(RVR_KEY_L))
+               area_draw_wall2(tex,luts[0],x*16+y*16-cx,z*20-8*x+8*y-cy);
+               else
+               area_draw_wall(tex,luts[0],x*16+y*16-cx,z*20-8*x+8*y-cy);
+               
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
                   RvR_render_present();
@@ -94,8 +106,88 @@ void area_draw(const World *w, const Area *a, const Camera *c)
    }
 }
 
+static void area_draw_wall(const RvR_texture *tex, const uint8_t *lut, int x, int y)
+{
+   if(tex==NULL||tex->width!=32||tex->height!=32)
+      return;
+
+   const uint8_t offsets[32][2] = { {15,17}, {13,19}, {11,21}, {9,23}, {7,25}, {5,27}, {3,29}, {1,31}, {0,32}, {0,32}, {0,32}, {0,32}, {0,32},
+                                    {0,32}, {0,32}, {0,32}, {0,32}, {0,32}, {0,32}, {0,32}, {0,32}, {0,32}, {0,32}, {0,32}, {1,31}, {3,29},
+                                    {5,27}, {7,25}, {9,23}, {11,21}, {13,19}, {15,17},};
+
+   //Clip source texture
+   int draw_start_y = 0;
+   int draw_start_x = 0;
+   int draw_end_x = 32;
+   int draw_end_y = 32;
+   if(x<0)
+      draw_start_x = -x;
+   if(y<0)
+      draw_start_y = -y;
+   if(x + draw_end_x>RvR_xres())
+      draw_end_x = 32 + (RvR_xres()- x - draw_end_x);
+   if(y + draw_end_y>RvR_yres())
+      draw_end_y = 32 + (RvR_yres()- y - draw_end_y);
+
+   //Clip dst sprite
+   x = x<0?0:x;
+   y = y<0?0:y;
+
+   //const uint8_t *src = &tex->data[draw_start_x + draw_start_y * 32];
+   int src_step = -(draw_end_x - draw_start_x) + 32;
+   int dst_step = RvR_xres() - (draw_end_x - draw_start_x);
+
+   for(int y1 = draw_start_y; y1<draw_end_y; y1++,y++)
+   {
+
+      int start = RvR_max(draw_start_x,offsets[y1][0]);
+      int end = RvR_min(draw_end_x,offsets[y1][1]);
+      //x+=start-draw_start_x;
+      uint8_t * restrict dst = &RvR_framebuffer()[(x+start-draw_start_x) + y * RvR_xres()];
+      const uint8_t * restrict src = &tex->data[start + y1 * 32];
+      for(int x1 = start; x1<end; x1++, src++, dst++)
+      {
+         //*dst = *src?*src:*dst;
+         *dst = lut[*src];
+      }
+   }
+}
+
+static void area_draw_wall2(const RvR_texture *tex, const uint8_t *lut, int x, int y)
+{
+   if(tex==NULL||tex->width!=32||tex->height!=32)
+      return;
+
+   //Clip source texture
+   int draw_start_y = 0;
+   int draw_start_x = 0;
+   int draw_end_x = 32;
+   int draw_end_y = 32;
+   if(x<0)
+      draw_start_x = -x;
+   if(y<0)
+      draw_start_y = -y;
+   if(x + draw_end_x>RvR_xres())
+      draw_end_x = 32 + (RvR_xres() - x - draw_end_x);
+   if(y + draw_end_y>RvR_yres())
+      draw_end_y = 32 + (RvR_yres() - y - draw_end_y);
+
+   //Clip dst sprite
+   x = x<0?0:x;
+   y = y<0?0:y;
+
+   const uint8_t *src = &tex->data[draw_start_x + draw_start_y * 32];
+   uint8_t *dst = &RvR_framebuffer()[x + y * RvR_xres()];
+   int src_step = -(draw_end_x - draw_start_x) + 32;
+   int dst_step = RvR_xres() - (draw_end_x - draw_start_x);
+
+   for(int y1 = draw_start_y; y1<draw_end_y; y1++, dst += dst_step, src += src_step)
+      for(int x1 = draw_start_x; x1<draw_end_x; x1++, src++, dst++)
+         *dst = *src?lut[*src]:*dst;
+}
+
 //Failed attempt at making drawing faster, basically
-void area_draw_new(const World *w, const Area *a, const Camera *c)
+/*void area_draw_new(const World *w, const Area *a, const Camera *c)
 {
    int cx = c->x*16+c->y*16;
    int cy = c->z*20-8*c->x+8*c->y;
@@ -152,9 +244,9 @@ void area_draw_new(const World *w, const Area *a, const Camera *c)
          y++;
       }
    }
-}
+}*/
 
-static void area_draw_wall(const RvR_texture *tex, int x, int y, uint8_t mode)
+/*static void area_draw_wall(const RvR_texture *tex, int x, int y, uint8_t mode)
 {
    if(tex==NULL)
       return;
@@ -201,5 +293,5 @@ static void area_draw_wall(const RvR_texture *tex, int x, int y, uint8_t mode)
       }
 
    }
-}
+}*/
 //-------------------------------------
