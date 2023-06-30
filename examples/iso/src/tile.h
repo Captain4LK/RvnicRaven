@@ -12,12 +12,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _TILE_H_
 
-typedef struct
-{
-   uint16_t tex;
-   int16_t lut;
-}Tile_descriptor;
-
 int tile_has_wall(uint32_t tile);
 int tile_has_floor(uint32_t tile);
 int tile_has_object(uint32_t tile);
@@ -27,7 +21,7 @@ int tile_is_slope(uint32_t tile);
 int tile_visible(uint32_t tile);
 int tile_discovered(uint32_t tile);
 
-Tile_descriptor tile_wall_texture(uint32_t tile);
+uint16_t tile_wall_texture(uint32_t tile);
 uint16_t tile_object_texture(uint32_t tile);
 uint16_t tile_floor_texture(uint32_t tile);
 uint16_t tile_slope_texture(uint32_t tile);
