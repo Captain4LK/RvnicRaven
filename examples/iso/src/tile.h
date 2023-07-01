@@ -17,9 +17,17 @@ int tile_has_floor(uint32_t tile);
 int tile_has_object(uint32_t tile);
 int tile_has_draw_wall(uint32_t tile);
 int tile_has_draw_floor(uint32_t tile);
+int tile_has_draw_slope(uint32_t tile);
 int tile_is_slope(uint32_t tile);
 int tile_visible(uint32_t tile);
 int tile_discovered(uint32_t tile);
+
+uint32_t tile_set_visible(uint32_t tile, int visible);
+uint32_t tile_set_discovered(uint32_t tile, int discovered);
+
+uint32_t tile_make_wall(uint16_t wall, uint16_t floor);
+uint32_t tile_make_object(uint16_t object, uint16_t floor);
+uint32_t tile_make_slope(uint16_t slope, uint16_t variant);
 
 uint16_t tile_wall_texture(uint32_t tile);
 uint16_t tile_object_texture(uint32_t tile);

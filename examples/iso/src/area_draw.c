@@ -64,7 +64,7 @@ void area_draw(const World *w, const Area *a, const Camera *c)
 
          for(int x = max;x>=min;x--)
          {
-            if(area_tile(a,x,y,z)==0)
+            if(area_tile(a,x,y,z)==tile_set_discovered(0,1))
                continue;
 
             uint32_t tile = area_tile(a,x,y,z);
@@ -72,18 +72,25 @@ void area_draw(const World *w, const Area *a, const Camera *c)
             uint32_t right = area_tile(a,x,y+1,z);
             uint32_t up = area_tile(a,x,y,z-1);
 
-            if(!tile_has_floor(tile)||!tile_has_wall(front)||!tile_has_wall(right))
+            if(tile_has_draw_slope(tile))
             {
-               RvR_texture *tex = RvR_texture_get(0);
+               RvR_texture *tex = RvR_texture_get(tile_slope_texture(tile));
+               area_draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-4-cy);
+               continue;
+            }
+
+            if(tile_has_draw_wall(tile)&&(!tile_has_draw_floor(tile)||!tile_has_draw_wall(front)||!tile_has_draw_wall(right)))
+            {
+               RvR_texture *tex = RvR_texture_get(tile_wall_texture(tile));
                area_draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
                   RvR_render_present();
             }
 
-            if(!tile_has_floor(front)||!tile_has_floor(right)||!tile_has_wall(up))
+            if(tile_has_draw_floor(tile)&&(!tile_has_draw_floor(front)||!tile_has_draw_floor(right)||!tile_has_draw_wall(up)))
             {
-               RvR_texture *tex = RvR_texture_get(1);
+               RvR_texture *tex = RvR_texture_get(tile_floor_texture(tile));
                area_draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-4-cy);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))

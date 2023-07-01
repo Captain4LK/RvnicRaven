@@ -56,7 +56,25 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    a->tiles = RvR_malloc(sizeof(*a->tiles)*(dimx*32)*(dimy*32)*(dimz*32),"Area tiles");
 
    for(int i = 0;i<32*32*32;i++)
-      a->tiles[i] = 1 | (1<<14);
+      a->tiles[i] = tile_set_discovered(0,1);
+
+   for(int z = 16;z<32;z++)
+   {
+      for(int x = 0;x<32;x++) for(int y = 0;y<32;y++)
+      {
+         area_set_tile(a,x,y,z,tile_set_discovered(tile_make_wall(1,1),1));
+      }
+   }
+
+   for(int x = 0;x<16;x++) for(int y = 0;y<8;y++)
+      area_set_tile(a,x+8,y+8,15,tile_set_discovered(tile_make_wall(1,1),1));
+   for(int x = 0;x<6;x++) for(int y = 0;y<8;y++)
+      area_set_tile(a,x+15,y+16,15,tile_set_discovered(tile_make_wall(1,1),1));
+   for(int x = 0;x<14;x++) for(int y = 0;y<6;y++)
+      area_set_tile(a,x+9,y+9,14,tile_set_discovered(tile_make_wall(1,1),1));
+   area_set_tile(a,8,14,14,tile_set_discovered(tile_make_slope(1,0),1));
+   area_set_tile(a,8,15,14,tile_set_discovered(tile_make_slope(1,8),1));
+   area_set_tile(a,9,15,14,tile_set_discovered(tile_make_slope(1,1),1));
 
    return a;
 
@@ -89,11 +107,22 @@ RvR_err:
 uint32_t area_tile(const Area *a, int x, int y, int z)
 {
    if(x<0||y<0||z<0)
-      return 0;
+      return tile_set_discovered(0,1);
    
    if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
-      return 0;
+      return tile_set_discovered(0,1);
 
    return a->tiles[z*32*32+y*32+x];
+}
+
+void area_set_tile(Area *a, int x, int y, int z, uint32_t tile)
+{
+   if(x<0||y<0||z<0)
+      return;
+   
+   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+      return;
+
+   a->tiles[z*32*32+y*32+x] = tile;
 }
 //-------------------------------------

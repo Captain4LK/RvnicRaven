@@ -73,6 +73,14 @@ int tile_has_draw_floor(uint32_t tile)
    return tile_has_floor(tile);
 }
 
+int tile_has_draw_slope(uint32_t tile)
+{
+   if(!tile_discovered(tile))
+      return 0;
+
+   return tile_is_slope(tile);
+}
+
 int tile_is_slope(uint32_t tile)
 {
    return !!(tile&(1<<28));
@@ -88,25 +96,70 @@ int tile_discovered(uint32_t tile)
    return !!(tile&(1<<30));
 }
 
+uint32_t tile_set_visible(uint32_t tile, int visible)
+{
+   uint32_t value = (!!visible)<<31;
+   uint32_t bit = 1<<31;
+
+   return (tile & (~bit))|value;
+}
+
+uint32_t tile_set_discovered(uint32_t tile, int discovered)
+{
+   uint32_t value = (!!discovered)<<30;
+   uint32_t bit = 1<<30;
+
+   return (tile & (~bit))|value;
+}
+
+uint32_t tile_make_wall(uint16_t wall, uint16_t floor)
+{
+   wall = wall&((1<<14)-1);
+   floor = floor&((1<<14)-1);
+
+   return wall|(floor<<14);
+}
+
+uint32_t tile_make_object(uint16_t object, uint16_t floor)
+{
+   object = object&((1<<14)-1);
+   floor = floor&((1<<14)-1);
+
+   return object|(floor<<14)|(1<<29);
+}
+
+uint32_t tile_make_slope(uint16_t slope, uint16_t variant)
+{
+   slope = slope&((1<<14)-1);
+   variant = variant&((1<<14)-1);
+
+   return slope|(variant<<14)|(1<<28);
+}
+
 uint16_t tile_wall_texture(uint32_t tile)
 {
    uint32_t wall_tile = (tile&((1<<14)-1));
 
-   return wall_tile*2+1;
+   return 2+(wall_tile-1)*16;
 }
 
 uint16_t tile_object_texture(uint32_t tile)
 {
-   uint32_t floor_tile = ((tile>>14)&((1<<14)-1));
-
-   return 2+floor_tile+1;
+   return 0;
 }
 
 uint16_t tile_floor_texture(uint32_t tile)
 {
+   uint32_t floor_tile = ((tile>>14)&((1<<14)-1));
+
+   return 2+(floor_tile-1)*16+1;
 }
 
 uint16_t tile_slope_texture(uint32_t tile)
 {
+   uint32_t slope = (tile&((1<<14)-1));
+   uint32_t variant = ((tile>>14)&((1<<14)-1));
+
+   return 2+(slope-1)*16+variant+2;
 }
 //-------------------------------------
