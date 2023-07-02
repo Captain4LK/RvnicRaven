@@ -90,7 +90,13 @@ static void loop()
       camera.z--;
 
    RvR_render_clear(0);
-   area_draw(world,area,&camera);
+
+   area_draw_begin(world,area,&camera);
+
+   area_draw_sprite(1,0,0,0);
+   area_draw_sprite(1,23,14,14);
+
+   area_draw_end();
 
    RvR_render_present();
 }

@@ -15,7 +15,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 #include "camera.h"
 
-void area_draw(const World *w, const Area *a, const Camera *c);
+//Passed data must be valid until area_draw_end()
+void area_draw_begin(const World *w, const Area *a, const Camera *c);
+void area_draw_end();
+
+void area_draw_sprite(uint16_t tex, int x, int y, int z);
+
 //void area_draw_new(const World *w, const Area *a, const Camera *c);
 
 #endif
