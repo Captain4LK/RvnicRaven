@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "area.h"
+#include "tile.h"
 #include "world.h"
 //-------------------------------------
 
@@ -55,12 +56,12 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    a->tiles = NULL;
    a->tiles = RvR_malloc(sizeof(*a->tiles)*(dimx*32)*(dimy*32)*(dimz*32),"Area tiles");
 
-   for(int i = 0;i<32*32*32;i++)
+   for(int i = 0;i<dimx*32*dimy*32*dimz*32;i++)
       a->tiles[i] = tile_set_discovered(0,1);
 
-   for(int z = 16;z<32;z++)
+   for(int z = 16;z<dimz*32;z++)
    {
-      for(int x = 0;x<32;x++) for(int y = 0;y<32;y++)
+      for(int x = 0;x<dimx*32;x++) for(int y = 0;y<dimy*32;y++)
       {
          area_set_tile(a,x,y,z,tile_set_discovered(tile_make_wall(1,1),1));
       }
@@ -112,7 +113,7 @@ uint32_t area_tile(const Area *a, int x, int y, int z)
    if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
       return tile_set_discovered(0,1);
 
-   return a->tiles[z*32*32+y*32+x];
+   return a->tiles[z*a->dimx*32*a->dimy*32+y*a->dimx*32+x];
 }
 
 void area_set_tile(Area *a, int x, int y, int z, uint32_t tile)
@@ -123,6 +124,6 @@ void area_set_tile(Area *a, int x, int y, int z, uint32_t tile)
    if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
       return;
 
-   a->tiles[z*32*32+y*32+x] = tile;
+   a->tiles[z*a->dimx*32*a->dimy*32+y*a->dimx*32+x] = tile;
 }
 //-------------------------------------

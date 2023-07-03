@@ -98,9 +98,11 @@ void area_draw_end()
             Sprite *sp = sprites+sprite_cur;
             if(sp->z==z&&sp->y==y&&sp->x==x)
             {
-               draw_sprite(RvR_texture_get(sp->tex),x*16+y*16-cx,z*20-8*x+8*y-cy);
+               RvR_texture *tex = RvR_texture_get(sp->tex);
+               draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
                sprite_cur++;
             }
+            //Skip sprites until next
             for(;sprite_cur<sprite_max&&pos_cmp(sprites[sprite_cur].x,sprites[sprite_cur].y,sprites[sprite_cur].z,x,y,z)<0;sprite_cur++);
 
             if(area_tile(area,x,y,z)==tile_set_discovered(0,1))
@@ -160,19 +162,19 @@ void area_draw_sprite(uint16_t tex, int x, int y, int z)
    int sy = z*20-8*x+8*y-cy;
 
    //Left of screen
-   if(sx+t->width/2<0)
+   if(sx+t->width<0)
       return;
 
    //Right of screen
-   if(sx-t->width/2>=RvR_xres())
+   if(sx>=RvR_xres())
       return;
 
    //Below screen
-   if(sy-t->height/2>=RvR_yres())
+   if(sy>=RvR_yres())
       return;
 
    //Above screen
-   if(sy+t->height/2<0)
+   if(sy+t->height<0)
       return;
 
    //Push into list
