@@ -8,10 +8,34 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _TURN_H_
+#ifndef _ENTITY_TYPE_H_
 
-#define _TURN_H_
+#define _ENTITY_TYPE_H_
 
+typedef struct Entity Entity;
 
+typedef enum
+{
+   ACTION_INVALID = -1,
+   ACTION_WAIT = 0,
+   ACTION_MOVE = 1,
+}Action;
+
+struct Entity
+{
+   uint32_t id;
+   int removed;
+
+   Action action;
+
+   Entity *next;
+   Entity **prev_next;
+};
+
+typedef struct
+{
+   uint32_t id;
+   Entity *index;
+}Gendex;
 
 #endif

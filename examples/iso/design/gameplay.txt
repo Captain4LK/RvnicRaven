@@ -1,0 +1,3 @@
+
+- firearms:
+   - early flintlock and musket only

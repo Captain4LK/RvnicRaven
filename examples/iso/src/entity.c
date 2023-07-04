@@ -10,13 +10,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include "RvR/RvR.h"
 //-------------------------------------
 
 //Internal includes
-#include "turn.h"
+#include "entity.h"
 //-------------------------------------
 
 //#defines

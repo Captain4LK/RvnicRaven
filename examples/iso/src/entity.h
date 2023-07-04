@@ -8,28 +8,10 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-//External includes
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include "RvR/RvR.h"
-//-------------------------------------
+#ifndef _ENTITY_H_
 
-//Internal includes
-#include "turn.h"
-//-------------------------------------
+#define _ENTITY_H_
 
-//#defines
-//-------------------------------------
+#include "entity_type.h"
 
-//Typedefs
-//-------------------------------------
-
-//Variables
-//-------------------------------------
-
-//Function prototypes
-//-------------------------------------
-
-//Function implementations
-//-------------------------------------
+#endif
