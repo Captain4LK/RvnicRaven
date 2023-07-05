@@ -12,6 +12,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ACTION_H_
 
-#include "entity_type.h"
+#include "entity_defs.h"
+
+void action_do(Entity *e);
+
+void action_set_wait(Entity *e, uint32_t time);
 
 #endif

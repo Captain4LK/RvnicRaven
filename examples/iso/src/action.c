@@ -33,4 +33,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function implementations
+
+void action_do(Entity *e)
+{
+}
+
+void action_set_wait(Entity *e, uint32_t time)
+{
+}
 //-------------------------------------

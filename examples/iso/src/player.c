@@ -27,10 +27,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+Player player;
 //-------------------------------------
 
 //Function prototypes
 //-------------------------------------
 
 //Function implementations
+
+void player_update()
+{
+}
 //-------------------------------------

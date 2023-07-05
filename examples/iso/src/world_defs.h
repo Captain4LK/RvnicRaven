@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _WORLD_DEFS_H_
 
 #include "util.h"
+#include "entity_defs.h"
 
 typedef enum
 {
@@ -31,6 +32,9 @@ typedef struct
    uint16_t id;
 
    uint32_t *tiles;
+
+   Entity *entities;
+   Entity_cube *entity_grid;
 }Area;
 
 typedef struct
@@ -48,6 +52,8 @@ typedef struct
 typedef struct
 {
    char base_path[UTIL_PATH_MAX];
+
+   uint64_t next_id;
 
    World_size size;
 

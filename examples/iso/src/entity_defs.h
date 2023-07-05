@@ -13,17 +13,24 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _ENTITY_TYPE_H_
 
 typedef struct Entity Entity;
+typedef struct Entity_cube Entity_cube;
 
 typedef enum
 {
    ACTION_INVALID = -1,
    ACTION_WAIT = 0,
    ACTION_MOVE = 1,
+}Action_id;
+
+typedef struct
+{
+   Action_id id;
+   int status;
 }Action;
 
 struct Entity
 {
-   uint32_t id;
+   uint64_t id;
    int removed;
 
    Action action;
@@ -32,9 +39,16 @@ struct Entity
    Entity **prev_next;
 };
 
+struct Entity_cube
+{
+   Entity *ent;
+   Entity_cube *next;
+   Entity_cube **prev_next;
+};
+
 typedef struct
 {
-   uint32_t id;
+   uint64_t id;
    Entity *index;
 }Gendex;
 

@@ -12,6 +12,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _PLAYER_H_
 
+#include "entity_defs.h"
 
+typedef struct
+{
+   Entity *e;
+}Player;
+
+extern Player player;
+
+void player_update();
 
 #endif

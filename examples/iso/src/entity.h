@@ -12,6 +12,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ENTITY_H_
 
-#include "entity_type.h"
+#include "entity_defs.h"
+
+Entity *entity_new(World *w);
+void entity_free(Entity *e);
+
+Entity_cube *entity_cube_new();
+void entity_cube_free(Entity_cube *e);
+
+void entity_remove(Entity *e);
 
 #endif
