@@ -29,7 +29,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static Entity *entity_pool;
-static Entity_cube *entity_cube_pool;
 //-------------------------------------
 
 //Function prototypes
@@ -58,6 +57,8 @@ Entity *entity_new(World *w)
    memset(n, 0, sizeof(*n));
    n->next = NULL;
    n->prev_next = NULL;
+   n->g_next = NULL;
+   n->g_prev_next = NULL;
    n->id = id;
 
    return n;
@@ -88,47 +89,69 @@ void entity_free(Entity *e)
    entity_pool = e;
 }
 
-Entity_cube *entity_cube_new()
-{
-   if(entity_cube_pool == NULL)
-   {
-      Entity_cube *ne = RvR_malloc(sizeof(*ne) * 256, "entity_cube pool");
-      memset(ne, 0, sizeof(*ne) * 256);
-
-      for(int i = 0; i < 256 - 1; i++)
-         ne[i].next = &ne[i + 1];
-      entity_cube_pool = &ne[0];
-   }
-
-   Entity_cube *n = entity_cube_pool;
-   entity_cube_pool = n->next;
-
-   memset(n, 0, sizeof(*n));
-   n->next = NULL;
-   n->prev_next = NULL;
-
-   return n;
-}
-
-void entity_cube_free(Entity_cube *e)
-{
-   if(e==NULL)
-      return;
-
-   *e->prev_next = e->next;
-   if(e->next != NULL)
-      e->next->prev_next = e->prev_next;
-
-   e->next = entity_cube_pool;
-   entity_cube_pool = e;
-}
-
 void entity_remove(Entity *e)
 {
    if(e == NULL)
       return;
 
+   entity_grid_remove(e);
+
    e->id = UINT64_MAX;
    e->removed = 1;
+}
+
+void entity_add(Area *a, Entity *e)
+{
+   if(e==NULL)
+      return;
+
+   e->prev_next = &a->entities;
+   if(a->entities!=NULL)
+      a->entities->prev_next = &e->next;
+   e->next = a->entities;
+   a->entities = e;
+}
+
+void entity_grid_add(Area *a, Entity *e)
+{
+   if(e==NULL)
+      return;
+   if(e->x<0||e->y<0||e->z<0)
+      return;
+   if(e->x>=a->dimx*32||e->y>=a->dimy*32||e->z>=a->dimz*32)
+      return;
+
+   int gx = e->x/8;
+   int gy = e->y/8;
+   int gz = e->z/8;
+   size_t g_index = gz*(a->dimx*4)*(a->dimy*4)+gy*(a->dimx*4)+gx;
+   e->g_prev_next = &a->entity_grid[g_index];
+   if(a->entity_grid[g_index]!=NULL)
+      a->entity_grid[g_index]->prev_next = &e->g_next;
+   e->g_next = a->entity_grid[g_index];
+   a->entity_grid[g_index] = e;
+}
+
+void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
+{
+   if(e==NULL)
+      return;
+   if(x<0||y<0||z<0)
+      return;
+   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+      return;
+
+   entity_grid_remove(e);
+   e->x = x;
+   e->y = y;
+   e->z = z;
+   entity_add(a,e);
+}
+
+void entity_grid_remove(Entity *e)
+{
+   *e->g_prev_next = e->g_next;
+   if(e->g_next != NULL)
+      e->g_next->prev_next = e->g_prev_next;
 }
 //-------------------------------------

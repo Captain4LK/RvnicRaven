@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _PLAYER_H_
 
 #include "entity_defs.h"
+#include "world_defs.h"
 
 typedef struct
 {
@@ -21,6 +22,7 @@ typedef struct
 
 extern Player player;
 
+void player_new(World *w, Area *a);
 void player_update();
 
 #endif

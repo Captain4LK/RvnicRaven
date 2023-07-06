@@ -13,7 +13,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _ENTITY_TYPE_H_
 
 typedef struct Entity Entity;
-typedef struct Entity_cube Entity_cube;
 
 typedef enum
 {
@@ -30,6 +29,13 @@ typedef struct
 
 struct Entity
 {
+   int16_t x;
+   int16_t y;
+   int16_t z;
+   uint16_t tex;
+
+   int speed;
+
    uint64_t id;
    int removed;
 
@@ -37,13 +43,9 @@ struct Entity
 
    Entity *next;
    Entity **prev_next;
-};
 
-struct Entity_cube
-{
-   Entity *ent;
-   Entity_cube *next;
-   Entity_cube **prev_next;
+   Entity *g_next;
+   Entity **g_prev_next;
 };
 
 typedef struct

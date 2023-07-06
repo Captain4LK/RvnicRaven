@@ -34,7 +34,7 @@ typedef struct
    uint32_t *tiles;
 
    Entity *entities;
-   Entity_cube *entity_grid;
+   Entity **entity_grid;
 }Area;
 
 typedef struct

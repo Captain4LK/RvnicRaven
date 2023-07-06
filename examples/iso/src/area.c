@@ -53,6 +53,9 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    a->dimy = dimy;
    a->dimz = dimz;
    a->id = id;
+   a->entities = NULL;
+   a->entity_grid = RvR_malloc(sizeof(*a->entity_grid)*(dimx*4)*(dimy*4)*(dimz*4),"Area entity grid");
+   memset(a->entity_grid,0,sizeof(*a->entity_grid)*(dimx*4)*(dimy*4)*(dimz*4));
    a->tiles = NULL;
    a->tiles = RvR_malloc(sizeof(*a->tiles)*(dimx*32)*(dimy*32)*(dimz*32),"Area tiles");
 

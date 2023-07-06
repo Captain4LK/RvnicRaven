@@ -18,6 +18,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "player.h"
+#include "world_defs.h"
+#include "entity.h"
 //-------------------------------------
 
 //#defines
@@ -34,6 +36,16 @@ Player player;
 //-------------------------------------
 
 //Function implementations
+
+void player_new(World *w, Area *a)
+{
+   player.e = entity_new(w);
+   player.e->x = 0;
+   player.e->y = 0;
+   player.e->z = 15;
+   player.e->speed = 32;
+   entity_add(a,player.e);
+}
 
 void player_update()
 {
