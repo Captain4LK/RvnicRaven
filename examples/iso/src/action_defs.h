@@ -8,10 +8,37 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _TURN_H_
+#ifndef _ACTION_DEFS_H_
 
-#define _TURN_H_
+#define _ACTION_DEFS_H_
 
-void turns_do(Area *a, int turns);
+typedef enum
+{
+   ACTION_INVALID = -1,
+   ACTION_WAIT = 0,
+   ACTION_MOVE = 1,
+}Action_id;
+
+typedef struct
+{
+   uint32_t time;
+}AWait;
+
+typedef struct
+{
+   uint8_t dir;
+}AMove;
+
+typedef struct
+{
+   Action_id id;
+   int status;
+
+   union
+   {
+      AWait wait;
+      AMove move;
+   }as;
+}Action;
 
 #endif

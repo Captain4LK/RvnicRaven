@@ -16,6 +16,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "entity.h"
+#include "world_defs.h"
+#include "action.h"
 #include "turn.h"
 //-------------------------------------
 
@@ -32,4 +35,55 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function implementations
+
+void turns_do(Area *a, int turns)
+{
+   for(int i = 0; i < turns; i++)
+   {
+      Entity *e = a->entities;
+      while(e != NULL)
+      {
+         Entity *next = e->next;
+
+         if(e->removed)
+            goto next;
+
+         e->turn_next--;
+         if(e->turn_next<= 0)
+         {
+            //entity_turn(e);
+            action_do(a,e);
+         }
+
+next:
+         e = next;
+      }
+
+      //TODO: should we run this every turn?
+
+      //Delete removed entities
+      e = a->entities;
+      while(e != NULL)
+      {
+         Entity *next = e->next;
+
+         if(e->removed)
+            entity_free(e);
+
+         e = next;
+      }
+
+      /*//Delete removed items
+      Item_world *it = items;
+      while(it != NULL)
+      {
+         Item_world *next = it->next;
+
+         if(it->removed)
+            item_world_free(it);
+
+         it = next;
+      }*/
+   }
+}
 //-------------------------------------

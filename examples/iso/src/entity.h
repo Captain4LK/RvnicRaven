@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ENTITY_H_
 
+#include "world_defs.h"
 #include "entity_defs.h"
 
 Entity *entity_new(World *w);
@@ -23,5 +24,8 @@ void entity_add(Area *a, Entity *e);
 void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z);
 void entity_grid_add(Area *a, Entity *e);
 void entity_grid_remove(Entity *e);
+
+int entity_pos_valid(Area *a, Entity *e, int x, int y, int z);
+unsigned entity_try_move(Area *a, Entity *e, int dir);
 
 #endif

@@ -19,6 +19,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "world_defs.h"
 #include "entity.h"
+
+#include "player.h"
 //-------------------------------------
 
 //#defines
@@ -145,7 +147,7 @@ void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
    e->x = x;
    e->y = y;
    e->z = z;
-   entity_add(a,e);
+   entity_grid_add(a,e);
 }
 
 void entity_grid_remove(Entity *e)
@@ -153,5 +155,55 @@ void entity_grid_remove(Entity *e)
    *e->g_prev_next = e->g_next;
    if(e->g_next != NULL)
       e->g_next->prev_next = e->g_prev_next;
+}
+
+int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
+{
+   if(e==NULL)
+      return 0;
+
+   if(x<0||y<0||z<0)
+      return 0;
+
+   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+      return 0;
+
+   switch(e->ai_type)
+   {
+   case AI_INVALID:
+      return 0;
+   case AI_PLAYER:
+      return player_pos_valid(a,e,x,y,z);
+   }
+
+   return 0;
+}
+
+unsigned entity_try_move(Area *a, Entity *e, int dir)
+{
+   if(e == NULL)
+      return 0;
+
+   const int dirs[8][2] =
+   {
+      { 1, 0 },
+      { 0, 1 },
+      { -1, 0 },
+      { 0, -1 },
+
+      //Diagonal
+      { 1, 1 },
+      { 1, -1 },
+      { -1, -1 },
+      { -1, 1 },
+   };
+
+   if(entity_pos_valid(a,e, e->x + dirs[dir][0], e->y + dirs[dir][1],e->z))
+   {
+      entity_update_pos(a,e, e->x + dirs[dir][0], e->y + dirs[dir][1],e->z);
+      return 1;
+   }
+
+   return 0;
 }
 //-------------------------------------

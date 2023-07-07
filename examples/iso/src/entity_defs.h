@@ -12,20 +12,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ENTITY_TYPE_H_
 
+#include "action_defs.h"
+
 typedef struct Entity Entity;
 
 typedef enum
 {
-   ACTION_INVALID = -1,
-   ACTION_WAIT = 0,
-   ACTION_MOVE = 1,
-}Action_id;
-
-typedef struct
-{
-   Action_id id;
-   int status;
-}Action;
+   AI_INVALID = 0,
+   AI_PLAYER,
+}AI_type;
 
 struct Entity
 {
@@ -39,7 +34,12 @@ struct Entity
    uint64_t id;
    int removed;
 
+   int turn_next;
+   int turn_rem;
+
    Action action;
+
+   AI_type ai_type;
 
    Entity *next;
    Entity **prev_next;

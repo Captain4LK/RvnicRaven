@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area.h"
 #include "area_draw.h"
 #include "world.h"
+#include "state.h"
 //-------------------------------------
 
 //Internal includes
@@ -30,10 +31,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static uint8_t mem[MEM_SIZE];
-
-static Area *area;
-static World *world;
-static Camera camera;
 //-------------------------------------
 
 //Function prototypes
@@ -57,11 +54,8 @@ int main(int argc, char **argv)
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
 
-   world = world_new("test",WORLD_SMALL);
-   area = area_create(world,0,0,1,1,1,0);
-   camera.x = 16;
-   camera.y = 0;
-   camera.z = 1;
+   state_init(STATE_GAME);
+   state_set(STATE_GAME);
 
    while(RvR_running())
    {
@@ -75,28 +69,11 @@ static void loop()
 {
    RvR_update();
 
-   if(RvR_key_pressed(RVR_KEY_LEFT))
-      camera.x--;
-   if(RvR_key_pressed(RVR_KEY_RIGHT))
-      camera.x++;
-   if(RvR_key_pressed(RVR_KEY_UP))
-      camera.y--;
-   if(RvR_key_pressed(RVR_KEY_DOWN))
-      camera.y++;
-
-   if(RvR_key_pressed(RVR_KEY_Z))
-      camera.z++;
-   if(RvR_key_pressed(RVR_KEY_X))
-      camera.z--;
+   state_update();
 
    RvR_render_clear(0);
 
-   area_draw_begin(world,area,&camera);
-
-   area_draw_sprite(1,0,0,0);
-   area_draw_sprite(1,23,14,14);
-
-   area_draw_end();
+   state_draw();
 
    RvR_render_present();
 }
