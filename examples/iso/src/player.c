@@ -56,21 +56,21 @@ void player_update()
 {
    //Movement
    int dir = -1;
-   if(RvR_key_pressed(RVR_KEY_W)||(0&&RvR_key_pressed(RVR_KEY_UP))||RvR_key_pressed(RVR_KEY_NP8))
+   if(RvR_key_pressed(RVR_KEY_W)||(0&&RvR_key_pressed(RVR_KEY_UP))||RvR_key_pressed(RVR_KEY_NP7))
       dir = 3;
-   if(RvR_key_pressed(RVR_KEY_S)||(0&&RvR_key_pressed(RVR_KEY_DOWN))||RvR_key_pressed(RVR_KEY_NP2))
+   if(RvR_key_pressed(RVR_KEY_S)||(0&&RvR_key_pressed(RVR_KEY_DOWN))||RvR_key_pressed(RVR_KEY_NP3))
       dir = 1;
-   if(RvR_key_pressed(RVR_KEY_A)||(0&&RvR_key_pressed(RVR_KEY_LEFT))||RvR_key_pressed(RVR_KEY_NP4))
+   if(RvR_key_pressed(RVR_KEY_A)||(0&&RvR_key_pressed(RVR_KEY_LEFT))||RvR_key_pressed(RVR_KEY_NP1))
       dir = 2;
-   if(RvR_key_pressed(RVR_KEY_D)||(0&&RvR_key_pressed(RVR_KEY_RIGHT))||RvR_key_pressed(RVR_KEY_NP6))
+   if(RvR_key_pressed(RVR_KEY_D)||(0&&RvR_key_pressed(RVR_KEY_RIGHT))||RvR_key_pressed(RVR_KEY_NP9))
       dir = 0;
-   if(RvR_key_pressed(RVR_KEY_NP3))
+   if(RvR_key_pressed(RVR_KEY_NP6))
       dir = 4;
-   if(RvR_key_pressed(RVR_KEY_NP9))
+   if(RvR_key_pressed(RVR_KEY_NP8))
       dir = 5;
-   if(RvR_key_pressed(RVR_KEY_NP7))
+   if(RvR_key_pressed(RVR_KEY_NP4))
       dir = 6;
-   if(RvR_key_pressed(RVR_KEY_NP1))
+   if(RvR_key_pressed(RVR_KEY_NP2))
       dir = 7;
 
    if(dir!=-1)

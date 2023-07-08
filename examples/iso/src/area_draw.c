@@ -50,6 +50,8 @@ static void draw_sprite_bw(const RvR_texture *tex, int x, int y);
 
 static int sprite_cmp(const void *a, const void *b);
 static int pos_cmp(int x0, int y0, int z0, int x1, int y1, int z1);
+
+static uint32_t area_draw_tile(const Area *a, int x, int y, int z, uint8_t rot);
 //-------------------------------------
 
 //Function implementations
@@ -95,23 +97,26 @@ void area_draw_end()
          for(int x = max;x>=min;x--)
          {
             //Sprites
-            Sprite *sp = sprites+sprite_cur;
-            if(sp->z==z&&sp->y==y&&sp->x==x)
+            if(sprite_cur<sprite_max)
             {
-               RvR_texture *tex = RvR_texture_get(sp->tex);
-               draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
-               sprite_cur++;
+               Sprite *sp = sprites+sprite_cur;
+               if(sp->z==z&&sp->y==y&&sp->x==x)
+               {
+                  RvR_texture *tex = RvR_texture_get(sp->tex);
+                  draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
+                  sprite_cur++;
+               }
             }
             //Skip sprites until next
             for(;sprite_cur<sprite_max&&pos_cmp(sprites[sprite_cur].x,sprites[sprite_cur].y,sprites[sprite_cur].z,x,y,z)<0;sprite_cur++);
 
-            if(area_tile(area,x,y,z)==tile_set_discovered(0,1))
+            if(area_draw_tile(area,x,y,z,cam->rotation)==tile_set_discovered(0,1))
                continue;
 
-            uint32_t tile = area_tile(area,x,y,z);
-            uint32_t front = area_tile(area,x-1,y,z);
-            uint32_t right = area_tile(area,x,y+1,z);
-            uint32_t up = area_tile(area,x,y,z-1);
+            uint32_t tile = area_draw_tile(area,x,y,z,cam->rotation);
+            uint32_t front = area_draw_tile(area,x-1,y,z,cam->rotation);
+            uint32_t right = area_draw_tile(area,x,y+1,z,cam->rotation);
+            uint32_t up = area_draw_tile(area,x,y,z-1,cam->rotation);
 
             if(tile_has_draw_slope(tile))
             {
@@ -275,5 +280,36 @@ static int pos_cmp(int x0, int y0, int z0, int x1, int y1, int z1)
    }
 
    return z1-z0;
+}
+
+static uint32_t area_draw_tile(const Area *a, int x, int y, int z, uint8_t rot)
+{
+   /*if(rot==1)
+   {
+      int tx = x;
+      int ty = y;
+      x = area->dimy*32-ty-1;
+      y = tx;
+   }
+   else if(rot==2)
+   {
+      x = area->dimx*32-x-1;
+      y = area->dimy*32-y-1;
+   }
+   else if(rot==3)
+   {
+      int tx = x;
+      int ty = y;
+      x = ty;
+      y = area->dimx*32-tx-1;
+   }*/
+
+   if(x<0||y<0||z<0)
+      return tile_set_discovered(0,1);
+   
+   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+      return tile_set_discovered(0,1);
+
+   return a->tiles[z*a->dimx*32*a->dimy*32+y*a->dimx*32+x];
 }
 //-------------------------------------

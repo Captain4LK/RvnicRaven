@@ -63,6 +63,9 @@ void game_update()
    if(RvR_key_pressed(RVR_KEY_X))
       camera.z--;
 
+   if(RvR_key_pressed(RVR_KEY_PERIOD))
+      camera.rotation = (camera.rotation+1)&3;
+
    if(RvR_key_pressed(RVR_KEY_M))
       RvR_malloc_report();
 

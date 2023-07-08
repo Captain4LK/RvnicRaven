@@ -18,6 +18,8 @@ typedef struct
    int x;
    int y;
    int z;
+
+   uint8_t rotation;
 }Camera;
 
 #endif
