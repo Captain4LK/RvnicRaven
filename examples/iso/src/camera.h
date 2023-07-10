@@ -12,6 +12,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _CAMERA_H_
 
+#include "world_defs.h"
+
 typedef struct
 {
    //Isometric coordinates
@@ -21,5 +23,8 @@ typedef struct
 
    uint8_t rotation;
 }Camera;
+
+void camera_rotate(const Camera *c, const Area *a, const int *ix, const int *iy, int *ox, int *oy);
+void camera_rotate_inv(const Camera *c, const Area *a, const int *ix, const int *iy, int *ox, int *oy);
 
 #endif

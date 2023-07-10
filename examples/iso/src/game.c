@@ -64,7 +64,11 @@ void game_update()
       camera.z--;
 
    if(RvR_key_pressed(RVR_KEY_PERIOD))
+   {
+      camera_rotate_inv(&camera,area,&camera.x,&camera.y,&camera.x,&camera.y);
       camera.rotation = (camera.rotation+1)&3;
+      camera_rotate(&camera,area,&camera.x,&camera.y,&camera.x,&camera.y);
+   }
 
    if(RvR_key_pressed(RVR_KEY_M))
       RvR_malloc_report();

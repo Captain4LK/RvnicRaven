@@ -32,6 +32,6 @@ uint32_t tile_make_slope(uint16_t slope, uint16_t variant);
 uint16_t tile_wall_texture(uint32_t tile);
 uint16_t tile_object_texture(uint32_t tile);
 uint16_t tile_floor_texture(uint32_t tile);
-uint16_t tile_slope_texture(uint32_t tile);
+uint16_t tile_slope_texture(uint32_t tile, uint8_t rotation);
 
 #endif

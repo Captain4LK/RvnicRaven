@@ -1,11 +1,13 @@
 - Tile is 32bit int
    - 14 bits block (0 empty)
-   - 14 bits floor (0 empty)
-   - 4 bits tags:
+   - 12 bits floor (0 empty)
+   - 6 bits tags:
       - slope
       - block is object
-      - visible
-      - discovered
+      - wall visible
+      - floor visible
+      - wall discovered
+      - floor discovered
 - 32x32x32 tile chunks
 - Regions store biome/elevation/etc. data for 32x32 chunks
 - Only sites can be visited (with all "chunks" loaded at once)
