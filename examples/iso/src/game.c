@@ -65,9 +65,7 @@ void game_update()
 
    if(RvR_key_pressed(RVR_KEY_PERIOD))
    {
-      camera_rotate_inv(&camera,area,&camera.x,&camera.y,&camera.x,&camera.y);
       camera.rotation = (camera.rotation+1)&3;
-      camera_rotate(&camera,area,&camera.x,&camera.y,&camera.x,&camera.y);
    }
 
    if(RvR_key_pressed(RVR_KEY_M))
@@ -88,6 +86,18 @@ void game_update()
          //map.discover[i] = map.discover[i]?1:0;
       //raycast_visibility();
    }
+
+   camera.z = player.e->z;
+   camera.x = player.e->x+4;
+   camera.y = player.e->y-24;
+
+   switch(camera.rotation)
+   {
+   case 0: camera.x = player.e->x+4; camera.y = player.e->y-24; break;
+   case 1: camera.x = player.e->y+4; camera.y = -player.e->x+area->dimy*32-1-24; break;
+   case 2: camera.x = -player.e->x+area->dimx*32-1+4; camera.y = -player.e->y+area->dimy*32-1-24; break;
+   case 3: camera.x = -player.e->y+area->dimy*32-1+4; camera.y = player.e->x-24; break;
+   }
 }
 
 void game_draw()
@@ -106,7 +116,7 @@ void game_draw()
 void game_init()
 {
    world = world_new("test",WORLD_SMALL);
-   area = area_create(world,0,0,1,1,1,0);
+   area = area_create(world,0,0,1,2,1,0);
    player_new(world,area);
 
    camera.x = 16;

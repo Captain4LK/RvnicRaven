@@ -104,9 +104,9 @@ void area_draw_end()
 
          min = RvR_max(0,min-1);
          if(cam->rotation==1||cam->rotation==3)
-            max = RvR_min(area->dimx*32,max+2);
-         else
             max = RvR_min(area->dimy*32,max+2);
+         else
+            max = RvR_min(area->dimx*32,max+2);
 
          for(int x = max;x>=min;x--)
          {
@@ -119,7 +119,7 @@ void area_draw_end()
             case 0: tx = x; ty = y; txf = tx-1; tyl = ty+1; break;
             case 1: tx = area->dimy*32-1-y; ty = x; txf = tx-1; tyl = ty-1; break;
             case 2: tx = area->dimx*32-1-x; ty = area->dimy*32-1-y; txf = tx+1; tyl = ty-1; break;
-            case 3: tx = y; ty = area->dimx*32-1-x; txf = tx+1; tyl = ty+1; break;
+            case 3: tx = y; ty = area->dimy*32-1-x; txf = tx+1; tyl = ty+1; break;
             }
 
             //Sprites
@@ -187,7 +187,7 @@ void area_draw_sprite(uint16_t tex, int x, int y, int z)
    if(cam->rotation==1)
    {
       dx = y;
-      dy = area->dimx*32-1-x;
+      dy = area->dimy*32-1-x;
    }
    else if(cam->rotation==2)
    {
