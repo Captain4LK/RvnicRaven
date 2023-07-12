@@ -36,7 +36,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Variables
 static World *world;
 static Area *area;
-static Camera camera;
 
 static int turns_to_do_frame;
 static int turns_to_do_total;
@@ -49,7 +48,7 @@ static int turns_to_do_total;
 
 void game_update()
 {
-   if(RvR_key_pressed(RVR_KEY_LEFT))
+   /*if(RvR_key_pressed(RVR_KEY_LEFT))
       camera.x--;
    if(RvR_key_pressed(RVR_KEY_RIGHT))
       camera.x++;
@@ -61,11 +60,11 @@ void game_update()
    if(RvR_key_pressed(RVR_KEY_Z))
       camera.z++;
    if(RvR_key_pressed(RVR_KEY_X))
-      camera.z--;
+      camera.z--;*/
 
    if(RvR_key_pressed(RVR_KEY_PERIOD))
    {
-      camera.rotation = (camera.rotation+1)&3;
+      player.cam.rotation = (player.cam.rotation+1)&3;
    }
 
    if(RvR_key_pressed(RVR_KEY_M))
@@ -87,22 +86,20 @@ void game_update()
       //raycast_visibility();
    }
 
-   camera.z = player.e->z;
-   camera.x = player.e->x+4;
-   camera.y = player.e->y-24;
+   player.cam.z = player.e->z;
 
-   switch(camera.rotation)
+   switch(player.cam.rotation)
    {
-   case 0: camera.x = player.e->x+4; camera.y = player.e->y-24; break;
-   case 1: camera.x = player.e->y+4; camera.y = -player.e->x+area->dimy*32-1-24; break;
-   case 2: camera.x = -player.e->x+area->dimx*32-1+4; camera.y = -player.e->y+area->dimy*32-1-24; break;
-   case 3: camera.x = -player.e->y+area->dimy*32-1+4; camera.y = player.e->x-24; break;
+   case 0: player.cam.x = player.e->x+4; player.cam.y = player.e->y-24; break;
+   case 1: player.cam.x = player.e->y+4; player.cam.y = -player.e->x+area->dimy*32-1-24; break;
+   case 2: player.cam.x = -player.e->x+area->dimx*32-1+4; player.cam.y = -player.e->y+area->dimy*32-1-24; break;
+   case 3: player.cam.x = -player.e->y+area->dimy*32-1+4; player.cam.y = player.e->x-24; break;
    }
 }
 
 void game_draw()
 {
-   area_draw_begin(world,area,&camera);
+   area_draw_begin(world,area,&player.cam);
 
    Entity *e = area->entities;
    for(;e!=NULL;e = e->next)
@@ -119,9 +116,9 @@ void game_init()
    area = area_create(world,0,0,1,2,1,0);
    player_new(world,area);
 
-   camera.x = 16;
-   camera.y = 0;
-   camera.z = 1;
+   player.cam.x = 16;
+   player.cam.y = 0;
+   player.cam.z = 1;
 }
 
 void game_set()

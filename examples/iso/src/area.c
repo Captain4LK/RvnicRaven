@@ -82,6 +82,9 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
 
    area_set_tile(a,1,1,15,tile_set_discovered(tile_make_slope(1,13),1));
 
+   area_set_tile(a,3,3,15,tile_set_discovered(tile_make_wall(1,1),1));
+   //area_set_tile(a,3,4,15,tile_set_discovered(tile_make_wall(1,1),1));
+
    return a;
 
 RvR_err:

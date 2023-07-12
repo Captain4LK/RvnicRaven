@@ -113,13 +113,13 @@ void area_draw_end()
             int tx = x;
             int ty = y;
             int txf = x;
-            int tyl = y;
+            int tyr = y;
             switch(cam->rotation)
             {
-            case 0: tx = x; ty = y; txf = tx-1; tyl = ty+1; break;
-            case 1: tx = area->dimy*32-1-y; ty = x; txf = tx-1; tyl = ty-1; break;
-            case 2: tx = area->dimx*32-1-x; ty = area->dimy*32-1-y; txf = tx+1; tyl = ty-1; break;
-            case 3: tx = y; ty = area->dimy*32-1-x; txf = tx+1; tyl = ty+1; break;
+            case 0: tx = x; ty = y; txf = tx-1; tyr = ty+1; break;
+            case 1: tx = area->dimy*32-1-y; ty = x; txf = tx-1; tyr = ty-1; break;
+            case 2: tx = area->dimx*32-1-x; ty = area->dimy*32-1-y; txf = tx+1; tyr = ty-1; break;
+            case 3: tx = y; ty = area->dimy*32-1-x; txf = tx+1; tyr = ty+1; break;
             }
 
             //Sprites
@@ -147,7 +147,7 @@ void area_draw_end()
 
             uint32_t tile = area_tile(area,tx,ty,z);
             uint32_t front = area_tile(area,txf,ty,z);
-            uint32_t right = area_tile(area,tx,tyl,z);
+            uint32_t right = area_tile(area,tx,tyr,z);
             uint32_t up = area_tile(area,tx,ty,z-1);
 
             if(tile_has_draw_slope(tile))
@@ -170,6 +170,26 @@ void area_draw_end()
             {
                RvR_texture *tex = RvR_texture_get(tile_floor_texture(tile));
                draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-4-cy);
+
+               const int offs[4][4] = 
+               {
+                  {0,-1,1,0},
+                  {1,0,0,1},
+                  {0,1,-1,0},
+                  {-1,0,0,-1},
+               };
+
+               int px = x*16+y*16-cx;
+               int py = z*20-8*x+8*y-4-cy;
+               int tx0 = tx+offs[cam->rotation&3][0];
+               int ty0 = ty+offs[cam->rotation&3][1];
+               int tx1 = tx+offs[cam->rotation&3][2];
+               int ty1 = ty+offs[cam->rotation&3][3];
+
+               if(!tile_has_draw_floor(area_tile(area,tx0,ty0,z)))
+                  RvR_render_line((px+1)*256+128,(py+7)*256+128,(px+17)*256+128,(py-1)*256+128,1);
+               if(!tile_has_draw_floor(area_tile(area,tx1,ty1,z)))
+                  RvR_render_line((px+15)*256+128,(py)*256+128,(px+31)*256+128,(py+8)*256+128,1);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
                   RvR_render_present();

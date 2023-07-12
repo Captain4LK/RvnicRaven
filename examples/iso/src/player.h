@@ -12,12 +12,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _PLAYER_H_
 
+#include "camera.h"
 #include "entity_defs.h"
 #include "world_defs.h"
 
 typedef struct
 {
    Entity *e;
+   Camera cam;
 }Player;
 
 extern Player player;

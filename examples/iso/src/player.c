@@ -57,21 +57,21 @@ void player_update()
    //Movement
    int dir = -1;
    if(RvR_key_pressed(RVR_KEY_W)||(0&&RvR_key_pressed(RVR_KEY_UP))||RvR_key_pressed(RVR_KEY_NP7))
-      dir = 3;
+      dir = (3+player.cam.rotation)&3;
    if(RvR_key_pressed(RVR_KEY_S)||(0&&RvR_key_pressed(RVR_KEY_DOWN))||RvR_key_pressed(RVR_KEY_NP3))
-      dir = 1;
+      dir = (1+player.cam.rotation)&3;
    if(RvR_key_pressed(RVR_KEY_A)||(0&&RvR_key_pressed(RVR_KEY_LEFT))||RvR_key_pressed(RVR_KEY_NP1))
-      dir = 2;
+      dir = (2+player.cam.rotation)&3;
    if(RvR_key_pressed(RVR_KEY_D)||(0&&RvR_key_pressed(RVR_KEY_RIGHT))||RvR_key_pressed(RVR_KEY_NP9))
-      dir = 0;
+      dir = (0+player.cam.rotation)&3;
    if(RvR_key_pressed(RVR_KEY_NP6))
-      dir = 4;
+      dir = 4+((player.cam.rotation)&3);
    if(RvR_key_pressed(RVR_KEY_NP8))
-      dir = 5;
+      dir = 4+((1+player.cam.rotation)&3);
    if(RvR_key_pressed(RVR_KEY_NP4))
-      dir = 6;
+      dir = 4+((2+player.cam.rotation)&3);
    if(RvR_key_pressed(RVR_KEY_NP2))
-      dir = 7;
+      dir = 4+((3+player.cam.rotation)&3);
 
    if(dir!=-1)
    {
@@ -83,10 +83,10 @@ void player_update()
          { 0, -1 },
 
          //Diagonal
-         { 1, 1 },
-         { 1, -1 },
          { -1, -1 },
+         { 1, -1 },
          { -1, 1 },
+         { 1, 1 },
       };
 
       /*Entity *ent = map_ent_at(player.ent->x + dirs[dir][0], player.ent->y + dirs[dir][1]);
