@@ -20,5 +20,7 @@ void action_do(Area *a, Entity *e);
 
 void action_set_wait(Entity *e, uint32_t time);
 void action_set_move(Entity *e, uint8_t dir);
+void action_set_ascend(Entity *e);
+void action_set_descend(Entity *e);
 
 #endif

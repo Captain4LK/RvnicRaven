@@ -19,6 +19,7 @@ int tile_has_draw_wall(uint32_t tile);
 int tile_has_draw_floor(uint32_t tile);
 int tile_has_draw_slope(uint32_t tile);
 int tile_is_slope(uint32_t tile);
+int tile_is_usable_slope(uint32_t tile);
 int tile_visible(uint32_t tile);
 int tile_discovered(uint32_t tile);
 

@@ -33,6 +33,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Function prototypes
 static int action_move(Area *a, Entity *e);
 static int action_wait(Area *a, Entity *e);
+static int action_ascend(Area *a, Entity *e);
+static int action_descend(Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
@@ -48,6 +50,12 @@ void action_do(Area *a, Entity *e)
       break;
    case ACTION_MOVE:
       time = action_move(a,e);
+      break;
+   case ACTION_ASCEND:
+      time = action_ascend(a,e);
+      break;
+   case ACTION_DESCEND:
+      time = action_descend(a,e);
       break;
    default:
       return;
@@ -76,6 +84,22 @@ void action_set_move(Entity *e, uint8_t dir)
    e->action.as.move.dir = dir;
 }
 
+void action_set_ascend(Entity *e)
+{
+   if(e==NULL)
+      return;
+
+   e->action.id = ACTION_ASCEND;
+}
+
+void action_set_descend(Entity *e)
+{
+   if(e==NULL)
+      return;
+
+   e->action.id = ACTION_DESCEND;
+}
+
 static int action_move(Area *a, Entity *e)
 {
    Action *act = &e->action;
@@ -92,5 +116,23 @@ static int action_wait(Area *a, Entity *e)
    act->id = ACTION_INVALID;
 
    return act->as.wait.time;
+}
+
+static int action_ascend(Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = !entity_try_ascend(a,e);
+   act->id = ACTION_INVALID;
+
+   return 1152;
+}
+
+static int action_descend(Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = !entity_try_descend(a,e);
+   act->id = ACTION_INVALID;
+
+   return 1152;
 }
 //-------------------------------------

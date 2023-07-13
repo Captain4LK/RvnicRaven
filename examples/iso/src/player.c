@@ -65,13 +65,34 @@ void player_update()
    if(RvR_key_pressed(RVR_KEY_D)||(0&&RvR_key_pressed(RVR_KEY_RIGHT))||RvR_key_pressed(RVR_KEY_NP9))
       dir = (0+player.cam.rotation)&3;
    if(RvR_key_pressed(RVR_KEY_NP6))
-      dir = 4+((player.cam.rotation)&3);
-   if(RvR_key_pressed(RVR_KEY_NP8))
-      dir = 4+((1+player.cam.rotation)&3);
-   if(RvR_key_pressed(RVR_KEY_NP4))
-      dir = 4+((2+player.cam.rotation)&3);
-   if(RvR_key_pressed(RVR_KEY_NP2))
       dir = 4+((3+player.cam.rotation)&3);
+   if(RvR_key_pressed(RVR_KEY_NP8))
+      dir = 4+((2+player.cam.rotation)&3);
+   if(RvR_key_pressed(RVR_KEY_NP4))
+      dir = 4+((1+player.cam.rotation)&3);
+   if(RvR_key_pressed(RVR_KEY_NP2))
+      dir = 4+((player.cam.rotation)&3);
+
+   //Ascend/Descend
+   if(RvR_key_pressed(RVR_KEY_COMMA))
+   {
+      if(RvR_key_down(RVR_KEY_LSHIFT))
+         action_set_descend(player.e);
+      else
+         player.cam.rotation = (player.cam.rotation-1)&3;
+   }
+   if(RvR_key_pressed(RVR_KEY_PERIOD))
+   {
+      if(RvR_key_down(RVR_KEY_LSHIFT))
+         action_set_ascend(player.e);
+      else
+         player.cam.rotation = (player.cam.rotation+1)&3;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_C))
+      player.cam.z_cutoff = player.cam.z_cutoff?0:player.e->z;
+   if(player.cam.z_cutoff!=0)
+         player.cam.z_cutoff = player.e->z;
 
    if(dir!=-1)
    {
@@ -83,9 +104,9 @@ void player_update()
          { 0, -1 },
 
          //Diagonal
+         { -1, 1 },
          { -1, -1 },
          { 1, -1 },
-         { -1, 1 },
          { 1, 1 },
       };
 
@@ -114,10 +135,10 @@ void player_update()
       action_set_path(player.ent, x, y, 0);
    }*/
 
-   if(RvR_key_pressed(RVR_KEY_COMMA))
+   /*if(RvR_key_pressed(RVR_KEY_COMMA))
       action_set_wait(player.e, 128);
    if(RvR_key_pressed(RVR_KEY_PERIOD))
-      action_set_wait(player.e, 1280);
+      action_set_wait(player.e, 1280);*/
 }
 
 int player_action(Area *a)
@@ -136,7 +157,7 @@ int player_pos_valid(Area *a, Entity *e, int x, int y, int z)
    uint32_t block = area_tile(a,x,y,z);
    uint32_t floor = area_tile(a,x,y,z+1);
 
-   if(!tile_has_wall(block)&&tile_has_floor(floor))
+   if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
       return 1;
    return 0;
 }

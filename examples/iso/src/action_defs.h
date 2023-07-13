@@ -17,6 +17,9 @@ typedef enum
    ACTION_INVALID = -1,
    ACTION_WAIT = 0,
    ACTION_MOVE = 1,
+
+   ACTION_ASCEND = 2,
+   ACTION_DESCEND = 3,
 }Action_id;
 
 typedef struct

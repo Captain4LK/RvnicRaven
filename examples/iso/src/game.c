@@ -62,11 +62,6 @@ void game_update()
    if(RvR_key_pressed(RVR_KEY_X))
       camera.z--;*/
 
-   if(RvR_key_pressed(RVR_KEY_PERIOD))
-   {
-      player.cam.rotation = (player.cam.rotation+1)&3;
-   }
-
    if(RvR_key_pressed(RVR_KEY_M))
       RvR_malloc_report();
 
@@ -95,6 +90,9 @@ void game_update()
    case 2: player.cam.x = -player.e->x+area->dimx*32-1+4; player.cam.y = -player.e->y+area->dimy*32-1-24; break;
    case 3: player.cam.x = -player.e->y+area->dimy*32-1+4; player.cam.y = player.e->x-24; break;
    }
+
+   if(player.cam.z_cutoff!=0)
+         player.cam.z_cutoff = player.e->z;
 }
 
 void game_draw()
@@ -119,6 +117,7 @@ void game_init()
    player.cam.x = 16;
    player.cam.y = 0;
    player.cam.z = 1;
+   player.cam.z_cutoff = 0;
 }
 
 void game_set()

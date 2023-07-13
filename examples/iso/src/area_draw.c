@@ -122,6 +122,29 @@ void area_draw_end()
             case 3: tx = y; ty = area->dimy*32-1-x; txf = tx+1; tyr = ty+1; break;
             }
 
+            uint32_t tile = area_tile(area,tx,ty,z);
+            uint32_t front = area_tile(area,txf,ty,z);
+            uint32_t right = area_tile(area,tx,tyr,z);
+            uint32_t up = area_tile(area,tx,ty,z-1);
+
+            //if(area_tile(area,tx,ty,z)==tile_set_discovered(0,1))
+               //continue;
+
+            if(tile_has_draw_slope(tile))
+            {
+               RvR_texture *tex = RvR_texture_get(tile_slope_texture(tile,cam->rotation));
+               draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-4-cy);
+            }
+
+            if(tile_has_draw_wall(tile)&&(!tile_has_draw_floor(tile)||!tile_has_draw_wall(front)||!tile_has_draw_wall(right)||z==cam->z_cutoff))
+            {
+               RvR_texture *tex = RvR_texture_get(tile_wall_texture(tile));
+               draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
+
+               if(RvR_key_pressed(RVR_KEY_SPACE))
+                  RvR_render_present();
+            }
+
             //Sprites
             if(sprite_cur<sprite_max)
             {
@@ -142,28 +165,32 @@ void area_draw_end()
             case 3: for(;sprite_cur<sprite_max&&pos_cmp_r3(sprites[sprite_cur].x,sprites[sprite_cur].y,sprites[sprite_cur].z,tx,ty,z)<0;sprite_cur++); break;
             }
 
-            if(area_tile(area,tx,ty,z)==tile_set_discovered(0,1))
-               continue;
-
-            uint32_t tile = area_tile(area,tx,ty,z);
-            uint32_t front = area_tile(area,txf,ty,z);
-            uint32_t right = area_tile(area,tx,tyr,z);
-            uint32_t up = area_tile(area,tx,ty,z-1);
-
-            if(tile_has_draw_slope(tile))
+            if(z==cam->z_cutoff)
             {
-               RvR_texture *tex = RvR_texture_get(tile_slope_texture(tile,cam->rotation));
-               draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-4-cy);
-               continue;
-            }
+               const int offs[4][4] = 
+               {
+                  {0,-1,1,0},
+                  {1,0,0,1},
+                  {0,1,-1,0},
+                  {-1,0,0,-1},
+               };
 
-            if(tile_has_draw_wall(tile)&&(!tile_has_draw_floor(tile)||!tile_has_draw_wall(front)||!tile_has_draw_wall(right)))
-            {
-               RvR_texture *tex = RvR_texture_get(tile_wall_texture(tile));
-               draw_sprite(tex,x*16+y*16-cx,z*20-8*x+8*y-cy);
+               int px = x*16+y*16-cx;
+               int py = z*20-8*x+8*y-cy;
+               int tx0 = tx+offs[cam->rotation&3][0];
+               int ty0 = ty+offs[cam->rotation&3][1];
+               int tx1 = tx+offs[cam->rotation&3][2];
+               int ty1 = ty+offs[cam->rotation&3][3];
+
+               if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area,tx0,ty0,z)))
+                  RvR_render_line((px+1)*256+128,(py+7)*256+128,(px+17)*256+128,(py-1)*256+128,1);
+               if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area,tx1,ty1,z)))
+                  RvR_render_line((px+15)*256+128,(py)*256+128,(px+31)*256+128,(py+8)*256+128,1);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
                   RvR_render_present();
+
+               continue;
             }
 
             if(tile_has_draw_floor(tile)&&(!tile_has_draw_floor(front)||!tile_has_draw_floor(right)||!tile_has_draw_wall(up)))
@@ -197,6 +224,9 @@ void area_draw_end()
          }
          y++;
       }
+
+      if(z==cam->z_cutoff)
+         break;
    }
 }
 

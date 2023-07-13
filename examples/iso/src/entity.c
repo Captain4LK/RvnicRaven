@@ -192,15 +192,43 @@ unsigned entity_try_move(Area *a, Entity *e, int dir)
       { 0, -1 },
 
       //Diagonal
-      { 1, 1 },
-      { 1, -1 },
-      { -1, -1 },
       { -1, 1 },
+      { -1, -1 },
+      { 1, -1 },
+      { 1, 1 },
    };
 
    if(entity_pos_valid(a,e, e->x + dirs[dir][0], e->y + dirs[dir][1],e->z))
    {
       entity_update_pos(a,e, e->x + dirs[dir][0], e->y + dirs[dir][1],e->z);
+      return 1;
+   }
+
+   return 0;
+}
+
+unsigned entity_try_ascend(Area *a, Entity *e)
+{
+   if(e==NULL)
+      return 0;
+
+   if(entity_pos_valid(a,e,e->x,e->y,e->z-1))
+   {
+      entity_update_pos(a,e,e->x,e->y,e->z-1);
+      return 1;
+   }
+
+   return 0;
+}
+
+unsigned entity_try_descend(Area *a, Entity *e)
+{
+   if(e==NULL)
+      return 0;
+
+   if(entity_pos_valid(a,e,e->x,e->y,e->z+1))
+   {
+      entity_update_pos(a,e,e->x,e->y,e->z+1);
       return 1;
    }
 

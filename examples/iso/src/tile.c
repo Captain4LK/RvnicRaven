@@ -86,6 +86,16 @@ int tile_is_slope(uint32_t tile)
    return !!(tile&(1<<28));
 }
 
+int tile_is_usable_slope(uint32_t tile)
+{
+   if(!tile_is_slope(tile))
+      return 0;
+
+   uint32_t variant = ((tile>>14)&((1<<12)-1));
+
+   return variant!=12;
+}
+
 int tile_visible(uint32_t tile)
 {
    return !!(tile&(1<<31));

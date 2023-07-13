@@ -21,6 +21,8 @@ typedef struct
    int y;
    int z;
 
+   int z_cutoff;
+
    uint8_t rotation;
 }Camera;
 
