@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "entity.h"
 #include "world_defs.h"
 #include "action.h"
+#include "player.h"
 #include "turn.h"
 //-------------------------------------
 
@@ -48,10 +49,16 @@ void turns_do(Area *a, int turns)
          if(e->removed)
             goto next;
 
+         //Check for interrupts
+         entity_interrupt(a,e);
+
          e->turn_next--;
          if(e->turn_next<= 0)
          {
-            //entity_turn(e);
+            if(e->action.id==ACTION_INVALID)
+            {
+               //entity_turn(e);
+            }
             action_do(a,e);
          }
 
@@ -84,6 +91,46 @@ next:
 
          it = next;
       }*/
+   }
+}
+
+void turn_do(Area *a)
+{
+   Entity *e = a->entities;
+   Entity *next = NULL;
+   for(;e!=NULL;e = next)
+   {
+      next = e->next;
+
+      if(e->removed)
+         continue;
+      if(e==player.e)
+         continue;
+
+      e->action_points = e->speed;
+      while(e->action_points>0)
+      {
+         //entity_turn(e)
+
+         if(e->action.id==ACTION_INVALID)
+            break;
+
+         action_do(a,e);
+      }
+   }
+
+   //TODO: should we run this every turn?
+
+   //Delete removed entities
+   e = a->entities;
+   while(e != NULL)
+   {
+      Entity *next = e->next;
+
+      if(e->removed)
+         entity_free(e);
+
+      e = next;
    }
 }
 //-------------------------------------

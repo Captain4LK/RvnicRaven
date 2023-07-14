@@ -1,3 +1,4 @@
-
+- 1 turn (128 time units) is 1 second
+- default movement speed about 5kmh
 - firearms:
    - early flintlock and musket only

@@ -22,6 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world.h"
 #include "area_draw.h"
 #include "area.h"
+#include "action.h"
 #include "camera.h"
 #include "player.h"
 #include "game.h"
@@ -39,6 +40,8 @@ static Area *area;
 
 static int turns_to_do_frame;
 static int turns_to_do_total;
+
+static int redraw = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -48,24 +51,29 @@ static int turns_to_do_total;
 
 void game_update()
 {
-   /*if(RvR_key_pressed(RVR_KEY_LEFT))
-      camera.x--;
-   if(RvR_key_pressed(RVR_KEY_RIGHT))
-      camera.x++;
-   if(RvR_key_pressed(RVR_KEY_UP))
-      camera.y--;
-   if(RvR_key_pressed(RVR_KEY_DOWN))
-      camera.y++;
-
-   if(RvR_key_pressed(RVR_KEY_Z))
-      camera.z++;
-   if(RvR_key_pressed(RVR_KEY_X))
-      camera.z--;*/
-
    if(RvR_key_pressed(RVR_KEY_M))
       RvR_malloc_report();
 
    player_update();
+
+   if(player.e->action.id!=ACTION_INVALID)
+   {
+      if(action_do(area,player.e))
+      {
+         redraw = 1;
+      }
+   }
+
+   if(player.e->action_points==0)
+   {
+      //Run entities
+      turn_do(area);
+
+      redraw = 1;
+      player.e->action_points = player.e->speed;
+   }
+
+   /*player_update();
    if(turns_to_do_frame==0&&player_action(area))
    {
       turns_to_do_total = player.e->turn_next;
@@ -79,6 +87,32 @@ void game_update()
       //for(int i = 0; i<map.width * map.height; i++)
          //map.discover[i] = map.discover[i]?1:0;
       //raycast_visibility();
+   }*/
+
+   //Camera
+   //-------------------------------------
+   if(RvR_key_pressed(RVR_KEY_C))
+   {
+      player.cam.z_cutoff = player.cam.z_cutoff?0:player.e->z;
+      redraw = 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_COMMA)&&!RvR_key_down(RVR_KEY_LSHIFT))
+   {
+      player.cam.rotation = (player.cam.rotation-1)&3;
+      redraw = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_PERIOD)&&!RvR_key_down(RVR_KEY_LSHIFT))
+   {
+      player.cam.rotation = (player.cam.rotation+1)&3;
+      redraw = 1;
+   }
+
+   if(player.cam.z_cutoff!=0)
+   {
+      if(player.cam.z_cutoff!=player.e->z)
+         redraw = 1;
+      player.cam.z_cutoff = player.e->z;
    }
 
    player.cam.z = player.e->z;
@@ -90,13 +124,16 @@ void game_update()
    case 2: player.cam.x = -player.e->x+area->dimx*32-1+4; player.cam.y = -player.e->y+area->dimy*32-1-24; break;
    case 3: player.cam.x = -player.e->y+area->dimy*32-1+4; player.cam.y = player.e->x-24; break;
    }
-
-   if(player.cam.z_cutoff!=0)
-         player.cam.z_cutoff = player.e->z;
+   //-------------------------------------
 }
 
 void game_draw()
 {
+   if(!redraw)
+      return;
+   redraw = 0;
+
+   RvR_render_clear(0);
    area_draw_begin(world,area,&player.cam);
 
    Entity *e = area->entities;
@@ -122,5 +159,6 @@ void game_init()
 
 void game_set()
 {
+   redraw = 1;
 }
 //-------------------------------------

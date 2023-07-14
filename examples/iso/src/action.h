@@ -16,11 +16,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "action_defs.h"
 #include "entity_defs.h"
 
-void action_do(Area *a, Entity *e);
+int action_do(Area *a, Entity *e);
+
+void action_finish(Area *a, Entity *e);
+void action_interrupt(Area *a, Entity *e);
 
 void action_set_wait(Entity *e, uint32_t time);
 void action_set_move(Entity *e, uint8_t dir);
 void action_set_ascend(Entity *e);
 void action_set_descend(Entity *e);
+void action_set_fall(Entity *e);
 
 #endif

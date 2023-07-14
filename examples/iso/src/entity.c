@@ -157,6 +157,17 @@ void entity_grid_remove(Entity *e)
       e->g_next->prev_next = e->g_prev_next;
 }
 
+void entity_interrupt(Area *a, Entity *e)
+{
+   //No floor below --> fall
+   if(!tile_has_floor(area_tile(a,e->x,e->y,e->z+1)))
+   {
+      action_set_fall(e);
+      e->turn_next = 0;
+      e->turn_rem = 0;
+   }
+}
+
 int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
 {
    if(e==NULL)

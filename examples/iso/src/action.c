@@ -35,35 +35,65 @@ static int action_move(Area *a, Entity *e);
 static int action_wait(Area *a, Entity *e);
 static int action_ascend(Area *a, Entity *e);
 static int action_descend(Area *a, Entity *e);
+static int action_fall(Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
 
-void action_do(Area *a, Entity *e)
+int action_do(Area *a, Entity *e)
 {
-   int time = 0;
+   Action *act = &e->action;
+   if(act->remaining<=e->action_points)
+   {
+      e->action_points-=act->remaining;
+      act->remaining = 0;
+   }
+   else
+   {
+      act->remaining-=e->action_points;
+      e->action_points = 0;
+   }
+
+   int status = 0;
 
    switch(e->action.id)
    {
    case ACTION_WAIT:
-      time = action_wait(a,e);
+      status = action_wait(a,e);
       break;
    case ACTION_MOVE:
-      time = action_move(a,e);
+      status = action_move(a,e);
       break;
    case ACTION_ASCEND:
-      time = action_ascend(a,e);
+      status = action_ascend(a,e);
       break;
    case ACTION_DESCEND:
-      time = action_descend(a,e);
+      status = action_descend(a,e);
+      break;
+   case ACTION_FALL:
+      status = action_fall(a,e);
       break;
    default:
-      return;
       break;
    }
 
-   e->turn_next = (time+e->turn_rem)/128;
-   e->turn_rem = (time+e->turn_rem)%128;
+   if(act->remaining==0)
+   {
+      act->id = ACTION_INVALID;
+   }
+
+   return status;
+
+   //e->turn_next = (time+e->turn_rem)/128;
+   //e->turn_rem = (time+e->turn_rem)%128;
+}
+
+void action_finish(Area *a, Entity *e)
+{
+}
+
+void action_interrupt(Area *a, Entity *e)
+{
 }
 
 void action_set_wait(Entity *e, uint32_t time)
@@ -72,7 +102,8 @@ void action_set_wait(Entity *e, uint32_t time)
       return;
 
    e->action.id = ACTION_WAIT;
-   e->action.as.wait.time = time;
+   e->action.remaining = e->action_points;
+   e->action.can_interrupt = 1;
 }
 
 void action_set_move(Entity *e, uint8_t dir)
@@ -81,7 +112,9 @@ void action_set_move(Entity *e, uint8_t dir)
       return;
 
    e->action.id = ACTION_MOVE;
+   e->action.remaining = 184;
    e->action.as.move.dir = dir;
+   e->action.can_interrupt = 1;
 }
 
 void action_set_ascend(Entity *e)
@@ -100,22 +133,33 @@ void action_set_descend(Entity *e)
    e->action.id = ACTION_DESCEND;
 }
 
+void action_set_fall(Entity *e)
+{
+   if(e==NULL)
+      return;
+
+   e->action.id = ACTION_FALL;
+}
+
 static int action_move(Area *a, Entity *e)
 {
    Action *act = &e->action;
-   act->status = !entity_try_move(a, e, act->as.move.dir);
-   act->id = ACTION_INVALID;
+   act->status = 0;
+   if(act->remaining==0)
+   {
+      entity_try_move(a, e, act->as.move.dir);
+      return 1;
+   }
 
-   return 1152;
+   return 0;
 }
 
 static int action_wait(Area *a, Entity *e)
 {
    Action *act = &e->action;
    act->status = 0;
-   act->id = ACTION_INVALID;
 
-   return act->as.wait.time;
+   return 0;
 }
 
 static int action_ascend(Area *a, Entity *e)
@@ -124,7 +168,7 @@ static int action_ascend(Area *a, Entity *e)
    act->status = !entity_try_ascend(a,e);
    act->id = ACTION_INVALID;
 
-   return 1152;
+   return 184;
 }
 
 static int action_descend(Area *a, Entity *e)
@@ -133,6 +177,16 @@ static int action_descend(Area *a, Entity *e)
    act->status = !entity_try_descend(a,e);
    act->id = ACTION_INVALID;
 
-   return 1152;
+   return 184;
+}
+
+static int action_fall(Area *a, Entity *e)
+{
+   //Find floor
+   Action *act = &e->action;
+   act->status = !entity_try_descend(a,e);
+   act->id = ACTION_INVALID;
+
+   return 184;
 }
 //-------------------------------------

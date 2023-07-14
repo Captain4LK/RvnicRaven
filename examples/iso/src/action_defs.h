@@ -20,6 +20,8 @@ typedef enum
 
    ACTION_ASCEND = 2,
    ACTION_DESCEND = 3,
+
+   ACTION_FALL = 4,
 }Action_id;
 
 typedef struct
@@ -36,6 +38,9 @@ typedef struct
 {
    Action_id id;
    int status;
+
+   int remaining;
+   int can_interrupt;
 
    union
    {

@@ -71,8 +71,6 @@ static void loop()
 
    state_update();
 
-   RvR_render_clear(0);
-
    state_draw();
 
    RvR_render_present();

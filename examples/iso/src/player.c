@@ -46,7 +46,7 @@ void player_new(World *w, Area *a)
    player.e->x = 0;
    player.e->y = 0;
    player.e->z = 15;
-   player.e->speed = 32;
+   player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    entity_add(a,player.e);
    entity_grid_add(a,player.e);
@@ -74,25 +74,10 @@ void player_update()
       dir = 4+((player.cam.rotation)&3);
 
    //Ascend/Descend
-   if(RvR_key_pressed(RVR_KEY_COMMA))
-   {
-      if(RvR_key_down(RVR_KEY_LSHIFT))
-         action_set_descend(player.e);
-      else
-         player.cam.rotation = (player.cam.rotation-1)&3;
-   }
-   if(RvR_key_pressed(RVR_KEY_PERIOD))
-   {
-      if(RvR_key_down(RVR_KEY_LSHIFT))
-         action_set_ascend(player.e);
-      else
-         player.cam.rotation = (player.cam.rotation+1)&3;
-   }
-
-   if(RvR_key_pressed(RVR_KEY_C))
-      player.cam.z_cutoff = player.cam.z_cutoff?0:player.e->z;
-   if(player.cam.z_cutoff!=0)
-         player.cam.z_cutoff = player.e->z;
+   if(RvR_key_pressed(RVR_KEY_COMMA)&&RvR_key_down(RVR_KEY_LSHIFT))
+      action_set_descend(player.e);
+   if(RvR_key_pressed(RVR_KEY_PERIOD)&&RvR_key_down(RVR_KEY_LSHIFT))
+      action_set_ascend(player.e);
 
    if(dir!=-1)
    {
@@ -121,24 +106,6 @@ void player_update()
          action_set_move(player.e, dir);
       }
    }
-
-   /*if(RvR_key_pressed(RVR_BUTTON_LEFT))
-   {
-      int mx, my;
-      RvR_mouse_pos(&mx, &my);
-      int32_t x = (player.view_x + mx) / 16;
-      int32_t y = (player.view_y + my) / 16;
-
-      int dx = player.ent->x - x;
-      int dy = player.ent->x - x;
-
-      action_set_path(player.ent, x, y, 0);
-   }*/
-
-   /*if(RvR_key_pressed(RVR_KEY_COMMA))
-      action_set_wait(player.e, 128);
-   if(RvR_key_pressed(RVR_KEY_PERIOD))
-      action_set_wait(player.e, 1280);*/
 }
 
 int player_action(Area *a)

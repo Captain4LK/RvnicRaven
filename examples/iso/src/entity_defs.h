@@ -30,6 +30,7 @@ struct Entity
    uint16_t tex;
 
    int speed;
+   int action_points;
 
    uint64_t id;
    int removed;
