@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -20,8 +20,6 @@ typedef enum
 
    ACTION_ASCEND = 2,
    ACTION_DESCEND = 3,
-
-   ACTION_FALL = 4,
 }Action_id;
 
 typedef struct

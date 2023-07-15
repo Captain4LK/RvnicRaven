@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -37,68 +37,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-void turns_do(Area *a, int turns)
-{
-   for(int i = 0; i < turns; i++)
-   {
-      Entity *e = a->entities;
-      while(e != NULL)
-      {
-         Entity *next = e->next;
-
-         if(e->removed)
-            goto next;
-
-         //Check for interrupts
-         entity_interrupt(a,e);
-
-         e->turn_next--;
-         if(e->turn_next<= 0)
-         {
-            if(e->action.id==ACTION_INVALID)
-            {
-               //entity_turn(e);
-            }
-            action_do(a,e);
-         }
-
-next:
-         e = next;
-      }
-
-      //TODO: should we run this every turn?
-
-      //Delete removed entities
-      e = a->entities;
-      while(e != NULL)
-      {
-         Entity *next = e->next;
-
-         if(e->removed)
-            entity_free(e);
-
-         e = next;
-      }
-
-      /*//Delete removed items
-      Item_world *it = items;
-      while(it != NULL)
-      {
-         Item_world *next = it->next;
-
-         if(it->removed)
-            item_world_free(it);
-
-         it = next;
-      }*/
-   }
-}
-
 void turn_do(Area *a)
 {
    Entity *e = a->entities;
    Entity *next = NULL;
-   for(;e!=NULL;e = next)
+   for(; e!=NULL; e = next)
    {
       next = e->next;
 
@@ -115,7 +58,7 @@ void turn_do(Area *a)
          if(e->action.id==ACTION_INVALID)
             break;
 
-         action_do(a,e);
+         action_do(a, e);
       }
    }
 
@@ -123,14 +66,27 @@ void turn_do(Area *a)
 
    //Delete removed entities
    e = a->entities;
-   while(e != NULL)
+   next = NULL;
+   for(; e!=NULL; e = next)
    {
-      Entity *next = e->next;
+      next = e->next;
 
       if(e->removed)
          entity_free(e);
 
       e = next;
    }
+
+   /*//Delete removed items
+   Item_world *it = items;
+   while(it != NULL)
+   {
+      Item_world *next = it->next;
+
+      if(it->removed)
+         item_world_free(it);
+
+      it = next;
+   }*/
 }
 //-------------------------------------

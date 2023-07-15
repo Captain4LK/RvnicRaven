@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -41,7 +41,7 @@ int tile_has_wall(uint32_t tile)
    if(tile_has_object(tile))
       return 0;
 
-   return (tile&((1<<14)-1))>0;
+   return (tile & ((1 << 14) - 1))>0;
 }
 
 int tile_has_floor(uint32_t tile)
@@ -49,12 +49,12 @@ int tile_has_floor(uint32_t tile)
    if(tile_is_slope(tile))
       return 0;
 
-   return ((tile>>14)&((1<<12)-1))>0;
+   return ((tile >> 14) & ((1 << 12) - 1))>0;
 }
 
 int tile_has_object(uint32_t tile)
 {
-   return !!(tile&(1<<29));
+   return !!(tile & (1 << 29));
 }
 
 int tile_has_draw_wall(uint32_t tile)
@@ -83,7 +83,7 @@ int tile_has_draw_slope(uint32_t tile)
 
 int tile_is_slope(uint32_t tile)
 {
-   return !!(tile&(1<<28));
+   return !!(tile & (1 << 28));
 }
 
 int tile_is_usable_slope(uint32_t tile)
@@ -91,66 +91,66 @@ int tile_is_usable_slope(uint32_t tile)
    if(!tile_is_slope(tile))
       return 0;
 
-   uint32_t variant = ((tile>>14)&((1<<12)-1));
+   uint32_t variant = ((tile >> 14) & ((1 << 12) - 1));
 
    return variant!=12;
 }
 
 int tile_visible(uint32_t tile)
 {
-   return !!(tile&(1<<31));
+   return !!(tile & (1 << 31));
 }
 
 int tile_discovered(uint32_t tile)
 {
-   return !!(tile&(1<<30));
+   return !!(tile & (1 << 30));
 }
 
 uint32_t tile_set_visible(uint32_t tile, int visible)
 {
-   uint32_t value = (!!visible)<<31;
-   uint32_t bit = 1<<31;
+   uint32_t value = (!!visible) << 31;
+   uint32_t bit = 1 << 31;
 
-   return (tile & (~bit))|value;
+   return (tile & (~bit)) | value;
 }
 
 uint32_t tile_set_discovered(uint32_t tile, int discovered)
 {
-   uint32_t value = (!!discovered)<<30;
-   uint32_t bit = 1<<30;
+   uint32_t value = (!!discovered) << 30;
+   uint32_t bit = 1 << 30;
 
-   return (tile & (~bit))|value;
+   return (tile & (~bit)) | value;
 }
 
 uint32_t tile_make_wall(uint16_t wall, uint16_t floor)
 {
-   wall = wall&((1<<14)-1);
-   floor = floor&((1<<12)-1);
+   wall = wall & ((1 << 14) - 1);
+   floor = floor & ((1 << 12) - 1);
 
-   return wall|(floor<<14);
+   return wall | (floor << 14);
 }
 
 uint32_t tile_make_object(uint16_t object, uint16_t floor)
 {
-   object = object&((1<<14)-1);
-   floor = floor&((1<<12)-1);
+   object = object & ((1 << 14) - 1);
+   floor = floor & ((1 << 12) - 1);
 
-   return object|(floor<<14)|(1<<29);
+   return object | (floor << 14) | (1 << 29);
 }
 
 uint32_t tile_make_slope(uint16_t slope, uint16_t variant)
 {
-   slope = slope&((1<<14)-1);
-   variant = variant&((1<<12)-1);
+   slope = slope & ((1 << 14) - 1);
+   variant = variant & ((1 << 12) - 1);
 
-   return slope|(variant<<14)|(1<<28);
+   return slope | (variant << 14) | (1 << 28);
 }
 
 uint16_t tile_wall_texture(uint32_t tile)
 {
-   uint32_t wall_tile = (tile&((1<<14)-1));
+   uint32_t wall_tile = (tile & ((1 << 14) - 1));
 
-   return 2+(wall_tile-1)*16;
+   return 2 + (wall_tile - 1) * 16;
 }
 
 uint16_t tile_object_texture(uint32_t tile)
@@ -160,20 +160,20 @@ uint16_t tile_object_texture(uint32_t tile)
 
 uint16_t tile_floor_texture(uint32_t tile)
 {
-   uint32_t floor_tile = ((tile>>14)&((1<<12)-1));
+   uint32_t floor_tile = ((tile >> 14) & ((1 << 12) - 1));
 
-   return 2+(floor_tile-1)*16+1;
+   return 2 + (floor_tile - 1) * 16 + 1;
 }
 
 uint16_t tile_slope_texture(uint32_t tile, uint8_t rotation)
 {
-   uint32_t slope = (tile&((1<<14)-1));
-   uint32_t variant = ((tile>>14)&((1<<12)-1));
+   uint32_t slope = (tile & ((1 << 14) - 1));
+   uint32_t variant = ((tile >> 14) & ((1 << 12) - 1));
 
-   if(variant<4) variant = (variant+rotation)&3;
-   else if(variant<8) variant = 4+((variant-4+rotation)&3);
-   else if(variant<12) variant = 8+((variant-8+rotation)&3);
+   if(variant<4) variant = (variant + rotation) & 3;
+   else if(variant<8) variant = 4 + ((variant - 4 + rotation) & 3);
+   else if(variant<12) variant = 8 + ((variant - 8 + rotation) & 3);
 
-   return 2+(slope-1)*16+variant+2;
+   return 2 + (slope - 1) * 16 + variant + 2;
 }
 //-------------------------------------

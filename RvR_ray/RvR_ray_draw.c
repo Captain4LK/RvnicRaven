@@ -210,7 +210,7 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map, RvR_ray_se
 
    if(select!=NULL)
    {
-      select->depth = RVR_RAY_MAX_STEPS*65536;
+      select->depth = RVR_RAY_MAX_STEPS * 65536;
       select->ref = NULL;
    }
 
@@ -219,11 +219,11 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map, RvR_ray_se
    {
       ray_sprite *sp = ray_sprites + i;
       if(sp->flags & 8)
-         ray_sprite_draw_wall(cam, map, sp,select);
+         ray_sprite_draw_wall(cam, map, sp, select);
       else if(sp->flags & 16)
-         ray_sprite_draw_floor(cam, map, sp,select);
+         ray_sprite_draw_floor(cam, map, sp, select);
       else
-         ray_sprite_draw_billboard(cam, map, sp,select);
+         ray_sprite_draw_billboard(cam, map, sp, select);
    }
 }
 
@@ -1321,7 +1321,7 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
       if(select!=NULL&&select->x==x&&select->y>=ys&&select->y<ye&&select->depth>depth)
       {
          //Check for transparent pixels
-         if(tex[(v+step_v*(select->y-ys))>>10])
+         if(tex[(v + step_v * (select->y - ys)) >> 10])
          {
             select->depth = depth;
             select->ref = sp->ref;
@@ -1475,7 +1475,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
       if(select!=NULL&&select->x==x&&select->y>=wy&&select->y<y_to&&select->depth>depth)
       {
          //Check for transparent pixels
-         if(tex[(texture_coord_scaled+coord_step_scaled*(select->y-wy))>>10])
+         if(tex[(texture_coord_scaled + coord_step_scaled * (select->y - wy)) >> 10])
          {
             select->depth = depth;
             select->ref = sp->ref;

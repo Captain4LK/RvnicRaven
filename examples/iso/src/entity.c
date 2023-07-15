@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -120,13 +120,13 @@ void entity_grid_add(Area *a, Entity *e)
       return;
    if(e->x<0||e->y<0||e->z<0)
       return;
-   if(e->x>=a->dimx*32||e->y>=a->dimy*32||e->z>=a->dimz*32)
+   if(e->x>=a->dimx * 32||e->y>=a->dimy * 32||e->z>=a->dimz * 32)
       return;
 
-   int gx = e->x/8;
-   int gy = e->y/8;
-   int gz = e->z/8;
-   size_t g_index = gz*(a->dimx*4)*(a->dimy*4)+gy*(a->dimx*4)+gx;
+   int gx = e->x / 8;
+   int gy = e->y / 8;
+   int gz = e->z / 8;
+   size_t g_index = gz * (a->dimx * 4) * (a->dimy * 4) + gy * (a->dimx * 4) + gx;
    e->g_prev_next = &a->entity_grid[g_index];
    if(a->entity_grid[g_index]!=NULL)
       a->entity_grid[g_index]->prev_next = &e->g_next;
@@ -140,14 +140,14 @@ void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
       return;
    if(x<0||y<0||z<0)
       return;
-   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
       return;
 
    entity_grid_remove(e);
    e->x = x;
    e->y = y;
    e->z = z;
-   entity_grid_add(a,e);
+   entity_grid_add(a, e);
 }
 
 void entity_grid_remove(Entity *e)
@@ -155,17 +155,6 @@ void entity_grid_remove(Entity *e)
    *e->g_prev_next = e->g_next;
    if(e->g_next != NULL)
       e->g_next->prev_next = e->g_prev_next;
-}
-
-void entity_interrupt(Area *a, Entity *e)
-{
-   //No floor below --> fall
-   if(!tile_has_floor(area_tile(a,e->x,e->y,e->z+1)))
-   {
-      action_set_fall(e);
-      e->turn_next = 0;
-      e->turn_rem = 0;
-   }
 }
 
 int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
@@ -176,7 +165,7 @@ int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
    if(x<0||y<0||z<0)
       return 0;
 
-   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
       return 0;
 
    switch(e->ai_type)
@@ -184,7 +173,7 @@ int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
    case AI_INVALID:
       return 0;
    case AI_PLAYER:
-      return player_pos_valid(a,e,x,y,z);
+      return player_pos_valid(a, e, x, y, z);
    }
 
    return 0;
@@ -209,9 +198,9 @@ unsigned entity_try_move(Area *a, Entity *e, int dir)
       { 1, 1 },
    };
 
-   if(entity_pos_valid(a,e, e->x + dirs[dir][0], e->y + dirs[dir][1],e->z))
+   if(entity_pos_valid(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z))
    {
-      entity_update_pos(a,e, e->x + dirs[dir][0], e->y + dirs[dir][1],e->z);
+      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z);
       return 1;
    }
 
@@ -223,9 +212,9 @@ unsigned entity_try_ascend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a,e,e->x,e->y,e->z-1))
+   if(entity_pos_valid(a, e, e->x, e->y, e->z - 1))
    {
-      entity_update_pos(a,e,e->x,e->y,e->z-1);
+      entity_update_pos(a, e, e->x, e->y, e->z - 1);
       return 1;
    }
 
@@ -237,9 +226,9 @@ unsigned entity_try_descend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a,e,e->x,e->y,e->z+1))
+   if(entity_pos_valid(a, e, e->x, e->y, e->z + 1))
    {
-      entity_update_pos(a,e,e->x,e->y,e->z+1);
+      entity_update_pos(a, e, e->x, e->y, e->z + 1);
       return 1;
    }
 

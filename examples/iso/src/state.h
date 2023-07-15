@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 

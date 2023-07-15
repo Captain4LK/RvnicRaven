@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -34,9 +34,6 @@ struct Entity
 
    uint64_t id;
    int removed;
-
-   int turn_next;
-   int turn_rem;
 
    Action action;
 

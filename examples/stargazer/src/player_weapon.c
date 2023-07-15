@@ -62,7 +62,7 @@ void player_weapon_switch(Player *p, int card_slot)
       return;
 
    //if(weapon==P_WEAPON_NONE||weapon==P_WEAPON_SWITCH)
-      //return;
+   //return;
 
    p->wstate.as.wswitch.from = p->wstate.state;
    p->wstate.as.wswitch.to = weapon;

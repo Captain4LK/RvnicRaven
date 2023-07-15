@@ -324,13 +324,13 @@ RvR_fix16 RvR_fix16_atan2(RvR_fix16 y, RvR_fix16 x)
 
    if(x>=0)
    {
-      RvR_fix16 r = RvR_fix16_div(x-abs_y,RvR_non_zero(x+abs_y));
-      angle = coeff_1-RvR_fix16_mul(r,coeff_1);
+      RvR_fix16 r = RvR_fix16_div(x - abs_y, RvR_non_zero(x + abs_y));
+      angle = coeff_1 - RvR_fix16_mul(r, coeff_1);
    }
    else
    {
-      RvR_fix16 r = RvR_fix16_div(x+abs_y,RvR_non_zero(abs_y-x));
-      angle = coeff_2-RvR_fix16_mul(r,coeff_1);
+      RvR_fix16 r = RvR_fix16_div(x + abs_y, RvR_non_zero(abs_y - x));
+      angle = coeff_2 - RvR_fix16_mul(r, coeff_1);
    }
 
    if(y<0)

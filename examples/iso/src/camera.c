@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -45,9 +45,9 @@ void camera_rotate(const Camera *c, const Area *a, const int *ix, const int *iy,
    switch(c->rotation)
    {
    case 0: *ox = x; *oy = y; break;
-   case 1: *ox = a->dimx*32-1-y; *oy = x; break;
-   case 2: *ox = a->dimx*32-1-x; *oy = a->dimy*32-1-y; break;
-   case 3: *ox = y; *oy = a->dimy*32-1-x; break;
+   case 1: *ox = a->dimx * 32 - 1 - y; *oy = x; break;
+   case 2: *ox = a->dimx * 32 - 1 - x; *oy = a->dimy * 32 - 1 - y; break;
+   case 3: *ox = y; *oy = a->dimy * 32 - 1 - x; break;
    }
 }
 
@@ -62,9 +62,9 @@ void camera_rotate_inv(const Camera *c, const Area *a, const int *ix, const int 
    switch(c->rotation)
    {
    case 0: *ox = x; *oy = y; break;
-   case 1: *ox = y; *oy = a->dimx*32-1-x; break;
-   case 2: *ox = a->dimx*32-1-x; *oy = a->dimy*32-1-y; break;
-   case 3: *ox = a->dimy*32-1-y; *oy = x; break;
+   case 1: *ox = y; *oy = a->dimx * 32 - 1 - x; break;
+   case 2: *ox = a->dimx * 32 - 1 - x; *oy = a->dimy * 32 - 1 - y; break;
+   case 3: *ox = a->dimy * 32 - 1 - y; *oy = x; break;
    }
 }
 //-------------------------------------

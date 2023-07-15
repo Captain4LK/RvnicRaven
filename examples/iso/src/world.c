@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -40,19 +40,19 @@ World *world_new(const char *name, World_size size)
    if(name==NULL)
       return NULL;
 
-   World *w = RvR_malloc(sizeof(*w),"World struct");
-   memset(w,0,sizeof(*w));
+   World *w = RvR_malloc(sizeof(*w), "World struct");
+   memset(w, 0, sizeof(*w));
 
    util_mkdir("saves");
-   snprintf(w->base_path,UTIL_PATH_MAX,"./saves/%s",name);
+   snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
    util_mkdir(w->base_path);
 
    region_file_create(w);
 
    w->size = size;
    int dim = world_size_to_dim(size);
-   w->regions = RvR_malloc(sizeof(*w->regions)*dim*dim,"World regions");
-   w->region_map = RvR_malloc(sizeof(*w->region_map)*dim*dim,"World region map");
+   w->regions = RvR_malloc(sizeof(*w->regions) * dim * dim, "World regions");
+   w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
 
    return w;
 }

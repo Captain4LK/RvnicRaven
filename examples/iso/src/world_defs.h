@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -39,7 +39,7 @@ typedef struct
 
 typedef struct
 {
-   uint16_t tiles[32*32];
+   uint16_t tiles[32 * 32];
 }Region;
 
 typedef struct

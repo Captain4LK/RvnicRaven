@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -48,8 +48,8 @@ void player_new(World *w, Area *a)
    player.e->z = 15;
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
-   entity_add(a,player.e);
-   entity_grid_add(a,player.e);
+   entity_add(a, player.e);
+   entity_grid_add(a, player.e);
 }
 
 void player_update()
@@ -57,21 +57,21 @@ void player_update()
    //Movement
    int dir = -1;
    if(RvR_key_pressed(RVR_KEY_W)||(0&&RvR_key_pressed(RVR_KEY_UP))||RvR_key_pressed(RVR_KEY_NP7))
-      dir = (3+player.cam.rotation)&3;
+      dir = (3 + player.cam.rotation) & 3;
    if(RvR_key_pressed(RVR_KEY_S)||(0&&RvR_key_pressed(RVR_KEY_DOWN))||RvR_key_pressed(RVR_KEY_NP3))
-      dir = (1+player.cam.rotation)&3;
+      dir = (1 + player.cam.rotation) & 3;
    if(RvR_key_pressed(RVR_KEY_A)||(0&&RvR_key_pressed(RVR_KEY_LEFT))||RvR_key_pressed(RVR_KEY_NP1))
-      dir = (2+player.cam.rotation)&3;
+      dir = (2 + player.cam.rotation) & 3;
    if(RvR_key_pressed(RVR_KEY_D)||(0&&RvR_key_pressed(RVR_KEY_RIGHT))||RvR_key_pressed(RVR_KEY_NP9))
-      dir = (0+player.cam.rotation)&3;
+      dir = (0 + player.cam.rotation) & 3;
    if(RvR_key_pressed(RVR_KEY_NP6))
-      dir = 4+((3+player.cam.rotation)&3);
+      dir = 4 + ((3 + player.cam.rotation) & 3);
    if(RvR_key_pressed(RVR_KEY_NP8))
-      dir = 4+((2+player.cam.rotation)&3);
+      dir = 4 + ((2 + player.cam.rotation) & 3);
    if(RvR_key_pressed(RVR_KEY_NP4))
-      dir = 4+((1+player.cam.rotation)&3);
+      dir = 4 + ((1 + player.cam.rotation) & 3);
    if(RvR_key_pressed(RVR_KEY_NP2))
-      dir = 4+((player.cam.rotation)&3);
+      dir = 4 + ((player.cam.rotation) & 3);
 
    //Ascend/Descend
    if(RvR_key_pressed(RVR_KEY_COMMA)&&RvR_key_down(RVR_KEY_LSHIFT))
@@ -113,7 +113,7 @@ int player_action(Area *a)
    if(player.e->action.id==ACTION_INVALID)
       return 0;
 
-   action_do(a,player.e);
+   action_do(a, player.e);
    //player.cam_auto = 1;
 
    return 1;
@@ -121,8 +121,8 @@ int player_action(Area *a)
 
 int player_pos_valid(Area *a, Entity *e, int x, int y, int z)
 {
-   uint32_t block = area_tile(a,x,y,z);
-   uint32_t floor = area_tile(a,x,y,z+1);
+   uint32_t block = area_tile(a, x, y, z);
+   uint32_t floor = area_tile(a, x, y, z + 1);
 
    if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
       return 1;

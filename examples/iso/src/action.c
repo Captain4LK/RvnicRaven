@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -35,7 +35,6 @@ static int action_move(Area *a, Entity *e);
 static int action_wait(Area *a, Entity *e);
 static int action_ascend(Area *a, Entity *e);
 static int action_descend(Area *a, Entity *e);
-static int action_fall(Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
@@ -45,12 +44,12 @@ int action_do(Area *a, Entity *e)
    Action *act = &e->action;
    if(act->remaining<=e->action_points)
    {
-      e->action_points-=act->remaining;
+      e->action_points -= act->remaining;
       act->remaining = 0;
    }
    else
    {
-      act->remaining-=e->action_points;
+      act->remaining -= e->action_points;
       e->action_points = 0;
    }
 
@@ -59,19 +58,16 @@ int action_do(Area *a, Entity *e)
    switch(e->action.id)
    {
    case ACTION_WAIT:
-      status = action_wait(a,e);
+      status = action_wait(a, e);
       break;
    case ACTION_MOVE:
-      status = action_move(a,e);
+      status = action_move(a, e);
       break;
    case ACTION_ASCEND:
-      status = action_ascend(a,e);
+      status = action_ascend(a, e);
       break;
    case ACTION_DESCEND:
-      status = action_descend(a,e);
-      break;
-   case ACTION_FALL:
-      status = action_fall(a,e);
+      status = action_descend(a, e);
       break;
    default:
       break;
@@ -83,17 +79,6 @@ int action_do(Area *a, Entity *e)
    }
 
    return status;
-
-   //e->turn_next = (time+e->turn_rem)/128;
-   //e->turn_rem = (time+e->turn_rem)%128;
-}
-
-void action_finish(Area *a, Entity *e)
-{
-}
-
-void action_interrupt(Area *a, Entity *e)
-{
 }
 
 void action_set_wait(Entity *e, uint32_t time)
@@ -123,6 +108,8 @@ void action_set_ascend(Entity *e)
       return;
 
    e->action.id = ACTION_ASCEND;
+   e->action.remaining = 184;
+   e->action.can_interrupt = 1;
 }
 
 void action_set_descend(Entity *e)
@@ -131,14 +118,8 @@ void action_set_descend(Entity *e)
       return;
 
    e->action.id = ACTION_DESCEND;
-}
-
-void action_set_fall(Entity *e)
-{
-   if(e==NULL)
-      return;
-
-   e->action.id = ACTION_FALL;
+   e->action.remaining = 184;
+   e->action.can_interrupt = 1;
 }
 
 static int action_move(Area *a, Entity *e)
@@ -165,7 +146,7 @@ static int action_wait(Area *a, Entity *e)
 static int action_ascend(Area *a, Entity *e)
 {
    Action *act = &e->action;
-   act->status = !entity_try_ascend(a,e);
+   act->status = !entity_try_ascend(a, e);
    act->id = ACTION_INVALID;
 
    return 184;
@@ -174,17 +155,7 @@ static int action_ascend(Area *a, Entity *e)
 static int action_descend(Area *a, Entity *e)
 {
    Action *act = &e->action;
-   act->status = !entity_try_descend(a,e);
-   act->id = ACTION_INVALID;
-
-   return 184;
-}
-
-static int action_fall(Area *a, Entity *e)
-{
-   //Find floor
-   Action *act = &e->action;
-   act->status = !entity_try_descend(a,e);
+   act->status = !entity_try_descend(a, e);
    act->id = ACTION_INVALID;
 
    return 184;

@@ -50,22 +50,21 @@ void ai_officer_init(Entity *e, const uint32_t extra[3])
    //Inventory
    //--> 50 health?
    e->cards_size = 16;
-   e->cards = RvR_malloc(sizeof(*e->cards)*e->cards_size,"AI officer cards");
-   memset(e->cards,0,sizeof(*e->cards)*e->cards_size);
+   e->cards = RvR_malloc(sizeof(*e->cards) * e->cards_size, "AI officer cards");
+   memset(e->cards, 0, sizeof(*e->cards) * e->cards_size);
 
-   card_health(&e->cards[0],10);
-   card_health(&e->cards[1],10);
-   card_health(&e->cards[2],10);
-   card_health(&e->cards[3],10);
-   card_health(&e->cards[4],10);
+   card_health(&e->cards[0], 10);
+   card_health(&e->cards[1], 10);
+   card_health(&e->cards[2], 10);
+   card_health(&e->cards[3], 10);
+   card_health(&e->cards[4], 10);
 
    e->col_radius = 16384;
    e->col_height = 50162;
 }
 
 void ai_officer_free(Entity *e)
-{
-}
+{}
 
 void ai_officer_run(Entity *e)
 {}

@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -26,6 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "camera.h"
 #include "player.h"
 #include "game.h"
+#include "turn.h"
 //-------------------------------------
 
 //#defines
@@ -58,7 +59,7 @@ void game_update()
 
    if(player.e->action.id!=ACTION_INVALID)
    {
-      if(action_do(area,player.e))
+      if(action_do(area, player.e))
       {
          redraw = 1;
       }
@@ -73,22 +74,6 @@ void game_update()
       player.e->action_points = player.e->speed;
    }
 
-   /*player_update();
-   if(turns_to_do_frame==0&&player_action(area))
-   {
-      turns_to_do_total = player.e->turn_next;
-      turns_to_do_frame = 4;
-   }
-   if(turns_to_do_frame)
-   {
-      turns_do(area,turns_to_do_total / 4+ ((turns_to_do_total % 4) >= turns_to_do_frame));
-      turns_to_do_frame--;
-
-      //for(int i = 0; i<map.width * map.height; i++)
-         //map.discover[i] = map.discover[i]?1:0;
-      //raycast_visibility();
-   }*/
-
    //Camera
    //-------------------------------------
    if(RvR_key_pressed(RVR_KEY_C))
@@ -99,12 +84,12 @@ void game_update()
 
    if(RvR_key_pressed(RVR_KEY_COMMA)&&!RvR_key_down(RVR_KEY_LSHIFT))
    {
-      player.cam.rotation = (player.cam.rotation-1)&3;
+      player.cam.rotation = (player.cam.rotation - 1) & 3;
       redraw = 1;
    }
    if(RvR_key_pressed(RVR_KEY_PERIOD)&&!RvR_key_down(RVR_KEY_LSHIFT))
    {
-      player.cam.rotation = (player.cam.rotation+1)&3;
+      player.cam.rotation = (player.cam.rotation + 1) & 3;
       redraw = 1;
    }
 
@@ -119,10 +104,10 @@ void game_update()
 
    switch(player.cam.rotation)
    {
-   case 0: player.cam.x = player.e->x+4; player.cam.y = player.e->y-24; break;
-   case 1: player.cam.x = player.e->y+4; player.cam.y = -player.e->x+area->dimy*32-1-24; break;
-   case 2: player.cam.x = -player.e->x+area->dimx*32-1+4; player.cam.y = -player.e->y+area->dimy*32-1-24; break;
-   case 3: player.cam.x = -player.e->y+area->dimy*32-1+4; player.cam.y = player.e->x-24; break;
+   case 0: player.cam.x = player.e->x + 4; player.cam.y = player.e->y - 24; break;
+   case 1: player.cam.x = player.e->y + 4; player.cam.y = -player.e->x + area->dimy * 32 - 1 - 24; break;
+   case 2: player.cam.x = -player.e->x + area->dimx * 32 - 1 + 4; player.cam.y = -player.e->y + area->dimy * 32 - 1 - 24; break;
+   case 3: player.cam.x = -player.e->y + area->dimy * 32 - 1 + 4; player.cam.y = player.e->x - 24; break;
    }
    //-------------------------------------
 }
@@ -134,12 +119,12 @@ void game_draw()
    redraw = 0;
 
    RvR_render_clear(0);
-   area_draw_begin(world,area,&player.cam);
+   area_draw_begin(world, area, &player.cam);
 
    Entity *e = area->entities;
-   for(;e!=NULL;e = e->next)
+   for(; e!=NULL; e = e->next)
    {
-      area_draw_sprite(e->tex,e->x,e->y,e->z);
+      area_draw_sprite(e->tex, e->x, e->y, e->z);
    }
 
    area_draw_end();
@@ -147,9 +132,9 @@ void game_draw()
 
 void game_init()
 {
-   world = world_new("test",WORLD_SMALL);
-   area = area_create(world,0,0,1,2,1,0);
-   player_new(world,area);
+   world = world_new("test", WORLD_SMALL);
+   area = area_create(world, 0, 0, 1, 2, 1, 0);
+   player_new(world, area);
 
    player.cam.x = 16;
    player.cam.y = 0;

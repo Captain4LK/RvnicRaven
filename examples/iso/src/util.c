@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -50,7 +50,7 @@ void util_mkdir(const char *path)
 
 void util_mkdir(const char *path)
 {
-   mkdir(path,0755);
+   mkdir(path, 0755);
 }
 
 #endif

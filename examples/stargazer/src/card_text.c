@@ -56,7 +56,7 @@ const char *card_title(const Card *c)
    switch(c->type)
    {
    case CARD_HEARTS:
-      return card_heart_title[(c->rank-1)%10];
+      return card_heart_title[(c->rank - 1) % 10];
    }
 
    return "INVALID CARD";

@@ -57,8 +57,8 @@ void player_create_new()
 
    //Starting inventory
    //Health
-   card_health(&player.entity->cards[0],10);
-   card_health(&player.entity->cards[1],10);
+   card_health(&player.entity->cards[0], 10);
+   card_health(&player.entity->cards[1], 10);
 
    player.cam.x = player.entity->x;
    player.cam.y = player.entity->y;

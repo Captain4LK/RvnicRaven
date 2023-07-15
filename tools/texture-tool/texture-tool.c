@@ -295,7 +295,7 @@ static Palette *palette_pal(FILE *f)
 
    fscanf(f, "JASC-PAL\n0100\n%d\n", &p->colors_used);
    char buffer[512];
-   for(int i = 0;fgets(buffer,512,f);i++)
+   for(int i = 0; fgets(buffer, 512, f); i++)
       sscanf(buffer, "%" SCNu8 "%" SCNu8 "%" SCNu8 "\n", &p->colors[i].r, &p->colors[i].g, &p->colors[i].b);
    return p;
 }

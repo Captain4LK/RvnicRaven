@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -24,8 +24,6 @@ void entity_add(Area *a, Entity *e);
 void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z);
 void entity_grid_add(Area *a, Entity *e);
 void entity_grid_remove(Entity *e);
-
-void entity_interrupt(Area *a, Entity *e);
 
 int entity_pos_valid(Area *a, Entity *e, int x, int y, int z);
 unsigned entity_try_move(Area *a, Entity *e, int dir);

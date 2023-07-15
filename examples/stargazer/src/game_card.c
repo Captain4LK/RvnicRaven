@@ -81,33 +81,33 @@ void game_card_draw()
    Entity *e = entities;
    while(e!=NULL)
    {
-      sprite_draw(e->x, e->y, e->z, e->direction, e->sprite,NULL);
+      sprite_draw(e->x, e->y, e->z, e->direction, e->sprite, NULL);
       e = e->next;
    }
 
    //Draw cards
    Card *c = cards;
-   for(;c!=NULL;c = c->next)
+   for(; c!=NULL; c = c->next)
    {
       if(c->removed)
          continue;
-      sprite_draw(c->x, c->y, c->z, 0, 32768,c);
+      sprite_draw(c->x, c->y, c->z, 0, 32768, c);
    }
 
    RvR_ray_draw_map(&player.cam, map_current());
 
    sprite_draw_end();
 
-   int mx,my;
-   RvR_mouse_pos(&mx,&my);
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
    select.x = mx;
    select.y = my;
-   RvR_ray_draw_end(&player.cam, map_current(),&select);
+   RvR_ray_draw_end(&player.cam, map_current(), &select);
 
-   RvR_render_rectangle_fill(0,0,RvR_xres(),8,20);
-   RvR_render_rectangle_fill(0,0,8,RvR_yres(),20);
-   RvR_render_rectangle_fill(0,RvR_yres()-8,RvR_xres(),8,20);
-   RvR_render_rectangle_fill(RvR_xres()-8,0,8,RvR_yres(),20);
+   RvR_render_rectangle_fill(0, 0, RvR_xres(), 8, 20);
+   RvR_render_rectangle_fill(0, 0, 8, RvR_yres(), 20);
+   RvR_render_rectangle_fill(0, RvR_yres() - 8, RvR_xres(), 8, 20);
+   RvR_render_rectangle_fill(RvR_xres() - 8, 0, 8, RvR_yres(), 20);
 
    if(fade_timer--)
    {
@@ -123,8 +123,7 @@ void game_card_draw()
 }
 
 void game_card_init()
-{
-}
+{}
 
 void game_card_set()
 {
@@ -135,23 +134,23 @@ void game_card_set()
 
 void game_card_view_update()
 {
-   int mx,my;
-   RvR_mouse_pos(&mx,&my);
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
 
    if(RvR_key_pressed(RVR_BUTTON_LEFT))
    {
-      if(mx<RvR_xres()/2-96||mx>RvR_xres()/2+96||my<RvR_yres()/2-128||my>RvR_yres()/2+128)
+      if(mx<RvR_xres() / 2 - 96||mx>RvR_xres() / 2 + 96||my<RvR_yres() / 2 - 128||my>RvR_yres() / 2 + 128)
       {
          state_set(STATE_GAME_CARD);
          return;
       }
 
       //Check for empty inventory space
-      for(int i = 0;i<player.entity->cards_size;i++)
+      for(int i = 0; i<player.entity->cards_size; i++)
       {
          if(player.entity->cards[i].type==CARD_NONE)
          {
-            card_copy(&player.entity->cards[i],selected);
+            card_copy(&player.entity->cards[i], selected);
             card_remove(selected);
             selected = NULL;
             state_set(STATE_GAME_CARD);
@@ -175,38 +174,38 @@ void game_card_view_draw()
    Entity *e = entities;
    while(e!=NULL)
    {
-      sprite_draw(e->x, e->y, e->z, e->direction, e->sprite,NULL);
+      sprite_draw(e->x, e->y, e->z, e->direction, e->sprite, NULL);
       e = e->next;
    }
 
    //Draw cards
    Card *c = cards;
-   for(;c!=NULL;c = c->next)
+   for(; c!=NULL; c = c->next)
    {
       if(c->removed)
          continue;
-      sprite_draw(c->x, c->y, c->z, 0, 32768,NULL);
+      sprite_draw(c->x, c->y, c->z, 0, 32768, NULL);
    }
 
    RvR_ray_draw_map(&player.cam, map_current());
 
    sprite_draw_end();
 
-   RvR_ray_draw_end(&player.cam, map_current(),NULL);
+   RvR_ray_draw_end(&player.cam, map_current(), NULL);
 
-   RvR_render_rectangle_fill(RvR_xres()/2-96,RvR_yres()/2-128,192,256,10);
+   RvR_render_rectangle_fill(RvR_xres() / 2 - 96, RvR_yres() / 2 - 128, 192, 256, 10);
 
    const char *title = card_title(selected);
-   RvR_render_string(RvR_xres()/2-strlen(title)*3,RvR_yres()/2-128,1,title,24);
+   RvR_render_string(RvR_xres() / 2 - strlen(title) * 3, RvR_yres() / 2 - 128, 1, title, 24);
 
-   uint16_t tex = 33280 + 13 * selected->type + (selected->rank-1);
+   uint16_t tex = 33280 + 13 * selected->type + (selected->rank - 1);
    RvR_texture *texture = RvR_texture_get(tex);
-   RvR_render_texture(texture, RvR_xres()/2-texture->width/2,RvR_yres()/2-texture->height/2-texture->height);
+   RvR_render_texture(texture, RvR_xres() / 2 - texture->width / 2, RvR_yres() / 2 - texture->height / 2 - texture->height);
 
-   RvR_render_rectangle_fill(0,0,RvR_xres(),8,20);
-   RvR_render_rectangle_fill(0,0,8,RvR_yres(),20);
-   RvR_render_rectangle_fill(0,RvR_yres()-8,RvR_xres(),8,20);
-   RvR_render_rectangle_fill(RvR_xres()-8,0,8,RvR_yres(),20);
+   RvR_render_rectangle_fill(0, 0, RvR_xres(), 8, 20);
+   RvR_render_rectangle_fill(0, 0, 8, RvR_yres(), 20);
+   RvR_render_rectangle_fill(0, RvR_yres() - 8, RvR_xres(), 8, 20);
+   RvR_render_rectangle_fill(RvR_xres() - 8, 0, 8, RvR_yres(), 20);
 
    if(fade_timer--)
    {
@@ -222,8 +221,7 @@ void game_card_view_draw()
 }
 
 void game_card_view_init()
-{
-}
+{}
 
 void game_card_view_set()
 {
@@ -232,18 +230,14 @@ void game_card_view_set()
 }
 
 void game_card_inventory_update()
-{
-}
+{}
 
 void game_card_inventory_draw()
-{
-}
+{}
 
 void game_card_inventory_init()
-{
-}
+{}
 
 void game_card_inventory_set()
-{
-}
+{}
 //-------------------------------------

@@ -1,5 +1,5 @@
 /*
-RvnicRaven - iso roguelike 
+RvnicRaven - iso roguelike
 
 Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -11,8 +11,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef _TURN_H_
 
 #define _TURN_H_
-
-void turns_do(Area *a, int turns);
 
 void turn_do(Area *a);
 
