@@ -18,6 +18,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "spiral_path.h"
+#include "area.h"
+#include "tile.h"
 //-------------------------------------
 
 //#defines
@@ -33,10 +35,12 @@ typedef struct
 //-------------------------------------
 
 //Variables
-static RvR_fix16 fov_lightgrid[FOV_SIGHT_RADIUS*2][FOV_SIGHT_RADIUS*2];
+static RvR_fix16 fov_lightgrid[FOV_SIGHT_RADIUS*2][FOV_SIGHT_RADIUS*2][2];
+static RvR_fix16 fov_grid[FOV_SIGHT_RADIUS*2+1][FOV_SIGHT_RADIUS*2+1];
 
 static Queue_entry fov_queue[2*FOV_SIGHT_RADIUS*2];
 static int fov_queue_tail;
+static int fov_queue_head;
 //-------------------------------------
 
 //Function prototypes
@@ -44,9 +48,15 @@ static void fov_test_mark(int x, int y, int z, RvR_fix16 lit_angle_least, RvR_fi
 static void fov_mark(int x, int y, int z, RvR_fix16 min, RvR_fix16 max);
 static void fov_lit_angle_get(int x, int y, RvR_fix16 *lit_min, RvR_fix16 *lit_max);
 static void fov_lit_angle_set(int x, int y, RvR_fix16 lit_min, RvR_fix16 lit_max);
+
+static void fov_child_first(int x, int y, int z, int *childx, int *childy);
+static void fov_child_second(int x, int y, int z, int *childx, int *childy);
+static void fov_child_third(int x, int y, int z, int *childx, int *childy);
+
 static RvR_fix16 fov_angle_min(int x, int y);
 static RvR_fix16 fov_angle_max(int x, int y);
 static RvR_fix16 fov_coord_angle(int x, int y);
+static RvR_fix16 fov_angle_norm(RvR_fix16 angle);
 //-------------------------------------
 
 //Function implementations
@@ -65,6 +75,8 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
       }
    }
 
+   fov_queue_head = fov_queue_tail = 0;
+
    //Set player position as visible
    int px = e->x;
    int py = e->y;
@@ -73,7 +85,17 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
    area_set_tile(a,px,py,pz,tile_set_discovered(area_tile(a,px,py,pz),1));
 
    //test sorrounding squares
-   fov_test_mark(1,0,0,2*65536,);
+   fov_test_mark(1,0,0,0,65536,fov_angle_min(1,0),fov_angle_max(1,0));
+   fov_test_mark(0,1,0,0,65536,fov_angle_min(0,1),fov_angle_max(0,1));
+   fov_test_mark(-1,0,0,0,65536,fov_angle_min(-1,0),fov_angle_max(-1,0));
+   fov_test_mark(0,-1,0,0,65536,fov_angle_min(0,-1),fov_angle_max(0,-1));
+
+   while(fov_queue_head!=fov_queue_tail)
+   {
+      int cx = fov_queue[fov_queue_head].x;
+      int cy = fov_queue[fov_queue_head].y;
+      fov_queue_head = (fov_queue_head+1)&(2*FOV_SIGHT_RADIUS*2);
+   }
 }
 
 static void fov_test_mark(int x, int y, int z, RvR_fix16 lit_angle_least, RvR_fix16 lit_angle_greatest, RvR_fix16 angle_min, RvR_fix16 angle_max)
@@ -129,14 +151,36 @@ static void fov_mark(int x, int y, int z, RvR_fix16 min, RvR_fix16 max)
 
 static void fov_lit_angle_get(int x, int y, RvR_fix16 *lit_min, RvR_fix16 *lit_max)
 {
-   *lit_min = fov_lightgrid[(y+FOV_SIGHT_RADIUS)*FOV_SIGHT_RADIUS+x+FOV_SIGHT_RADIUS][0];
-   *lit_max = fov_lightgrid[(y+FOV_SIGHT_RADIUS)*FOV_SIGHT_RADIUS+x+FOV_SIGHT_RADIUS][1];
+   *lit_min = fov_lightgrid[x+FOV_SIGHT_RADIUS][y+FOV_SIGHT_RADIUS][0];
+   *lit_max = fov_lightgrid[x+FOV_SIGHT_RADIUS][y+FOV_SIGHT_RADIUS][1];
 }
 
 static void fov_lit_angle_set(int x, int y, RvR_fix16 lit_min, RvR_fix16 lit_max)
 {
-   fov_lightgrid[(y+FOV_SIGHT_RADIUS)*FOV_SIGHT_RADIUS+x+FOV_SIGHT_RADIUS][0] = lit_min;
-   fov_lightgrid[(y+FOV_SIGHT_RADIUS)*FOV_SIGHT_RADIUS+x+FOV_SIGHT_RADIUS][1] = lit_max;
+   fov_lightgrid[x+FOV_SIGHT_RADIUS][y+FOV_SIGHT_RADIUS][0] = lit_min;
+   fov_lightgrid[x+FOV_SIGHT_RADIUS][y+FOV_SIGHT_RADIUS][1] = lit_max;
+}
+
+static void fov_child_first(int x, int y, int z, int *childx, int *childy)
+{
+   if(x==0&&y==0)
+   {
+      *childx = x;
+      *childy = y;
+   }
+   else if(x>=0&&y>0)
+   {
+      *childx = x+1;
+      *childy = y;
+   }
+}
+
+static void fov_child_second(int x, int y, int z, int *childx, int *childy)
+{
+}
+
+static void fov_child_third(int x, int y, int z, int *childx, int *childy)
+{
 }
 
 static RvR_fix16 fov_angle_min(int x, int y)
@@ -144,15 +188,47 @@ static RvR_fix16 fov_angle_min(int x, int y)
    if(x==0&&y==0)
       return 0;
    if(x>=0&&y>0)
+      return fov_coord_angle(x+1,y);
+   if(x<0&&y>=0)
+      return fov_coord_angle(x+1,y+1);
+   if(x<=0&&y<0)
+      return fov_coord_angle(x,y+1);
+   return fov_coord_angle(x,y);
 }
 
 static RvR_fix16 fov_angle_max(int x, int y)
 {
+   if(x==0&&y==0)
+      return 65536;
+   if(x>0&&y>=0)
+      return fov_coord_angle(x,y+1);
+   if(x<=0&&y>0)
+      return fov_coord_angle(x,y);
+   if(x<0&&y<=0)
+      return fov_coord_angle(x+1,y);
+   return fov_coord_angle(x+1,y+1);
 }
 
 static RvR_fix16 fov_coord_angle(int x, int y)
 {
    if(x>FOV_SIGHT_RADIUS||y>FOV_SIGHT_RADIUS||-x>FOV_SIGHT_RADIUS||-y>FOV_SIGHT_RADIUS)
-      return 
+      return fov_angle_norm(RvR_fix16_atan2_slow(y*65536-32768,x*65536-32768));
+
+   if(x>=0&&y>=0)
+      return fov_grid[x][y];
+   if(x<0&&y>0)
+      return 32768-fov_grid[1-x][y];
+   if(x>=0&&y<0)
+      return 65536-fov_grid[x][1-y];
+   return 32768+fov_grid[1-x][1-y];
+}
+
+static RvR_fix16 fov_angle_norm(RvR_fix16 angle)
+{
+   while(angle<0)
+      angle+=65536;
+   while(angle>65536)
+      angle-=65536;
+   return angle;
 }
 //-------------------------------------
