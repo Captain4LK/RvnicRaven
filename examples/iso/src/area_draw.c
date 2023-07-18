@@ -139,7 +139,10 @@ void area_draw_end()
             if(tile_has_draw_wall(tile)&&(!tile_has_draw_floor(tile)||!tile_has_draw_wall(front)||!tile_has_draw_wall(right)||z==cam->z_cutoff))
             {
                RvR_texture *tex = RvR_texture_get(tile_wall_texture(tile));
-               draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy);
+               if(tile_visible(tile))
+                  draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy);
+               else
+                  draw_sprite_bw(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
                   RvR_render_present();
@@ -196,7 +199,10 @@ void area_draw_end()
             if(tile_has_draw_floor(tile)&&(!tile_has_draw_floor(front)||!tile_has_draw_floor(right)||!tile_has_draw_wall(up)))
             {
                RvR_texture *tex = RvR_texture_get(tile_floor_texture(tile));
-               draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - 4 - cy);
+               if(tile_visible(tile))
+                  draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - 4 - cy);
+               else
+                  draw_sprite_bw(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - 4 - cy);
 
                const int offs[4][4] =
                {

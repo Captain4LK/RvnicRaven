@@ -148,6 +148,8 @@ uint32_t tile_make_slope(uint16_t slope, uint16_t variant)
 
 uint16_t tile_wall_texture(uint32_t tile)
 {
+   if(!tile_discovered(tile))
+      return 0;
    uint32_t wall_tile = (tile & ((1 << 14) - 1));
 
    return 2 + (wall_tile - 1) * 16;
@@ -160,6 +162,8 @@ uint16_t tile_object_texture(uint32_t tile)
 
 uint16_t tile_floor_texture(uint32_t tile)
 {
+   if(!tile_discovered(tile))
+      return 1;
    uint32_t floor_tile = ((tile >> 14) & ((1 << 12) - 1));
 
    return 2 + (floor_tile - 1) * 16 + 1;

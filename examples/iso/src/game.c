@@ -27,6 +27,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "player.h"
 #include "game.h"
 #include "turn.h"
+#include "spiral_path.h"
 //-------------------------------------
 
 //#defines
@@ -65,6 +66,9 @@ void game_update()
       }
    }
 
+   int ox = player.e->x;
+   int oy = player.e->y;
+   int oz = player.e->z;
    if(player.e->action_points==0)
    {
       //Run entities
@@ -72,6 +76,11 @@ void game_update()
 
       redraw = 1;
       player.e->action_points = player.e->speed;
+   }
+
+   if(redraw)
+   {
+      fov_player(area,player.e,ox,oy,oz);
    }
 
    //Camera
