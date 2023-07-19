@@ -20,11 +20,22 @@ int tile_has_draw_floor(uint32_t tile);
 int tile_has_draw_slope(uint32_t tile);
 int tile_is_slope(uint32_t tile);
 int tile_is_usable_slope(uint32_t tile);
-int tile_visible(uint32_t tile);
-int tile_discovered(uint32_t tile);
 
-uint32_t tile_set_visible(uint32_t tile, int visible);
-uint32_t tile_set_discovered(uint32_t tile, int discovered);
+uint32_t tile_set_visible(uint32_t tile, int vis_wall, int vis_floor);
+uint32_t tile_set_discovered(uint32_t tile, int disc_wall, int disc_floor);
+
+int tile_visible_wall(uint32_t tile);
+int tile_discovered_wall(uint32_t tile);
+int tile_visible_floor(uint32_t tile);
+int tile_discovered_floor(uint32_t tile);
+
+uint32_t tile_set_visible(uint32_t tile, int vis_wall, int vis_floor);
+uint32_t tile_set_discovered(uint32_t tile, int disc_wall, int disc_floor);
+
+uint32_t tile_set_visible_wall(uint32_t tile, int visible);
+uint32_t tile_set_discovered_wall(uint32_t tile, int discovered);
+uint32_t tile_set_visible_floor(uint32_t tile, int visible);
+uint32_t tile_set_discovered_floor(uint32_t tile, int discovered);
 
 uint32_t tile_make_wall(uint16_t wall, uint16_t floor);
 uint32_t tile_make_object(uint16_t object, uint16_t floor);

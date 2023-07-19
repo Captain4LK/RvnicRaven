@@ -82,7 +82,7 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
       {
          for(int x = oldx-16;x<=oldx+16;x++)
          {
-            area_set_tile(a,x,y,z,tile_set_visible(area_tile(a,x,y,z),0));
+            area_set_tile(a,x,y,z,tile_set_visible(area_tile(a,x,y,z),0,0));
          }
       }
    }
@@ -94,11 +94,11 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
    int px = e->x;
    int py = e->y;
    int pz = e->z;
-   area_set_tile(a,px,py,pz,tile_set_visible(area_tile(a,px,py,pz),1));
-   area_set_tile(a,px,py,pz,tile_set_discovered(area_tile(a,px,py,pz),1));
+   area_set_tile(a,px,py,pz,tile_set_visible_wall(area_tile(a,px,py,pz),1));
+   area_set_tile(a,px,py,pz,tile_set_discovered_wall(area_tile(a,px,py,pz),1));
 
-   area_set_tile(a,px,py,pz+1,tile_set_visible(area_tile(a,px,py,pz+1),1));
-   area_set_tile(a,px,py,pz+1,tile_set_discovered(area_tile(a,px,py,pz+1),1));
+   area_set_tile(a,px,py,pz+1,tile_set_visible_floor(area_tile(a,px,py,pz+1),1));
+   area_set_tile(a,px,py,pz+1,tile_set_discovered_floor(area_tile(a,px,py,pz+1),1));
 
    //test sorrounding squares
    fov_test_mark(1,0,0,0,65536,fov_angle_min(1,0),fov_angle_max(1,0));
@@ -132,11 +132,11 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
 
       if(cx*cx+cy*cy<=radius*radius&&fov_in_arc(cx,cy,0,65536))
       {
-         area_set_tile(a,px+cx,py+cy,pz,tile_set_visible(area_tile(a,px+cx,py+cy,pz),1));
-         area_set_tile(a,px+cx,py+cy,pz,tile_set_discovered(area_tile(a,px+cx,py+cy,pz),1));
+         area_set_tile(a,px+cx,py+cy,pz,tile_set_visible_wall(area_tile(a,px+cx,py+cy,pz),1));
+         area_set_tile(a,px+cx,py+cy,pz,tile_set_discovered_wall(area_tile(a,px+cx,py+cy,pz),1));
 
-         area_set_tile(a,px+cx,py+cy,pz+1,tile_set_visible(area_tile(a,px+cx,py+cy,pz+1),1));
-         area_set_tile(a,px+cx,py+cy,pz+1,tile_set_discovered(area_tile(a,px+cx,py+cy,pz+1),1));
+         area_set_tile(a,px+cx,py+cy,pz+1,tile_set_visible_floor(area_tile(a,px+cx,py+cy,pz+1),1));
+         area_set_tile(a,px+cx,py+cy,pz+1,tile_set_discovered_floor(area_tile(a,px+cx,py+cy,pz+1),1));
 
          if(fov_transparent(a,e,px+cx,py+cy,pz))
          {
@@ -162,29 +162,17 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
 static void fov_test_mark(int x, int y, int z, RvR_fix16 lit_angle_least, RvR_fix16 lit_angle_greatest, RvR_fix16 angle_min, RvR_fix16 angle_max)
 {
    if(lit_angle_least>lit_angle_greatest)
-   {
       fov_mark(x,y,z,angle_min,angle_max);
-   }
    else if(angle_max<lit_angle_least||angle_min>lit_angle_greatest)
-   {
       return;
-   }
    else if(angle_min<=lit_angle_least&&lit_angle_greatest<=angle_max)
-   {
       fov_mark(x,y,z,lit_angle_least,lit_angle_greatest);
-   }
    else if(angle_min>=lit_angle_least&&lit_angle_greatest>=angle_max)
-   {
       fov_mark(x,y,z,angle_min,angle_max);
-   }
    else if(angle_min>=lit_angle_least&&lit_angle_greatest<=angle_max)
-   {
       fov_mark(x,y,z,angle_min,lit_angle_greatest);
-   }
    else if(angle_min<=lit_angle_least&&lit_angle_greatest>=angle_max)
-   {
       fov_mark(x,y,z,lit_angle_least,angle_max);
-   }
 }
 
 static void fov_mark(int x, int y, int z, RvR_fix16 min, RvR_fix16 max)
@@ -193,7 +181,7 @@ static void fov_mark(int x, int y, int z, RvR_fix16 min, RvR_fix16 max)
    RvR_fix16 lit_max = 0;
    fov_lit_angle_get(x,y,&lit_min,&lit_max);
    
-   if(lit_min==lit_max&&lit_max==0)
+   if(lit_min==0&&lit_max==0)
    {
       //Not in queue
       fov_lit_angle_set(x,y,min,max);

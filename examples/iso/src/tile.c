@@ -59,7 +59,7 @@ int tile_has_object(uint32_t tile)
 
 int tile_has_draw_wall(uint32_t tile)
 {
-   if(!tile_discovered(tile))
+   if(!tile_discovered_wall(tile))
       return 1;
 
    return tile_has_wall(tile);
@@ -67,7 +67,7 @@ int tile_has_draw_wall(uint32_t tile)
 
 int tile_has_draw_floor(uint32_t tile)
 {
-   if(!tile_discovered(tile))
+   if(!tile_discovered_floor(tile))
       return 1;
 
    return tile_has_floor(tile);
@@ -75,7 +75,7 @@ int tile_has_draw_floor(uint32_t tile)
 
 int tile_has_draw_slope(uint32_t tile)
 {
-   if(!tile_discovered(tile))
+   if(!tile_discovered_wall(tile))
       return 0;
 
    return tile_is_slope(tile);
@@ -96,17 +96,37 @@ int tile_is_usable_slope(uint32_t tile)
    return variant!=12;
 }
 
-int tile_visible(uint32_t tile)
+int tile_visible_wall(uint32_t tile)
 {
    return !!(tile & (1 << 31));
 }
 
-int tile_discovered(uint32_t tile)
+int tile_discovered_wall(uint32_t tile)
 {
    return !!(tile & (1 << 30));
 }
 
-uint32_t tile_set_visible(uint32_t tile, int visible)
+int tile_visible_floor(uint32_t tile)
+{
+   return !!(tile & (1 << 27));
+}
+
+int tile_discovered_floor(uint32_t tile)
+{
+   return !!(tile & (1 << 26));
+}
+
+uint32_t tile_set_visible(uint32_t tile, int vis_wall, int vis_floor)
+{
+   return tile_set_visible_wall(tile_set_visible_floor(tile,vis_floor),vis_wall);
+}
+
+uint32_t tile_set_discovered(uint32_t tile, int disc_wall, int disc_floor)
+{
+   return tile_set_discovered_wall(tile_set_discovered_floor(tile,disc_floor),disc_wall);
+}
+
+uint32_t tile_set_visible_wall(uint32_t tile, int visible)
 {
    uint32_t value = (!!visible) << 31;
    uint32_t bit = 1 << 31;
@@ -114,10 +134,26 @@ uint32_t tile_set_visible(uint32_t tile, int visible)
    return (tile & (~bit)) | value;
 }
 
-uint32_t tile_set_discovered(uint32_t tile, int discovered)
+uint32_t tile_set_discovered_wall(uint32_t tile, int discovered)
 {
    uint32_t value = (!!discovered) << 30;
    uint32_t bit = 1 << 30;
+
+   return (tile & (~bit)) | value;
+}
+
+uint32_t tile_set_visible_floor(uint32_t tile, int visible)
+{
+   uint32_t value = (!!visible) << 27;
+   uint32_t bit = 1 << 27;
+
+   return (tile & (~bit)) | value;
+}
+
+uint32_t tile_set_discovered_floor(uint32_t tile, int discovered)
+{
+   uint32_t value = (!!discovered) << 26;
+   uint32_t bit = 1 << 26;
 
    return (tile & (~bit)) | value;
 }
@@ -148,7 +184,7 @@ uint32_t tile_make_slope(uint16_t slope, uint16_t variant)
 
 uint16_t tile_wall_texture(uint32_t tile)
 {
-   if(!tile_discovered(tile))
+   if(!tile_discovered_wall(tile))
       return 0;
    uint32_t wall_tile = (tile & ((1 << 14) - 1));
 
@@ -162,7 +198,7 @@ uint16_t tile_object_texture(uint32_t tile)
 
 uint16_t tile_floor_texture(uint32_t tile)
 {
-   if(!tile_discovered(tile))
+   if(!tile_discovered_floor(tile))
       return 1;
    uint32_t floor_tile = ((tile >> 14) & ((1 << 12) - 1));
 
