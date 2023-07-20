@@ -118,12 +118,12 @@ int tile_discovered_floor(uint32_t tile)
 
 uint32_t tile_set_visible(uint32_t tile, int vis_wall, int vis_floor)
 {
-   return tile_set_visible_wall(tile_set_visible_floor(tile,vis_floor),vis_wall);
+   return tile_set_visible_wall(tile_set_visible_floor(tile, vis_floor), vis_wall);
 }
 
 uint32_t tile_set_discovered(uint32_t tile, int disc_wall, int disc_floor)
 {
-   return tile_set_discovered_wall(tile_set_discovered_floor(tile,disc_floor),disc_wall);
+   return tile_set_discovered_wall(tile_set_discovered_floor(tile, disc_floor), disc_wall);
 }
 
 uint32_t tile_set_visible_wall(uint32_t tile, int visible)

@@ -80,7 +80,7 @@ void game_update()
 
    if(redraw)
    {
-      fov_player(area,player.e,ox,oy,oz);
+      fov_player(area, player.e, ox, oy, oz);
    }
 
    //Camera

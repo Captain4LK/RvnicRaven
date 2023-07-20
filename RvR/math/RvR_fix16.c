@@ -348,16 +348,16 @@ RvR_fix16 RvR_fix16_atan2_slow(RvR_fix16 y, RvR_fix16 x)
    if(x>=0)
    {
       RvR_fix16 r = RvR_fix16_div(x - abs_y, RvR_non_zero(x + abs_y));
-      angle = RvR_fix16_mul(2047,RvR_fix16_mul(r,RvR_fix16_mul(r,r)));
-      angle-=RvR_fix16_mul(10239,r);
-      angle+=coeff_1;
+      angle = RvR_fix16_mul(2047, RvR_fix16_mul(r, RvR_fix16_mul(r, r)));
+      angle -= RvR_fix16_mul(10239, r);
+      angle += coeff_1;
    }
    else
    {
       RvR_fix16 r = RvR_fix16_div(x + abs_y, RvR_non_zero(abs_y - x));
-      angle = RvR_fix16_mul(2047,RvR_fix16_mul(r,RvR_fix16_mul(r,r)));
-      angle-=RvR_fix16_mul(10239,r);
-      angle+=coeff_2;
+      angle = RvR_fix16_mul(2047, RvR_fix16_mul(r, RvR_fix16_mul(r, r)));
+      angle -= RvR_fix16_mul(10239, r);
+      angle += coeff_2;
    }
 
    if(y<0)
