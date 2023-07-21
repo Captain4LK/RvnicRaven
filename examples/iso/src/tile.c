@@ -193,7 +193,12 @@ uint16_t tile_wall_texture(uint32_t tile)
 
 uint16_t tile_object_texture(uint32_t tile)
 {
-   return 0;
+   if(!tile_discovered_wall(tile))
+      return 0;
+
+   uint32_t object_tile = (tile & ((1 << 14) - 1));
+
+   return 16384+object_tile;
 }
 
 uint16_t tile_floor_texture(uint32_t tile)
