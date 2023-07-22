@@ -94,11 +94,8 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
    int px = e->x;
    int py = e->y;
    int pz = e->z;
-   area_set_tile(a, px, py, pz, tile_set_visible_wall(area_tile(a, px, py, pz), 1));
-   area_set_tile(a, px, py, pz, tile_set_discovered_wall(area_tile(a, px, py, pz), 1));
-
-   area_set_tile(a, px, py, pz + 1, tile_set_visible_floor(area_tile(a, px, py, pz + 1), 1));
-   area_set_tile(a, px, py, pz + 1, tile_set_discovered_floor(area_tile(a, px, py, pz + 1), 1));
+   area_set_tile(a, px, py, pz, tile_set_visible_wall(tile_set_discovered_wall(area_tile(a, px, py, pz), 1),1));
+   area_set_tile(a, px, py, pz + 1, tile_set_visible_floor(tile_set_discovered_floor(area_tile(a, px, py, pz + 1), 1),1));
 
    //Discover up
    int radius_cur = 0;
