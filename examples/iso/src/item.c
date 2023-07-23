@@ -26,10 +26,72 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static Item *item_pool = NULL;
 //-------------------------------------
 
 //Function prototypes
 //-------------------------------------
 
 //Function implementations
+
+Item *item_new(World *w)
+{
+   if(item_pool == NULL)
+   {
+      Item *ni = RvR_malloc(sizeof(*ni) * 256, "item pool");
+      memset(ni, 0, sizeof(*ni) * 256);
+
+      for(int i = 0; i < 256; i++)
+         ni[i].id = UINT64_MAX;
+      for(int i = 0; i < 256 - 1; i++)
+         ni[i].next = &ni[i + 1];
+      item_pool = &ni[0];
+   }
+
+   Item *n = item_pool;
+   item_pool = n->next;
+
+   uint32_t id = w->next_iid++;
+   memset(n, 0, sizeof(*n));
+   n->next = NULL;
+   n->prev_next = NULL;
+   n->g_next = NULL;
+   n->g_prev_next = NULL;
+   n->id = id;
+
+   return n;
+}
+
+void item_free(Item *i)
+{
+   if(i == NULL)
+      return;
+
+   *i->prev_next = i->next;
+   if(i->next != NULL)
+      i->next->prev_next = i->prev_next;
+
+   i->next = item_pool;
+   item_pool = i;
+}
+
+void item_remove(Item *i)
+{
+}
+
+void item_add(Area *a, Item *i)
+{
+}
+
+void item_update_pos(Area *a, Item *e, int16_t x, int16_t y, int16_t z)
+{
+}
+
+void item_grid_add(Area *a, Item *e)
+{
+}
+
+void item_grid_remove(Item *e)
+{
+}
 //-------------------------------------

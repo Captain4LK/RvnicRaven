@@ -12,7 +12,17 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ITEM_H_
 
+#include "world_defs.h"
 #include "item_defs.h"
 
+Item *item_new(World *w);
+void item_free(Item *i);
+
+void item_remove(Item *i);
+void item_add(Area *a, Item *i);
+
+void item_update_pos(Area *a, Item *e, int16_t x, int16_t y, int16_t z);
+void item_grid_add(Area *a, Item *e);
+void item_grid_remove(Item *e);
 
 #endif

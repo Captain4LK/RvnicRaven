@@ -12,6 +12,22 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ITEM_DEFS_H_
 
+typedef struct Item Item;
 
+struct Item
+{
+   int16_t x;
+   int16_t y;
+   int16_t z;
+   uint16_t tex;
+
+   uint64_t id;
+
+   Item *next;
+   Item **prev_next;
+
+   Item *g_next;
+   Item **g_prev_next;
+};
 
 #endif

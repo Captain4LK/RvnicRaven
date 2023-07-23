@@ -54,6 +54,7 @@ typedef struct
    char base_path[UTIL_PATH_MAX];
 
    uint64_t next_id;
+   uint64_t next_iid;
 
    World_size size;
 
