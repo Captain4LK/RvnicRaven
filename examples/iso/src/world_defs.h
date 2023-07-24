@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "util.h"
 #include "entity_defs.h"
+#include "item_defs.h"
 
 typedef enum
 {
@@ -35,6 +36,9 @@ typedef struct
 
    Entity *entities;
    Entity **entity_grid;
+
+   Item *items;
+   Item **item_grid;
 }Area;
 
 typedef struct

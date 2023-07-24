@@ -23,6 +23,8 @@ struct Item
 
    uint64_t id;
 
+   int removed;
+
    Item *next;
    Item **prev_next;
 

@@ -77,21 +77,67 @@ void item_free(Item *i)
 
 void item_remove(Item *i)
 {
+   if(i == NULL)
+      return;
+
+   item_grid_remove(i);
+
+   i->id = UINT64_MAX;
+   i->removed = 1;
 }
 
 void item_add(Area *a, Item *i)
 {
+   if(i==NULL)
+      return;
+
+   i->prev_next = &a->entities;
+   if(a->items!=NULL)
+      a->items->prev_next = &i->next;
+   i->next = a->items;
+   a->items = i;
 }
 
-void item_update_pos(Area *a, Item *e, int16_t x, int16_t y, int16_t z)
+void item_update_pos(Area *a, Item *i, int16_t x, int16_t y, int16_t z)
 {
+   if(i==NULL)
+      return;
+   if(x<0||y<0||z<0)
+      return;
+   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
+      return;
+
+   item_grid_remove(i);
+   i->x = x;
+   i->y = y;
+   i->z = z;
+   item_grid_add(a, i);
 }
 
-void item_grid_add(Area *a, Item *e)
+void item_grid_add(Area *a, Item *i)
 {
+   if(i==NULL)
+      return;
+   if(i->x<0||i->y<0||i->z<0)
+      return;
+   if(i->x>=a->dimx * 32||i->y>=a->dimy * 32||i->z>=a->dimz * 32)
+      return;
+
+   int gx = i->x / 8;
+   int gy = i->y / 8;
+   int gz = i->z / 8;
+   size_t g_index = gz * (a->dimx * 4) * (a->dimy * 4) + gy * (a->dimx * 4) + gx;
+   i->g_prev_next = &a->item_grid[g_index];
+   if(a->item_grid[g_index]!=NULL)
+      a->item_grid[g_index]->prev_next = &i->g_next;
+   i->g_next = a->item_grid[g_index];
+   a->item_grid[g_index] = i;
 }
 
-void item_grid_remove(Item *e)
+void item_grid_remove(Item *i)
 {
+   *i->g_prev_next = i->g_next;
+   if(i->g_next != NULL)
+      i->g_next->prev_next = i->g_prev_next;
 }
 //-------------------------------------
