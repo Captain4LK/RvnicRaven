@@ -21,6 +21,4 @@ void area_draw_end();
 
 void area_draw_sprite(uint16_t tex, int x, int y, int z);
 
-//void area_draw_new(const World *w, const Area *a, const Camera *c);
-
 #endif

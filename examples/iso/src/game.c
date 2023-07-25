@@ -27,6 +27,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "player.h"
 #include "game.h"
 #include "turn.h"
+#include "item.h"
 #include "spiral_path.h"
 //-------------------------------------
 
@@ -39,9 +40,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Variables
 static World *world;
 static Area *area;
-
-static int turns_to_do_frame;
-static int turns_to_do_total;
 
 static int redraw = 0;
 //-------------------------------------
@@ -130,11 +128,15 @@ void game_draw()
    RvR_render_clear(0);
    area_draw_begin(world, area, &player.cam);
 
+   //Draw entities
    Entity *e = area->entities;
    for(; e!=NULL; e = e->next)
-   {
       area_draw_sprite(e->tex, e->x, e->y, e->z);
-   }
+
+   //Draw items
+   Item *i = area->items;
+   for(; i!=NULL; i = i->next)
+      area_draw_sprite(i->tex, i->x, i->y, i->z);
 
    area_draw_end();
 }

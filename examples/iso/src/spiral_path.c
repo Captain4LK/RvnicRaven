@@ -46,16 +46,16 @@ static int fov_initialized = 0;
 //-------------------------------------
 
 //Function prototypes
-static void fov_test_mark(int x, int y, int z, RvR_fix16 lit_angle_least, RvR_fix16 lit_angle_greatest, RvR_fix16 angle_min, RvR_fix16 angle_max);
-static void fov_mark(int x, int y, int z, RvR_fix16 min, RvR_fix16 max);
+static void fov_test_mark(int x, int y, RvR_fix16 lit_angle_least, RvR_fix16 lit_angle_greatest, RvR_fix16 angle_min, RvR_fix16 angle_max);
+static void fov_mark(int x, int y, RvR_fix16 min, RvR_fix16 max);
 static void fov_lit_angle_get(int x, int y, RvR_fix16 *lit_min, RvR_fix16 *lit_max);
 static void fov_lit_angle_set(int x, int y, RvR_fix16 lit_min, RvR_fix16 lit_max);
 
 static int fov_transparent(Area *a, Entity *e, int x, int y, int z);
 
-static void fov_child_first(int x, int y, int z, int *childx, int *childy);
-static void fov_child_second(int x, int y, int z, int *childx, int *childy);
-static void fov_child_third(int x, int y, int z, int *childx, int *childy);
+static void fov_child_first(int x, int y, int *childx, int *childy);
+static void fov_child_second(int x, int y, int *childx, int *childy);
+static void fov_child_third(int x, int y, int *childx, int *childy);
 
 static RvR_fix16 fov_angle_min(int x, int y);
 static RvR_fix16 fov_angle_max(int x, int y);
@@ -135,10 +135,10 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
    }
 
    //test sorrounding squares
-   fov_test_mark(1, 0, 0, 0, 65536, fov_angle_min(1, 0), fov_angle_max(1, 0));
-   fov_test_mark(0, 1, 0, 0, 65536, fov_angle_min(0, 1), fov_angle_max(0, 1));
-   fov_test_mark(-1, 0, 0, 0, 65536, fov_angle_min(-1, 0), fov_angle_max(-1, 0));
-   fov_test_mark(0, -1, 0, 0, 65536, fov_angle_min(0, -1), fov_angle_max(0, -1));
+   fov_test_mark(1, 0, 0, 65536, fov_angle_min(1, 0), fov_angle_max(1, 0));
+   fov_test_mark(0, 1, 0, 65536, fov_angle_min(0, 1), fov_angle_max(0, 1));
+   fov_test_mark(-1, 0, 0, 65536, fov_angle_min(-1, 0), fov_angle_max(-1, 0));
+   fov_test_mark(0, -1, 0, 65536, fov_angle_min(0, -1), fov_angle_max(0, -1));
 
    while(fov_queue_head!=fov_queue_tail)
    {
@@ -149,9 +149,9 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
       int child0x, child0y;
       int child1x, child1y;
       int child2x, child2y;
-      fov_child_first(cx, cy, 0, &child0x, &child0y);
-      fov_child_second(cx, cy, 0, &child1x, &child1y);
-      fov_child_third(cx, cy, 0, &child2x, &child2y);
+      fov_child_first(cx, cy, &child0x, &child0y);
+      fov_child_second(cx, cy, &child1x, &child1y);
+      fov_child_third(cx, cy, &child2x, &child2y);
 
       RvR_fix16 angle_least = fov_angle_min(cx, cy);
       RvR_fix16 angle_outer = fov_angle_outer(cx, cy);
@@ -173,7 +173,7 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
          area_set_tile(a, px + cx, py + cy, pz + 1, tile_set_discovered_floor(area_tile(a, px + cx, py + cy, pz + 1), 1));
 
          //Discover up
-         int radius_cur = cx*cx+cy*cy;
+         radius_cur = cx*cx+cy*cy;
          for(int z = 1;z*z*4<radius*radius-radius_cur;z++)
          {
             uint32_t tile0 = area_tile(a,px+cx,py+cy,pz-z+1);
@@ -211,42 +211,42 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
 
          if(fov_transparent(a, e, px + cx, py + cy, pz))
          {
-            fov_test_mark(child0x, child0y, 0, lit_angle_least, lit_angle_greatest, angle_least, angle_outer);
+            fov_test_mark(child0x, child0y, lit_angle_least, lit_angle_greatest, angle_least, angle_outer);
             if(angle_outer2!=0)
             {
-               fov_test_mark(child1x, child1y, 0, lit_angle_least, lit_angle_greatest, angle_outer, angle_outer2);
-               fov_test_mark(child2x, child2y, 0, lit_angle_least, lit_angle_greatest, angle_outer2, angle_greatest);
+               fov_test_mark(child1x, child1y, lit_angle_least, lit_angle_greatest, angle_outer, angle_outer2);
+               fov_test_mark(child2x, child2y, lit_angle_least, lit_angle_greatest, angle_outer2, angle_greatest);
             }
             else
             {
-               fov_test_mark(child1x, child1y, 0, lit_angle_least, lit_angle_greatest, angle_outer, angle_greatest);
+               fov_test_mark(child1x, child1y, lit_angle_least, lit_angle_greatest, angle_outer, angle_greatest);
             }
          }
          else if(lit_angle_least==angle_least)
          {
-            fov_mark(child0x, child0y, 0, angle_least, angle_least);
+            fov_mark(child0x, child0y, angle_least, angle_least);
          }
       }
    }
 }
 
-static void fov_test_mark(int x, int y, int z, RvR_fix16 lit_angle_least, RvR_fix16 lit_angle_greatest, RvR_fix16 angle_min, RvR_fix16 angle_max)
+static void fov_test_mark(int x, int y, RvR_fix16 lit_angle_least, RvR_fix16 lit_angle_greatest, RvR_fix16 angle_min, RvR_fix16 angle_max)
 {
    if(lit_angle_least>lit_angle_greatest)
-      fov_mark(x, y, z, angle_min, angle_max);
+      fov_mark(x, y, angle_min, angle_max);
    else if(angle_max<lit_angle_least||angle_min>lit_angle_greatest)
       return;
    else if(angle_min<=lit_angle_least&&lit_angle_greatest<=angle_max)
-      fov_mark(x, y, z, lit_angle_least, lit_angle_greatest);
+      fov_mark(x, y, lit_angle_least, lit_angle_greatest);
    else if(angle_min>=lit_angle_least&&lit_angle_greatest>=angle_max)
-      fov_mark(x, y, z, angle_min, angle_max);
+      fov_mark(x, y, angle_min, angle_max);
    else if(angle_min>=lit_angle_least&&lit_angle_greatest<=angle_max)
-      fov_mark(x, y, z, angle_min, lit_angle_greatest);
+      fov_mark(x, y, angle_min, lit_angle_greatest);
    else if(angle_min<=lit_angle_least&&lit_angle_greatest>=angle_max)
-      fov_mark(x, y, z, lit_angle_least, angle_max);
+      fov_mark(x, y, lit_angle_least, angle_max);
 }
 
-static void fov_mark(int x, int y, int z, RvR_fix16 min, RvR_fix16 max)
+static void fov_mark(int x, int y, RvR_fix16 min, RvR_fix16 max)
 {
    RvR_fix16 lit_min = 0;
    RvR_fix16 lit_max = 0;
@@ -288,7 +288,7 @@ static int fov_transparent(Area *a, Entity *e, int x, int y, int z)
    return !tile_has_wall(area_tile(a, x, y, z));
 }
 
-static void fov_child_first(int x, int y, int z, int *childx, int *childy)
+static void fov_child_first(int x, int y, int *childx, int *childy)
 {
    if(x==0&&y==0) { *childx = x; *childy = y; }
    else if(x>=0&&y>0) { *childx = x + 1; *childy = y; }
@@ -297,7 +297,7 @@ static void fov_child_first(int x, int y, int z, int *childx, int *childy)
    else { *childx = x; *childy = y - 1; }
 }
 
-static void fov_child_second(int x, int y, int z, int *childx, int *childy)
+static void fov_child_second(int x, int y, int *childx, int *childy)
 {
    if(x==0&&y==0) { *childx = x; *childy = y; }
    else if(x>=0&&y>0) { *childx = x; *childy = y + 1; }
@@ -306,7 +306,7 @@ static void fov_child_second(int x, int y, int z, int *childx, int *childy)
    else { *childx = x + 1; *childy = y; }
 }
 
-static void fov_child_third(int x, int y, int z, int *childx, int *childy)
+static void fov_child_third(int x, int y, int *childx, int *childy)
 {
    if(x!=0&&y!=0) { *childx = 0; *childy = 0; }
    else if(x>0) { *childx = x; *childy = y + 1; }
