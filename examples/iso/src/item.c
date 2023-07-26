@@ -91,7 +91,7 @@ void item_add(Area *a, Item *i)
    if(i==NULL)
       return;
 
-   i->prev_next = &a->entities;
+   i->prev_next = &a->items;
    if(a->items!=NULL)
       a->items->prev_next = &i->next;
    i->next = a->items;
