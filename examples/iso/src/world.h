@@ -14,7 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "world_defs.h"
 
-void world_load(const char *base_path);
+World *world_load(const char *name);
 World *world_new(const char *name, World_size size);
 void world_free(World *w);
 

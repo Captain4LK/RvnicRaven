@@ -57,6 +57,23 @@ World *world_new(const char *name, World_size size)
    return w;
 }
 
+World *world_load(const char *name)
+{
+   if(base_path==NULL)
+      return NULL;
+
+   World *w = RvR_malloc(sizeof(*w),"World struct");
+   memset(w,0,sizeof(*w));
+   snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
+
+   w->size = size;
+   int dim = world_size_to_dim(size);
+   w->regions = RvR_malloc(sizeof(*w->regions) * dim * dim, "World regions");
+   w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
+
+   return w;
+}
+
 void world_free(World *w)
 {
    if(w==NULL)

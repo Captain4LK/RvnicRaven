@@ -85,6 +85,13 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    area_set_tile(a, 3, 3, 15, tile_set_discovered(tile_make_wall(1, 1), 0, 0));
    //area_set_tile(a,3,4,15,tile_set_discovered(tile_make_wall(1,1),1));
 
+   for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
+         area_set_tile(a, x + 8, y + 32, 16, tile_set_discovered(tile_make_wall(0, 0), 0, 0));
+   for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
+         area_set_tile(a, x + 8, y + 32, 17, tile_set_discovered(tile_make_wall(0, 0), 0, 0));
+   for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
+         area_set_tile(a, x + 8, y + 32, 18, tile_set_discovered(tile_make_wall(0, 0), 0, 0));
+
    return a;
 
 RvR_err:
