@@ -31,6 +31,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
+static void world_create_base_file(World *world);
+static void world_load_base_file(World *world);
 //-------------------------------------
 
 //Function implementations
@@ -47,7 +49,11 @@ World *world_new(const char *name, World_size size)
    snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
    util_mkdir(w->base_path);
 
+   //Create files
+   //-------------------------------------
    region_file_create(w);
+   world_create_base_file(w);
+   //-------------------------------------
 
    w->size = size;
    int dim = world_size_to_dim(size);
@@ -59,15 +65,16 @@ World *world_new(const char *name, World_size size)
 
 World *world_load(const char *name)
 {
-   if(base_path==NULL)
+   if(name==NULL)
       return NULL;
 
    World *w = RvR_malloc(sizeof(*w),"World struct");
    memset(w,0,sizeof(*w));
    snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
 
-   w->size = size;
-   int dim = world_size_to_dim(size);
+   world_load_base_file(w);
+
+   int dim = world_size_to_dim(w->size);
    w->regions = RvR_malloc(sizeof(*w->regions) * dim * dim, "World regions");
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
 
@@ -97,5 +104,37 @@ unsigned world_size_to_dim(World_size size)
    }
 
    return 0;
+}
+
+static void world_create_base_file(World *world)
+{
+   char path[UTIL_PATH_MAX];
+   snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
+
+   RvR_rw rw = {0};
+   RvR_rw_init_path(&rw,path,"wb");
+
+   //Version
+   RvR_rw_write_u32(&rw,0);
+
+   //World dimension
+   RvR_rw_write_u32(&rw,world->size);
+
+   RvR_rw_close(&rw);
+}
+
+static void world_load_base_file(World *world)
+{
+   char path[UTIL_PATH_MAX];
+   snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
+
+   RvR_rw rw = {0};
+   RvR_rw_init_path(&rw,path,"rb");
+
+   uint32_t version = RvR_rw_read_u32(&rw);
+
+   world->size = RvR_rw_read_u32(&rw);
+
+   RvR_rw_close(&rw);
 }
 //-------------------------------------
