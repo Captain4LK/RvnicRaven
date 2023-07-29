@@ -39,14 +39,16 @@ static void world_load_base_file(World *world);
 
 World *world_new(const char *name, World_size size)
 {
-   if(name==NULL)
-      return NULL;
+   World *w = NULL;
 
-   World *w = RvR_malloc(sizeof(*w), "World struct");
+   RvR_error_check(name!=NULL, "world_new", "world name is null\n");
+
+   w = RvR_malloc(sizeof(*w), "World struct");
    memset(w, 0, sizeof(*w));
 
    util_mkdir("saves");
-   snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
+   int res = snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
+   RvR_error_check(res<UTIL_PATH_MAX, "world_new", "world base path truncated, path too long\n");
    util_mkdir(w->base_path);
 
    //Create files
@@ -61,16 +63,32 @@ World *world_new(const char *name, World_size size)
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
 
    return w;
+
+RvR_err:
+
+   if(w!=NULL)
+   {
+      if(w->regions!=NULL)
+         RvR_free(w->regions);
+      if(w->region_map!=NULL)
+         RvR_free(w->region_map);
+
+      RvR_free(w);
+   }
+
+   return NULL;
 }
 
 World *world_load(const char *name)
 {
-   if(name==NULL)
-      return NULL;
+   World *w = NULL;
 
-   World *w = RvR_malloc(sizeof(*w),"World struct");
+   RvR_error_check(name!=NULL, "world_load", "world name is null\n");
+
+   w = RvR_malloc(sizeof(*w),"World struct");
    memset(w,0,sizeof(*w));
-   snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
+   int res = snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
+   RvR_error_check(res<UTIL_PATH_MAX, "world_load", "world base path truncated, path too long\n");
 
    world_load_base_file(w);
 
@@ -79,6 +97,20 @@ World *world_load(const char *name)
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
 
    return w;
+
+RvR_err:
+
+   if(w!=NULL)
+   {
+      if(w->regions!=NULL)
+         RvR_free(w->regions);
+      if(w->region_map!=NULL)
+         RvR_free(w->region_map);
+
+      RvR_free(w);
+   }
+
+   return NULL;
 }
 
 void world_free(World *w)
@@ -108,10 +140,14 @@ unsigned world_size_to_dim(World_size size)
 
 static void world_create_base_file(World *world)
 {
-   char path[UTIL_PATH_MAX];
-   snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
-
    RvR_rw rw = {0};
+
+   RvR_error_check(world!=NULL,"world_create_base_file","world is null\n");
+
+   char path[UTIL_PATH_MAX];
+   int res = snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
+   RvR_error_check(res<UTIL_PATH_MAX, "world_create_base_file", "world base file path truncated, path too long\n");
+
    RvR_rw_init_path(&rw,path,"wb");
 
    //Version
@@ -121,20 +157,40 @@ static void world_create_base_file(World *world)
    RvR_rw_write_u32(&rw,world->size);
 
    RvR_rw_close(&rw);
+
+RvR_err:
+
+   if(RvR_rw_valid(&rw))
+      RvR_rw_close(&rw);
+
+   return;
 }
 
 static void world_load_base_file(World *world)
 {
-   char path[UTIL_PATH_MAX];
-   snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
-
    RvR_rw rw = {0};
+
+   RvR_error_check(world!=NULL,"world_load_base_file","world is null\n");
+
+   char path[UTIL_PATH_MAX];
+   int res = snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
+   RvR_error_check(res<UTIL_PATH_MAX, "world_load_base_file", "world base file path truncated, path too long\n");
+
    RvR_rw_init_path(&rw,path,"rb");
 
    uint32_t version = RvR_rw_read_u32(&rw);
+   RvR_error_check(version==0, "world_load_base_file", "version mismatch, expected version 0, got version %d\n", version);
 
    world->size = RvR_rw_read_u32(&rw);
+   RvR_error_check(world->size>=0&&world->size<=2, "world_load_base_file", "invalid world size %d, only 0,1,2 supported\n", world->size);
 
    RvR_rw_close(&rw);
+
+RvR_err:
+
+   if(RvR_rw_valid(&rw))
+      RvR_rw_close(&rw);
+
+   return;
 }
 //-------------------------------------
