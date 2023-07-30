@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
 #include "RvR/RvR.h"
 
 //Sigh...
@@ -41,16 +42,32 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #ifdef _WIN32
 
-void util_mkdir(const char *path)
+int util_mkdir(const char *path)
 {
-   _mkdir(path);
+   int res = _mkdir(path);
+   if(res==-1)
+   {
+      if(errno==EEXIST)
+         return 1;
+      return -1;
+   }
+
+   return 0;
 }
 
 #else
 
-void util_mkdir(const char *path)
+int util_mkdir(const char *path)
 {
-   mkdir(path, 0755);
+   int res = mkdir(path,0755);
+   if(res==-1)
+   {
+      if(errno==EEXIST)
+         return 1;
+      return -1;
+   }
+
+   return 0;
 }
 
 #endif

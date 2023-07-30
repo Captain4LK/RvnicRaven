@@ -14,6 +14,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define UTIL_PATH_MAX 1024
 
-void util_mkdir(const char *path);
+//0 on success
+//-1 on failure
+//1 if already exists
+int util_mkdir(const char *path);
 
 #endif

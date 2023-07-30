@@ -46,10 +46,12 @@ World *world_new(const char *name, World_size size)
    w = RvR_malloc(sizeof(*w), "World struct");
    memset(w, 0, sizeof(*w));
 
-   util_mkdir("saves");
-   int res = snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
+   int res = util_mkdir("saves");
+   RvR_error_check(res>=0,"world_new","failed to create directory \"saves\"\n");
+   res = snprintf(w->base_path, UTIL_PATH_MAX, "./saves/%s", name);
    RvR_error_check(res<UTIL_PATH_MAX, "world_new", "world base path truncated, path too long\n");
-   util_mkdir(w->base_path);
+   res = util_mkdir(w->base_path);
+   RvR_error_check(res>=0,"world_new","failed to create directory \"%s\"\n",w->base_path);
 
    //Create files
    //-------------------------------------
