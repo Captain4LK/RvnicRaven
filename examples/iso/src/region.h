@@ -18,7 +18,7 @@ void region_file_load(World *w);
 void region_file_create(World *w);
 
 Region *region_create(World *w, unsigned x, unsigned y);
-Region *region_load(World *w, unsigned x, unsigned y);
+Region *region_get(World *w, unsigned x, unsigned y);
 void region_save(World *w, unsigned x, unsigned y);
 
 #endif
