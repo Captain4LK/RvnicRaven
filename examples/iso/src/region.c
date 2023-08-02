@@ -234,6 +234,64 @@ RvR_err:
 
 void region_save(World *w, unsigned x, unsigned y)
 {
-   //TODO
+   RvR_rw rw = {0};
+   RvR_rw rw_comp = {0};
+   RvR_rw rw_comp_out = {0};
+   uint8_t *comp_out = NULL;
+
+   unsigned dim = world_size_to_dim(w->size);
+   RvR_error_check(x<dim,"region_save","region x position %u out of bounds, dimension is %u\n",x,dim);
+   RvR_error_check(y<dim,"region_save","region y position %u out of bounds, dimension is %u\n",y,dim);
+
+   RvR_error_check(w->regions[y*dim+x]!=NULL,"region_save","region %u,%u isn't loaded\n",x,y);
+
+   //Compress
+   //-------------------------------------
+   int32_t size = 32*32*2;
+   if(region_buffer==NULL||region_buffer_size<size)
+   {
+      region_buffer = RvR_realloc(region_buffer,size,"Region buffer");
+      region_buffer_size = size;
+   }
+
+   RvR_mem_tag_set(region_buffer,RVR_MALLOC_STATIC);
+   RvR_mem_usr_set(region_buffer,(void **)&region_buffer);
+
+   RvR_rw_init_mem(&rw_comp,region_buffer,size,0);
+   for(int i = 0;i<32*32;i++)
+      RvR_rw_write_u16(&rw_comp,w->regions[y*dim+x]->tiles[i]);
+   RvR_rw_close(&rw_comp);
+
+   RvR_mem_tag_set(region_buffer,RVR_MALLOC_CACHE);
+   //-------------------------------------
+
+   //Check region offset
+   //-1 --> not in file, can just write at back
+   int32_t offset = w->region_file.offset[y*dim+x];
+
+   //Append at back
+   if(offset==-1)
+   {
+      offset = w->region_file.offset_next;
+
+      return;
+   }
+
+RvR_err:
+
+   if(comp_out!=NULL)
+      RvR_free(comp_out);
+
+   if(RvR_rw_valid(&rw))
+      RvR_rw_close(&rw);
+
+   if(RvR_rw_valid(&rw_comp))
+      RvR_rw_close(&rw_comp);
+
+   //Changing tags to cache needs to be done last!
+   if(region_buffer!=NULL)
+      RvR_mem_tag_set(region_buffer,RVR_MALLOC_CACHE);
+
+   return;
 }
 //-------------------------------------
