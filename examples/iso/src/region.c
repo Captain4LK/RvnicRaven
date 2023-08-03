@@ -262,31 +262,93 @@ void region_save(World *w, unsigned x, unsigned y)
       RvR_rw_write_u16(&rw_comp,w->regions[y*dim+x]->tiles[i]);
    RvR_rw_close(&rw_comp);
 
+   RvR_rw_init_dyn_mem(&rw_comp_out,size,1);
+   RvR_crush_compress(&rw_comp,&rw_comp_out,9);
+   RvR_rw_seek(&rw_comp_out,0,SEEK_END);
+   size = RvR_rw_tell(&rw_comp_out);
+   RvR_rw_seek(&rw_comp_out,0,SEEK_SET);
+   comp_out = rw_comp_out.as.dmem.mem;
+
    RvR_mem_tag_set(region_buffer,RVR_MALLOC_CACHE);
    //-------------------------------------
 
    //Check region offset
    //-1 --> not in file, can just write at back
    int32_t offset = w->region_file.offset[y*dim+x];
+   RvR_rw_init_path(&rw,w->region_file.path,"ab+");
 
    //Append at back
    if(offset==-1)
    {
       offset = w->region_file.offset_next;
+      w->region_file.offset_next+=size+1;
+      w->region_file.offset[y*dim+x] = offset;
+
+      //Rewrite indices in file
+      RvR_rw_seek(&rw,8,SEEK_SET);
+      RvR_rw_write_u32(&rw,w->region_file.offset_next);
+      for(int i = 0;i<dim*dim;i++)
+         RvR_rw_write_u32(&rw,w->region_file.offset[i]);
+
+      RvR_rw_seek(&rw,offset,SEEK_SET);
+
+      //Write size
+      RvR_rw_write_u32(&rw,size);
+
+      //Write data
+      RvR_rw_write(&rw,comp_out,1,size);
 
       return;
    }
 
+   //Get old size
+   RvR_rw_seek(&rw,offset,SEEK_SET);
+   int32_t size_old = RvR_rw_read_u32(&rw);
+
+   //TODO(Captain4LK): maybe also move to the left if smaller?
+   if(size>size_old)
+   {
+      //Adjust indices after current block
+      for(int i = 0;i<dim*dim;i++)
+         if(w->region_file.offset[i]>offset)
+            w->region_file.offset[i]+=size-size_old;
+      w->region_file.offset_next+=size-size_old;
+
+      //Rewrite indices in file
+      RvR_rw_seek(&rw,8,SEEK_SET);
+      RvR_rw_write_u32(&rw,w->region_file.offset_next);
+      for(int i = 0;i<dim*dim;i++)
+         RvR_rw_write_u32(&rw,w->region_file.offset[i]);
+
+      //Move data by (size-old_size) bytes
+      RvR_rw_seek(&rw,0,SEEK_END);
+      int32_t to_move = size_old-offset;
+      int32_t move_by = size-size_old;
+      int32_t pos = size_old;
+      for(int i = 0;i<=to_move/2048;i++)
+      {
+         int32_t block = RvR_min(2048,pos-offset);
+         pos-=block;
+      }
+   }
+
+   //Write new data
+   RvR_rw_seek(&rw,offset,SEEK_SET);
+   RvR_rw_write_u32(&rw,size);
+   RvR_rw_write(&rw,comp_out,1,size);
+
+   RvR_rw_close(&rw_comp_out);
+
 RvR_err:
-
-   if(comp_out!=NULL)
-      RvR_free(comp_out);
-
    if(RvR_rw_valid(&rw))
       RvR_rw_close(&rw);
 
    if(RvR_rw_valid(&rw_comp))
       RvR_rw_close(&rw_comp);
+
+
+   if(RvR_rw_valid(&rw_comp_out))
+      RvR_rw_close(&rw_comp_out);
 
    //Changing tags to cache needs to be done last!
    if(region_buffer!=NULL)
