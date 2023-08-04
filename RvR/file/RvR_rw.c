@@ -145,7 +145,7 @@ void RvR_rw_close(RvR_rw *rw)
 
    if(rw->type==RVR_RW_STD_FILE_PATH)
       fclose(rw->as.fp);
-   if(rw->type==RVR_RW_DYN_MEM)
+   else if(rw->type==RVR_RW_DYN_MEM)
       RvR_free(rw->as.dmem.mem);
    else if(rw->type==RVR_RW_USR)
       rw->as.usr.flush(rw);

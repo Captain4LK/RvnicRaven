@@ -127,7 +127,7 @@ Region *region_create(World *w, unsigned x, unsigned y)
    r = RvR_malloc(sizeof(*r), "Region struct");
    memset(r, 0, sizeof(*r));
 
-   w->regions[x * dim + y] = r;
+   w->regions[y * dim + x] = r;
    RvR_mem_tag_set(r, RVR_MALLOC_CACHE);
    RvR_mem_usr_set(r, (void **)&w->regions[x * dim + y]);
    return r;
@@ -244,6 +244,7 @@ void region_save(World *w, unsigned x, unsigned y)
    RvR_error_check(y<dim,"region_save","region y position %u out of bounds, dimension is %u\n",y,dim);
 
    RvR_error_check(w->regions[y*dim+x]!=NULL,"region_save","region %u,%u isn't loaded\n",x,y);
+   RvR_mem_tag_set(w->regions[y*dim+x],RVR_MALLOC_STATIC);
 
    //Compress
    //-------------------------------------
@@ -260,14 +261,15 @@ void region_save(World *w, unsigned x, unsigned y)
    RvR_rw_init_mem(&rw_comp,region_buffer,size,0);
    for(int i = 0;i<32*32;i++)
       RvR_rw_write_u16(&rw_comp,w->regions[y*dim+x]->tiles[i]);
-   RvR_rw_close(&rw_comp);
 
    RvR_rw_init_dyn_mem(&rw_comp_out,size,1);
-   RvR_crush_compress(&rw_comp,&rw_comp_out,9);
+   RvR_crush_compress(&rw_comp,&rw_comp_out,10);
    RvR_rw_seek(&rw_comp_out,0,SEEK_END);
    size = RvR_rw_tell(&rw_comp_out);
    RvR_rw_seek(&rw_comp_out,0,SEEK_SET);
    comp_out = rw_comp_out.as.dmem.mem;
+
+   RvR_rw_close(&rw_comp);
 
    RvR_mem_tag_set(region_buffer,RVR_MALLOC_CACHE);
    //-------------------------------------
@@ -275,13 +277,13 @@ void region_save(World *w, unsigned x, unsigned y)
    //Check region offset
    //-1 --> not in file, can just write at back
    int32_t offset = w->region_file.offset[y*dim+x];
-   RvR_rw_init_path(&rw,w->region_file.path,"ab+");
+   RvR_rw_init_path(&rw,w->region_file.path,"rb+");
 
    //Append at back
    if(offset==-1)
    {
       offset = w->region_file.offset_next;
-      w->region_file.offset_next+=size+1;
+      w->region_file.offset_next+=size+4;
       w->region_file.offset[y*dim+x] = offset;
 
       //Rewrite indices in file
@@ -297,6 +299,10 @@ void region_save(World *w, unsigned x, unsigned y)
 
       //Write data
       RvR_rw_write(&rw,comp_out,1,size);
+
+      RvR_rw_close(&rw_comp_out);
+      RvR_rw_close(&rw);
+      RvR_mem_tag_set(w->regions[y*dim+x],RVR_MALLOC_CACHE);
 
       return;
    }
@@ -322,14 +328,31 @@ void region_save(World *w, unsigned x, unsigned y)
 
       //Move data by (size-old_size) bytes
       RvR_rw_seek(&rw,0,SEEK_END);
-      int32_t to_move = size_old-offset;
-      int32_t move_by = size-size_old;
-      int32_t pos = size_old;
+      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_new = file_size_old+(size-size_old);
+
+      int32_t to_move = file_size_old-offset;
+      int32_t pos_read = file_size_old;
+      int32_t pos_write = file_size_new;
       for(int i = 0;i<=to_move/2048;i++)
       {
-         int32_t block = RvR_min(2048,pos-offset);
-         pos-=block;
+         int32_t block = RvR_min(2048,pos_read-offset);
+         uint8_t buffer[2048];
+
+         //Read
+         RvR_rw_seek(&rw,pos_read-block,SEEK_SET);
+         RvR_rw_read(&rw,buffer,block,1);
+
+         //Write
+         RvR_rw_seek(&rw,pos_write-block,SEEK_SET);
+         RvR_rw_write(&rw,buffer,block,1);
+
+         pos_read-=block;
+         pos_write-=block;
       }
+   }
+   else
+   {
    }
 
    //Write new data
@@ -338,6 +361,8 @@ void region_save(World *w, unsigned x, unsigned y)
    RvR_rw_write(&rw,comp_out,1,size);
 
    RvR_rw_close(&rw_comp_out);
+   RvR_rw_close(&rw);
+   RvR_mem_tag_set(w->regions[y*dim+x],RVR_MALLOC_CACHE);
 
 RvR_err:
    if(RvR_rw_valid(&rw))
@@ -353,6 +378,9 @@ RvR_err:
    //Changing tags to cache needs to be done last!
    if(region_buffer!=NULL)
       RvR_mem_tag_set(region_buffer,RVR_MALLOC_CACHE);
+
+   if(w->regions[y*dim+x]!=NULL)
+      RvR_mem_tag_set(w->regions[y*dim+x],RVR_MALLOC_CACHE);
 
    return;
 }
