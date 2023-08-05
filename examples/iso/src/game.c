@@ -29,6 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "turn.h"
 #include "item.h"
 #include "region.h"
+#include "util.h"
 #include "spiral_path.h"
 //-------------------------------------
 
@@ -157,26 +158,30 @@ void game_init()
    for(int i = 0;i<dim*dim;i++)
    {
       Region *r = region_create(world,i%dim,i/dim);
+      for(int j = 0;j<32*32;j++)
+         r->tiles[j] = rand();
+      r->tiles[0] = i;
       region_save(world,i%dim,i/dim);
    }
 
    Region *r = region_get(world,0,0);
-   r->tiles[0] = 1;
-   r->tiles[2] = 1;
+   memset(r->tiles,0,sizeof(r->tiles));
+   //r->tiles[0] = 1;
+   //r->tiles[2] = 1;
    region_save(world,0,0);
 
    for(int i = 0;i<dim*dim;i++)
    {
       Region *r = region_get(world,i%dim,i/dim);
       int check = 1;
-      for(int j = 0;j<32*32;j++)
-      {
-         if(r->tiles[j]!=0)
+      //for(int j = 0;j<32*32;j++)
+      //{
+         if(r->tiles[0]!=i)
          {
             check = 0;
-            break;
+            //break;
          }
-      }
+      //}
 
       if(!check)
          printf("Mismatch in %d %d\n",i%dim,i/dim);

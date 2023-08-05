@@ -29,7 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static uint8_t *region_buffer = NULL;
-static size_t region_buffer_size = 0;
+static int32_t region_buffer_size = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -253,12 +253,13 @@ void region_save(World *w, unsigned x, unsigned y)
    {
       region_buffer = RvR_realloc(region_buffer,size,"Region buffer");
       region_buffer_size = size;
+      RvR_mem_usr_set(region_buffer,(void **)&region_buffer);
    }
 
    RvR_mem_tag_set(region_buffer,RVR_MALLOC_STATIC);
-   RvR_mem_usr_set(region_buffer,(void **)&region_buffer);
-
    RvR_rw_init_mem(&rw_comp,region_buffer,size,0);
+
+   //Write region data
    for(int i = 0;i<32*32;i++)
       RvR_rw_write_u16(&rw_comp,w->regions[y*dim+x]->tiles[i]);
 
@@ -266,11 +267,9 @@ void region_save(World *w, unsigned x, unsigned y)
    RvR_crush_compress(&rw_comp,&rw_comp_out,10);
    RvR_rw_seek(&rw_comp_out,0,SEEK_END);
    size = RvR_rw_tell(&rw_comp_out);
-   RvR_rw_seek(&rw_comp_out,0,SEEK_SET);
    comp_out = rw_comp_out.as.dmem.mem;
 
    RvR_rw_close(&rw_comp);
-
    RvR_mem_tag_set(region_buffer,RVR_MALLOC_CACHE);
    //-------------------------------------
 
@@ -279,65 +278,51 @@ void region_save(World *w, unsigned x, unsigned y)
    int32_t offset = w->region_file.offset[y*dim+x];
    RvR_rw_init_path(&rw,w->region_file.path,"rb+");
 
-   //Append at back
+   //Get old size of block
+   RvR_rw_seek(&rw,offset,SEEK_SET);
+   int32_t size_old = RvR_rw_read_u32(&rw);
+
+   //Adjust indices
+   //-------------------------------------
    if(offset==-1)
    {
       offset = w->region_file.offset_next;
       w->region_file.offset_next+=size+4;
       w->region_file.offset[y*dim+x] = offset;
-
-      //Rewrite indices in file
-      RvR_rw_seek(&rw,8,SEEK_SET);
-      RvR_rw_write_u32(&rw,w->region_file.offset_next);
-      for(int i = 0;i<dim*dim;i++)
-         RvR_rw_write_u32(&rw,w->region_file.offset[i]);
-
-      RvR_rw_seek(&rw,offset,SEEK_SET);
-
-      //Write size
-      RvR_rw_write_u32(&rw,size);
-
-      //Write data
-      RvR_rw_write(&rw,comp_out,1,size);
-
-      RvR_rw_close(&rw_comp_out);
-      RvR_rw_close(&rw);
-      RvR_mem_tag_set(w->regions[y*dim+x],RVR_MALLOC_CACHE);
-
-      return;
    }
-
-   //Get old size
-   RvR_rw_seek(&rw,offset,SEEK_SET);
-   int32_t size_old = RvR_rw_read_u32(&rw);
-
-   //TODO(Captain4LK): maybe also move to the left if smaller?
-   if(size>size_old)
+   else
    {
-      //Adjust indices after current block
       for(int i = 0;i<dim*dim;i++)
          if(w->region_file.offset[i]>offset)
             w->region_file.offset[i]+=size-size_old;
       w->region_file.offset_next+=size-size_old;
+   }
 
-      //Rewrite indices in file
-      RvR_rw_seek(&rw,8,SEEK_SET);
-      RvR_rw_write_u32(&rw,w->region_file.offset_next);
-      for(int i = 0;i<dim*dim;i++)
-         RvR_rw_write_u32(&rw,w->region_file.offset[i]);
+   //Rewrite indices in file
+   RvR_rw_seek(&rw,8,SEEK_SET);
+   RvR_rw_write_u32(&rw,w->region_file.offset_next);
+   for(int i = 0;i<dim*dim;i++)
+      RvR_rw_write_u32(&rw,w->region_file.offset[i]);
+   //-------------------------------------
 
+   //Move blocks
+   //-------------------------------------
+   if(size>size_old)
+   {
       //Move data by (size-old_size) bytes
       RvR_rw_seek(&rw,0,SEEK_END);
       int32_t file_size_old = RvR_rw_tell(&rw);
       int32_t file_size_new = file_size_old+(size-size_old);
 
+      util_truncate(&rw,file_size_new);
+
       int32_t to_move = file_size_old-offset;
       int32_t pos_read = file_size_old;
       int32_t pos_write = file_size_new;
-      for(int i = 0;i<=to_move/2048;i++)
+      for(int i = 0;i<=to_move/4096;i++)
       {
-         int32_t block = RvR_min(2048,pos_read-offset);
-         uint8_t buffer[2048];
+         int32_t block = RvR_min(4096,pos_read-offset);
+         uint8_t buffer[4096];
 
          //Read
          RvR_rw_seek(&rw,pos_read-block,SEEK_SET);
@@ -351,9 +336,38 @@ void region_save(World *w, unsigned x, unsigned y)
          pos_write-=block;
       }
    }
-   else
+   else if(size<size_old)
    {
+      //Move data by (size-old_size) bytes
+      //Different to above, since we need to move from left
+      //instead of from right
+      RvR_rw_seek(&rw,0,SEEK_END);
+      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_new = file_size_old+(size-size_old);
+
+      int32_t to_move = file_size_old-offset;
+      int32_t pos_read = offset+size_old;
+      int32_t pos_write = offset+size;
+      for(int i = 0;i<=to_move/4096;i++)
+      {
+         int32_t block = RvR_min(4096,file_size_old-pos_read);
+         uint8_t buffer[4096];
+
+         //Read
+         RvR_rw_seek(&rw,pos_read+block,SEEK_SET);
+         RvR_rw_read(&rw,buffer,block,1);
+
+         //Write
+         RvR_rw_seek(&rw,pos_write+block,SEEK_SET);
+         RvR_rw_write(&rw,buffer,block,1);
+
+         pos_read+=block;
+         pos_write+=block;
+      }
+
+      util_truncate(&rw,file_size_new);
    }
+   //-------------------------------------
 
    //Write new data
    RvR_rw_seek(&rw,offset,SEEK_SET);
@@ -370,7 +384,6 @@ RvR_err:
 
    if(RvR_rw_valid(&rw_comp))
       RvR_rw_close(&rw_comp);
-
 
    if(RvR_rw_valid(&rw_comp_out))
       RvR_rw_close(&rw_comp_out);

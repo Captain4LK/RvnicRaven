@@ -19,4 +19,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //1 if already exists
 int util_mkdir(const char *path);
 
+//0 on success
+//-1 on failure
+int util_truncate(RvR_rw *rw, int32_t len);
+
 #endif

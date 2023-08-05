@@ -16,6 +16,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, uint8_t dimz, uint16_t id);
 Area *area_load(World *w, uint16_t id);
+void area_save(World *w, Area *a);
+
 uint32_t area_tile(const Area *a, int x, int y, int z);
 void area_set_tile(Area *a, int x, int y, int z, uint32_t tile);
 
