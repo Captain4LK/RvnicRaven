@@ -119,6 +119,9 @@ void game_update()
    case 3: player.cam.x = -player.e->y + area->dimy * 32 - 1 + 4; player.cam.y = player.e->x - 24; break;
    }
    //-------------------------------------
+
+   if(RvR_key_pressed(RVR_KEY_P))
+      area_save(world,area);
 }
 
 void game_draw()
@@ -146,7 +149,8 @@ void game_draw()
 void game_init()
 {
    world = world_new("test", WORLD_SMALL);
-   area = area_create(world, 0, 0, 1, 2, 1, 0);
+   area = area_load(world,0);
+   //area = area_create(world, 0, 0, 1, 2, 1, 0);
    player_new(world, area);
 
    player.cam.x = 16;
