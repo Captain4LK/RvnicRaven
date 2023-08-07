@@ -212,10 +212,14 @@ void area_save(World *w, Area *a)
    RvR_rw rw_comp = {0};
    RvR_rw rw_comp_out = {0};
 
+   RvR_error_check(w!=NULL,"area_save","world is null\n");
+   RvR_error_check(a!=NULL,"area_save","area is null\n");
+
    uint8_t *comp_out = NULL;
    int file_id = a->id/64;
    char path[UTIL_PATH_MAX];
-   snprintf(path,UTIL_PATH_MAX,"%s/regions%05d.dat",w->base_path,file_id);
+   int res = snprintf(path,UTIL_PATH_MAX,"%s/regions%05d.dat",w->base_path,file_id);
+   RvR_error_check(res<UTIL_PATH_MAX, "area_load", "area file name truncated, path too long\n");
 
    //Read offsets
    RvR_rw_init_path(&rw,path,"rb+");
@@ -223,6 +227,8 @@ void area_save(World *w, Area *a)
    {
       //File doesn't exist
       RvR_rw_init_path(&rw,path,"wb");
+      RvR_error_check(RvR_rw_valid(&rw),"area_save","failed to create file '%s'\n",path);
+
       RvR_rw_write_u32(&rw,0);
       RvR_rw_write_u32(&rw,264);
       for(int i = 0;i<64;i++)
@@ -233,6 +239,8 @@ void area_save(World *w, Area *a)
    }
 
    uint32_t version = RvR_rw_read_u32(&rw);
+   RvR_error_check(version==0,"area_save","version mismatch, expected version 0, got version %d\n",version);
+
    int32_t offset_next = RvR_rw_read_u32(&rw);
    int32_t offsets[64];
    for(int i = 0;i<64;i++)

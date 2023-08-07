@@ -44,6 +44,13 @@ typedef struct
 typedef struct
 {
    uint16_t tiles[32 * 32];
+
+   //Edge points duplicated
+   //-1 for uninitialized
+   int32_t elevation[33 * 33];
+   int32_t temperature[33 * 33];
+   int32_t rainfall[33 * 33];
+   int32_t pet[33*33];
 }Region;
 
 typedef struct
@@ -67,6 +74,8 @@ typedef struct
    //Sparse array of regions --> cached
    Region **regions;
    uint16_t *region_map;
+
+
 }World;
 
 #endif
