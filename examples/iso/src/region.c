@@ -195,6 +195,8 @@ Region *region_get(World *w, unsigned x, unsigned y)
    //Read tiles
    for(int i = 0;i<32*32;i++)
       r->tiles[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0;i<33*33;i++)
+      r->elevation[i] = RvR_rw_read_u32(&rw_reg);
 
    RvR_rw_close(&rw_reg);
    //-------------------------------------
@@ -249,6 +251,7 @@ void region_save(World *w, unsigned x, unsigned y)
    //Compress
    //-------------------------------------
    int32_t size = 32*32*2;
+   size+=33*33*4;
    if(region_buffer==NULL||region_buffer_size<size)
    {
       region_buffer = RvR_realloc(region_buffer,size,"Region buffer");
@@ -262,6 +265,8 @@ void region_save(World *w, unsigned x, unsigned y)
    //Write region data
    for(int i = 0;i<32*32;i++)
       RvR_rw_write_u16(&rw_comp,w->regions[y*dim+x]->tiles[i]);
+   for(int i = 0;i<33*33;i++)
+      RvR_rw_write_u32(&rw_comp,w->regions[y*dim+x]->elevation[i]);
 
    RvR_rw_init_dyn_mem(&rw_comp_out,size,1);
    RvR_crush_compress(&rw_comp,&rw_comp_out,10);

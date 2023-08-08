@@ -50,7 +50,6 @@ typedef struct
    int32_t elevation[33 * 33];
    int32_t temperature[33 * 33];
    int32_t rainfall[33 * 33];
-   int32_t pet[33*33];
 }Region;
 
 typedef struct

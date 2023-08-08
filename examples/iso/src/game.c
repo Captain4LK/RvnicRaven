@@ -20,6 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 #include "entity_defs.h"
 #include "world.h"
+#include "world_gen.h"
 #include "area_draw.h"
 #include "area.h"
 #include "action.h"
@@ -149,9 +150,15 @@ void game_draw()
 void game_init()
 {
    world = world_new("test", WORLD_SMALL);
-   area = area_load(world,0);
-   //area = area_create(world, 0, 0, 1, 2, 1, 0);
+   //area = area_load(world,0);
+   area = area_create(world, 0, 0, 1, 2, 1, 0);
    player_new(world, area);
+
+   WorldGen_preset preset = {0};
+   preset.lakes_deep = 8;
+   preset.lakes_shallow = 0;
+   preset.mountains_high = 16;
+   world_gen(world,0,&preset);
 
    player.cam.x = 16;
    player.cam.y = 0;
@@ -159,6 +166,7 @@ void game_init()
    player.cam.z_cutoff = 0;
 
    unsigned dim = world_size_to_dim(world->size);
+   /*unsigned dim = world_size_to_dim(world->size);
    for(int i = 0;i<dim*dim;i++)
    {
       Region *r = region_create(world,i%dim,i/dim);
@@ -166,15 +174,15 @@ void game_init()
          r->tiles[j] = rand();
       r->tiles[0] = i;
       region_save(world,i%dim,i/dim);
-   }
+   }*/
 
-   Region *r = region_get(world,0,0);
-   memset(r->tiles,0,sizeof(r->tiles));
+   //Region *r = region_get(world,0,0);
+   //memset(r->tiles,0,sizeof(r->tiles));
    //r->tiles[0] = 1;
    //r->tiles[2] = 1;
-   region_save(world,0,0);
+   //region_save(world,0,0);
 
-   for(int i = 0;i<dim*dim;i++)
+   /*for(int i = 0;i<dim*dim;i++)
    {
       Region *r = region_get(world,i%dim,i/dim);
       int check = 1;
@@ -189,7 +197,7 @@ void game_init()
 
       if(!check)
          printf("Mismatch in %d %d\n",i%dim,i/dim);
-   }
+   }*/
 }
 
 void game_set()

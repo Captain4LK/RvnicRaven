@@ -14,6 +14,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "world_defs.h"
 
-void world_gen(World *w, uint32_t seed);
+typedef struct
+{
+   unsigned lakes_deep;
+   unsigned lakes_shallow;
+   unsigned lakes_rand;
+
+   unsigned mountains_high;
+   unsigned mountains_medium;
+}WorldGen_preset;
+
+void world_gen(World *w, uint32_t seed, WorldGen_preset *preset);
 
 #endif

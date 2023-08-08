@@ -14,8 +14,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Dynamic array
 //------------------------------------
-#define RvR_array_push(a, o) (RvR_array_maygrow(a, 1), (a)[RvR_array_header(a)->length++] = (o))
-#define RvR_array_length(a) ((a)!=NULL?RvR_array_header(a)->length:0)
+#define RvR_array_push(a, o) (RvR_array_maygrow((a), 1), (a)[RvR_array_header(a)->length++] = (o))
+#define RvR_array_length(a) ((a)!=NULL?RvR_array_header((a))->length:0)
 #define RvR_array_length_set(a, n) do { if((a)==NULL) RvR_array_grow(a, n, 0); else RvR_array_maygrow(a, n - RvR_array_header(a)->length); RvR_array_header(a)->length = n; }while(0)
 #define RvR_array_free(a) ((a)!=NULL?(RvR_free(a - RvR_array_header_offset(a)), 0):0)
 

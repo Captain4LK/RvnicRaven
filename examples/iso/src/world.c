@@ -63,6 +63,8 @@ World *world_new(const char *name, World_size size)
    int dim = world_size_to_dim(size);
    w->regions = RvR_malloc(sizeof(*w->regions) * dim * dim, "World regions");
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
+   memset(w->regions,0,sizeof(*w->regions)*dim*dim);
+   memset(w->region_map,0,sizeof(*w->region_map)*dim*dim);
 
    return w;
 
