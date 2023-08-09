@@ -22,6 +22,10 @@ typedef struct
 
    unsigned mountains_high;
    unsigned mountains_medium;
+
+   int32_t var_elevation;
+   int32_t var_temperature;
+   int32_t var_rainfall;
 }WorldGen_preset;
 
 void world_gen(World *w, uint32_t seed, WorldGen_preset *preset);

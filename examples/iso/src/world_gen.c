@@ -32,7 +32,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static int32_t rand_offset(RvR_rand_pcg *rand, int level);
+static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var);
 static void rand_pos_init(int32_t **pos, World *w);
 static void rand_pos_free(int32_t **pos);
 static void rand_pos(RvR_rand_pcg *rand, int32_t **pos, int32_t *x, int32_t *y);
@@ -48,9 +48,13 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
    unsigned dim = world_size_to_dim(w->size);
    int stride = dim*32+1;
    int32_t *elevation = RvR_malloc(sizeof(*elevation)*stride*stride,"Map Gen elevation");
+   int32_t *temperature = RvR_malloc(sizeof(*temperature)*stride*stride,"Map Gen temperature");
+   int32_t *rainfall = RvR_malloc(sizeof(*rainfall)*stride*stride,"Map Gen rainfall");
    for(int i = 0;i<stride*stride;i++)
    {
       elevation[i] = -1;
+      temperature[i] = -1;
+      rainfall[i] = -1;
    }
 
    //Basic parameters
@@ -63,7 +67,10 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
       for(int x = 0;x<=dim;x++)
       {
          //Sea level at 128*1024
-         elevation[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,129*1024,140*1024);
+         elevation[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,124*1024,140*1024);
+
+         temperature[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,16*1024,80*1024);
+         rainfall[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,16*1024,128*1024);
       }
    }
   
@@ -76,6 +83,13 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
       elevation[i*stride+stride-1] = 64*1024;
    }
 
+   //North pole
+   for(int i = 0;i<stride;i++)
+   {
+      temperature[i] = 8*1024;
+      temperature[32*stride+i] = 8*1024;
+   }
+
    int32_t *pos = NULL;
    rand_pos_init(&pos,w);
 
@@ -84,7 +98,7 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
    {
       int x,y;
       rand_pos(&rand,&pos,&x,&y);
-      elevation[y*32*stride+x*32] = 196*1024-RvR_rand_pcg_next_range(&rand,-8192,8192);
+      elevation[y*32*stride+x*32] = 196*1024+RvR_rand_pcg_next_range(&rand,-8192,8192);
    }
 
    //Place n deep lakes
@@ -119,14 +133,25 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
       {
          for(int x = 0;x<dim_level;x++)
          {
-            int32_t c0 = elevation[(y)*dim_rest*stride+(x)*dim_rest];
-            int32_t c1 = elevation[(y)*dim_rest*stride+(x+1)*dim_rest];
-            int32_t c2 = elevation[(y+1)*dim_rest*stride+(x)*dim_rest];
-            int32_t c3 = elevation[(y+1)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t e0 = elevation[(y)*dim_rest*stride+(x)*dim_rest];
+            int32_t e1 = elevation[(y)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t e2 = elevation[(y+1)*dim_rest*stride+(x)*dim_rest];
+            int32_t e3 = elevation[(y+1)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t t0 = temperature[(y)*dim_rest*stride+(x)*dim_rest];
+            int32_t t1 = temperature[(y)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t t2 = temperature[(y+1)*dim_rest*stride+(x)*dim_rest];
+            int32_t t3 = temperature[(y+1)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t r0 = rainfall[(y)*dim_rest*stride+(x)*dim_rest];
+            int32_t r1 = rainfall[(y)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t r2 = rainfall[(y+1)*dim_rest*stride+(x)*dim_rest];
+            int32_t r3 = rainfall[(y+1)*dim_rest*stride+(x+1)*dim_rest];
 
-            //Diamond
             if(elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2]==-1)
-               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (c0+c1+c2+c3)/4+rand_offset(&rand,l);
+               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (e0+e1+e2+e3)/4+rand_offset(&rand,l,preset->var_elevation);
+            if(temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2]==-1)
+               temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (t0+t1+t2+t3)/4+rand_offset(&rand,l,preset->var_temperature);
+            if(rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2]==-1)
+               rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (r0+r1+r2+r3)/4+rand_offset(&rand,l,preset->var_rainfall);
          }
       }
 
@@ -135,34 +160,68 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
       {
          for(int x = 0;x<dim_level;x++)
          {
-            int32_t c0 = elevation[(y)*dim_rest*stride+(x)*dim_rest];
-            int32_t c1 = elevation[(y)*dim_rest*stride+(x+1)*dim_rest];
-            int32_t c2 = elevation[(y+1)*dim_rest*stride+(x)*dim_rest];
-            int32_t c3 = elevation[(y+1)*dim_rest*stride+(x+1)*dim_rest];
-            int32_t d4 = elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
-            int32_t d0 = (c0+c3+d4)/3;
-            int32_t d1 = (c0+c1+d4)/3;
-            int32_t d2 = (c1+c2+d4)/3;
-            int32_t d3 = (c2+c3+d4)/3;
-            if(x>0)
-               d0 = elevation[(y*dim_rest+dim_rest/2)*stride+(x-1)*dim_rest+dim_rest/2];
-            if(y>0)
-               d1 = elevation[((y-1)*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
-            if(x<dim_level-1)
-               d2 = elevation[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest+dim_rest/2];
-            if(y<dim_level-1)
-               d3 = elevation[((y+1)*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
+            int32_t e0 = elevation[(y)*dim_rest*stride+(x)*dim_rest];
+            int32_t e1 = elevation[(y)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t e2 = elevation[(y+1)*dim_rest*stride+(x)*dim_rest];
+            int32_t e3 = elevation[(y+1)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t e4 = elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
+            int32_t e5 = (e0+e3+e4)/3;
+            int32_t e6 = (e0+e1+e4)/3;
+            int32_t t0 = temperature[(y)*dim_rest*stride+(x)*dim_rest];
+            int32_t t1 = temperature[(y)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t t2 = temperature[(y+1)*dim_rest*stride+(x)*dim_rest];
+            int32_t t3 = temperature[(y+1)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t t4 = temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
+            int32_t t5 = (t0+t3+t4)/3;
+            int32_t t6 = (t0+t1+t4)/3;
+            int32_t r0 = rainfall[(y)*dim_rest*stride+(x)*dim_rest];
+            int32_t r1 = rainfall[(y)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t r2 = rainfall[(y+1)*dim_rest*stride+(x)*dim_rest];
+            int32_t r3 = rainfall[(y+1)*dim_rest*stride+(x+1)*dim_rest];
+            int32_t r4 = rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
+            int32_t r5 = (r0+r3+r4)/3;
+            int32_t r6 = (r0+r1+r4)/3;
 
-            //Square
+            if(x>0)
+            {
+               e5 = elevation[(y*dim_rest+dim_rest/2)*stride+(x-1)*dim_rest+dim_rest/2];
+               t5 = temperature[(y*dim_rest+dim_rest/2)*stride+(x-1)*dim_rest+dim_rest/2];
+               r5 = rainfall[(y*dim_rest+dim_rest/2)*stride+(x-1)*dim_rest+dim_rest/2];
+            }
+            if(y>0)
+            {
+               e6 = elevation[((y-1)*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
+               t6 = temperature[((y-1)*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
+               r6 = rainfall[((y-1)*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2];
+            }
+
             if(elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest]==-1)
-               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (c0+c3+d0+d4)/4+rand_offset(&rand,l);
+               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (e0+e3+e5+e4)/4+rand_offset(&rand,l,preset->var_elevation);
+            if(temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest]==-1)
+               temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (t0+t3+t5+t4)/4+rand_offset(&rand,l,preset->var_temperature);
+            if(rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest]==-1)
+               rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (r0+r3+r5+r4)/4+rand_offset(&rand,l,preset->var_rainfall);
+
             if(elevation[(y*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               elevation[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (c0+c1+d1+d4)/4+rand_offset(&rand,l);
+               elevation[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (e0+e1+e6+e4)/4+rand_offset(&rand,l,preset->var_elevation);
+            if(temperature[(y*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
+               temperature[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (t0+t1+t6+t4)/4+rand_offset(&rand,l,preset->var_temperature);
+            if(rainfall[(y*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
+               rainfall[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (r0+r1+r6+r4)/4+rand_offset(&rand,l,preset->var_rainfall);
 
             if(x==dim_level-1&&elevation[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest]==-1)
-               elevation[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (c1+c2+d4)/3+rand_offset(&rand,l);
+               elevation[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (e1+e2+e4)/3+rand_offset(&rand,l,preset->var_elevation);
+            if(x==dim_level-1&&temperature[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest]==-1)
+               temperature[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (t1+t2+t4)/3+rand_offset(&rand,l,preset->var_temperature);
+            if(x==dim_level-1&&rainfall[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest]==-1)
+               rainfall[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (r1+r2+r4)/3+rand_offset(&rand,l,preset->var_rainfall);
+
             if(y==dim_level-1&&elevation[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               elevation[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (c2+c3+d4)/3+rand_offset(&rand,l);
+               elevation[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (e2+e3+e4)/3+rand_offset(&rand,l,preset->var_elevation);
+            if(y==dim_level-1&&temperature[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
+               temperature[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (t2+t3+t4)/3+rand_offset(&rand,l,preset->var_temperature);
+            if(y==dim_level-1&&rainfall[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
+               rainfall[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (r2+r3+r4)/3+rand_offset(&rand,l,preset->var_rainfall);
          }
       }
    }
@@ -190,7 +249,35 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
       }
    }
 
-   printf("P3\n%d %d\n255\n",dim*32,dim*32);
+   printf("P3\n%d %d\n255\n",dim*32,dim*32*2);
+   for(int y = 0;y<dim*32;y++)
+   {
+      for(int x = 0;x<dim*32;x++)
+      {
+         int e = elevation[y*stride+x];
+         int t = temperature[y*stride+x];
+         int r = rainfall[y*stride+x];
+         //if(e<128*1024)
+            //printf("0 0 128\n");
+         //else
+         {
+            int biome_y = 5-RvR_min(5,RvR_max(0,t/(16*1024)));
+            int biome_x = RvR_min(7,RvR_max(0,r/(16*1024)));
+
+            uint8_t colors[48][3] = 
+            {
+               {255,255,128},{224,255,128},{192,255,128},{160,255,128},{128,255,128},{96,255,128},{64,255,144},{32,255,160},
+               {224,224,128},{192,224,128},{160,224,128},{128,224,128},{96,224,128},{64,224,144},{32,224,192},{32,224,192},
+               {192,192,128},{160,192,128},{128,192,128},{96,192,128},{64,192,144},{32,192,192},{32,192,192},{32,192,192},
+               {160,160,128},{128,160,128},{96,160,128},{64,160,144},{32,160,192},{32,160,192},{32,160,192},{32,160,192},
+               {128,128,128},{96,128,128},{64,128,144},{32,128,192},{32,128,192},{32,128,192},{32,128,192},{32,128,192},
+               {255,255,255},{255,255,255},{255,255,255},{255,255,255},{255,255,255},{255,255,255},{255,255,255},{255,255,255}
+            };
+
+            printf("%d %d %d ",colors[biome_y*8+biome_x][0],colors[biome_y*8+biome_x][1],colors[biome_y*8+biome_x][2]);
+         }
+      }
+   }
    for(int y = 0;y<dim*32;y++)
    {
       for(int x = 0;x<dim*32;x++)
@@ -200,19 +287,19 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
             printf("0 0 128\n");
          else
          {
+            
             e = RvR_min(255,RvR_max(0,(e-128*1024)/512));
             printf("%d %d %d\n",e,e,e);
          }
-         //printf("%c",elevation[y*stride+x]>128*1024?'#':' ');
       }
    }
 
    RvR_free(elevation);
 }
 
-static int32_t rand_offset(RvR_rand_pcg *rand, int level)
+static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var)
 {
-   return RvR_rand_pcg_next_range(rand,-8192,8192)/(1<<level);
+   return RvR_rand_pcg_next_range(rand,-var,var)/(1<<level);
 }
 
 static void rand_pos_init(int32_t **pos, World *w)

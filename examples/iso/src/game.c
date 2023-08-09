@@ -158,7 +158,10 @@ void game_init()
    preset.lakes_deep = 8;
    preset.lakes_shallow = 0;
    preset.mountains_high = 16;
-   world_gen(world,0,&preset);
+   preset.var_elevation = 8192;
+   preset.var_temperature = 16384;
+   preset.var_rainfall = 16384;
+   world_gen(world,3,&preset);
 
    player.cam.x = 16;
    player.cam.y = 0;
