@@ -69,8 +69,8 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
          //Sea level at 128*1024
          elevation[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,124*1024,140*1024);
 
-         temperature[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,16*1024,80*1024);
-         rainfall[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,16*1024,128*1024);
+         temperature[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,4*1024,80*1024);
+         rainfall[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,4*1024,128*1024);
       }
    }
   
@@ -257,9 +257,9 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
          int e = elevation[y*stride+x];
          int t = temperature[y*stride+x];
          int r = rainfall[y*stride+x];
-         //if(e<128*1024)
-            //printf("0 0 128\n");
-         //else
+         if(e<128*1024)
+            printf("0 0 128\n");
+         else
          {
             int biome_y = 5-RvR_min(5,RvR_max(0,t/(16*1024)));
             int biome_x = RvR_min(7,RvR_max(0,r/(16*1024)));
