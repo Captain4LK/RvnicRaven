@@ -62,9 +62,9 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    a->tiles = RvR_malloc(sizeof(*a->tiles) * (dimx * 32) * (dimy * 32) * (dimz * 32), "Area tiles");
 
    for(int i = 0; i<dimx * 32 * dimy * 32 * dimz * 32; i++)
-      a->tiles[i] = tile_set_discovered(0, 0, 0);
+      a->tiles[i] = tile_set_discovered(0, 1, 1);
 
-   for(int z = 16; z<dimz * 32; z++)
+   /*for(int z = 16; z<dimz * 32; z++)
    {
       for(int x = 0; x<dimx * 32; x++) for(int y = 0; y<dimy * 32; y++)
          {
@@ -92,7 +92,7 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
          area_set_tile(a, x + 8, y + 32, 17, tile_set_discovered(tile_make_wall(0, 0), 0, 0));
    for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
-         area_set_tile(a, x + 8, y + 32, 18, tile_set_discovered(tile_make_wall(0, 0), 0, 0));
+         area_set_tile(a, x + 8, y + 32, 18, tile_set_discovered(tile_make_wall(0, 0), 0, 0));*/
 
    return a;
 

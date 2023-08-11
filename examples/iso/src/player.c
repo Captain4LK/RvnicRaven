@@ -43,9 +43,9 @@ Player player;
 void player_new(World *w, Area *a)
 {
    player.e = entity_new(w);
-   player.e->x = 0;
-   player.e->y = 0;
-   player.e->z = 15;
+   player.e->x = 32;
+   player.e->y = 32;
+   player.e->z = 59;
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    entity_add(a, player.e);

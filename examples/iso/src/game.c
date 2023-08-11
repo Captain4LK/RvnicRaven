@@ -21,6 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "entity_defs.h"
 #include "world.h"
 #include "world_gen.h"
+#include "area_gen.h"
 #include "area_draw.h"
 #include "area.h"
 #include "action.h"
@@ -151,8 +152,7 @@ void game_init()
 {
    world = world_new("test", WORLD_SMALL);
    //area = area_load(world,0);
-   area = area_create(world, 0, 0, 1, 2, 1, 0);
-   player_new(world, area);
+   //area = area_create(world, 0, 0, 1, 2, 1, 0);
 
    WorldGen_preset preset = {0};
    preset.lakes_deep = 8;
@@ -162,6 +162,9 @@ void game_init()
    preset.var_temperature = 2048;
    preset.var_rainfall = 2048;
    world_gen(world,3,&preset);
+
+   area = area_gen(world,&preset,0,128,192,2,2,2,0);
+   player_new(world, area);
 
    player.cam.x = 16;
    player.cam.y = 0;

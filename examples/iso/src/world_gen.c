@@ -295,6 +295,8 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
    }
 
    RvR_free(elevation);
+   RvR_free(temperature);
+   RvR_free(rainfall);
 }
 
 static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var)
