@@ -168,6 +168,39 @@ Area *area_gen(World *w, WorldGen_preset *p, uint32_t seed, int ax, int ay, int 
    RvR_free(rainfall);
 
    //TODO(Captain4LK): slopes
+   for(int y = 0;y<dimy*32;y++)
+   {
+      for(int x = 0;x<dimx*32;x++)
+      {
+         for(int z = 0;z<dimz*32;z++)
+         {
+            uint32_t t = area_tile(a,x,y,z);
+            if(!tile_has_wall(t))
+            {
+               uint8_t index = 0;
+               if(tile_has_wall(area_tile(a,x-1,y,z)))
+                  index|=1;
+               if(tile_has_wall(area_tile(a,x,y-1,z)))
+                  index|=2;
+               if(tile_has_wall(area_tile(a,x+1,y,z)))
+                  index|=4;
+               if(tile_has_wall(area_tile(a,x,y+1,z)))
+                  index|=8;
+
+               if(index!=0)
+               {
+                  uint8_t slope_var[16] = 
+                  {0,2,1,5,
+                   0,0,4,0,
+                   3,6,0,0,
+                   7,0,0,0};
+
+                  area_set_tile(a,x,y,z,tile_set_discovered(tile_make_slope(1,slope_var[index]),1,1));
+               }
+            }
+         }
+      }
+   }
 
    return a;
 }
