@@ -20,6 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_gen.h"
 #include "world.h"
 #include "area.h"
+#include "tile.h"
 #include "region.h"
 //-------------------------------------
 
@@ -186,14 +187,36 @@ Area *area_gen(World *w, WorldGen_preset *p, uint32_t seed, int ax, int ay, int 
                   index|=4;
                if(tile_has_wall(area_tile(a,x,y+1,z)))
                   index|=8;
+               if(tile_has_wall(area_tile(a,x-1,y-1,z)))
+                  index|=16;
+               if(tile_has_wall(area_tile(a,x+1,y-1,z)))
+                  index|=32;
+               if(tile_has_wall(area_tile(a,x+1,y+1,z)))
+                  index|=64;
+               if(tile_has_wall(area_tile(a,x-1,y+1,z)))
+                  index|=128;
 
                if(index!=0)
                {
-                  uint8_t slope_var[16] = 
-                  {0,2,1,5,
-                   0,0,4,0,
-                   3,6,0,0,
-                   7,0,0,0};
+                  uint8_t slope_var[256] = 
+                  {
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     9, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     8, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     11, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     8, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     10, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     11, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                     0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
+                  };
 
                   area_set_tile(a,x,y,z,tile_set_discovered(tile_make_slope(1,slope_var[index]),1,1));
                }

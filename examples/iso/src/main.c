@@ -54,9 +54,6 @@ int main(int argc, char **argv)
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
 
-   int32_t *pos  = NULL;
-   RvR_array_push(pos,0);
-
    state_init(STATE_GAME);
    state_set(STATE_GAME);
 

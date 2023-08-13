@@ -285,7 +285,7 @@ static void fov_lit_angle_set(int x, int y, RvR_fix16 lit_min, RvR_fix16 lit_max
 
 static int fov_transparent(Area *a, Entity *e, int x, int y, int z)
 {
-   return !tile_has_wall(area_tile(a, x, y, z));
+   return !(tile_has_wall(area_tile(a, x, y, z))||tile_is_slope(area_tile(a,x,y,z)));
 }
 
 static void fov_child_first(int x, int y, int *childx, int *childy)

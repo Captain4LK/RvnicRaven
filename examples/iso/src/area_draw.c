@@ -133,7 +133,10 @@ void area_draw_end()
             if(tile_has_draw_slope(tile))
             {
                RvR_texture *tex = RvR_texture_get(tile_slope_texture(tile, cam->rotation));
-               draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - 4 - cy);
+               if(tile_visible_wall(tile))
+                  draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - 4 - cy);
+               else
+                  draw_sprite_bw(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - 4 - cy);
             }
 
             if(tile_has_draw_wall(tile)&&(!tile_has_draw_floor(tile)||!tile_has_draw_wall(front)||!tile_has_draw_wall(right)||z==cam->z_cutoff))

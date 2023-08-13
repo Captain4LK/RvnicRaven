@@ -391,6 +391,8 @@ void region_save(World *w, unsigned x, unsigned y)
    RvR_rw_close(&rw);
    RvR_mem_tag_set(w->regions[y*dim+x],RVR_MALLOC_CACHE);
 
+   return;
+
 RvR_err:
    if(RvR_rw_valid(&rw))
       RvR_rw_close(&rw);

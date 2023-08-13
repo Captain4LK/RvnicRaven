@@ -95,10 +95,13 @@ World *world_load(const char *name)
    RvR_error_check(res<UTIL_PATH_MAX, "world_load", "world base path truncated, path too long\n");
 
    world_load_base_file(w);
+   region_file_load(w);
 
    int dim = world_size_to_dim(w->size);
    w->regions = RvR_malloc(sizeof(*w->regions) * dim * dim, "World regions");
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
+   memset(w->regions,0,sizeof(*w->regions)*dim*dim);
+   memset(w->region_map,0,sizeof(*w->region_map)*dim*dim);
 
    return w;
 

@@ -150,7 +150,8 @@ void game_draw()
 
 void game_init()
 {
-   world = world_new("test", WORLD_SMALL);
+   //world = world_new("test", WORLD_SMALL);
+   world = world_load("test");
    //area = area_load(world,0);
    //area = area_create(world, 0, 0, 1, 2, 1, 0);
 
@@ -161,7 +162,7 @@ void game_init()
    preset.var_elevation = 8192;
    preset.var_temperature = 2048;
    preset.var_rainfall = 2048;
-   world_gen(world,3,&preset);
+   //world_gen(world,3,&preset);
 
    area = area_gen(world,&preset,0,128,192,2,2,2,0);
    player_new(world, area);
