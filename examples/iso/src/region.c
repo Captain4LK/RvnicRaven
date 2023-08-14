@@ -68,6 +68,8 @@ void region_file_load(World *w)
    RvR_rw_close(&rw);
    //-------------------------------------
 
+   return;
+
 RvR_err:
    if(w->region_file.offset!=NULL)
       RvR_free(w->region_file.offset);

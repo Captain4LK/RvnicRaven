@@ -164,7 +164,7 @@ void game_init()
    preset.var_rainfall = 2048;
    //world_gen(world,3,&preset);
 
-   area = area_gen(world,&preset,0,128,192,2,2,2,0);
+   area = area_gen(world,&preset,1,128,192,2,2,2,0);
    player_new(world, area);
 
    player.cam.x = 16;

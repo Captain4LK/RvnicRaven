@@ -204,6 +204,24 @@ unsigned entity_try_move(Area *a, Entity *e, int dir)
       return 1;
    }
 
+   //Moving up slopes
+   if(tile_is_slope(area_tile(a,e->x,e->y,e->z))&&
+      tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z))&&
+      !tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z-1)))
+   {
+      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z-1);
+      return 1;
+   }
+
+   //Moving down slopes
+   if(tile_is_slope(area_tile(a,e->x,e->y,e->z+1))&&
+      !tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z+1))&&
+      !tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z)))
+   {
+      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z+1);
+      return 1;
+   }
+
    return 0;
 }
 
