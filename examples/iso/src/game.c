@@ -42,7 +42,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static World *world;
+World *world;
 static Area *area;
 
 static int redraw = 0;

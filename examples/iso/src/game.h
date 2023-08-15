@@ -12,6 +12,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _GAME_H_
 
+#include "world_defs.h"
+
+extern World *world;
+
 void game_update();
 void game_draw();
 void game_init();
