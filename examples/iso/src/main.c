@@ -56,6 +56,7 @@ int main(int argc, char **argv)
 
    state_init(STATE_GAME);
    state_set(STATE_GAME);
+   state_set(STATE_GAME_MAP);
 
    while(RvR_running())
    {

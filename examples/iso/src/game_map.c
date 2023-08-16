@@ -18,7 +18,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "world_defs.h"
+#include "world.h"
 #include "game.h"
+#include "region.h"
 #include "game_map.h"
 #include "area_draw.h"
 //-------------------------------------
@@ -31,6 +33,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static int redraw = 0;
+static Camera cam;
 //-------------------------------------
 
 //Function prototypes
@@ -40,17 +43,26 @@ static int redraw = 0;
 
 void game_map_update()
 {
+   if(RvR_key_down(RVR_KEY_LEFT))
+      cam.x--;
+   if(RvR_key_down(RVR_KEY_RIGHT))
+      cam.x++;
+   if(RvR_key_down(RVR_KEY_UP))
+      cam.y--;
+   if(RvR_key_down(RVR_KEY_DOWN))
+      cam.y++;
+
+   redraw = 1;
 }
 
 void game_map_draw()
 {
    if(!redraw)
       return;
+
+   RvR_render_clear(0);
    redraw = 0;
 
-   Camera cam;
-   cam.x = 16;
-   cam.y = 16;
    cam.rotation = 0;
    unsigned dim = world_size_to_dim(world->size);
 
@@ -87,11 +99,43 @@ void game_map_draw()
          case 3: tx = y; ty = dim * 32 - 1 - x; txf = tx + 1; tyr = ty + 1; break;
          }
 
-         //uint32_t tile = area_tile(area, tx, ty, z);
+         if(x<0||y<0||x>=dim*32||y>=dim*32)
+            continue;
+         Region *r = region_get(world,x/32,y/32);
+         if(r==NULL)
+            continue;
+
+         int32_t elevation = r->elevation[(y%32)*33+(x%32)]/512;
+         //if(elevation<256)
+            //continue;
 
          RvR_texture *tex = RvR_texture_get(2);
          int z = 0;
-         RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy);
+         RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-elevation);
+
+         //Outline
+         //-------------------------------------
+         int px = x * 16 + y * 16 - cx;
+         int py = z * 20 - 8 * x + 8 * y - cy-elevation;
+
+         if(x+1>=dim*32)
+            continue;
+         r = region_get(world,(x+1)/32,y/32);
+         if(r==NULL)
+            continue;
+         if(elevation>r->elevation[(y%32)*33+((x+1)%32)]/512)
+            RvR_render_line((px + 15) * 256 + 128, (py) * 256 + 128, (px + 31) * 256 + 128, (py + 8) * 256 + 128, 1);
+
+         if(y-1<0)
+            continue;
+         r = region_get(world,x/32,(y-1)/32);
+         if(r==NULL)
+            continue;
+         if(elevation>r->elevation[((y-1)%32)*33+(x%32)]/512)
+            RvR_render_line((px + 1) * 256 + 128, (py + 7) * 256 + 128, (px + 17) * 256 + 128, (py - 1) * 256 + 128, 1);
+
+
+         //-------------------------------------
       }
       y++;
    }
@@ -104,5 +148,7 @@ void game_map_init()
 void game_map_set()
 {
    redraw = 1;
+   cam.x = 16;
+   cam.y = 16;
 }
 //-------------------------------------
