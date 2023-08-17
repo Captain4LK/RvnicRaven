@@ -107,6 +107,12 @@ RvR_err:
    return NULL;
 }
 
+void area_free(Area *a)
+{
+   if(a==NULL)
+      return;
+}
+
 Area *area_load(World *w, uint16_t id)
 {
    Region *r = NULL;

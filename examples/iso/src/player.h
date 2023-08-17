@@ -20,6 +20,9 @@ typedef struct
 {
    Entity *e;
    Camera cam;
+
+   int mx;
+   int my;
 }Player;
 
 extern Player player;

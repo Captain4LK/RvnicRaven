@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 
 extern World *world;
+extern Area *area;
 
 void game_update();
 void game_draw();

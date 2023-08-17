@@ -43,7 +43,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 World *world;
-static Area *area;
+Area *area;
 
 static int redraw = 0;
 //-------------------------------------
@@ -164,13 +164,7 @@ void game_init()
    preset.var_rainfall = 2048;
    //world_gen(world,3,&preset);
 
-   area = area_gen(world,&preset,1,128,192,2,2,2,0);
-   player_new(world, area);
-
-   player.cam.x = 16;
-   player.cam.y = 0;
-   player.cam.z = 1;
-   player.cam.z_cutoff = 0;
+   //area = area_gen(world,&preset,1,128,192,2,2,2,0);
 
    unsigned dim = world_size_to_dim(world->size);
    /*unsigned dim = world_size_to_dim(world->size);
@@ -210,5 +204,12 @@ void game_init()
 void game_set()
 {
    redraw = 1;
+
+   player_new(world, area);
+
+   player.cam.x = 16;
+   player.cam.y = 0;
+   player.cam.z = 1;
+   player.cam.z_cutoff = 0;
 }
 //-------------------------------------
