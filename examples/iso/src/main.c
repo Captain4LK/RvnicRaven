@@ -55,7 +55,7 @@ int main(int argc, char **argv)
    RvR_render_font_set(0xF000);
 
    state_init(STATE_GAME);
-   state_set(STATE_GAME);
+   //state_set(STATE_GAME);
    state_set(STATE_GAME_MAP);
 
    while(RvR_running())

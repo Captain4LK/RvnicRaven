@@ -18,10 +18,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "world_defs.h"
+#include "world_gen.h"
+#include "area_gen.h"
+#include "area.h"
 #include "world.h"
 #include "game.h"
 #include "region.h"
 #include "player.h"
+#include "state.h"
 #include "game_map.h"
 #include "area_draw.h"
 //-------------------------------------
@@ -55,6 +59,18 @@ void game_map_update()
 
    if(RvR_key_pressed(RVR_KEY_D))
    {
+      WorldGen_preset preset = {0};
+      preset.lakes_deep = 8;
+      preset.lakes_shallow = 0;
+      preset.mountains_high = 16;
+      preset.var_elevation = 8192;
+      preset.var_temperature = 2048;
+      preset.var_rainfall = 2048;
+
+      if(area!=NULL)
+         area_free(area);
+      area = area_gen(world,&preset,1,player.mx-1,player.my-1,3,3,2,0);
+      state_set(STATE_GAME);
    }
 
    redraw = 1;

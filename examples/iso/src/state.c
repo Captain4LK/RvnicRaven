@@ -56,7 +56,6 @@ void state_init(State s)
    case STATE_GAME: state = s; game_init(); break;
    case STATE_GAME_MAP: state = s; game_map_init(); break;
    }
-   state_set(s);
 }
 
 void state_update()
