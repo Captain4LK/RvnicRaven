@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 World *world_load(const char *name);
 World *world_new(const char *name, World_size size);
+void world_save(const World *w);
 void world_free(World *w);
 
 unsigned world_size_to_dim(World_size size);

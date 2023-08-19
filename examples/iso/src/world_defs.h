@@ -74,7 +74,20 @@ typedef struct
    Region **regions;
    uint16_t *region_map;
 
+   //Preset
+   struct
+   {
+      uint32_t lakes_deep;
+      uint32_t lakes_shallow;
+      uint32_t lakes_rand;
 
+      uint32_t mountains_high;
+      uint32_t mountains_medium;
+
+      int32_t var_elevation;
+      int32_t var_temperature;
+      int32_t var_rainfall;
+   }preset;
 }World;
 
 #endif

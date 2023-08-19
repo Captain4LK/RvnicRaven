@@ -44,6 +44,7 @@ int main(int argc, char **argv)
    RvR_malloc_init(mem, MEM_SIZE);
 
    RvR_init("RvnicRaven - iso", 0);
+   RvR_key_repeat(1);
 
    RvR_pak_add("data/main.csv");
 

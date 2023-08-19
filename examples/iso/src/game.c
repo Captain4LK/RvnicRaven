@@ -152,16 +152,16 @@ void game_init()
 {
    //world = world_new("test", WORLD_SMALL);
    world = world_load("test");
+   world->preset.lakes_deep = 8;
+   world->preset.lakes_shallow = 0;
+   world->preset.mountains_high = 16;
+   world->preset.var_elevation = 8192;
+   world->preset.var_temperature = 2048;
+   world->preset.var_rainfall = 2048;
+   world_save(world);
    //area = area_load(world,0);
    //area = area_create(world, 0, 0, 1, 2, 1, 0);
 
-   WorldGen_preset preset = {0};
-   preset.lakes_deep = 8;
-   preset.lakes_shallow = 0;
-   preset.mountains_high = 16;
-   preset.var_elevation = 8192;
-   preset.var_temperature = 2048;
-   preset.var_rainfall = 2048;
    //world_gen(world,3,&preset);
 
    //area = area_gen(world,&preset,1,128,192,2,2,2,0);

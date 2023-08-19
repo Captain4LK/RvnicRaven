@@ -39,7 +39,7 @@ static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var);
 
 //Function implementations
 
-Area *area_gen(World *w, WorldGen_preset *p, uint32_t seed, int ax, int ay, int dimx, int dimy, int dimz, uint16_t id)
+Area *area_gen(World *w, uint32_t seed, int ax, int ay, int dimx, int dimy, int dimz, uint16_t id)
 {
    RvR_rand_pcg rand = {0};
    RvR_rand_pcg_seed(&rand,seed);
@@ -95,7 +95,7 @@ Area *area_gen(World *w, WorldGen_preset *p, uint32_t seed, int ax, int ay, int 
             int32_t e3 = elevation[(y+1)*dimy_rest*stride+(x+1)*dimx_rest];
 
             if(elevation[(y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest+dimx_rest/2]==-1)
-               elevation[(y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest+dimx_rest/2] = (e0+e1+e2+e3)/4+rand_offset(&rand,5+l,p->var_elevation);
+               elevation[(y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest+dimx_rest/2] = (e0+e1+e2+e3)/4+rand_offset(&rand,5+l,w->preset.var_elevation);
          }
       }
 
@@ -122,16 +122,16 @@ Area *area_gen(World *w, WorldGen_preset *p, uint32_t seed, int ax, int ay, int 
             }
 
             if(elevation[(y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest]==-1)
-               elevation[(y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest] = (e0+e3+e5+e4)/4+rand_offset(&rand,5+l,p->var_elevation);
+               elevation[(y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest] = (e0+e3+e5+e4)/4+rand_offset(&rand,5+l,w->preset.var_elevation);
 
             if(elevation[(y*dimy_rest)*stride+x*dimx_rest+dimx_rest/2]==-1)
-               elevation[(y*dimy_rest)*stride+x*dimx_rest+dimx_rest/2] = (e0+e1+e6+e4)/4+rand_offset(&rand,5+l,p->var_elevation);
+               elevation[(y*dimy_rest)*stride+x*dimx_rest+dimx_rest/2] = (e0+e1+e6+e4)/4+rand_offset(&rand,5+l,w->preset.var_elevation);
 
             if(x==dimx_level-1&&elevation[(y*dimy_rest+dimy_rest/2)*stride+(x+1)*dimx_rest]==-1)
-               elevation[(y*dimy_rest+dimy_rest/2)*stride+(x+1)*dimx_rest] = (e1+e2+e4)/3+rand_offset(&rand,5+l,p->var_elevation);
+               elevation[(y*dimy_rest+dimy_rest/2)*stride+(x+1)*dimx_rest] = (e1+e2+e4)/3+rand_offset(&rand,5+l,w->preset.var_elevation);
 
             if(y==dimy_level-1&&elevation[((y+1)*dimy_rest)*stride+x*dimx_rest+dimx_rest/2]==-1)
-               elevation[((y+1)*dimy_rest)*stride+x*dimx_rest+dimx_rest/2] = (e2+e3+e4)/3+rand_offset(&rand,5+l,p->var_elevation);
+               elevation[((y+1)*dimy_rest)*stride+x*dimx_rest+dimx_rest/2] = (e2+e3+e4)/3+rand_offset(&rand,5+l,w->preset.var_elevation);
          }
       }
    }

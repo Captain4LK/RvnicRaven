@@ -31,8 +31,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static void world_create_base_file(World *world);
 static void world_load_base_file(World *world);
+static void world_save_base_file(World *world);
 //-------------------------------------
 
 //Function implementations
@@ -56,7 +56,7 @@ World *world_new(const char *name, World_size size)
    //Create files
    //-------------------------------------
    region_file_create(w);
-   world_create_base_file(w);
+   world_save_base_file(w);
    //-------------------------------------
 
    w->size = size;
@@ -120,6 +120,16 @@ RvR_err:
    return NULL;
 }
 
+void world_save(const World *w)
+{
+   if(w==NULL)
+      return;
+
+   world_save_base_file(w);
+
+   //TODO(Captain4LK): save other stuff (region file, etc.)
+}
+
 void world_free(World *w)
 {
    if(w==NULL)
@@ -145,34 +155,6 @@ unsigned world_size_to_dim(World_size size)
    return 0;
 }
 
-static void world_create_base_file(World *world)
-{
-   RvR_rw rw = {0};
-
-   RvR_error_check(world!=NULL,"world_create_base_file","world is null\n");
-
-   char path[UTIL_PATH_MAX];
-   int res = snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
-   RvR_error_check(res<UTIL_PATH_MAX, "world_create_base_file", "world base file path truncated, path too long\n");
-
-   RvR_rw_init_path(&rw,path,"wb");
-
-   //Version
-   RvR_rw_write_u32(&rw,0);
-
-   //World dimension
-   RvR_rw_write_u32(&rw,world->size);
-
-   RvR_rw_close(&rw);
-
-RvR_err:
-
-   if(RvR_rw_valid(&rw))
-      RvR_rw_close(&rw);
-
-   return;
-}
-
 static void world_load_base_file(World *world)
 {
    RvR_rw rw = {0};
@@ -190,6 +172,62 @@ static void world_load_base_file(World *world)
 
    world->size = RvR_rw_read_u32(&rw);
    RvR_error_check(world->size>=0&&world->size<=2, "world_load_base_file", "invalid world size %d, only 0,1,2 supported\n", world->size);
+
+   //World preset
+   //-------------------------------------
+   world->preset.lakes_deep = RvR_rw_read_u32(&rw);
+   world->preset.lakes_shallow = RvR_rw_read_u32(&rw);
+   world->preset.lakes_rand = RvR_rw_read_u32(&rw);
+
+   world->preset.mountains_high = RvR_rw_read_u32(&rw);
+   world->preset.mountains_medium = RvR_rw_read_u32(&rw);
+
+   world->preset.var_elevation = RvR_rw_read_u32(&rw);
+   world->preset.var_temperature = RvR_rw_read_u32(&rw);
+   world->preset.var_rainfall = RvR_rw_read_u32(&rw);
+   //-------------------------------------
+
+   RvR_rw_close(&rw);
+
+RvR_err:
+
+   if(RvR_rw_valid(&rw))
+      RvR_rw_close(&rw);
+
+   return;
+}
+
+static void world_save_base_file(World *world)
+{
+   RvR_rw rw = {0};
+
+   RvR_error_check(world!=NULL,"world_save_base_file","world is null\n");
+
+   char path[UTIL_PATH_MAX];
+   int res = snprintf(path,UTIL_PATH_MAX,"%s/world.bin",world->base_path);
+   RvR_error_check(res<UTIL_PATH_MAX, "world_save_base_file", "world base file path truncated, path too long\n");
+
+   RvR_rw_init_path(&rw,path,"wb");
+
+   //Version
+   RvR_rw_write_u32(&rw,0);
+
+   //World dimension
+   RvR_rw_write_u32(&rw,world->size);
+
+   //World preset
+   //-------------------------------------
+   RvR_rw_write_u32(&rw,world->preset.lakes_deep);
+   RvR_rw_write_u32(&rw,world->preset.lakes_shallow);
+   RvR_rw_write_u32(&rw,world->preset.lakes_rand);
+
+   RvR_rw_write_u32(&rw,world->preset.mountains_high);
+   RvR_rw_write_u32(&rw,world->preset.mountains_medium);
+
+   RvR_rw_write_u32(&rw,world->preset.var_elevation);
+   RvR_rw_write_u32(&rw,world->preset.var_temperature);
+   RvR_rw_write_u32(&rw,world->preset.var_rainfall);
+   //-------------------------------------
 
    RvR_rw_close(&rw);
 

@@ -40,7 +40,7 @@ static void rand_pos(RvR_rand_pcg *rand, int32_t **pos, int32_t *x, int32_t *y);
 
 //Function implementations
 
-void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
+void world_gen(World *w, uint32_t seed)
 {
    RvR_rand_pcg rand = {0};
    RvR_rand_pcg_seed(&rand,seed);
@@ -94,7 +94,7 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
    rand_pos_init(&pos,w);
 
    //Place up to n mountainpeaks
-   for(int i = 0;i<preset->mountains_high;i++)
+   for(int i = 0;i<w->preset.mountains_high;i++)
    {
       int x,y;
       rand_pos(&rand,&pos,&x,&y);
@@ -102,7 +102,7 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
    }
 
    //Place n deep lakes
-   for(int i = 0;i<preset->lakes_deep;i++)
+   for(int i = 0;i<w->preset.lakes_deep;i++)
    {
       int x,y;
       rand_pos(&rand,&pos,&x,&y);
@@ -110,7 +110,7 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
    }
 
    //Place n shallow lakes
-   for(int i = 0;i<preset->lakes_shallow;i++)
+   for(int i = 0;i<w->preset.lakes_shallow;i++)
    {
       int x = RvR_rand_pcg_next_range(&rand,0,dim);
       int y = RvR_rand_pcg_next_range(&rand,0,dim);
@@ -147,11 +147,11 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
             int32_t r3 = rainfall[(y+1)*dim_rest*stride+(x+1)*dim_rest];
 
             if(elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2]==-1)
-               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (e0+e1+e2+e3)/4+rand_offset(&rand,l,preset->var_elevation);
+               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (e0+e1+e2+e3)/4+rand_offset(&rand,l,w->preset.var_elevation);
             if(temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2]==-1)
-               temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (t0+t1+t2+t3)/4+rand_offset(&rand,l,preset->var_temperature);
+               temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (t0+t1+t2+t3)/4+rand_offset(&rand,l,w->preset.var_temperature);
             if(rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2]==-1)
-               rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (r0+r1+r2+r3)/4+rand_offset(&rand,l,preset->var_rainfall);
+               rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (r0+r1+r2+r3)/4+rand_offset(&rand,l,w->preset.var_rainfall);
          }
       }
 
@@ -196,32 +196,32 @@ void world_gen(World *w, uint32_t seed, WorldGen_preset *preset)
             }
 
             if(elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest]==-1)
-               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (e0+e3+e5+e4)/4+rand_offset(&rand,l,preset->var_elevation);
+               elevation[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (e0+e3+e5+e4)/4+rand_offset(&rand,l,w->preset.var_elevation);
             if(temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest]==-1)
-               temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (t0+t3+t5+t4)/4+rand_offset(&rand,l,preset->var_temperature);
+               temperature[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (t0+t3+t5+t4)/4+rand_offset(&rand,l,w->preset.var_temperature);
             if(rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest]==-1)
-               rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (r0+r3+r5+r4)/4+rand_offset(&rand,l,preset->var_rainfall);
+               rainfall[(y*dim_rest+dim_rest/2)*stride+x*dim_rest] = (r0+r3+r5+r4)/4+rand_offset(&rand,l,w->preset.var_rainfall);
 
             if(elevation[(y*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               elevation[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (e0+e1+e6+e4)/4+rand_offset(&rand,l,preset->var_elevation);
+               elevation[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (e0+e1+e6+e4)/4+rand_offset(&rand,l,w->preset.var_elevation);
             if(temperature[(y*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               temperature[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (t0+t1+t6+t4)/4+rand_offset(&rand,l,preset->var_temperature);
+               temperature[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (t0+t1+t6+t4)/4+rand_offset(&rand,l,w->preset.var_temperature);
             if(rainfall[(y*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               rainfall[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (r0+r1+r6+r4)/4+rand_offset(&rand,l,preset->var_rainfall);
+               rainfall[(y*dim_rest)*stride+x*dim_rest+dim_rest/2] = (r0+r1+r6+r4)/4+rand_offset(&rand,l,w->preset.var_rainfall);
 
             if(x==dim_level-1&&elevation[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest]==-1)
-               elevation[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (e1+e2+e4)/3+rand_offset(&rand,l,preset->var_elevation);
+               elevation[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (e1+e2+e4)/3+rand_offset(&rand,l,w->preset.var_elevation);
             if(x==dim_level-1&&temperature[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest]==-1)
-               temperature[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (t1+t2+t4)/3+rand_offset(&rand,l,preset->var_temperature);
+               temperature[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (t1+t2+t4)/3+rand_offset(&rand,l,w->preset.var_temperature);
             if(x==dim_level-1&&rainfall[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest]==-1)
-               rainfall[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (r1+r2+r4)/3+rand_offset(&rand,l,preset->var_rainfall);
+               rainfall[(y*dim_rest+dim_rest/2)*stride+(x+1)*dim_rest] = (r1+r2+r4)/3+rand_offset(&rand,l,w->preset.var_rainfall);
 
             if(y==dim_level-1&&elevation[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               elevation[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (e2+e3+e4)/3+rand_offset(&rand,l,preset->var_elevation);
+               elevation[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (e2+e3+e4)/3+rand_offset(&rand,l,w->preset.var_elevation);
             if(y==dim_level-1&&temperature[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               temperature[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (t2+t3+t4)/3+rand_offset(&rand,l,preset->var_temperature);
+               temperature[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (t2+t3+t4)/3+rand_offset(&rand,l,w->preset.var_temperature);
             if(y==dim_level-1&&rainfall[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2]==-1)
-               rainfall[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (r2+r3+r4)/3+rand_offset(&rand,l,preset->var_rainfall);
+               rainfall[((y+1)*dim_rest)*stride+x*dim_rest+dim_rest/2] = (r2+r3+r4)/3+rand_offset(&rand,l,w->preset.var_rainfall);
          }
       }
    }

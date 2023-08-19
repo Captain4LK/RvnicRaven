@@ -48,28 +48,20 @@ void game_map_update()
 {
    unsigned dim = world_size_to_dim(world->size);
 
-   if(player.mx>0&&RvR_key_down(RVR_KEY_LEFT))
+   if(player.mx>0&&RvR_key_pressed(RVR_KEY_LEFT))
       player.mx--;
-   if(player.mx<dim*32-1&&RvR_key_down(RVR_KEY_RIGHT))
+   if(player.mx<dim*32-1&&RvR_key_pressed(RVR_KEY_RIGHT))
       player.mx++;
-   if(player.my>0&&RvR_key_down(RVR_KEY_UP))
+   if(player.my>0&&RvR_key_pressed(RVR_KEY_UP))
       player.my--;
-   if(player.my<dim*32-1&&RvR_key_down(RVR_KEY_DOWN))
+   if(player.my<dim*32-1&&RvR_key_pressed(RVR_KEY_DOWN))
       player.my++;
 
    if(RvR_key_pressed(RVR_KEY_D))
    {
-      WorldGen_preset preset = {0};
-      preset.lakes_deep = 8;
-      preset.lakes_shallow = 0;
-      preset.mountains_high = 16;
-      preset.var_elevation = 8192;
-      preset.var_temperature = 2048;
-      preset.var_rainfall = 2048;
-
       if(area!=NULL)
          area_free(area);
-      area = area_gen(world,&preset,1,player.mx-1,player.my-1,3,3,2,0);
+      area = area_gen(world,1,player.mx-1,player.my-1,3,3,2,0);
       state_set(STATE_GAME);
    }
 
