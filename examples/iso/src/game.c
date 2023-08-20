@@ -150,55 +150,19 @@ void game_draw()
 
 void game_init()
 {
-   //world = world_new("test", WORLD_SMALL);
-   world = world_load("test");
+   world = world_new("test", WORLD_MEDIUM);
+   //world = world_load("test");
    world->preset.lakes_deep = 8;
    world->preset.lakes_shallow = 0;
    world->preset.mountains_high = 16;
    world->preset.var_elevation = 8192;
    world->preset.var_temperature = 2048;
    world->preset.var_rainfall = 2048;
+   world_gen(world,1);
    world_save(world);
-   //area = area_load(world,0);
-   //area = area_create(world, 0, 0, 1, 2, 1, 0);
 
-   //world_gen(world,3,&preset);
-
-   //area = area_gen(world,&preset,1,128,192,2,2,2,0);
-
-   unsigned dim = world_size_to_dim(world->size);
-   /*unsigned dim = world_size_to_dim(world->size);
-   for(int i = 0;i<dim*dim;i++)
-   {
-      Region *r = region_create(world,i%dim,i/dim);
-      for(int j = 0;j<32*32;j++)
-         r->tiles[j] = rand();
-      r->tiles[0] = i;
-      region_save(world,i%dim,i/dim);
-   }*/
-
-   //Region *r = region_get(world,0,0);
-   //memset(r->tiles,0,sizeof(r->tiles));
-   //r->tiles[0] = 1;
-   //r->tiles[2] = 1;
-   //region_save(world,0,0);
-
-   /*for(int i = 0;i<dim*dim;i++)
-   {
-      Region *r = region_get(world,i%dim,i/dim);
-      int check = 1;
-      //for(int j = 0;j<32*32;j++)
-      //{
-         if(r->tiles[0]!=i)
-         {
-            check = 0;
-            //break;
-         }
-      //}
-
-      if(!check)
-         printf("Mismatch in %d %d\n",i%dim,i/dim);
-   }*/
+   //puts("---------");
+   //world_gen(world,5);
 }
 
 void game_set()

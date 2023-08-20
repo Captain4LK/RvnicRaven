@@ -32,7 +32,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function prototypes
 static void world_load_base_file(World *world);
-static void world_save_base_file(World *world);
+static void world_save_base_file(const World *world);
 //-------------------------------------
 
 //Function implementations
@@ -53,18 +53,18 @@ World *world_new(const char *name, World_size size)
    res = util_mkdir(w->base_path);
    RvR_error_check(res>=0,"world_new","failed to create directory \"%s\"\n",w->base_path);
 
-   //Create files
-   //-------------------------------------
-   region_file_create(w);
-   world_save_base_file(w);
-   //-------------------------------------
-
    w->size = size;
    int dim = world_size_to_dim(size);
    w->regions = RvR_malloc(sizeof(*w->regions) * dim * dim, "World regions");
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
    memset(w->regions,0,sizeof(*w->regions)*dim*dim);
    memset(w->region_map,0,sizeof(*w->region_map)*dim*dim);
+
+   //Create files
+   //-------------------------------------
+   region_file_create(w);
+   world_save_base_file(w);
+   //-------------------------------------
 
    return w;
 
@@ -197,7 +197,7 @@ RvR_err:
    return;
 }
 
-static void world_save_base_file(World *world)
+static void world_save_base_file(const World *world)
 {
    RvR_rw rw = {0};
 

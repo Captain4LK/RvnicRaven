@@ -361,11 +361,11 @@ void area_save(World *w, Area *a)
          uint8_t buffer[4096];
 
          //Read
-         RvR_rw_seek(&rw,pos_read+block,SEEK_SET);
+         RvR_rw_seek(&rw,pos_read,SEEK_SET);
          RvR_rw_read(&rw,buffer,block,1);
 
          //Write
-         RvR_rw_seek(&rw,pos_write+block,SEEK_SET);
+         RvR_rw_seek(&rw,pos_write,SEEK_SET);
          RvR_rw_write(&rw,buffer,block,1);
 
          pos_read+=block;

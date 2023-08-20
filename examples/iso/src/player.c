@@ -48,6 +48,13 @@ void player_new(World *w, Area *a)
    player.e->x = 32;
    player.e->y = 32;
    player.e->z = 59;
+   for(int z = 0;z<a->dimz*32;z++)
+   {
+      player.e->z = z;
+      if(tile_has_wall(area_tile(a,player.e->x,player.e->y,z+1)))
+         break;
+   }
+
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    entity_add(a, player.e);

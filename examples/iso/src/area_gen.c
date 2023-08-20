@@ -156,7 +156,7 @@ Area *area_gen(World *w, uint32_t seed, int ax, int ay, int dimx, int dimy, int 
    {
       for(int x = 0;x<dimx*32;x++)
       {
-         int z = (elevation[y*stride+x]-min)/1024;
+         int z = (elevation[y*stride+x]-min)/1024+1;
          for(;z>0;z--)
          {
             area_set_tile(a,x,y,dimz*32-z,tile_set_discovered(tile_make_wall(1, 1), 1, 1));

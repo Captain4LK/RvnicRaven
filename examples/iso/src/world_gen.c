@@ -45,7 +45,10 @@ void world_gen(World *w, uint32_t seed)
    RvR_rand_pcg rand = {0};
    RvR_rand_pcg_seed(&rand,seed);
 
+
    unsigned dim = world_size_to_dim(w->size);
+   int scale_log = RvR_log2(dim)-4;
+   int scale = 1<<scale_log;
    int stride = dim*32+1;
    int32_t *elevation = RvR_malloc(sizeof(*elevation)*stride*stride,"Map Gen elevation");
    int32_t *temperature = RvR_malloc(sizeof(*temperature)*stride*stride,"Map Gen temperature");
@@ -62,15 +65,26 @@ void world_gen(World *w, uint32_t seed)
 
    //Init with random elevation above sea level
    //TODO(Captain4LK): weigh with circle?
+   for(int y = 0;y<=16;y++)
+   {
+      for(int x = 0;x<=16;x++)
+      {
+         //Sea level at 128*1024
+         elevation[y*32*stride*scale+x*32*scale] = RvR_rand_pcg_next_range(&rand,64*1024,196*1024);
+
+         temperature[y*32*stride*scale+x*32*scale] = RvR_rand_pcg_next_range(&rand,4*1024,80*1024);
+         rainfall[y*32*stride*scale+x*32*scale] = RvR_rand_pcg_next_range(&rand,4*1024,128*1024);
+      }
+   }
+
+   //Weigh with circle
    for(int y = 0;y<=dim;y++)
    {
       for(int x = 0;x<=dim;x++)
       {
-         //Sea level at 128*1024
-         elevation[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,124*1024,140*1024);
-
-         temperature[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,4*1024,80*1024);
-         rainfall[y*32*stride+x*32] = RvR_rand_pcg_next_range(&rand,4*1024,128*1024);
+         int32_t dist = (y-dim/2)*(y-dim/2)+(x-dim/2)*(x-dim/2);
+         if(dist>(dim/2)*(dim/2))
+            elevation[y*32*stride+x*32] = 64*1024;
       }
    }
   
@@ -98,7 +112,7 @@ void world_gen(World *w, uint32_t seed)
    {
       int x,y;
       rand_pos(&rand,&pos,&x,&y);
-      elevation[y*32*stride+x*32] = 196*1024+RvR_rand_pcg_next_range(&rand,-8192,8192);
+      elevation[y*32*stride+x*32] = 224*1024+RvR_rand_pcg_next_range(&rand,-w->preset.var_elevation,w->preset.var_elevation);
    }
 
    //Place n deep lakes
@@ -106,7 +120,7 @@ void world_gen(World *w, uint32_t seed)
    {
       int x,y;
       rand_pos(&rand,&pos,&x,&y);
-      elevation[y*32*stride+x*32] = 64*1024;
+      elevation[y*32*stride+x*32] = 64*1024+RvR_rand_pcg_next_range(&rand,-w->preset.var_elevation,w->preset.var_elevation);
    }
 
    //Place n shallow lakes
@@ -123,10 +137,15 @@ void world_gen(World *w, uint32_t seed)
    //Diamond-Square for filling in
    //-------------------------------------
 
-   for(int l = 0;l<5;l++)
+   for(int l = -scale_log;l<5;l++)
    {
-      int dim_level = dim<<l;
-      int dim_rest = 32>>l;
+      int dim_level = 0;
+      if(l>=0) dim_level = dim<<l;
+      else dim_level = dim>>(-l);
+
+      int dim_rest = 0;
+      if(l>=0) dim_rest = 32>>l;
+      else dim_rest = 32<<(-l);
 
       //Diamond
       for(int y = 0;y<dim_level;y++)
@@ -249,6 +268,7 @@ void world_gen(World *w, uint32_t seed)
       }
    }
 
+#if 1
    printf("P3\n%d %d\n255\n",dim*32,dim*32*2);
    for(int y = 0;y<dim*32;y++)
    {
@@ -278,6 +298,7 @@ void world_gen(World *w, uint32_t seed)
          }
       }
    }
+
    for(int y = 0;y<dim*32;y++)
    {
       for(int x = 0;x<dim*32;x++)
@@ -293,6 +314,7 @@ void world_gen(World *w, uint32_t seed)
          }
       }
    }
+#endif
 
    RvR_free(elevation);
    RvR_free(temperature);
@@ -301,7 +323,10 @@ void world_gen(World *w, uint32_t seed)
 
 static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var)
 {
-   return RvR_rand_pcg_next_range(rand,-var,var)/(1<<level);
+   if(level>=0)
+      return RvR_rand_pcg_next_range(rand,-var,var)/(1<<level);
+   else
+      return RvR_rand_pcg_next_range(rand,-var,var)<<(-level);
 }
 
 static void rand_pos_init(int32_t **pos, World *w)

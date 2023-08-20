@@ -131,7 +131,7 @@ Region *region_create(World *w, unsigned x, unsigned y)
 
    w->regions[y * dim + x] = r;
    RvR_mem_tag_set(r, RVR_MALLOC_CACHE);
-   RvR_mem_usr_set(r, (void **)&w->regions[x * dim + y]);
+   RvR_mem_usr_set(r, (void **)&w->regions[y * dim + x]);
    return r;
 
 RvR_err:
@@ -369,11 +369,11 @@ void region_save(World *w, unsigned x, unsigned y)
          uint8_t buffer[4096];
 
          //Read
-         RvR_rw_seek(&rw,pos_read+block,SEEK_SET);
+         RvR_rw_seek(&rw,pos_read,SEEK_SET);
          RvR_rw_read(&rw,buffer,block,1);
 
          //Write
-         RvR_rw_seek(&rw,pos_write+block,SEEK_SET);
+         RvR_rw_seek(&rw,pos_write,SEEK_SET);
          RvR_rw_write(&rw,buffer,block,1);
 
          pos_read+=block;
