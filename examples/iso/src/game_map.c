@@ -46,6 +46,9 @@ static int redraw = 0;
 
 void game_map_update()
 {
+   if(RvR_key_pressed(RVR_KEY_M))
+      RvR_malloc_report();
+
    unsigned dim = world_size_to_dim(world->size);
 
    if(player.mx>0&&RvR_key_pressed(RVR_KEY_LEFT))

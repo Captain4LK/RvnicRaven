@@ -126,6 +126,9 @@ Region *region_create(World *w, unsigned x, unsigned y)
    RvR_error_check(x<dim, "region_create", "region x pos (%d) out of bounds (%d)\n", x, dim);
    RvR_error_check(y<dim, "region_create", "region y pos (%d) out of bounds (%d)\n", y, dim);
 
+   if(w->regions[y*dim+x]!=NULL)
+      RvR_free(w->regions[y*dim+x]);
+
    r = RvR_malloc(sizeof(*r), "Region struct");
    memset(r, 0, sizeof(*r));
 
@@ -156,6 +159,7 @@ Region *region_get(World *w, unsigned x, unsigned y)
    //Still loaded
    if(w->regions[y*dim+x]!=NULL)
       return w->regions[y*dim+x];
+   RvR_log("Load %u %u\n",x,y);
 
    //Check region offset
    int32_t offset = w->region_file.offset[y*dim+x];

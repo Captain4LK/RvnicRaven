@@ -150,8 +150,8 @@ void game_draw()
 
 void game_init()
 {
-   world = world_new("test", WORLD_MEDIUM);
-   //world = world_load("test");
+   //world = world_new("test", WORLD_LARGE);
+   world = world_load("test");
    world->preset.lakes_deep = 8;
    world->preset.lakes_shallow = 0;
    world->preset.mountains_high = 16;
