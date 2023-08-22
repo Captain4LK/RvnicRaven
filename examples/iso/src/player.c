@@ -42,8 +42,8 @@ Player player;
 
 void player_new(World *w, Area *a)
 {
-   player.mx = 0;
-   player.my = 0;
+   player.mx = 1;
+   player.my = 1;
    player.e = entity_new(w);
    player.e->x = 32;
    player.e->y = 32;

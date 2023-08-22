@@ -282,7 +282,7 @@ void world_gen(World *w, uint32_t seed)
       }
    }
 
-#if 1
+#if 0
    printf("P3\n%d %d\n255\n",dim*32,dim*32*2);
    for(int y = 0;y<dim*32;y++)
    {

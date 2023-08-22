@@ -180,10 +180,7 @@ void RvR_free(void *ptr)
    rvr_malloc_node *n = (rvr_malloc_node *)(((char *)ptr) - sizeof(rvr_malloc_node));
 
    if(n->usr!=NULL)
-   {
       *n->usr = NULL;
-      puts("SET NULL");
-   }
 
    n->tag = RVR_MALLOC_FREE;
    ASAN_POISON_MEMORY_REGION(n+1,n->size);

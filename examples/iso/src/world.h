@@ -21,4 +21,6 @@ void world_free(World *w);
 
 unsigned world_size_to_dim(World_size size);
 
+int32_t world_elevation(World *w, int32_t x, int32_t y);
+
 #endif

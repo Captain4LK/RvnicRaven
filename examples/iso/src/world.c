@@ -155,6 +155,36 @@ unsigned world_size_to_dim(World_size size)
    return 0;
 }
 
+int32_t world_elevation(World *w, int32_t x, int32_t y)
+{
+   unsigned dim = world_size_to_dim(w->size);
+
+   if(x<0)
+      x = 0;
+   if(y<0)
+      y = 0;
+
+   int tx = x%32;
+   int ty = y%32;
+
+   if(x>=dim*32)
+   {
+      x = dim*32-1;
+      tx = 32;
+   }
+   if(y>=dim*32)
+   {
+      y = dim*32-1;
+      ty = 32;
+   }
+
+   Region *r = region_get(w,x/32,y/32);
+   if(r==NULL)
+      return 0;
+
+   return r->elevation[ty*33+tx];
+}
+
 static void world_load_base_file(World *world)
 {
    RvR_rw rw = {0};

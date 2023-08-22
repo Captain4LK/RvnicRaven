@@ -51,13 +51,13 @@ void game_map_update()
 
    unsigned dim = world_size_to_dim(world->size);
 
-   if(player.mx>0&&RvR_key_pressed(RVR_KEY_LEFT))
+   if(player.mx>1&&RvR_key_pressed(RVR_KEY_LEFT))
       player.mx--;
-   if(player.mx<dim*32-1&&RvR_key_pressed(RVR_KEY_RIGHT))
+   if(player.mx<dim*32-2&&RvR_key_pressed(RVR_KEY_RIGHT))
       player.mx++;
-   if(player.my>0&&RvR_key_pressed(RVR_KEY_UP))
+   if(player.my>1&&RvR_key_pressed(RVR_KEY_UP))
       player.my--;
-   if(player.my<dim*32-1&&RvR_key_pressed(RVR_KEY_DOWN))
+   if(player.my<dim*32-2&&RvR_key_pressed(RVR_KEY_DOWN))
       player.my++;
 
    if(RvR_key_pressed(RVR_KEY_D))
@@ -178,5 +178,7 @@ void game_map_init()
 void game_map_set()
 {
    redraw = 1;
+   player.mx = 1;
+   player.my = 1;
 }
 //-------------------------------------

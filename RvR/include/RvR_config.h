@@ -24,6 +24,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RVR_CUTE_PATH_MAX_PATH 256
 #define RVR_CUTE_PATH_MAX_EXT 32
 
-#define RVR_ASAN 1
+#define RVR_ASAN 0
 
 #endif

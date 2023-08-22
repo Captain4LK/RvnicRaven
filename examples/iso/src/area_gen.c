@@ -44,6 +44,7 @@ Area *area_gen(World *w, uint32_t seed, int ax, int ay, int dimx, int dimy, int 
    RvR_rand_pcg rand = {0};
    RvR_rand_pcg_seed(&rand,seed);
 
+   int dim = world_size_to_dim(w->size);
    int stridey = dimy*32+1;
    int stridex = dimx*32+1;
    int32_t *elevation = RvR_malloc(sizeof(*elevation)*stridex*stridey,"AreaGen elevation");
@@ -62,17 +63,10 @@ Area *area_gen(World *w, uint32_t seed, int ax, int ay, int dimx, int dimy, int 
    {
       for(int x = 0;x<dimx;x++)
       {
-         Region *r = region_get(w,(ax+x)/32,(ay+y)/32);
-         elevation[y*32*stride+x*32] = r->elevation[((ay+y)%32)*33+(ax+x)%32];
-
-         r = region_get(w,(ax+x+1)/32,(ay+y)/32);
-         elevation[y*32*stride+(x+1)*32] = r->elevation[((ay+y)%32)*33+(ax+x+1)%32];
-
-         r = region_get(w,(ax+x)/32,(ay+y+1)/32);
-         elevation[(y+1)*32*stride+x*32] = r->elevation[((ay+y+1)%32)*33+(ax+x)%32];
-
-         r = region_get(w,(ax+x+1)/32,(ay+y+1)/32);
-         elevation[(y+1)*32*stride+(x+1)*32] = r->elevation[((ay+y+1)%32)*33+(ax+x+1)%32];
+         elevation[y*32*stride+x*32] = world_elevation(w,ax+x,ay+y);
+         elevation[y*32*stride+(x+1)*32] = world_elevation(w,ax+x+1,ay+y);
+         elevation[(y+1)*32*stride+x*32] = world_elevation(w,ax+x,ay+y+1);
+         elevation[(y+1)*32*stride+(x+1)*32] = world_elevation(w,ax+x+1,ay+y+1);
       }
    }
 
