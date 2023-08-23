@@ -15,12 +15,41 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "action_defs.h"
 
 typedef struct Entity Entity;
+typedef struct Group Group;
 
 typedef enum
 {
    AI_INVALID = 0,
    AI_PLAYER,
 }AI_type;
+
+typedef enum
+{
+   ENTITY_SPEC_HUMAN = 0,
+
+   ENTITY_SPEC_CAT = 1,
+   ENTITY_SPEC_DOG = 2,
+}Entity_species;
+
+typedef enum
+{
+   ENTITY_GEN_MALE = 0,
+   ENTITY_GEN_FEMALE = 1,
+}Entity_gender;
+
+typedef enum
+{
+   ENTITY_PROF_NONE = 0,
+}Entity_profession;
+
+typedef struct
+{
+   Entity_species species;
+   Entity_gender gender;
+
+   //For intelligent species
+   Entity_profession profession;
+}Entity_identifier;
 
 struct Entity
 {
@@ -32,8 +61,11 @@ struct Entity
    int speed;
    int action_points;
 
+   //>UINT64_MAX/2 --> non-historic
    uint64_t id;
    int removed;
+
+   Entity_identifier ident;
 
    Action action;
 
@@ -45,6 +77,11 @@ struct Entity
    Entity *g_next;
    Entity **g_prev_next;
 };
+
+//single person, group, legions etc.
+struct
+{
+}Group;
 
 typedef struct
 {
