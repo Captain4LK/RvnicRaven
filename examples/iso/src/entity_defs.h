@@ -78,10 +78,21 @@ struct Entity
    Entity **g_prev_next;
 };
 
-//single person, group, legions etc.
-struct
+typedef struct
 {
-}Group;
+   Entity_identifier ident;
+   char name[64];
+
+   uint64_t id;
+
+   //Needs saving
+   uint8_t modified;
+}Entity_documented;
+
+//single person, group, legions etc.
+/*struct Group
+{
+};*/
 
 typedef struct
 {

@@ -88,6 +88,14 @@ typedef struct
       int32_t var_temperature;
       int32_t var_rainfall;
    }preset;
+
+   //Documented entity hash table
+   struct
+   {
+      Entity_documented **arr;
+      int size_exp;
+      int count;
+   }doctable;
 }World;
 
 #endif

@@ -162,9 +162,6 @@ Area *area_load(World *w, uint16_t id)
 
    //Create region from data
    //-------------------------------------
-   r = RvR_malloc(sizeof(*r),"Region struct");
-   memset(r,0,sizeof(*r));
-
    a = RvR_malloc(sizeof(*a),"Area struct");
    a->id = id;
    a->dimx = RvR_rw_read_u16(&rw_reg);
