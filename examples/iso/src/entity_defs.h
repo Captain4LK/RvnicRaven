@@ -81,6 +81,10 @@ struct Entity
 typedef struct
 {
    Entity_identifier ident;
+
+   int32_t mx;
+   int32_t my;
+
    char name[64];
 
    uint64_t id;
