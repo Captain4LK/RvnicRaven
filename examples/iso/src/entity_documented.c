@@ -122,12 +122,24 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
       return NULL;
 
    Entity_documented *de = w->doctable.arr[idx];
+   if(de->mx<a->mx||de->my<a->my||de->mx>=a->mx+a->dimx||de->my>=a->my+a->dimy)
+      return NULL;
+
    Entity *e = entity_new(w);
-
-
+   e->x = (de->mx-a->dimx)*32+de->ax;
+   e->y = (de->my-a->dimy)*32+de->ay;
+   e->z = a->dimz*32-1;
+   for(int z = 0;z<a->dimz*32;z++)
+   {
+      e->z = z;
+      if(tile_has_wall(area_tile(a,e->x,e->y,z+1)))
+         break;
+   }
 
    entity_add(a,e);
    entity_grid_add(a,e);
+
+   //TODO(Captain4LK): ai and stats
 
    return e;
 }
@@ -188,6 +200,8 @@ static Entity_documented *entity_doc_load(World *w, uint64_t id)
 
    e->mx = RvR_rw_read_u32(&rw_reg);
    e->my = RvR_rw_read_u32(&rw_reg);
+   e->ax = RvR_rw_read_u32(&rw_reg);
+   e->ay = RvR_rw_read_u32(&rw_reg);
 
    RvR_rw_read(&rw,e->name,64,1);
    //-------------------------------------
@@ -270,7 +284,7 @@ static void entity_doc_save(World *w, uint64_t id)
 
    //Compress
    //-------------------------------------
-   int32_t size = 4*3+64;
+   int32_t size = 4*3+64+4*4;
 
    if(entity_doc_buffer==NULL||entity_doc_buffer_size<size)
    {
@@ -288,6 +302,8 @@ static void entity_doc_save(World *w, uint64_t id)
 
    RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->mx);
    RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->my);
+   RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->ax);
+   RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->ay);
 
    RvR_rw_write(&rw_comp,w->doctable.arr[idx]->name,64,1);
 

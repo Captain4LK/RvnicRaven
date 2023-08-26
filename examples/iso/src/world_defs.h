@@ -30,6 +30,9 @@ typedef struct
    uint8_t dimy;
    uint8_t dimz;
 
+   uint16_t mx;
+   uint16_t my;
+
    uint16_t id;
 
    uint32_t *tiles;
@@ -63,8 +66,9 @@ typedef struct
 {
    char base_path[UTIL_PATH_MAX];
 
-   uint64_t next_id;
-   uint64_t next_iid;
+   uint64_t next_eid; //entity id
+   uint64_t next_deid; //docent id
+   uint64_t next_iid; //item id
 
    World_size size;
 

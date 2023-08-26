@@ -55,7 +55,7 @@ Entity *entity_new(World *w)
    Entity *n = entity_pool;
    entity_pool = n->next;
 
-   uint32_t id = w->next_id++;
+   uint32_t id = w->next_eid++;
    memset(n, 0, sizeof(*n));
    n->next = NULL;
    n->prev_next = NULL;

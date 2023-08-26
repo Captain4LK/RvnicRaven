@@ -203,6 +203,11 @@ static void world_load_base_file(World *world)
    world->size = RvR_rw_read_u32(&rw);
    RvR_error_check(world->size>=0&&world->size<=2, "world_load_base_file", "invalid world size %d, only 0,1,2 supported\n", world->size);
 
+   //ID counters
+   world->next_eid = RvR_rw_read_u64(&rw);
+   world->next_deid = RvR_rw_read_u64(&rw);
+   world->next_iid = RvR_rw_read_u64(&rw);
+
    //World preset
    //-------------------------------------
    world->preset.lakes_deep = RvR_rw_read_u32(&rw);
@@ -244,6 +249,11 @@ static void world_save_base_file(const World *world)
 
    //World dimension
    RvR_rw_write_u32(&rw,world->size);
+
+   //ID counters
+   RvR_rw_write_u64(&rw,world->next_eid);
+   RvR_rw_write_u64(&rw,world->next_deid);
+   RvR_rw_write_u64(&rw,world->next_iid);
 
    //World preset
    //-------------------------------------

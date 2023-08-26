@@ -54,6 +54,8 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    a->dimx = dimx;
    a->dimy = dimy;
    a->dimz = dimz;
+   a->mx = x;
+   a->my = y;
    a->id = id;
    a->entities = NULL;
    a->entity_grid = RvR_malloc(sizeof(*a->entity_grid) * (dimx * 4) * (dimy * 4) * (dimz * 4), "Area entity grid");
@@ -167,6 +169,8 @@ Area *area_load(World *w, uint16_t id)
    a->dimx = RvR_rw_read_u16(&rw_reg);
    a->dimy = RvR_rw_read_u16(&rw_reg);
    a->dimz = RvR_rw_read_u16(&rw_reg);
+   a->mx = RvR_rw_read_u16(&rw_reg);
+   a->my = RvR_rw_read_u16(&rw_reg);
    a->entities = NULL;
    a->entity_grid = RvR_malloc(sizeof(*a->entity_grid) * (a->dimx * 4) * (a->dimy * 4) * (a->dimz * 4), "Area entity grid");
    memset(a->entity_grid, 0, sizeof(*a->entity_grid) * (a->dimx * 4) * (a->dimy * 4) * (a->dimz * 4));
@@ -254,6 +258,7 @@ void area_save(World *w, Area *a)
    //-------------------------------------
    int32_t size = (a->dimx*32)*(a->dimy*32)*(a->dimz*32)*4;
    size+=6;
+   size+=4;
 
    if(area_buffer==NULL||area_buffer_size<size)
    {
@@ -269,6 +274,8 @@ void area_save(World *w, Area *a)
    RvR_rw_write_u16(&rw_comp,a->dimx);
    RvR_rw_write_u16(&rw_comp,a->dimy);
    RvR_rw_write_u16(&rw_comp,a->dimz);
+   RvR_rw_write_u16(&rw_comp,a->mx);
+   RvR_rw_write_u16(&rw_comp,a->my);
    for(int i = 0;i<(a->dimx*32)*(a->dimy*32)*(a->dimz*32);i++)
       RvR_rw_write_u32(&rw_comp,a->tiles[i]);
 

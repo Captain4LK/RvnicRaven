@@ -23,6 +23,8 @@ typedef struct
 
    int mx;
    int my;
+
+   uint64_t id;
 }Player;
 
 extern Player player;

@@ -84,6 +84,8 @@ typedef struct
 
    int32_t mx;
    int32_t my;
+   int32_t ax;
+   int32_t ay;
 
    char name[64];
 
