@@ -21,15 +21,13 @@ typedef struct
    Entity *e;
    Camera cam;
 
-   int mx;
-   int my;
-
    uint64_t id;
 }Player;
 
 extern Player player;
 
 void player_new(World *w, Area *a);
+void player_add(World *w, Area *a);
 void player_update();
 
 int player_action(Area *a);

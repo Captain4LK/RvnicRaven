@@ -20,6 +20,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "entity_documented.h"
 #include "entity.h"
+#include "area.h"
+#include "tile.h"
 //-------------------------------------
 
 //#defines
@@ -56,21 +58,21 @@ void entity_doc_init_table(World *w)
       w->doctable.arr[i] = NULL;
 }
 
-void entity_doc_get(World *w, Entity_documented *e, uint64_t id)
+int entity_doc_get(World *w, uint64_t id, Entity_documented *e)
 {
    if(e==NULL)
-      return;
+      return 1;
 
    //Not a DocEnt id
    if(id&(UINT64_C(1)<<63))
-      return;
+      return 1;
 
    //Search in table
    int32_t idx = table_search(w,id);
    if(idx>=0)
    {
       *e = *w->doctable.arr[idx];
-      return;
+      return 0;
    }
 
    //Not found --> try to load and insert
@@ -79,16 +81,23 @@ void entity_doc_get(World *w, Entity_documented *e, uint64_t id)
    {
       table_insert(w,id,ne);
       *e = *ne;
-      return;
+      return 0;
    }
 
-   //Doesn't exist --> create new, empty entity
-   ne = RvR_malloc(sizeof(*ne),"Entity_documented struct");
+   *e = (Entity_documented){0};
+
+   return 1;
+}
+
+uint64_t entity_doc_create(World *w)
+{
+   Entity_documented *ne = RvR_malloc(sizeof(*ne),"DocEnt struct");
    memset(ne,0,sizeof(*ne));
-   ne->id = id;
+   ne->id = w->next_deid++;
    ne->modified = 1;
-   table_insert(w,id,ne);
-   *e = *ne;
+   table_insert(w,ne->id,ne);
+
+   return ne->id;
 }
 
 void entity_doc_modify(World *w, uint64_t id, const Entity_documented *e)
@@ -96,7 +105,6 @@ void entity_doc_modify(World *w, uint64_t id, const Entity_documented *e)
    int32_t idx = table_search(w,id);
    if(idx<0)
       return;
-
 
    Entity_documented *te = w->doctable.arr[idx];
    uint64_t te_id = te->id;
@@ -126,8 +134,9 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
       return NULL;
 
    Entity *e = entity_new(w);
-   e->x = (de->mx-a->dimx)*32+de->ax;
-   e->y = (de->my-a->dimy)*32+de->ay;
+   e->id = id;
+   e->x = (de->mx-a->mx)*32+de->ax;
+   e->y = (de->my-a->my)*32+de->ay;
    e->z = a->dimz*32-1;
    for(int z = 0;z<a->dimz*32;z++)
    {
@@ -142,6 +151,23 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
    //TODO(Captain4LK): ai and stats
 
    return e;
+}
+
+void docent_from_entity(World *w, Area *a, Entity *e)
+{
+   //Not documented
+   if(e->id&(UINT64_C(1)<<63))
+      return;
+
+   Entity_documented de = {0};
+   entity_doc_get(w,e->id,&de);
+
+   de.mx = a->mx+e->x/32;
+   de.my = a->my+e->y/32;
+   de.ax = e->x&31;
+   de.ay = e->y&31;
+
+   entity_doc_modify(w,e->id,&de);
 }
 
 static Entity_documented *entity_doc_load(World *w, uint64_t id)

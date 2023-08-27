@@ -19,6 +19,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "world_defs.h"
 #include "entity.h"
+#include "area.h"
+#include "tile.h"
 
 #include "player.h"
 //-------------------------------------

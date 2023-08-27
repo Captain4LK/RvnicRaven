@@ -23,6 +23,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area.h"
 #include "entity.h"
 #include "tile.h"
+#include "entity_documented.h"
 //-------------------------------------
 
 //#defines
@@ -42,7 +43,18 @@ Player player;
 
 void player_new(World *w, Area *a)
 {
-   player.mx = 1;
+   Entity_documented ne = {0};
+   uint64_t id = entity_doc_create(w);
+   entity_doc_get(w,id,&ne);
+
+   player.id = ne.id;
+   ne.mx = 1;
+   ne.my = 1;
+   ne.ax = 0;
+   ne.ay = 0;
+   entity_doc_modify(w,ne.id,&ne);
+
+   /*player.mx = 1;
    player.my = 1;
    player.e = entity_new(w);
    player.e->x = 32;
@@ -58,7 +70,17 @@ void player_new(World *w, Area *a)
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    entity_add(a, player.e);
-   entity_grid_add(a, player.e);
+   entity_grid_add(a, player.e);*/
+}
+
+void player_add(World *w, Area *a)
+{
+   printf("%lu\n",player.id);
+   player.e = entity_from_docent(w,a,player.id);
+   player.e->speed = 128;
+   player.e->ai_type = AI_PLAYER;
+   //entity_add(a, player.e);
+   //entity_grid_add(a, player.e);
 }
 
 void player_update()

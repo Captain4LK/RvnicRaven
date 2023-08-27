@@ -28,6 +28,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "state.h"
 #include "game_map.h"
 #include "area_draw.h"
+#include "entity_documented.h"
 //-------------------------------------
 
 //#defines
@@ -51,20 +52,48 @@ void game_map_update()
 
    unsigned dim = world_size_to_dim(world->size);
 
-   if(player.mx>1&&RvR_key_pressed(RVR_KEY_LEFT))
-      player.mx--;
-   if(player.mx<dim*32-2&&RvR_key_pressed(RVR_KEY_RIGHT))
-      player.mx++;
-   if(player.my>1&&RvR_key_pressed(RVR_KEY_UP))
-      player.my--;
-   if(player.my<dim*32-2&&RvR_key_pressed(RVR_KEY_DOWN))
-      player.my++;
+   Entity_documented pe = {0};
+   entity_doc_get(world,player.id,&pe);
+
+   int moved = 0;
+   if(pe.mx>1&&RvR_key_pressed(RVR_KEY_LEFT))
+   {
+      pe.mx--;
+      moved = 1;
+   }
+   if(pe.mx<dim*32-2&&RvR_key_pressed(RVR_KEY_RIGHT))
+   {
+      pe.mx++;
+      moved = 1;
+   }
+   if(pe.my>1&&RvR_key_pressed(RVR_KEY_UP))
+   {
+      pe.my--;
+      moved = 1;
+   }
+   if(pe.my<dim*32-2&&RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      pe.my++;
+      moved = 1;
+   }
+
+   if(moved&&area!=NULL)
+   {
+      area_exit(world,area);
+      area_free(world,area);
+      area = NULL;
+   }
+
+   entity_doc_modify(world,player.id,&pe);
 
    if(RvR_key_pressed(RVR_KEY_D))
    {
-      if(area!=NULL)
-         area_free(area);
-      area = area_gen(world,1,player.mx-1,player.my-1,3,3,2,0);
+      if(area==NULL)
+      {
+         area = area_gen(world,1,pe.mx-1,pe.my-1,3,3,2,0);
+         player_add(world, area);
+      }
+
       state_set(STATE_GAME);
    }
 
@@ -79,17 +108,20 @@ void game_map_draw()
    RvR_render_clear(0);
    redraw = 0;
 
+   Entity_documented pe = {0};
+   entity_doc_get(world,player.id,&pe);
+
    Camera cam;
-   cam.x = player.mx+4;
-   cam.y = player.my-24;
+   cam.x = pe.mx+4;
+   cam.y = pe.my-24;
    cam.rotation = 0;
    unsigned dim = world_size_to_dim(world->size);
 
    int32_t elevation_center = 0;
-   Region *rc = region_get(world,player.mx/32,player.my/32);
+   Region *rc = region_get(world,pe.mx/32,pe.my/32);
    if(rc!=NULL)
    {
-      elevation_center = rc->elevation[(player.my%32)*33+(player.mx%32)];
+      elevation_center = rc->elevation[(pe.my%32)*33+(pe.mx%32)];
    }
 
    int origin_y = (16 * cam.y) / 16;
@@ -161,7 +193,7 @@ void game_map_draw()
             RvR_render_line((px + 1) * 256 + 128, (py + 7) * 256 + 128, (px + 17) * 256 + 128, (py - 1) * 256 + 128, 1);
          //-------------------------------------
 
-         if(x==player.mx&&y==player.my)
+         if(x==pe.mx&&y==pe.my)
          {
             tex = RvR_texture_get(0);
             RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-elevation+elevation_center/512-16);
@@ -178,7 +210,5 @@ void game_map_init()
 void game_map_set()
 {
    redraw = 1;
-   player.mx = 1;
-   player.my = 1;
 }
 //-------------------------------------

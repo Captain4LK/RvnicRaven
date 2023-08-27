@@ -32,7 +32,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "item.h"
 #include "region.h"
 #include "util.h"
+#include "state.h"
 #include "spiral_path.h"
+#include "entity_documented.h"
 //-------------------------------------
 
 //#defines
@@ -111,6 +113,12 @@ void game_update()
       player.cam.z_cutoff = player.e->z;
    }
 
+   if(RvR_key_down(RVR_KEY_LSHIFT)&&RvR_key_pressed(RVR_KEY_T))
+   {
+      docent_from_entity(world,area,player.e);
+      state_set(STATE_GAME_MAP);
+   }
+
    player.cam.z = player.e->z;
 
    switch(player.cam.rotation)
@@ -160,6 +168,7 @@ void game_init()
    world->preset.var_rainfall = 2048;
    world_gen(world,4);
    world_save(world);
+   player_new(world,NULL);
 
    //puts("---------");
    //world_gen(world,5);
@@ -168,12 +177,5 @@ void game_init()
 void game_set()
 {
    redraw = 1;
-
-   player_new(world, area);
-
-   player.cam.x = 16;
-   player.cam.y = 0;
-   player.cam.z = 1;
-   player.cam.z_cutoff = 0;
 }
 //-------------------------------------

@@ -19,6 +19,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area.h"
 #include "tile.h"
 #include "world.h"
+#include "entity.h"
+#include "entity_documented.h"
 //-------------------------------------
 
 //#defines
@@ -66,36 +68,6 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    for(int i = 0; i<dimx * 32 * dimy * 32 * dimz * 32; i++)
       a->tiles[i] = tile_set_discovered(0, 1, 1);
 
-   /*for(int z = 16; z<dimz * 32; z++)
-   {
-      for(int x = 0; x<dimx * 32; x++) for(int y = 0; y<dimy * 32; y++)
-         {
-            area_set_tile(a, x, y, z, tile_set_discovered(tile_make_wall(1, 1), 0, 0));
-         }
-   }
-
-   for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
-         area_set_tile(a, x + 8, y + 8, 15, tile_set_discovered(tile_make_wall(1, 1), 0, 0));
-   for(int x = 0; x<6; x++) for(int y = 0; y<8; y++)
-         area_set_tile(a, x + 15, y + 16, 15, tile_set_discovered(tile_make_wall(1, 1), 0, 0));
-   for(int x = 0; x<14; x++) for(int y = 0; y<6; y++)
-         area_set_tile(a, x + 9, y + 9, 14, tile_set_discovered(tile_make_wall(1, 1), 0, 0));
-   area_set_tile(a, 8, 14, 14, tile_set_discovered(tile_make_slope(1, 0), 0, 0));
-   area_set_tile(a, 8, 15, 14, tile_set_discovered(tile_make_slope(1, 8), 0, 0));
-   area_set_tile(a, 9, 15, 14, tile_set_discovered(tile_make_slope(1, 1), 0, 0));
-
-   area_set_tile(a, 1, 1, 15, tile_set_discovered(tile_make_slope(1, 13), 0, 0));
-
-   area_set_tile(a, 3, 3, 15, tile_set_discovered(tile_make_wall(1, 1), 0, 0));
-   //area_set_tile(a,3,4,15,tile_set_discovered(tile_make_wall(1,1),1));
-
-   for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
-         area_set_tile(a, x + 8, y + 32, 16, tile_set_discovered(tile_make_wall(0, 0), 0, 0));
-   for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
-         area_set_tile(a, x + 8, y + 32, 17, tile_set_discovered(tile_make_wall(0, 0), 0, 0));
-   for(int x = 0; x<16; x++) for(int y = 0; y<8; y++)
-         area_set_tile(a, x + 8, y + 32, 18, tile_set_discovered(tile_make_wall(0, 0), 0, 0));*/
-
    return a;
 
 RvR_err:
@@ -109,10 +81,39 @@ RvR_err:
    return NULL;
 }
 
-void area_free(Area *a)
+void area_free(World *w, Area *a)
 {
    if(a==NULL)
       return;
+
+   //Free all entities, modify historic ones
+   Entity *e = a->entities;
+   Entity *next = e->next;
+   for(;e!=NULL;e = next)
+   {
+      next = e->next;
+
+      entity_remove(e);
+      entity_free(e);
+   }
+
+   RvR_free(a->entity_grid);
+   RvR_free(a->tiles);
+   RvR_free(a);
+}
+
+void area_exit(World *w, Area *a)
+{
+   if(a==NULL)
+      return;
+
+   //modify historic entities
+   Entity *e = a->entities;
+   for(;e!=NULL;e = e->next)
+   {
+      if(!(e->id&(UINT64_C(1)<<63)))
+         docent_from_entity(w,a,e);
+   }
 }
 
 Area *area_load(World *w, uint16_t id)

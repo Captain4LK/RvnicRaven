@@ -16,11 +16,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "entity_defs.h"
 
 void entity_doc_init_table(World *w);
-void entity_doc_get(World *w, Entity_documented *e, uint64_t id);
+int entity_doc_get(World *w, uint64_t id, Entity_documented *e);
+uint64_t entity_doc_create(World *w);
 void entity_doc_modify(World *w, uint64_t id, const Entity_documented *e);
 //TODO(Captain4LK): function for saving individual DocEnt?
 void entity_doc_save_modified(World *w);
 
 Entity *entity_from_docent(World *w, Area *a, uint64_t id);
+void docent_from_entity(World *w, Area *a, Entity *e);
 
 #endif

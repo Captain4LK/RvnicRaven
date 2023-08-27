@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "util.h"
 #include "world.h"
 #include "region.h"
+#include "entity_documented.h"
 //-------------------------------------
 
 //#defines
@@ -59,12 +60,15 @@ World *world_new(const char *name, World_size size)
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
    memset(w->regions,0,sizeof(*w->regions)*dim*dim);
    memset(w->region_map,0,sizeof(*w->region_map)*dim*dim);
+   w->next_eid = INT64_MAX;
 
    //Create files
    //-------------------------------------
    region_file_create(w);
    world_save_base_file(w);
    //-------------------------------------
+
+   entity_doc_init_table(w);
 
    return w;
 
@@ -102,6 +106,8 @@ World *world_load(const char *name)
    w->region_map = RvR_malloc(sizeof(*w->region_map) * dim * dim, "World region map");
    memset(w->regions,0,sizeof(*w->regions)*dim*dim);
    memset(w->region_map,0,sizeof(*w->region_map)*dim*dim);
+
+   entity_doc_init_table(w);
 
    return w;
 
