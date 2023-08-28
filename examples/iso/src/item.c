@@ -51,7 +51,7 @@ Item *item_new(World *w)
    Item *n = item_pool;
    item_pool = n->next;
 
-   uint32_t id = w->next_iid++;
+   uint64_t id = w->next_iid++;
    memset(n, 0, sizeof(*n));
    n->next = NULL;
    n->prev_next = NULL;

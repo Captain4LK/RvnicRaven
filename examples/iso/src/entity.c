@@ -57,7 +57,7 @@ Entity *entity_new(World *w)
    Entity *n = entity_pool;
    entity_pool = n->next;
 
-   uint32_t id = w->next_eid++;
+   uint64_t id = w->next_eid++;
    memset(n, 0, sizeof(*n));
    n->next = NULL;
    n->prev_next = NULL;
@@ -186,7 +186,7 @@ unsigned entity_try_move(Area *a, Entity *e, int dir)
    if(e == NULL)
       return 0;
 
-   const int dirs[8][2] =
+   const int16_t dirs[8][2] =
    {
       { 1, 0 },
       { 0, 1 },

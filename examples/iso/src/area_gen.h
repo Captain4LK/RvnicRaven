@@ -15,6 +15,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 #include "world_gen.h"
 
-Area *area_gen(World *w, uint32_t seed, int ax, int ay, int dimx, int dimy, int dimz, uint16_t id);
+Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, uint8_t dimy, uint8_t dimz, uint16_t id);
 
 #endif

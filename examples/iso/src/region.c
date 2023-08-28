@@ -285,7 +285,7 @@ void region_save(World *w, unsigned x, unsigned y)
    RvR_rw_init_dyn_mem(&rw_comp_out,size,1);
    RvR_crush_compress(&rw_comp,&rw_comp_out,10);
    RvR_rw_seek(&rw_comp_out,0,SEEK_END);
-   size = RvR_rw_tell(&rw_comp_out);
+   size = (int32_t)RvR_rw_tell(&rw_comp_out);
    comp_out = rw_comp_out.as.dmem.mem;
 
    RvR_rw_close(&rw_comp);
@@ -330,7 +330,7 @@ void region_save(World *w, unsigned x, unsigned y)
    {
       //Move data by (size-old_size) bytes
       RvR_rw_seek(&rw,0,SEEK_END);
-      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_old = (int32_t)RvR_rw_tell(&rw);
       int32_t file_size_new = file_size_old+(size-size_old);
 
       util_truncate(&rw,file_size_new);
@@ -361,7 +361,7 @@ void region_save(World *w, unsigned x, unsigned y)
       //Different to above, since we need to move from left
       //instead of from right
       RvR_rw_seek(&rw,0,SEEK_END);
-      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_old = (int32_t)RvR_rw_tell(&rw);
       int32_t file_size_new = file_size_old+(size-size_old);
 
       int32_t to_move = file_size_old-offset;

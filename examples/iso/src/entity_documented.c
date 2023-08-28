@@ -42,7 +42,7 @@ static void entity_doc_save(World *w, uint64_t id);
 static int32_t table_insert(World *w, uint64_t id, Entity_documented *e);
 static int32_t table_search(World *w, uint64_t id);
 static void table_grow(World *w);
-static int32_t table_lookup(uint64_t hash, int exp, uint32_t idx);
+static int32_t table_lookup(uint64_t hash, uint8_t exp, uint64_t idx);
 static uint64_t mix64(uint64_t x);
 //-------------------------------------
 
@@ -119,7 +119,10 @@ void entity_doc_save_modified(World *w)
    for(int i = 0;i<1<<w->doctable.size_exp;i++)
    {
       if(w->doctable.arr[i]!=NULL&&w->doctable.arr[i]->modified)
+      {
          entity_doc_save(w,w->doctable.arr[i]->id);
+         w->doctable.arr[i]->modified = 0;
+      }
    }
 }
 
@@ -135,10 +138,10 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
 
    Entity *e = entity_new(w);
    e->id = id;
-   e->x = (de->mx-a->mx)*32+de->ax;
-   e->y = (de->my-a->my)*32+de->ay;
-   e->z = a->dimz*32-1;
-   for(int z = 0;z<a->dimz*32;z++)
+   e->x = (int16_t)((de->mx-a->mx)*32+de->ax);
+   e->y = (int16_t)((de->my-a->my)*32+de->ay);
+   e->z = (int16_t)(a->dimz*32-1);
+   for(int16_t z = 0;z<a->dimz*32;z++)
    {
       e->z = z;
       if(tile_has_wall(area_tile(a,e->x,e->y,z+1)))
@@ -162,8 +165,8 @@ void docent_from_entity(World *w, Area *a, Entity *e)
    Entity_documented de = {0};
    entity_doc_get(w,e->id,&de);
 
-   de.mx = a->mx+e->x/32;
-   de.my = a->my+e->y/32;
+   de.mx = (uint16_t)(a->mx+e->x/32);
+   de.my = (uint16_t)(a->my+e->y/32);
    de.ax = e->x&31;
    de.ay = e->y&31;
 
@@ -178,9 +181,9 @@ static Entity_documented *entity_doc_load(World *w, uint64_t id)
    RvR_rw rw_reg = {0};
    uint8_t *mem_decomp = NULL;
 
-   int file_id = id/256;
+   uint64_t file_id = id/256;
    char path[UTIL_PATH_MAX];
-   int res = snprintf(path,UTIL_PATH_MAX,"%s/entities%05d.dat",w->base_path,file_id);
+   int res = snprintf(path,UTIL_PATH_MAX,"%s/entities%05" PRIu64 ".dat",w->base_path,file_id);
    RvR_error_check(res<UTIL_PATH_MAX, "entity_doc_load", "entity file name truncated, path too long\n");
    RvR_rw_init_path(&rw,path,"rb");
    RvR_error_check(RvR_rw_valid(&rw),"entity_doc_load","failed to open file '%s'\n",path);
@@ -224,10 +227,10 @@ static Entity_documented *entity_doc_load(World *w, uint64_t id)
    e->ident.gender = RvR_rw_read_u32(&rw_reg);
    e->ident.profession = RvR_rw_read_u32(&rw_reg);
 
-   e->mx = RvR_rw_read_u32(&rw_reg);
-   e->my = RvR_rw_read_u32(&rw_reg);
-   e->ax = RvR_rw_read_u32(&rw_reg);
-   e->ay = RvR_rw_read_u32(&rw_reg);
+   e->mx = RvR_rw_read_u16(&rw_reg);
+   e->my = RvR_rw_read_u16(&rw_reg);
+   e->ax = RvR_rw_read_u16(&rw_reg);
+   e->ay = RvR_rw_read_u16(&rw_reg);
 
    RvR_rw_read(&rw,e->name,64,1);
    //-------------------------------------
@@ -277,9 +280,9 @@ static void entity_doc_save(World *w, uint64_t id)
    RvR_error_check(idx>=0,"entity_doc_save","entity %" PRIu64 "not loaded\n",id);
 
    uint8_t *comp_out = NULL;
-   int file_id = id/256;
+   uint64_t file_id = id/256;
    char path[UTIL_PATH_MAX];
-   int res = snprintf(path,UTIL_PATH_MAX,"%s/entities%05d.dat",w->base_path,file_id);
+   int res = snprintf(path,UTIL_PATH_MAX,"%s/entities%05" PRIu64 ".dat",w->base_path,file_id);
    RvR_error_check(res<UTIL_PATH_MAX, "entity_doc_save", "entity file name truncated, path too long\n");
 
    //Read offsets
@@ -310,7 +313,7 @@ static void entity_doc_save(World *w, uint64_t id)
 
    //Compress
    //-------------------------------------
-   int32_t size = 4*3+64+4*4;
+   int32_t size = 4*3+64+2*4;
 
    if(entity_doc_buffer==NULL||entity_doc_buffer_size<size)
    {
@@ -326,17 +329,17 @@ static void entity_doc_save(World *w, uint64_t id)
    RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->ident.gender);
    RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->ident.profession);
 
-   RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->mx);
-   RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->my);
-   RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->ax);
-   RvR_rw_write_u32(&rw_comp,w->doctable.arr[idx]->ay);
+   RvR_rw_write_u16(&rw_comp,w->doctable.arr[idx]->mx);
+   RvR_rw_write_u16(&rw_comp,w->doctable.arr[idx]->my);
+   RvR_rw_write_u16(&rw_comp,w->doctable.arr[idx]->ax);
+   RvR_rw_write_u16(&rw_comp,w->doctable.arr[idx]->ay);
 
    RvR_rw_write(&rw_comp,w->doctable.arr[idx]->name,64,1);
 
    RvR_rw_init_dyn_mem(&rw_comp_out,size,1);
    RvR_crush_compress(&rw_comp,&rw_comp_out,10);
    RvR_rw_seek(&rw_comp_out,0,SEEK_END);
-   size = RvR_rw_tell(&rw_comp_out);
+   size = (int32_t)RvR_rw_tell(&rw_comp_out);
    comp_out = rw_comp_out.as.dmem.mem;
 
    RvR_rw_close(&rw_comp);
@@ -376,7 +379,7 @@ static void entity_doc_save(World *w, uint64_t id)
    {
       //Move data by (size-old_size) bytes
       RvR_rw_seek(&rw,0,SEEK_END);
-      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_old = (int32_t)RvR_rw_tell(&rw);
       int32_t file_size_new = file_size_old+(size-size_old);
 
       util_truncate(&rw,file_size_new);
@@ -407,7 +410,7 @@ static void entity_doc_save(World *w, uint64_t id)
       //Different to above, since we need to move from left
       //instead of from right
       RvR_rw_seek(&rw,0,SEEK_END);
-      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_old = (int32_t)RvR_rw_tell(&rw);
       int32_t file_size_new = file_size_old+(size-size_old);
 
       int32_t to_move = file_size_old-offset;
@@ -517,11 +520,11 @@ static void table_grow(World *w)
    }
 }
 
-static int32_t table_lookup(uint64_t hash, int exp, uint32_t idx)
+static int32_t table_lookup(uint64_t hash, uint8_t exp, uint64_t idx)
 {
-   uint32_t mask = ((uint32_t)1<<exp)-1;
-   uint32_t step = (hash>(64-exp))|1;
-   return (idx+step)&mask;
+   uint64_t mask = (UINT64_C(1)<<exp)-1;
+   uint64_t step = (hash>(64-exp))|1;
+   return (int32_t)((idx+step)&mask);
 }
 
 //https://xoshiro.di.unimi.it/splitmix64.c

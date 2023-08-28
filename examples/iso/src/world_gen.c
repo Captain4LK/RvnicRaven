@@ -363,7 +363,7 @@ static void rand_pos_free(int32_t **pos)
 
 static void rand_pos(RvR_rand_pcg *rand, int32_t **pos, int32_t *x, int32_t *y)
 {
-   int e = RvR_rand_pcg_next_range(rand,0,RvR_array_length(*pos)/2);
+   int e = RvR_rand_pcg_next_range(rand,0,(int32_t)RvR_array_length(*pos)/2);
 
    *x = (*pos)[2*e];
    *y = (*pos)[2*e+1];

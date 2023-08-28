@@ -29,9 +29,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Typedefs
 typedef struct
 {
-   uint16_t x;
-   uint16_t y;
-   uint16_t z;
+   int16_t x;
+   int16_t y;
+   int16_t z;
    uint16_t tex;
 }Sprite;
 //-------------------------------------
@@ -81,7 +81,7 @@ void area_draw_end()
    }
 
    int sprite_cur = 0;
-   int sprite_max = RvR_array_length(sprites);
+   int sprite_max = (int)RvR_array_length(sprites);
 
    int cx = cam->x * 16 + cam->y * 16;
    int cy = cam->z * 20 - 8 * cam->x + 8 * cam->y;
@@ -239,7 +239,7 @@ void area_draw_end()
    }
 }
 
-void area_draw_sprite(uint16_t tex, int x, int y, int z)
+void area_draw_sprite(uint16_t tex, int16_t x, int16_t y, int16_t z)
 {
    int dx = x;
    int dy = y;

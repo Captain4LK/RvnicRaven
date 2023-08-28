@@ -167,9 +167,9 @@ Area *area_load(World *w, uint16_t id)
    //-------------------------------------
    a = RvR_malloc(sizeof(*a),"Area struct");
    a->id = id;
-   a->dimx = RvR_rw_read_u16(&rw_reg);
-   a->dimy = RvR_rw_read_u16(&rw_reg);
-   a->dimz = RvR_rw_read_u16(&rw_reg);
+   a->dimx = RvR_rw_read_u8(&rw_reg);
+   a->dimy = RvR_rw_read_u8(&rw_reg);
+   a->dimz = RvR_rw_read_u8(&rw_reg);
    a->mx = RvR_rw_read_u16(&rw_reg);
    a->my = RvR_rw_read_u16(&rw_reg);
    a->entities = NULL;
@@ -258,7 +258,7 @@ void area_save(World *w, Area *a)
    //Compress
    //-------------------------------------
    int32_t size = (a->dimx*32)*(a->dimy*32)*(a->dimz*32)*4;
-   size+=6;
+   size+=3;
    size+=4;
 
    if(area_buffer==NULL||area_buffer_size<size)
@@ -272,9 +272,9 @@ void area_save(World *w, Area *a)
    RvR_rw_init_mem(&rw_comp,area_buffer,size,0);
 
    //Write area data
-   RvR_rw_write_u16(&rw_comp,a->dimx);
-   RvR_rw_write_u16(&rw_comp,a->dimy);
-   RvR_rw_write_u16(&rw_comp,a->dimz);
+   RvR_rw_write_u8(&rw_comp,a->dimx);
+   RvR_rw_write_u8(&rw_comp,a->dimy);
+   RvR_rw_write_u8(&rw_comp,a->dimz);
    RvR_rw_write_u16(&rw_comp,a->mx);
    RvR_rw_write_u16(&rw_comp,a->my);
    for(int i = 0;i<(a->dimx*32)*(a->dimy*32)*(a->dimz*32);i++)
@@ -283,7 +283,7 @@ void area_save(World *w, Area *a)
    RvR_rw_init_dyn_mem(&rw_comp_out,size,1);
    RvR_crush_compress(&rw_comp,&rw_comp_out,10);
    RvR_rw_seek(&rw_comp_out,0,SEEK_END);
-   size = RvR_rw_tell(&rw_comp_out);
+   size = (int32_t)RvR_rw_tell(&rw_comp_out);
    comp_out = rw_comp_out.as.dmem.mem;
 
    RvR_rw_close(&rw_comp);
@@ -323,7 +323,7 @@ void area_save(World *w, Area *a)
    {
       //Move data by (size-old_size) bytes
       RvR_rw_seek(&rw,0,SEEK_END);
-      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_old = (int32_t)RvR_rw_tell(&rw);
       int32_t file_size_new = file_size_old+(size-size_old);
 
       util_truncate(&rw,file_size_new);
@@ -354,7 +354,7 @@ void area_save(World *w, Area *a)
       //Different to above, since we need to move from left
       //instead of from right
       RvR_rw_seek(&rw,0,SEEK_END);
-      int32_t file_size_old = RvR_rw_tell(&rw);
+      int32_t file_size_old = (int32_t)RvR_rw_tell(&rw);
       int32_t file_size_new = file_size_old+(size-size_old);
 
       int32_t to_move = file_size_old-offset;

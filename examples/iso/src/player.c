@@ -53,40 +53,20 @@ void player_new(World *w, Area *a)
    ne.ax = 0;
    ne.ay = 0;
    entity_doc_modify(w,ne.id,&ne);
-
-   /*player.mx = 1;
-   player.my = 1;
-   player.e = entity_new(w);
-   player.e->x = 32;
-   player.e->y = 32;
-   player.e->z = 59;
-   for(int z = 0;z<a->dimz*32;z++)
-   {
-      player.e->z = z;
-      if(tile_has_wall(area_tile(a,player.e->x,player.e->y,z+1)))
-         break;
-   }
-
-   player.e->speed = 128;
-   player.e->ai_type = AI_PLAYER;
-   entity_add(a, player.e);
-   entity_grid_add(a, player.e);*/
 }
 
 void player_add(World *w, Area *a)
 {
-   printf("%lu\n",player.id);
    player.e = entity_from_docent(w,a,player.id);
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
-   //entity_add(a, player.e);
-   //entity_grid_add(a, player.e);
+   player.e->tex = 16384;
 }
 
 void player_update()
 {
    //Movement
-   int dir = -1;
+   int8_t dir = -1;
    if(RvR_key_pressed(RVR_KEY_W)||(0&&RvR_key_pressed(RVR_KEY_UP))||RvR_key_pressed(RVR_KEY_NP7))
       dir = (3 + player.cam.rotation) & 3;
    if(RvR_key_pressed(RVR_KEY_S)||(0&&RvR_key_pressed(RVR_KEY_DOWN))||RvR_key_pressed(RVR_KEY_NP3))

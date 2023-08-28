@@ -97,8 +97,8 @@ typedef struct
    struct
    {
       Entity_documented **arr;
-      int size_exp;
-      int count;
+      uint8_t size_exp;
+      int32_t count;
    }doctable;
 }World;
 

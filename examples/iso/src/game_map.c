@@ -167,7 +167,7 @@ void game_map_draw()
          //if(elevation<256)
             //continue;
 
-         RvR_texture *tex = RvR_texture_get(2);
+         RvR_texture *tex = RvR_texture_get(0);
          int z = 0;
          RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-elevation+elevation_center/512);
 
@@ -195,7 +195,7 @@ void game_map_draw()
 
          if(x==pe.mx&&y==pe.my)
          {
-            tex = RvR_texture_get(0);
+            tex = RvR_texture_get(16384);
             RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-elevation+elevation_center/512-16);
          }
       }

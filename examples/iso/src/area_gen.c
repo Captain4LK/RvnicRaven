@@ -39,7 +39,7 @@ static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var);
 
 //Function implementations
 
-Area *area_gen(World *w, uint32_t seed, int ax, int ay, int dimx, int dimy, int dimz, uint16_t id)
+Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, uint8_t dimy, uint8_t dimz, uint16_t id)
 {
    RvR_rand_pcg rand = {0};
    RvR_rand_pcg_seed(&rand,seed);
@@ -212,7 +212,7 @@ Area *area_gen(World *w, uint32_t seed, int ax, int ay, int dimx, int dimy, int 
                      0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
                   };
 
-                  area_set_tile(a,x,y,z,tile_set_discovered(tile_make_slope(1,slope_var[index]),1,1));
+                  area_set_tile(a,x,y,z,tile_set_discovered(tile_make_slope(0,slope_var[index]),1,1));
                }
             }
          }

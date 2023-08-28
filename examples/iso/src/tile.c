@@ -185,18 +185,18 @@ uint32_t tile_make_slope(uint16_t slope, uint16_t variant)
 uint16_t tile_wall_texture(uint32_t tile)
 {
    if(!tile_discovered_wall(tile))
-      return 0;
-   uint32_t wall_tile = (tile & ((1 << 14) - 1));
+      return 16384;
+   uint16_t wall_tile = (tile & ((1 << 14) - 1));
 
-   return 2 + (wall_tile - 1) * 16;
+   return (uint16_t)((wall_tile - 1) * 16);
 }
 
 uint16_t tile_object_texture(uint32_t tile)
 {
    if(!tile_discovered_wall(tile))
-      return 0;
+      return 16384;
 
-   uint32_t object_tile = (tile & ((1 << 14) - 1));
+   uint16_t object_tile = (tile & ((1 << 14) - 1));
 
    return 16384+object_tile;
 }
@@ -204,21 +204,21 @@ uint16_t tile_object_texture(uint32_t tile)
 uint16_t tile_floor_texture(uint32_t tile)
 {
    if(!tile_discovered_floor(tile))
-      return 1;
-   uint32_t floor_tile = ((tile >> 14) & ((1 << 12) - 1));
+      return 16385;
+   uint16_t floor_tile = ((tile >> 14) & ((1 << 12) - 1));
 
-   return 2 + (floor_tile - 1) * 16 + 1;
+   return (uint16_t)((floor_tile - 1) * 16 + 1);
 }
 
 uint16_t tile_slope_texture(uint32_t tile, uint8_t rotation)
 {
-   uint32_t slope = (tile & ((1 << 14) - 1));
-   uint32_t variant = ((tile >> 14) & ((1 << 12) - 1));
+   uint16_t slope = (tile & ((1 << 14) - 1));
+   uint16_t variant = ((tile >> 14) & ((1 << 12) - 1));
 
    if(variant<4) variant = (variant + rotation) & 3;
    else if(variant<8) variant = 4 + ((variant - 4 + rotation) & 3);
    else if(variant<12) variant = 8 + ((variant - 8 + rotation) & 3);
 
-   return 2 + (slope - 1) * 16 + variant + 2;
+   return (uint16_t)(slope * 16 + variant + 2);
 }
 //-------------------------------------
