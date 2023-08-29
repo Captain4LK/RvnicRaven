@@ -295,9 +295,14 @@ void RvR_render_horizontal_line(int x0, int x1, int y, uint8_t index)
       *dst = index;
 }
 
+void RvR_render(int x, int y, uint8_t index)
+{
+   draw(x,y,index);
+}
+
 static void draw(int x, int y, uint8_t index)
 {
    if(x>=0&&x<RvR_xres()&&y>=0&&y<RvR_yres())
       RvR_framebuffer()[y * RvR_xres() + x] = index;
 }
-//-------------------------------------
+

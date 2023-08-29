@@ -157,46 +157,42 @@ void game_map_draw()
          case 3: tx = y; ty = dim * 32 - 1 - x; txf = tx + 1; tyr = ty + 1; break;
          }
 
-         if(x<0||y<0||x>=dim*32||y>=dim*32)
+         if(x>=dim*32)
             continue;
-         Region *r = region_get(world,x/32,y/32);
-         if(r==NULL)
+         if(y>=dim*32)
             continue;
 
-         int32_t elevation = r->elevation[(y%32)*33+(x%32)]/512;
+         int32_t e0 = world_elevation(world,x,y)/512;
+         int32_t e1 = world_elevation(world,x+1,y)/512;
+         int32_t e2 = world_elevation(world,x-1,y)/512;
+         int32_t e3 = world_elevation(world,x,y+1)/512;
+         int32_t e4 = world_elevation(world,x,y-1)/512;
          //if(elevation<256)
             //continue;
 
          RvR_texture *tex = RvR_texture_get(0);
          int z = 0;
-         RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-elevation+elevation_center/512);
+
+         int collumn_height = RvR_min(8,RvR_max((e0-e2)/16,(e0-e3)/16));
+         for(int h = collumn_height;h>=0;h--)
+            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-e0+elevation_center/512+h*16);
 
          //Outline
          //-------------------------------------
          int px = x * 16 + y * 16 - cx;
-         int py = z * 20 - 8 * x + 8 * y - cy-elevation+elevation_center/512;
+         int py = z * 20 - 8 * x + 8 * y - cy-e0+elevation_center/512;
 
-         if(x+1>=dim*32)
-            continue;
-         r = region_get(world,(x+1)/32,y/32);
-         if(r==NULL)
-            continue;
-         if(elevation>r->elevation[(y%32)*33+((x+1)%32)]/512)
+         if(e0>e1)
             RvR_render_line((px + 15) * 256 + 128, (py) * 256 + 128, (px + 31) * 256 + 128, (py + 8) * 256 + 128, 1);
 
-         if(y-1<0)
-            continue;
-         r = region_get(world,x/32,(y-1)/32);
-         if(r==NULL)
-            continue;
-         if(elevation>r->elevation[((y-1)%32)*33+(x%32)]/512)
+         if(e0>e4)
             RvR_render_line((px + 1) * 256 + 128, (py + 7) * 256 + 128, (px + 17) * 256 + 128, (py - 1) * 256 + 128, 1);
          //-------------------------------------
 
          if(x==pe.mx&&y==pe.my)
          {
             tex = RvR_texture_get(16384);
-            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-elevation+elevation_center/512-16);
+            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-e0+elevation_center/512-16);
          }
       }
       y++;
