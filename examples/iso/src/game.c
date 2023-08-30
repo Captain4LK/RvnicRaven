@@ -64,9 +64,27 @@ void game_update()
 
    if(player.e->action.id!=ACTION_INVALID)
    {
-      if(action_do(area, player.e))
-      {
+      int res = action_do(world,area,player.e);
+      if(res)
          redraw = 1;
+      if(res==ACTION_LEFT_MAP)
+      {
+         Entity_documented pe = {0};
+         entity_doc_get(world,player.id,&pe);
+
+         int mx = pe.mx-1;
+         int my = pe.my-1;
+         if(pe.mx>=area->mx+area->dimx) mx = pe.mx;
+         else if(pe.mx<area->mx) mx = pe.mx-2;
+         if(pe.my>=area->my+area->dimy) my = pe.my;
+         else if(pe.my<area->my) my = pe.my-2;
+
+         area_exit(world,area);
+         area_free(world,area);
+         area = area_gen(world,1,mx,my,3,3,2,0);
+
+         player_add(world, area);
+         state_set(STATE_GAME);
       }
    }
 
@@ -76,7 +94,7 @@ void game_update()
    if(player.e->action_points==0)
    {
       //Run entities
-      turn_do(area);
+      turn_do(world,area);
 
       redraw = 1;
       player.e->action_points = player.e->speed;

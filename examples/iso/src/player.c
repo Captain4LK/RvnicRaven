@@ -124,7 +124,7 @@ int player_action(Area *a)
    if(player.e->action.id==ACTION_INVALID)
       return 0;
 
-   action_do(a, player.e);
+   //action_do(a, player.e);
    //player.cam_auto = 1;
 
    return 1;

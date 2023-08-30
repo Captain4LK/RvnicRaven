@@ -26,7 +26,7 @@ void entity_grid_add(Area *a, Entity *e);
 void entity_grid_remove(Entity *e);
 
 int entity_pos_valid(Area *a, Entity *e, int x, int y, int z);
-unsigned entity_try_move(Area *a, Entity *e, int dir);
+unsigned entity_try_move(World *w, Area *a, Entity *e, int dir);
 unsigned entity_try_ascend(Area *a, Entity *e);
 unsigned entity_try_descend(Area *a, Entity *e);
 

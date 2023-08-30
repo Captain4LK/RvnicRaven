@@ -144,7 +144,6 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
          min = elevation[i];
    }
 
-   RvR_log("%d %d %d %d\n",min,max,maxi%stridey,maxi/stridex);
    Area *a = area_create(w,ax,ay,dimx,dimy,dimz,id);
    for(int y = 0;y<dimy*32;y++)
    {

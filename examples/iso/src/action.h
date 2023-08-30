@@ -16,7 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "action_defs.h"
 #include "entity_defs.h"
 
-int action_do(Area *a, Entity *e);
+int action_do(World *w, Area *a, Entity *e);
 
 void action_set_wait(Entity *e, uint32_t time);
 void action_set_move(Entity *e, uint8_t dir);

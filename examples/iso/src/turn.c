@@ -37,7 +37,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-void turn_do(Area *a)
+void turn_do(World *w, Area *a)
 {
    Entity *e = a->entities;
    Entity *next = NULL;
@@ -58,7 +58,7 @@ void turn_do(Area *a)
          if(e->action.id==ACTION_INVALID)
             break;
 
-         action_do(a, e);
+         action_do(w,a, e);
       }
    }
 

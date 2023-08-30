@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "world_defs.h"
 #include "entity.h"
+#include "entity_documented.h"
 #include "area.h"
 #include "tile.h"
 
@@ -181,7 +182,7 @@ int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
    return 0;
 }
 
-unsigned entity_try_move(Area *a, Entity *e, int dir)
+unsigned entity_try_move(World *w, Area *a, Entity *e, int dir)
 {
    if(e == NULL)
       return 0;
@@ -199,6 +200,25 @@ unsigned entity_try_move(Area *a, Entity *e, int dir)
       { 1, -1 },
       { 1, 1 },
    };
+
+   //Leave map
+   //Update DocEnt if entity is documented
+   int nx = e->x+dirs[dir][0];
+   int ny = e->y+dirs[dir][1];
+   if(nx<0||ny<0||nx>=a->dimx*32||ny>=a->dimy*32)
+   {
+      if(entity_is_docent(e))
+      {
+         e->x+=dirs[dir][0];
+         e->y+=dirs[dir][1];
+         docent_from_entity(w,a,e);
+         e->x-=dirs[dir][0];
+         e->y-=dirs[dir][1];
+      }
+
+      entity_remove(e);
+      return 2;
+   }
 
    if(entity_pos_valid(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z))
    {

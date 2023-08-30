@@ -22,6 +22,8 @@ void entity_doc_modify(World *w, uint64_t id, const Entity_documented *e);
 //TODO(Captain4LK): function for saving individual DocEnt?
 void entity_doc_save_modified(World *w);
 
+int entity_is_docent(const Entity *e);
+
 Entity *entity_from_docent(World *w, Area *a, uint64_t id);
 void docent_from_entity(World *w, Area *a, Entity *e);
 

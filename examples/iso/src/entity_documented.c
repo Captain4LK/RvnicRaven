@@ -71,7 +71,8 @@ int entity_doc_get(World *w, uint64_t id, Entity_documented *e)
    int32_t idx = table_search(w,id);
    if(idx>=0)
    {
-      *e = *w->doctable.arr[idx];
+      if(e!=NULL)
+         *e = *w->doctable.arr[idx];
       return 0;
    }
 
@@ -80,11 +81,13 @@ int entity_doc_get(World *w, uint64_t id, Entity_documented *e)
    if(ne!=NULL)
    {
       table_insert(w,id,ne);
-      *e = *ne;
+      if(e!=NULL)
+         *e = *ne;
       return 0;
    }
 
-   *e = (Entity_documented){0};
+   if(e!=NULL)
+      *e = (Entity_documented){0};
 
    return 1;
 }
@@ -102,6 +105,9 @@ uint64_t entity_doc_create(World *w)
 
 void entity_doc_modify(World *w, uint64_t id, const Entity_documented *e)
 {
+   //Ensures entity is loaded, if it exists
+   entity_doc_get(w,id,NULL);
+
    int32_t idx = table_search(w,id);
    if(idx<0)
       return;
@@ -124,6 +130,14 @@ void entity_doc_save_modified(World *w)
          w->doctable.arr[i]->modified = 0;
       }
    }
+}
+
+int entity_is_docent(const Entity *e)
+{
+   if(e==NULL)
+      return 0;
+
+   return !(e->id&(UINT64_C(1)<<63));
 }
 
 Entity *entity_from_docent(World *w, Area *a, uint64_t id)
@@ -165,8 +179,8 @@ void docent_from_entity(World *w, Area *a, Entity *e)
    Entity_documented de = {0};
    entity_doc_get(w,e->id,&de);
 
-   de.mx = (uint16_t)(a->mx+e->x/32);
-   de.my = (uint16_t)(a->my+e->y/32);
+   de.mx = (uint16_t)((a->mx*32+e->x)/32);
+   de.my = (uint16_t)((a->my*32+e->y)/32);
    de.ax = e->x&31;
    de.ay = e->y&31;
 

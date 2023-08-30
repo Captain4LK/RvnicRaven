@@ -22,6 +22,14 @@ typedef enum
    ACTION_DESCEND = 3,
 }Action_id;
 
+typedef enum
+{
+   ACTION_IN_PROGRESS = 0,
+
+   ACTION_FINISHED = 1,
+   ACTION_LEFT_MAP,
+}Action_status;
+
 typedef struct
 {
    uint32_t time;

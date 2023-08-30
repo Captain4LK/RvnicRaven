@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "action.h"
 #include "entity.h"
+#include "entity_documented.h"
 //-------------------------------------
 
 //#defines
@@ -31,15 +32,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static int action_move(Area *a, Entity *e);
-static int action_wait(Area *a, Entity *e);
-static int action_ascend(Area *a, Entity *e);
-static int action_descend(Area *a, Entity *e);
+static int action_move(World *w, Area *a, Entity *e);
+static int action_wait(World *w, Area *a, Entity *e);
+static int action_ascend(World *w, Area *a, Entity *e);
+static int action_descend(World *w, Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
 
-int action_do(Area *a, Entity *e)
+int action_do(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
    if(act->remaining<=e->action_points)
@@ -58,16 +59,16 @@ int action_do(Area *a, Entity *e)
    switch(e->action.id)
    {
    case ACTION_WAIT:
-      status = action_wait(a, e);
+      status = action_wait(w,a, e);
       break;
    case ACTION_MOVE:
-      status = action_move(a, e);
+      status = action_move(w,a, e);
       break;
    case ACTION_ASCEND:
-      status = action_ascend(a, e);
+      status = action_ascend(w,a, e);
       break;
    case ACTION_DESCEND:
-      status = action_descend(a, e);
+      status = action_descend(w,a, e);
       break;
    default:
       break;
@@ -122,20 +123,20 @@ void action_set_descend(Entity *e)
    e->action.can_interrupt = 1;
 }
 
-static int action_move(Area *a, Entity *e)
+static int action_move(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
    act->status = 0;
    if(act->remaining==0)
    {
-      entity_try_move(a, e, act->as.move.dir);
-      return 1;
+      int status = entity_try_move(w,a, e, act->as.move.dir);
+      return status==2?ACTION_LEFT_MAP:ACTION_FINISHED;
    }
 
-   return 0;
+   return ACTION_IN_PROGRESS;
 }
 
-static int action_wait(Area *a, Entity *e)
+static int action_wait(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
    act->status = 0;
@@ -143,7 +144,7 @@ static int action_wait(Area *a, Entity *e)
    return 0;
 }
 
-static int action_ascend(Area *a, Entity *e)
+static int action_ascend(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
    act->status = !entity_try_ascend(a, e);
@@ -152,7 +153,7 @@ static int action_ascend(Area *a, Entity *e)
    return 184;
 }
 
-static int action_descend(Area *a, Entity *e)
+static int action_descend(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
    act->status = !entity_try_descend(a, e);
