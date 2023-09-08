@@ -183,10 +183,10 @@ void game_map_draw()
          int py = z * 20 - 8 * x + 8 * y - cy-e0+elevation_center/512;
 
          if(e0>e1)
-            RvR_render_line((px + 15) * 256 + 128, (py) * 256 + 128, (px + 31) * 256 + 128, (py + 8) * 256 + 128, 1);
+            RvR_render_line((px + 16) * 256 + 128, (py+1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
 
          if(e0>e4)
-            RvR_render_line((px + 1) * 256 + 128, (py + 7) * 256 + 128, (px + 17) * 256 + 128, (py - 1) * 256 + 128, 1);
+            RvR_render_line((px) * 256 + 128, (py + 8) * 256 + 128, (px + 16) * 256 + 128, (py) * 256 + 128, 1);
          //-------------------------------------
 
          if(x==pe.mx&&y==pe.my)

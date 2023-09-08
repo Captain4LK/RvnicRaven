@@ -188,7 +188,7 @@ uint16_t tile_wall_texture(uint32_t tile)
       return 16384;
    uint16_t wall_tile = (tile & ((1 << 14) - 1));
 
-   return wall_tile * 16;
+   return (uint16_t)((wall_tile - 1) * 16);
 }
 
 uint16_t tile_object_texture(uint32_t tile)
@@ -207,7 +207,7 @@ uint16_t tile_floor_texture(uint32_t tile)
       return 16385;
    uint16_t floor_tile = ((tile >> 14) & ((1 << 12) - 1));
 
-   return (uint16_t)(floor_tile * 16 + 1);
+   return (uint16_t)((floor_tile - 1) * 16 + 1);
 }
 
 uint16_t tile_slope_texture(uint32_t tile, uint8_t rotation)
@@ -219,6 +219,6 @@ uint16_t tile_slope_texture(uint32_t tile, uint8_t rotation)
    else if(variant<8) variant = 4 + ((variant - 4 + rotation) & 3);
    else if(variant<12) variant = 8 + ((variant - 8 + rotation) & 3);
 
-   return (uint16_t)(slope * 16 + variant + 2);
+   return (uint16_t)((slope-1) * 16 + variant + 2);
 }
 //-------------------------------------
