@@ -92,42 +92,8 @@ void player_update()
 
    if(dir!=-1)
    {
-      const int dirs[8][2] =
-      {
-         { 1, 0 },
-         { 0, 1 },
-         { -1, 0 },
-         { 0, -1 },
-
-         //Diagonal
-         { -1, 1 },
-         { -1, -1 },
-         { 1, -1 },
-         { 1, 1 },
-      };
-
-      /*Entity *ent = map_ent_at(player.ent->x + dirs[dir][0], player.ent->y + dirs[dir][1]);
-      if(ent!=NULL&&entity_alignment(player.ent, ent)<0)
-      {
-         //TODO attack
-         puts("ATTACK");
-      }
-      else*/
-      {
-         action_set_move(player.e, dir);
-      }
+      action_set_move(player.e, dir);
    }
-}
-
-int player_action(Area *a)
-{
-   if(player.e->action.id==ACTION_INVALID)
-      return 0;
-
-   //action_do(a, player.e);
-   //player.cam_auto = 1;
-
-   return 1;
 }
 
 int player_pos_valid(Area *a, Entity *e, int x, int y, int z)

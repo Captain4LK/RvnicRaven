@@ -30,8 +30,6 @@ void player_new(World *w, Area *a);
 void player_add(World *w, Area *a);
 void player_update();
 
-int player_action(Area *a);
-
 int player_pos_valid(Area *a, Entity *e, int x, int y, int z);
 
 #endif

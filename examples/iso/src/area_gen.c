@@ -152,7 +152,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
          int z = (elevation[y*stride+x]-min)/1024+1;
          for(;z>0;z--)
          {
-            area_set_tile(a,x,y,dimz*32-z,tile_set_discovered(tile_make_wall(1, 1), 1, 1));
+            area_set_tile(a,x,y,dimz*32-z,tile_set_discovered(tile_make_wall(2, 2), 1, 1));
          }
       }
    }
@@ -211,7 +211,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
                      0, 2,1,5, 0,0,4,0, 3,6,0,0, 7,0,1,0,
                   };
 
-                  area_set_tile(a,x,y,z,tile_set_discovered(tile_make_slope(1,slope_var[index]),1,1));
+                  area_set_tile(a,x,y,z,tile_set_discovered(tile_make_slope(2,slope_var[index]),1,1));
                }
             }
          }

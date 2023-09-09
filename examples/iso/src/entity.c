@@ -274,4 +274,9 @@ unsigned entity_try_descend(Area *a, Entity *e)
 
    return 0;
 }
+
+int entity_move_cost(Entity *e)
+{
+   return 184;
+}
 //-------------------------------------

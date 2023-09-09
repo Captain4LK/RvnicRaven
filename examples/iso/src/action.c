@@ -98,7 +98,7 @@ void action_set_move(Entity *e, uint8_t dir)
       return;
 
    e->action.id = ACTION_MOVE;
-   e->action.remaining = 184;
+   e->action.remaining = entity_move_cost(e);
    e->action.as.move.dir = dir;
    e->action.can_interrupt = 1;
 }
@@ -109,7 +109,7 @@ void action_set_ascend(Entity *e)
       return;
 
    e->action.id = ACTION_ASCEND;
-   e->action.remaining = 184;
+   e->action.remaining = entity_move_cost(e);
    e->action.can_interrupt = 1;
 }
 
@@ -119,7 +119,7 @@ void action_set_descend(Entity *e)
       return;
 
    e->action.id = ACTION_DESCEND;
-   e->action.remaining = 184;
+   e->action.remaining = entity_move_cost(e);
    e->action.can_interrupt = 1;
 }
 
@@ -150,7 +150,7 @@ static int action_ascend(World *w, Area *a, Entity *e)
    act->status = !entity_try_ascend(a, e);
    act->id = ACTION_INVALID;
 
-   return 184;
+   return entity_move_cost(e);
 }
 
 static int action_descend(World *w, Area *a, Entity *e)
@@ -159,6 +159,6 @@ static int action_descend(World *w, Area *a, Entity *e)
    act->status = !entity_try_descend(a, e);
    act->id = ACTION_INVALID;
 
-   return 184;
+   return entity_move_cost(e);
 }
 //-------------------------------------
