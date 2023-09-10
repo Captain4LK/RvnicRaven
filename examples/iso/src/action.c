@@ -147,18 +147,26 @@ static int action_wait(World *w, Area *a, Entity *e)
 static int action_ascend(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
-   act->status = !entity_try_ascend(a, e);
-   act->id = ACTION_INVALID;
+   act->status = 0;
+   if(act->remaining==0)
+   {
+      entity_try_ascend(a,e);
+      return ACTION_FINISHED;
+   }
 
-   return entity_move_cost(e);
+   return ACTION_IN_PROGRESS;
 }
 
 static int action_descend(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
-   act->status = !entity_try_descend(a, e);
-   act->id = ACTION_INVALID;
+   act->status = 0;
+   if(act->remaining==0)
+   {
+      entity_try_descend(a,e);
+      return ACTION_FINISHED;
+   }
 
-   return entity_move_cost(e);
+   return ACTION_IN_PROGRESS;
 }
 //-------------------------------------

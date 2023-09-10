@@ -10,18 +10,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include "RvR/RvR.h"
 //-------------------------------------
 
 //Internal includes
-#include "entity.h"
-#include "item.h"
-#include "world_defs.h"
-#include "action.h"
-#include "player.h"
-#include "turn.h"
+#include "ai.h"
 //-------------------------------------
 
 //#defines
@@ -38,56 +34,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-void turn_do(World *w, Area *a)
+void ai_think(World *w, Area *a, Entity *e)
 {
-   Entity *e = a->entities;
-   Entity *next = NULL;
-   for(; e!=NULL; e = next)
-   {
-      next = e->next;
-
-      if(e->removed)
-         continue;
-      if(e==player.e)
-         continue;
-
-      e->action_points = e->speed;
-      while(e->action_points>0)
-      {
-         entity_think(w,a,e);
-
-         if(e->action.id==ACTION_INVALID)
-            break;
-
-         action_do(w,a, e);
-      }
-   }
-
-   //TODO: should we run this every turn?
-
-   //Delete removed entities
-   e = a->entities;
-   next = NULL;
-   for(; e!=NULL; e = next)
-   {
-      next = e->next;
-
-      if(e->removed)
-         entity_free(e);
-
-      e = next;
-   }
-
-   /*//Delete removed items
-   Item_world *it = items;
-   while(it != NULL)
-   {
-      Item_world *next = it->next;
-
-      if(it->removed)
-         item_world_free(it);
-
-      it = next;
-   }*/
 }
 //-------------------------------------

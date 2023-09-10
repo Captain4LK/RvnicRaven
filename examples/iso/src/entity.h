@@ -30,6 +30,8 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, int dir);
 unsigned entity_try_ascend(Area *a, Entity *e);
 unsigned entity_try_descend(Area *a, Entity *e);
 
+void entity_think(World *w, Area *a, Entity *e);
+
 int entity_move_cost(Entity *e);
 
 #endif
