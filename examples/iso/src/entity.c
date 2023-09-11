@@ -75,18 +75,6 @@ void entity_free(Entity *e)
    if(e == NULL)
       return;
 
-   /*switch(e->ai_type)
-   {
-   case AI_INVALID:
-      break;
-   case AI_QUADRUPED:
-      quadruped_free(e);
-      break;
-   }
-
-   if(e->path != NULL)
-      RvR_free(e->path);*/
-
    *e->prev_next = e->next;
    if(e->next != NULL)
       e->next->prev_next = e->prev_next;
@@ -172,14 +160,10 @@ int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
    if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
       return 0;
 
-   switch(e->ai_type)
-   {
-   case AI_INVALID:
-      return 0;
-   case AI_PLAYER:
-      return player_pos_valid(a, e, x, y, z);
-   }
-
+   uint32_t block = area_tile(a, x, y, z);
+   uint32_t floor = area_tile(a, x, y, z + 1);
+   if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
+      return 1;
    return 0;
 }
 

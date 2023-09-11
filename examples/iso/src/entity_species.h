@@ -8,26 +8,13 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _PLAYER_H_
+#ifndef _ENTITY_SPECIES_H_
 
-#define _PLAYER_H_
+#define _ENTITY_SPECIES_H_
 
-#include "camera.h"
 #include "entity_defs.h"
-#include "world_defs.h"
 
-typedef struct
-{
-   Entity *e;
-   Camera cam;
-
-   uint64_t id;
-}Player;
-
-extern Player player;
-
-void player_new(World *w, Area *a);
-void player_add(World *w, Area *a);
-void player_update();
+//Will never return NULL
+Entity_species *entity_species_get(uint16_t id);
 
 #endif

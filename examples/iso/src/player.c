@@ -61,6 +61,15 @@ void player_add(World *w, Area *a)
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    player.e->tex = 16384;
+
+   Entity *e = entity_new(w);
+   e->speed = 128;
+   e->tex = 16384;
+   e->x = player.e->x;
+   e->y = player.e->y;
+   e->z = player.e->z;
+   entity_add(a,e);
+   entity_grid_add(a,e);
 }
 
 void player_update()
@@ -94,15 +103,5 @@ void player_update()
    {
       action_set_move(player.e, dir);
    }
-}
-
-int player_pos_valid(Area *a, Entity *e, int x, int y, int z)
-{
-   uint32_t block = area_tile(a, x, y, z);
-   uint32_t floor = area_tile(a, x, y, z + 1);
-
-   if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
-      return 1;
-   return 0;
 }
 //-------------------------------------

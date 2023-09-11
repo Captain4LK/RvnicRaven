@@ -29,6 +29,11 @@ typedef enum
 
    ENTITY_SPEC_CAT = 1,
    ENTITY_SPEC_DOG = 2,
+}Entity_species_index;
+
+typedef struct
+{
+   uint64_t flags;
 }Entity_species;
 
 typedef enum
@@ -44,7 +49,7 @@ typedef enum
 
 typedef struct
 {
-   Entity_species species;
+   Entity_species_index species;
    Entity_gender gender;
 
    //For intelligent species
