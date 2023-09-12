@@ -74,6 +74,14 @@ void player_add(World *w, Area *a)
 
 void player_update()
 {
+   if(player.e->action.id!=ACTION_INVALID)
+   {  
+      if(player.e->action.can_interrupt&&RvR_key_pressed(RVR_KEY_NP5))
+         player.e->action.id = ACTION_INVALID;
+      else
+         return;
+   }
+
    //Movement
    int8_t dir = -1;
    if(RvR_key_pressed(RVR_KEY_W)||(0&&RvR_key_pressed(RVR_KEY_UP))||RvR_key_pressed(RVR_KEY_NP7))

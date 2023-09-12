@@ -52,7 +52,7 @@ void turn_do(World *w, Area *a)
          continue;
 
       e->action_points = e->speed;
-      while(e->action_points>0)
+      while(e->action_points>0&&!e->removed)
       {
          entity_think(w,a,e);
 

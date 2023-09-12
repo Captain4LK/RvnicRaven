@@ -35,6 +35,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "state.h"
 #include "spiral_path.h"
 #include "entity_documented.h"
+#include "draw.h"
 //-------------------------------------
 
 //#defines
@@ -172,6 +173,10 @@ void game_draw()
       area_draw_sprite(i->tex, i->x, i->y, i->z);
 
    area_draw_end();
+
+   //draw_fill_rectangle(RvR_xres()/2-64,RvR_yres()/2-64,128,128,1,1);
+   draw_fill_rectangle(RvR_xres()-256,RvR_yres()-96,256,96,1,1);
+   RvR_render_string(RvR_xres()-256+1,RvR_yres()-96+1,1,"You ask me to explain why I am afraid of a draught\nof cool air; why I shiver more than others upon\nentering a cold room, and seem nauseated and\nrepelled when the chill of evening creeps through\nthe heat of a mild autumn day. There are those who\nsay I respond to cold as others do to a bad odour,\nand I am the last to deny the impression. What I\nwill do is to relate the most horrible circumstance\nI ever encountered, and leave it to you to judge\nwhether or not this forms a suitable explanation\nof my peculiarity.",8);
 }
 
 void game_init()
