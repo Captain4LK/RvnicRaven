@@ -53,7 +53,7 @@ void game_map_update()
    unsigned dim = world_size_to_dim(world->size);
 
    Entity_documented pe = {0};
-   entity_doc_get(world,player.id,&pe);
+   entity_doc_get(world, player.id, &pe);
 
    int moved = 0;
    if(pe.mx>1&&RvR_key_pressed(RVR_KEY_LEFT))
@@ -61,7 +61,7 @@ void game_map_update()
       pe.mx--;
       moved = 1;
    }
-   if(pe.mx<dim*32-2&&RvR_key_pressed(RVR_KEY_RIGHT))
+   if(pe.mx<dim * 32 - 2&&RvR_key_pressed(RVR_KEY_RIGHT))
    {
       pe.mx++;
       moved = 1;
@@ -71,7 +71,7 @@ void game_map_update()
       pe.my--;
       moved = 1;
    }
-   if(pe.my<dim*32-2&&RvR_key_pressed(RVR_KEY_DOWN))
+   if(pe.my<dim * 32 - 2&&RvR_key_pressed(RVR_KEY_DOWN))
    {
       pe.my++;
       moved = 1;
@@ -79,18 +79,18 @@ void game_map_update()
 
    if(moved&&area!=NULL)
    {
-      area_exit(world,area);
-      area_free(world,area);
+      area_exit(world, area);
+      area_free(world, area);
       area = NULL;
    }
 
-   entity_doc_modify(world,player.id,&pe);
+   entity_doc_modify(world, player.id, &pe);
 
    if(RvR_key_pressed(RVR_KEY_D))
    {
       if(area==NULL)
       {
-         area = area_gen(world,1,pe.mx-1,pe.my-1,3,3,2,0);
+         area = area_gen(world, 1, pe.mx - 1, pe.my - 1, 3, 3, 2, 0);
          player_add(world, area);
       }
 
@@ -109,26 +109,26 @@ void game_map_draw()
    redraw = 0;
 
    Entity_documented pe = {0};
-   entity_doc_get(world,player.id,&pe);
+   entity_doc_get(world, player.id, &pe);
 
    Camera cam;
-   cam.x = pe.mx+4;
-   cam.y = pe.my-24;
+   cam.x = pe.mx + 4;
+   cam.y = pe.my - 24;
    cam.rotation = 0;
    unsigned dim = world_size_to_dim(world->size);
 
    int32_t elevation_center = 0;
-   Region *rc = region_get(world,pe.mx/32,pe.my/32);
+   Region *rc = region_get(world, pe.mx / 32, pe.my / 32);
    if(rc!=NULL)
    {
-      elevation_center = rc->elevation[(pe.my%32)*33+(pe.mx%32)];
+      elevation_center = rc->elevation[(pe.my % 32) * 33 + (pe.mx % 32)];
    }
 
    int origin_y = (16 * cam.y) / 16;
    int origin_x = -origin_y + cam.x + cam.y;
    int y = origin_y;
    int cx = cam.x * 16 + cam.y * 16;
-   int cy = - 8 * cam.x + 8 * cam.y;
+   int cy = -8 * cam.x + 8 * cam.y;
    for(int i = 0; i<64; i++)
    {
       int min = RvR_max(-y + origin_x + origin_y, (8 * (y - origin_y) - RvR_yres()) / 8 + origin_x);
@@ -157,33 +157,33 @@ void game_map_draw()
          case 3: tx = y; ty = dim * 32 - 1 - x; txf = tx + 1; tyr = ty + 1; break;
          }
 
-         if(x>=dim*32)
+         if(x>=dim * 32)
             continue;
-         if(y>=dim*32)
+         if(y>=dim * 32)
             continue;
 
-         int32_t e0 = world_elevation(world,x,y)/512;
-         int32_t e1 = world_elevation(world,x+1,y)/512;
-         int32_t e2 = world_elevation(world,x-1,y)/512;
-         int32_t e3 = world_elevation(world,x,y+1)/512;
-         int32_t e4 = world_elevation(world,x,y-1)/512;
+         int32_t e0 = world_elevation(world, x, y) / 512;
+         int32_t e1 = world_elevation(world, x + 1, y) / 512;
+         int32_t e2 = world_elevation(world, x - 1, y) / 512;
+         int32_t e3 = world_elevation(world, x, y + 1) / 512;
+         int32_t e4 = world_elevation(world, x, y - 1) / 512;
          //if(elevation<256)
-            //continue;
+         //continue;
 
          RvR_texture *tex = RvR_texture_get(0);
          int z = 0;
 
-         int collumn_height = RvR_min(8,RvR_max((e0-e2)/16,(e0-e3)/16));
-         for(int h = collumn_height;h>=0;h--)
-            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-e0+elevation_center/512+h*16);
+         int collumn_height = RvR_min(8, RvR_max((e0 - e2) / 16, (e0 - e3) / 16));
+         for(int h = collumn_height; h>=0; h--)
+            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy - e0 + elevation_center / 512 + h * 16);
 
          //Outline
          //-------------------------------------
          int px = x * 16 + y * 16 - cx;
-         int py = z * 20 - 8 * x + 8 * y - cy-e0+elevation_center/512;
+         int py = z * 20 - 8 * x + 8 * y - cy - e0 + elevation_center / 512;
 
          if(e0>e1)
-            RvR_render_line((px + 16) * 256 + 128, (py+1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
+            RvR_render_line((px + 16) * 256 + 128, (py + 1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
 
          if(e0>e4)
             RvR_render_line((px) * 256 + 128, (py + 8) * 256 + 128, (px + 16) * 256 + 128, (py) * 256 + 128, 1);
@@ -192,7 +192,7 @@ void game_map_draw()
          if(x==pe.mx&&y==pe.my)
          {
             tex = RvR_texture_get(16384);
-            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-e0+elevation_center/512-16);
+            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy - e0 + elevation_center / 512 - 16);
          }
       }
       y++;
@@ -200,8 +200,7 @@ void game_map_draw()
 }
 
 void game_map_init()
-{
-}
+{}
 
 void game_map_set()
 {

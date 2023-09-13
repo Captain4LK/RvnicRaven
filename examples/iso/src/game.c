@@ -65,24 +65,24 @@ void game_update()
 
    if(player.e->action.id!=ACTION_INVALID)
    {
-      int res = action_do(world,area,player.e);
+      int res = action_do(world, area, player.e);
       if(res)
          redraw = 1;
       if(res==ACTION_LEFT_MAP)
       {
          Entity_documented pe = {0};
-         entity_doc_get(world,player.id,&pe);
+         entity_doc_get(world, player.id, &pe);
 
-         int mx = pe.mx-1;
-         int my = pe.my-1;
-         if(pe.mx>=area->mx+area->dimx) mx = pe.mx;
-         else if(pe.mx<area->mx) mx = pe.mx-2;
-         if(pe.my>=area->my+area->dimy) my = pe.my;
-         else if(pe.my<area->my) my = pe.my-2;
+         int mx = pe.mx - 1;
+         int my = pe.my - 1;
+         if(pe.mx>=area->mx + area->dimx) mx = pe.mx;
+         else if(pe.mx<area->mx) mx = pe.mx - 2;
+         if(pe.my>=area->my + area->dimy) my = pe.my;
+         else if(pe.my<area->my) my = pe.my - 2;
 
-         area_exit(world,area);
-         area_free(world,area);
-         area = area_gen(world,1,mx,my,3,3,2,0);
+         area_exit(world, area);
+         area_free(world, area);
+         area = area_gen(world, 1, mx, my, 3, 3, 2, 0);
 
          player_add(world, area);
          state_set(STATE_GAME);
@@ -95,7 +95,7 @@ void game_update()
    if(player.e->action_points==0)
    {
       //Run entities
-      turn_do(world,area);
+      turn_do(world, area);
 
       redraw = 1;
       player.e->action_points = player.e->speed;
@@ -134,7 +134,7 @@ void game_update()
 
    if(RvR_key_down(RVR_KEY_LSHIFT)&&RvR_key_pressed(RVR_KEY_T))
    {
-      docent_from_entity(world,area,player.e);
+      docent_from_entity(world, area, player.e);
       state_set(STATE_GAME_MAP);
    }
 
@@ -150,7 +150,7 @@ void game_update()
    //-------------------------------------
 
    if(RvR_key_pressed(RVR_KEY_P))
-      area_save(world,area);
+      area_save(world, area);
 }
 
 void game_draw()
@@ -175,8 +175,8 @@ void game_draw()
    area_draw_end();
 
    //draw_fill_rectangle(RvR_xres()/2-64,RvR_yres()/2-64,128,128,1,1);
-   draw_fill_rectangle(RvR_xres()-256,RvR_yres()-96,256,96,1,1);
-   RvR_render_string(RvR_xres()-256+1,RvR_yres()-96+1,1,"You ask me to explain why I am afraid of a draught\nof cool air; why I shiver more than others upon\nentering a cold room, and seem nauseated and\nrepelled when the chill of evening creeps through\nthe heat of a mild autumn day. There are those who\nsay I respond to cold as others do to a bad odour,\nand I am the last to deny the impression. What I\nwill do is to relate the most horrible circumstance\nI ever encountered, and leave it to you to judge\nwhether or not this forms a suitable explanation\nof my peculiarity.",8);
+   draw_fill_rectangle(RvR_xres() - 256, RvR_yres() - 96, 256, 96, 1, 1);
+   draw_string_wrap(RvR_xres() - 256 + 1, RvR_yres() - 96 + 1, 255, 96, 1, "You ask me to explain why I am afraid of a draught of cool air; why I shiver more than others upon entering a cold room, and seem nauseated and repelled when the chill of evening creeps through the heat of a mild autumn day. There are those who say I respond to cold as others do to a bad odour, and I am the last to deny the impression. What I will do is to relate the most horrible circumstance I ever encountered, and leave it to you to judge whether or not this forms a suitable explanation of my peculiarity.", 8);
 }
 
 void game_init()
@@ -189,9 +189,9 @@ void game_init()
    world->preset.var_elevation = 8192;
    world->preset.var_temperature = 2048;
    world->preset.var_rainfall = 2048;
-   world_gen(world,4);
+   world_gen(world, 4);
    world_save(world);
-   player_new(world,NULL);
+   player_new(world, NULL);
 
    //puts("---------");
    //world_gen(world,5);

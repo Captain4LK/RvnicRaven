@@ -13,5 +13,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _DRAW_H_
 
 void draw_fill_rectangle(int x, int y, int width, int height, uint8_t col, int transparent);
+void draw_string_wrap(int x, int y, int width, int height, int scale, const char *string, uint8_t col);
 
 #endif

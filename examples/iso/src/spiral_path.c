@@ -94,44 +94,44 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
    int px = e->x;
    int py = e->y;
    int pz = e->z;
-   area_set_tile(a, px, py, pz, tile_set_visible_wall(tile_set_discovered_wall(area_tile(a, px, py, pz), 1),1));
-   area_set_tile(a, px, py, pz + 1, tile_set_visible_floor(tile_set_discovered_floor(area_tile(a, px, py, pz + 1), 1),1));
+   area_set_tile(a, px, py, pz, tile_set_visible_wall(tile_set_discovered_wall(area_tile(a, px, py, pz), 1), 1));
+   area_set_tile(a, px, py, pz + 1, tile_set_visible_floor(tile_set_discovered_floor(area_tile(a, px, py, pz + 1), 1), 1));
 
    //Discover up
    int radius_cur = 0;
-   for(int z = 1;z*z*4<radius*radius-radius_cur;z++)
+   for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
    {
-      uint32_t tile0 = area_tile(a,px,py,pz-z+1);
-      uint32_t tile1 = area_tile(a,px,py,pz-z);
+      uint32_t tile0 = area_tile(a, px, py, pz - z + 1);
+      uint32_t tile1 = area_tile(a, px, py, pz - z);
 
       if(tile_has_wall(tile0))
          break;
 
-      tile0 = tile_set_discovered_floor(tile_set_visible_floor(tile0,1),1);
-      area_set_tile(a,px,py,pz-z+1,tile0);
+      tile0 = tile_set_discovered_floor(tile_set_visible_floor(tile0, 1), 1);
+      area_set_tile(a, px, py, pz - z + 1, tile0);
       if(tile_has_floor(tile0))
          break;
 
-      tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1,1),1);
-      area_set_tile(a,px,py,pz-z,tile1);
+      tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1, 1), 1);
+      area_set_tile(a, px, py, pz - z, tile1);
    }
 
    //Discover down
-   for(int z = 1;z*z*4<radius*radius-radius_cur;z++)
+   for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
    {
-      uint32_t tile0 = area_tile(a,px,py,pz+z-1);
-      uint32_t tile1 = area_tile(a,px,py,pz+z);
+      uint32_t tile0 = area_tile(a, px, py, pz + z - 1);
+      uint32_t tile1 = area_tile(a, px, py, pz + z);
 
       if(tile_has_wall(tile0))
          break;
 
-      tile1 = tile_set_discovered_floor(tile_set_visible_floor(tile1,1),1);
-      area_set_tile(a,px,py,pz+z,tile1);
+      tile1 = tile_set_discovered_floor(tile_set_visible_floor(tile1, 1), 1);
+      area_set_tile(a, px, py, pz + z, tile1);
       if(tile_has_floor(tile1))
          break;
 
-      tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1,1),1);
-      area_set_tile(a,px,py,pz+z,tile1);
+      tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1, 1), 1);
+      area_set_tile(a, px, py, pz + z, tile1);
    }
 
    //test sorrounding squares
@@ -173,40 +173,40 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
          area_set_tile(a, px + cx, py + cy, pz + 1, tile_set_discovered_floor(area_tile(a, px + cx, py + cy, pz + 1), 1));
 
          //Discover up
-         radius_cur = cx*cx+cy*cy;
-         for(int z = 1;z*z*4<radius*radius-radius_cur;z++)
+         radius_cur = cx * cx + cy * cy;
+         for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
          {
-            uint32_t tile0 = area_tile(a,px+cx,py+cy,pz-z+1);
-            uint32_t tile1 = area_tile(a,px+cx,py+cy,pz-z);
+            uint32_t tile0 = area_tile(a, px + cx, py + cy, pz - z + 1);
+            uint32_t tile1 = area_tile(a, px + cx, py + cy, pz - z);
 
             if(tile_has_wall(tile0))
                break;
 
-            tile0 = tile_set_discovered_floor(tile_set_visible_floor(tile0,1),1);
-            area_set_tile(a,px+cx,py+cy,pz-z+1,tile0);
+            tile0 = tile_set_discovered_floor(tile_set_visible_floor(tile0, 1), 1);
+            area_set_tile(a, px + cx, py + cy, pz - z + 1, tile0);
             if(tile_has_floor(tile0))
                break;
 
-            tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1,1),1);
-            area_set_tile(a,px+cx,py+cy,pz-z,tile1);
+            tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1, 1), 1);
+            area_set_tile(a, px + cx, py + cy, pz - z, tile1);
          }
 
          //Discover down
-         for(int z = 1;z*z*4<radius*radius-radius_cur;z++)
+         for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
          {
-            uint32_t tile0 = area_tile(a,px+cx,py+cy,pz+z-1);
-            uint32_t tile1 = area_tile(a,px+cx,py+cy,pz+z);
+            uint32_t tile0 = area_tile(a, px + cx, py + cy, pz + z - 1);
+            uint32_t tile1 = area_tile(a, px + cx, py + cy, pz + z);
 
             if(tile_has_wall(tile0))
                break;
 
-            tile1 = tile_set_discovered_floor(tile_set_visible_floor(tile1,1),1);
-            area_set_tile(a,px+cx,py+cy,pz+z,tile1);
+            tile1 = tile_set_discovered_floor(tile_set_visible_floor(tile1, 1), 1);
+            area_set_tile(a, px + cx, py + cy, pz + z, tile1);
             if(tile_has_floor(tile1))
                break;
 
-            tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1,1),1);
-            area_set_tile(a,px+cx,py+cy,pz+z,tile1);
+            tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1, 1), 1);
+            area_set_tile(a, px + cx, py + cy, pz + z, tile1);
          }
 
          if(fov_transparent(a, e, px + cx, py + cy, pz))
@@ -285,7 +285,7 @@ static void fov_lit_angle_set(int x, int y, RvR_fix16 lit_min, RvR_fix16 lit_max
 
 static int fov_transparent(Area *a, Entity *e, int x, int y, int z)
 {
-   return !(tile_has_wall(area_tile(a, x, y, z))||tile_is_slope(area_tile(a,x,y,z)));
+   return !(tile_has_wall(area_tile(a, x, y, z))||tile_is_slope(area_tile(a, x, y, z)));
 }
 
 static void fov_child_first(int x, int y, int *childx, int *childy)

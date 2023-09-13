@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _LOG_H_
 
-
+void log_draw(int scroll);
+void log_push(const char *text);
 
 #endif

@@ -27,10 +27,22 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static log_buffer[LOG_LENGTH][64];
+int log_buffer_first = 0;
+int log_buffer_last = 0;
 //-------------------------------------
 
 //Function prototypes
 //-------------------------------------
 
 //Function implementations
+
+void log_draw(int scroll)
+{}
+
+void log_push(const char *text)
+{
+   for(int i = 0; text[i]&&i<1024; i++)
+   {}
+}
 //-------------------------------------

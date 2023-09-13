@@ -191,7 +191,7 @@ void area_draw_end()
                if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area, tx0, ty0, z)))
                   RvR_render_line((px) * 256 + 128, (py + 8) * 256 + 128, (px + 16) * 256 + 128, (py) * 256 + 128, 1);
                if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area, tx1, ty1, z)))
-                  RvR_render_line((px + 16) * 256 + 128, (py+1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
+                  RvR_render_line((px + 16) * 256 + 128, (py + 1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
                   RvR_render_present();
@@ -225,7 +225,7 @@ void area_draw_end()
                if(!tile_has_draw_floor(area_tile(area, tx0, ty0, z)))
                   RvR_render_line((px) * 256 + 128, (py + 8) * 256 + 128, (px + 16) * 256 + 128, (py) * 256 + 128, 1);
                if(!tile_has_draw_floor(area_tile(area, tx1, ty1, z)))
-                  RvR_render_line((px + 16) * 256 + 128, (py+1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
+                  RvR_render_line((px + 16) * 256 + 128, (py + 1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
                   RvR_render_present();

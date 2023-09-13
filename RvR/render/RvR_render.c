@@ -297,7 +297,7 @@ void RvR_render_horizontal_line(int x0, int x1, int y, uint8_t index)
 
 void RvR_render(int x, int y, uint8_t index)
 {
-   draw(x,y,index);
+   draw(x, y, index);
 }
 
 static void draw(int x, int y, uint8_t index)

@@ -62,14 +62,14 @@ int util_truncate(RvR_rw *rw, int32_t len)
    if(rw==NULL||(rw->type!=RVR_RW_STD_FILE&&rw->type!=RVR_RW_STD_FILE_PATH))
       return 0;
 
-   return _chsize(_fileno(rw->as.fp),len);
+   return _chsize(_fileno(rw->as.fp), len);
 }
 
 #else
 
 int util_mkdir(const char *path)
 {
-   int res = mkdir(path,0755);
+   int res = mkdir(path, 0755);
    if(res==-1)
    {
       if(errno==EEXIST)
@@ -85,7 +85,7 @@ int util_truncate(RvR_rw *rw, int32_t len)
    if(rw==NULL||(rw->type!=RVR_RW_STD_FILE&&rw->type!=RVR_RW_STD_FILE_PATH))
       return 0;
 
-   return ftruncate(fileno(rw->as.fp),len);
+   return ftruncate(fileno(rw->as.fp), len);
 }
 
 #endif

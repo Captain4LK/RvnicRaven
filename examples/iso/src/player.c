@@ -45,19 +45,19 @@ void player_new(World *w, Area *a)
 {
    Entity_documented ne = {0};
    uint64_t id = entity_doc_create(w);
-   entity_doc_get(w,id,&ne);
+   entity_doc_get(w, id, &ne);
 
    player.id = ne.id;
    ne.mx = 1;
    ne.my = 1;
    ne.ax = 0;
    ne.ay = 0;
-   entity_doc_modify(w,ne.id,&ne);
+   entity_doc_modify(w, ne.id, &ne);
 }
 
 void player_add(World *w, Area *a)
 {
-   player.e = entity_from_docent(w,a,player.id);
+   player.e = entity_from_docent(w, a, player.id);
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    player.e->tex = 16384;
@@ -68,14 +68,14 @@ void player_add(World *w, Area *a)
    e->x = player.e->x;
    e->y = player.e->y;
    e->z = player.e->z;
-   entity_add(a,e);
-   entity_grid_add(a,e);
+   entity_add(a, e);
+   entity_grid_add(a, e);
 }
 
 void player_update()
 {
    if(player.e->action.id!=ACTION_INVALID)
-   {  
+   {
       if(player.e->action.can_interrupt&&RvR_key_pressed(RVR_KEY_NP5))
          player.e->action.id = ACTION_INVALID;
       else

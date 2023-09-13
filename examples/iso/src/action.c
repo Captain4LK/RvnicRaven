@@ -59,16 +59,16 @@ int action_do(World *w, Area *a, Entity *e)
    switch(e->action.id)
    {
    case ACTION_WAIT:
-      status = action_wait(w,a, e);
+      status = action_wait(w, a, e);
       break;
    case ACTION_MOVE:
-      status = action_move(w,a, e);
+      status = action_move(w, a, e);
       break;
    case ACTION_ASCEND:
-      status = action_ascend(w,a, e);
+      status = action_ascend(w, a, e);
       break;
    case ACTION_DESCEND:
-      status = action_descend(w,a, e);
+      status = action_descend(w, a, e);
       break;
    default:
       break;
@@ -129,7 +129,7 @@ static int action_move(World *w, Area *a, Entity *e)
    act->status = 0;
    if(act->remaining==0)
    {
-      int status = entity_try_move(w,a, e, act->as.move.dir);
+      int status = entity_try_move(w, a, e, act->as.move.dir);
       return status==2?ACTION_LEFT_MAP:ACTION_FINISHED;
    }
 
@@ -150,7 +150,7 @@ static int action_ascend(World *w, Area *a, Entity *e)
    act->status = 0;
    if(act->remaining==0)
    {
-      entity_try_ascend(a,e);
+      entity_try_ascend(a, e);
       return ACTION_FINISHED;
    }
 
@@ -163,7 +163,7 @@ static int action_descend(World *w, Area *a, Entity *e)
    act->status = 0;
    if(act->remaining==0)
    {
-      entity_try_descend(a,e);
+      entity_try_descend(a, e);
       return ACTION_FINISHED;
    }
 

@@ -188,17 +188,17 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, int dir)
 
    //Leave map
    //Update DocEnt if entity is documented
-   int nx = e->x+dirs[dir][0];
-   int ny = e->y+dirs[dir][1];
-   if(nx<0||ny<0||nx>=a->dimx*32||ny>=a->dimy*32)
+   int nx = e->x + dirs[dir][0];
+   int ny = e->y + dirs[dir][1];
+   if(nx<0||ny<0||nx>=a->dimx * 32||ny>=a->dimy * 32)
    {
       if(entity_is_docent(e))
       {
-         e->x+=dirs[dir][0];
-         e->y+=dirs[dir][1];
-         docent_from_entity(w,a,e);
-         e->x-=dirs[dir][0];
-         e->y-=dirs[dir][1];
+         e->x += dirs[dir][0];
+         e->y += dirs[dir][1];
+         docent_from_entity(w, a, e);
+         e->x -= dirs[dir][0];
+         e->y -= dirs[dir][1];
       }
 
       entity_remove(e);
@@ -212,20 +212,20 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, int dir)
    }
 
    //Moving up slopes
-   if(tile_is_slope(area_tile(a,e->x,e->y,e->z))&&
-      tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z))&&
-      !tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z-1)))
+   if(tile_is_slope(area_tile(a, e->x, e->y, e->z))&&
+      tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z))&&
+      !tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z - 1)))
    {
-      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z-1);
+      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z - 1);
       return 1;
    }
 
    //Moving down slopes
-   if(tile_is_slope(area_tile(a,e->x,e->y,e->z+1))&&
-      !tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z+1))&&
-      !tile_has_wall(area_tile(a,e->x+dirs[dir][0],e->y+dirs[dir][1],e->z)))
+   if(tile_is_slope(area_tile(a, e->x, e->y, e->z + 1))&&
+      !tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z + 1))&&
+      !tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z)))
    {
-      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z+1);
+      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z + 1);
       return 1;
    }
 
@@ -262,7 +262,7 @@ unsigned entity_try_descend(Area *a, Entity *e)
 
 void entity_think(World *w, Area *a, Entity *e)
 {
-   ai_think(w,a,e);
+   ai_think(w, a, e);
 }
 
 int entity_move_cost(Entity *e)

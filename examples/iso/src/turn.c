@@ -54,12 +54,12 @@ void turn_do(World *w, Area *a)
       e->action_points = e->speed;
       while(e->action_points>0&&!e->removed)
       {
-         entity_think(w,a,e);
+         entity_think(w, a, e);
 
          if(e->action.id==ACTION_INVALID)
             break;
 
-         action_do(w,a, e);
+         action_do(w, a, e);
       }
    }
 

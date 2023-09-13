@@ -15,4 +15,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define ENTITY_SPECIES_MAX (4096)
 
+#define LOG_LENGTH (1024)
+
 #endif
