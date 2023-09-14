@@ -169,7 +169,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
          for(int z = 0; z<dimz * 32; z++)
          {
             uint32_t t = area_tile(a, x, y, z);
-            if(!tile_has_wall(t))
+            if(!tile_has_wall(t)&&tile_has_floor(area_tile(a,x,y,z+1)))
             {
                uint8_t index = 0;
                if(tile_has_wall(area_tile(a, x - 1, y, z)))
