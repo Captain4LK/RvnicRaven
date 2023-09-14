@@ -35,7 +35,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "state.h"
 #include "spiral_path.h"
 #include "entity_documented.h"
-#include "draw.h"
+#include "log.h"
 //-------------------------------------
 
 //#defines
@@ -159,7 +159,7 @@ void game_draw()
       return;
    redraw = 0;
 
-   RvR_render_clear(0);
+   RvR_render_clear(43);
    area_draw_begin(world, area, &player.cam);
 
    //Draw entities
@@ -174,9 +174,7 @@ void game_draw()
 
    area_draw_end();
 
-   //draw_fill_rectangle(RvR_xres()/2-64,RvR_yres()/2-64,128,128,1,1);
-   draw_fill_rectangle(RvR_xres() - 256, RvR_yres() - 96, 256, 96, 1, 1);
-   draw_string_wrap(RvR_xres() - 256 + 1, RvR_yres() - 96 + 1, 255, 96, 1, "You ask me to explain why I am afraid of a draught of cool air; why I shiver more than others upon entering a cold room, and seem nauseated and repelled when the chill of evening creeps through the heat of a mild autumn day. There are those who say I respond to cold as others do to a bad odour, and I am the last to deny the impression. What I will do is to relate the most horrible circumstance I ever encountered, and leave it to you to judge whether or not this forms a suitable explanation of my peculiarity.", 8);
+   log_draw(0);
 }
 
 void game_init()
@@ -192,6 +190,8 @@ void game_init()
    world_gen(world, 4);
    world_save(world);
    player_new(world, NULL);
+
+   log_push("You ask me to explain why I am afraid of a draught of cool air; why I shiver more than others upon entering a cold room, and seem nauseated and repelled when the chill of evening creeps through the heat of a mild autumn day. There are those who say I respond to cold as others do to a bad odour, and I am the last to deny the impression. What I will do is to relate the most horrible circumstance I ever encountered, and leave it to you to judge whether or not this forms a suitable explanation of my peculiarity.");
 
    //puts("---------");
    //world_gen(world,5);

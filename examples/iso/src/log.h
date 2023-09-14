@@ -14,5 +14,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void log_draw(int scroll);
 void log_push(const char *text);
+void log_clear();
 
 #endif

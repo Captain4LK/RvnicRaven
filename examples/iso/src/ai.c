@@ -38,6 +38,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void ai_think(World *w, Area *a, Entity *e)
 {
    if(e->action.id==ACTION_INVALID)
-      action_set_move(e, rand() & 3);
+      action_set_move(e,rand()&3);
 }
 //-------------------------------------

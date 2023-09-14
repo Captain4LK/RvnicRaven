@@ -17,6 +17,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
+#include "draw.h"
 #include "log.h"
 //-------------------------------------
 
@@ -27,9 +29,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static log_buffer[LOG_LENGTH][64];
-int log_buffer_first = 0;
-int log_buffer_last = 0;
+static char log_buffer[LOG_LENGTH][64];
+int log_buffer_next = 0;
+int log_buffer_len = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -38,11 +40,58 @@ int log_buffer_last = 0;
 //Function implementations
 
 void log_draw(int scroll)
-{}
+{
+   draw_fill_rectangle(0, RvR_yres() - 74, RvR_xres(),74, 1, 1);
+   draw_line_horizontal(0,RvR_xres(),RvR_yres()-75,42,1);
+   for(int i = 0;i<RvR_min(log_buffer_len,9);i++)
+   {
+      RvR_render_string(RvR_xres()-256+1,RvR_yres()-74+1+(8-i)*8,1,log_buffer[((log_buffer_next-i-1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH],42);
+   }
+}
 
 void log_push(const char *text)
 {
+   int len_cur = 0;
    for(int i = 0; text[i]&&i<1024; i++)
-   {}
+   {
+      if(text[i]==' ')
+      {
+         //Search next space (or newline)
+         int len = 1;
+         for(; text[i + len]!=' '&&text[i + len]!='\n'&&text[i + len]!='\0'; len++);
+         if(len_cur + len - 1>=52)
+         {
+            log_buffer[log_buffer_next][len_cur] = '\0';
+            log_buffer_next = ((log_buffer_next+1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH;
+            log_buffer_len = RvR_min(LOG_LENGTH,log_buffer_len+1);
+            len_cur = 0;
+            continue;
+         }
+      }
+
+      if(text[i]=='\n'||len_cur>=52)
+      {
+         log_buffer[log_buffer_next][len_cur] = '\0';
+         log_buffer_next = ((log_buffer_next+1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH;
+         log_buffer_len = RvR_min(LOG_LENGTH,log_buffer_len+1);
+         len_cur = 0;
+         continue;
+      }
+
+      log_buffer[log_buffer_next][len_cur] = text[i];
+      len_cur++;
+   }
+
+   if(len_cur!=0)
+   {
+      log_buffer[log_buffer_next][len_cur] = '\0';
+      log_buffer_next = ((log_buffer_next+1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH;
+      log_buffer_len = RvR_min(LOG_LENGTH,log_buffer_len+1);
+   }
+}
+
+void log_clear()
+{
+   log_buffer_next = log_buffer_len = 0;
 }
 //-------------------------------------

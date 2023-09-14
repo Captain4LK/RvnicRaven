@@ -105,7 +105,7 @@ void game_map_draw()
    if(!redraw)
       return;
 
-   RvR_render_clear(0);
+   RvR_render_clear(43);
    redraw = 0;
 
    Entity_documented pe = {0};

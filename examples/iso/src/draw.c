@@ -78,59 +78,75 @@ void draw_fill_rectangle(int x, int y, int width, int height, uint8_t col, int t
    }
 }
 
-void draw_string_wrap(int x, int y, int width, int height, int scale, const char *string, uint8_t col)
+void draw_line_vertical(int x, int y0, int y1, uint8_t col, int transparent)
 {
-   RvR_texture *draw_font = RvR_texture_get(0xf000);
-
-   int x_dim = draw_font->width / 16;
-   int y_dim = draw_font->height / 6;
-   int sx = 0;
-   int sy = 0;
-   width -= x_dim * scale;
-
-   for(int i = 0; string[i]&&i<1024; i++)
+   if(y0>y1)
    {
-      if(string[i]==' ')
-      {
-         //Search next space (or newline)
-         int len = 1;
-         for(; string[i + len]!=' '&&string[i + len]!='\n'&&string[i + len]!='\0'; len++);
-         if(sx + (len - 1) * x_dim * scale>=width)
-         {
-            sx = 0;
-            sy += y_dim * scale;
-            continue;
-         }
-      }
+      int t = y0;
+      y0 = y1;
+      y1 = t;
+   }
 
-      if(string[i]=='\n'||sx>=width)
-      {
-         sx = 0;
-         sy += y_dim * scale;
-         continue;
-      }
+   if(x<0||x>=RvR_xres()||y0>=RvR_yres()||y1<0)
+      return;
 
-      int ox = (string[i] - 32) & 15;
-      int oy = (string[i] - 32) / 16;
-      for(int y_ = 0; y_<y_dim; y_++)
-      {
-         for(int x_ = 0; x_<x_dim; x_++)
-         {
-            if(!draw_font->data[(y_ + oy * y_dim) * draw_font->width + x_ + ox * x_dim])
-               continue;
-            for(int m = 0; m<scale; m++)
-            {
-               for(int o = 0; o<scale; o++)
-               {
-                  int dx = x + sx + (x_ * scale) + o;
-                  int dy = y + sy + (y_ * scale) + m;
-                  if(dx>=0&&dx<RvR_xres()&&dy>=0&&dy<RvR_yres())
-                     RvR_framebuffer()[dy * RvR_xres() + dx] = col;
-               }
-            }
-         }
-      }
-      sx += x_dim * scale;
+   if(y0<0)
+      y0 = 0;
+   if(y1>=RvR_yres())
+      y1 = RvR_yres()- 1;
+
+   uint8_t *buff = RvR_framebuffer();
+
+   if(transparent==0)
+   {
+      for(int y = y0; y<=y1; y++)
+         buff[y * RvR_xres()+ x] = col;
+   }
+   else if(transparent==1)
+   {
+      for(int y = y0; y<=y1; y++)
+         buff[y * RvR_xres()+ x] = RvR_blend(col,buff[y*RvR_xres()+x]);
+   }
+   else
+   {
+      for(int y = y0; y<=y1; y++)
+         buff[y * RvR_xres()+ x] = RvR_blend(buff[y*RvR_xres()+x],col);
+   }
+}
+
+void draw_line_horizontal(int x0, int x1, int y, uint8_t col, int transparent)
+{
+   if(x0>x1)
+   {
+      int t = x0;
+      x0 = x1;
+      x1 = t;
+   }
+
+   if(y<0||y>=RvR_yres()||x0>=RvR_xres()||x1<0)
+      return;
+
+   if(x0<0)
+      x0 = 0;
+   if(x1>=RvR_xres())
+      x1 = RvR_xres()- 1;
+
+   uint8_t *dst = &RvR_framebuffer()[y * RvR_xres()+ x0];
+
+   if(transparent==0)
+   {
+      for(int x = x0; x<=x1; x++, dst++)
+         *dst = col;
+   }
+   else if(transparent==1)
+   {
+      for(int x = x0; x<=x1; x++, dst++)
+         *dst = RvR_blend(col,*dst);
+   }
+   else
+   {
+      for(int x = x0; x<=x1; x++, dst++)
+         *dst = RvR_blend(*dst,col);
    }
 }
 //-------------------------------------
