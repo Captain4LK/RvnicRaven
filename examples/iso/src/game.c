@@ -142,10 +142,10 @@ void game_update()
 
    switch(player.cam.rotation)
    {
-   case 0: player.cam.x = player.e->x + 4; player.cam.y = player.e->y - 24; break;
-   case 1: player.cam.x = player.e->y + 4; player.cam.y = -player.e->x + area->dimy * 32 - 1 - 24; break;
-   case 2: player.cam.x = -player.e->x + area->dimx * 32 - 1 + 4; player.cam.y = -player.e->y + area->dimy * 32 - 1 - 24; break;
-   case 3: player.cam.x = -player.e->y + area->dimy * 32 - 1 + 4; player.cam.y = player.e->x - 24; break;
+   case 0: player.cam.x = player.e->x + 2; player.cam.y = player.e->y - 22; break;
+   case 1: player.cam.x = player.e->y + 2; player.cam.y = -player.e->x + area->dimy * 32 - 1 - 22; break;
+   case 2: player.cam.x = -player.e->x + area->dimx * 32 - 1 + 2; player.cam.y = -player.e->y + area->dimy * 32 - 1 - 22; break;
+   case 3: player.cam.x = -player.e->y + area->dimy * 32 - 1 + 2; player.cam.y = player.e->x - 22; break;
    }
    //-------------------------------------
 
