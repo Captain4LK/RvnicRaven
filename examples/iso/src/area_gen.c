@@ -128,6 +128,27 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
                elevation[((y + 1) * dimy_rest) * stride + x * dimx_rest + dimx_rest / 2] = (e2 + e3 + e4) / 3 + rand_offset(&rand, 5 + l, w->preset.var_elevation);
          }
       }
+
+#if 1
+      //Recalulate squares
+      for(int y = 0; y<dimy_level; y++)
+      {
+         for(int x = 0; x<dimx_level; x++)
+         {
+            if((x*dimx_rest)%(32)==0&&(y*dimy_rest)%(32)==0&&l!=5)
+               continue;
+
+            int32_t sum = 0;
+            int32_t count = 0;
+            if(x*dimx_rest-dimx_rest/2>=0) {sum+=elevation[(y)*dimy_rest*stride+(x)*dimx_rest-dimx_rest/2]; count++;}
+            if(x*dimx_rest+dimx_rest/2<dimx*32) {sum+= elevation[(y)*dimy_rest*stride+(x)*dimx_rest+dimx_rest/2]; count++;}
+            if(y-1>=0) {sum+= elevation[((y)*dimy_rest-dimy_rest/2)*stride+(x)*dimx_rest]; count++;}
+            if(y+1<dimy_level) {sum+= elevation[((y)*dimy_rest+dimy_rest/2)*stride+(x)*dimx_rest]; count++;}
+
+            elevation[y*dimy_rest*stride+x*dimx_rest] = sum/count + rand_offset(&rand,5+l,w->preset.var_elevation);
+         }
+      }
+#endif
    }
 
    int32_t max = INT32_MIN;

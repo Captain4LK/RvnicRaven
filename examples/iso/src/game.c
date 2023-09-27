@@ -184,7 +184,7 @@ void game_init()
    world->preset.lakes_deep = 8;
    world->preset.lakes_shallow = 0;
    world->preset.mountains_high = 16;
-   world->preset.var_elevation = 8192;
+   world->preset.var_elevation = 16384;
    world->preset.var_temperature = 2048;
    world->preset.var_rainfall = 2048;
    world_gen(world, 4);

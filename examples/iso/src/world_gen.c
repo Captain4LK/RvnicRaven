@@ -69,7 +69,7 @@ void world_gen(World *w, uint32_t seed)
       for(int x = 0; x<=16; x++)
       {
          //Sea level at 128*1024
-         elevation[y * 32 * stride * scale + x * 32 * scale] = RvR_rand_pcg_next_range(&rand, 64 * 1024, 196 * 1024);
+         elevation[y * 32 * stride * scale + x * 32 * scale] = RvR_rand_pcg_next_range(&rand, 80* 1024, 196* 1024);
 
          temperature[y * 32 * stride * scale + x * 32 * scale] = RvR_rand_pcg_next_range(&rand, 4 * 1024, 80 * 1024);
          rainfall[y * 32 * stride * scale + x * 32 * scale] = RvR_rand_pcg_next_range(&rand, 4 * 1024, 128 * 1024);
@@ -111,7 +111,7 @@ void world_gen(World *w, uint32_t seed)
    {
       int x, y;
       rand_pos(&rand, &pos, &x, &y);
-      elevation[y * 32 * stride + x * 32] = 224 * 1024 + RvR_rand_pcg_next_range(&rand, -w->preset.var_elevation, w->preset.var_elevation);
+      elevation[y * 32 * stride + x * 32] = 224* 1024 + RvR_rand_pcg_next_range(&rand, -w->preset.var_elevation, w->preset.var_elevation);
    }
 
    //Place n deep lakes
@@ -257,6 +257,25 @@ void world_gen(World *w, uint32_t seed)
                rainfall[((y + 1) * dim_rest) * stride + x * dim_rest + dim_rest / 2] = (r2 + r3 + r4) / 3 + rand_offset(&rand, l, w->preset.var_rainfall);
          }
       }
+
+      //Recalculate squares
+      for(int y = 0; y<dim_level; y++)
+      {
+         for(int x = 0; x<dim_level; x++)
+         {
+            if((x*dim_rest)%(scale*32)==0&&(y*dim_rest)%(scale*32)==0&&l!=4)
+               continue;
+
+            int32_t sum = 0;
+            int32_t count = 0;
+            if(x-1>=0) {sum+=elevation[(y)*dim_rest*stride+(x)*dim_rest-dim_rest/2]; count++;}
+            if(x+1<dim_level) {sum+= elevation[(y)*dim_rest*stride+(x)*dim_rest+dim_rest/2]; count++;}
+            if(y-1>=0) {sum+= elevation[((y)*dim_rest-dim_rest/2)*stride+(x)*dim_rest]; count++;}
+            if(y+1<dim_level) {sum+= elevation[((y)*dim_rest+dim_rest/2)*stride+(x)*dim_rest]; count++;}
+
+            elevation[y*dim_rest*stride+x*dim_rest] = sum/count + rand_offset(&rand,l,w->preset.var_elevation);
+         }
+      }
    }
 
    //-------------------------------------
@@ -320,11 +339,20 @@ void world_gen(World *w, uint32_t seed)
          int e = elevation[y * stride + x];
          if(e<128 * 1024)
             printf("0 0 128\n");
+         else if(e>176*1024)
+         {
+            e = RvR_min(255, RvR_max(0, (e - 128 * 1024) / 512));
+            printf("%d %d %d\n",e,e,e);
+         }
+         else if(e>136*1024)
+         {
+            e = RvR_min(255, RvR_max(0, (e - 128 * 1024) / 512));
+            printf("%d %d %d\n", 0, e, 0);
+         }
          else
          {
-
-            e = RvR_min(255, RvR_max(0, (e - 128 * 1024) / 512));
-            printf("%d %d %d\n", e, e, e);
+            e = RvR_min(255, RvR_max(0, (e - 64 * 1024) / 512));
+            printf("%d %d %d\n", e, e, 0);
          }
       }
    }
