@@ -51,6 +51,7 @@ void turn_do(World *w, Area *a)
       if(e==player.e)
          continue;
 
+      entity_turn(w,a,e);
       e->action_points = e->speed;
       while(e->action_points>0&&!e->removed)
       {

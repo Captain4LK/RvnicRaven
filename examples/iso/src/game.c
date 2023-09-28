@@ -99,6 +99,7 @@ void game_update()
 
       redraw = 1;
       player.e->action_points = player.e->speed;
+      entity_turn(world,area,player.e);
    }
 
    if(redraw)
@@ -175,6 +176,10 @@ void game_draw()
    area_draw_end();
 
    log_draw(0);
+
+   //Draw status
+   if(player.e->hunger>=2)
+      RvR_render_string(1,1,1,"Hungry",5);
 }
 
 void game_init()

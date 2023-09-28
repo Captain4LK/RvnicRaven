@@ -15,8 +15,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 typedef enum
 {
    STATE_INVALID,
-   STATE_GAME,
    STATE_GAME_MAP,
+   STATE_GAME,
+   STATE_GAME_INVENTORY,
+   STATE_GAME_QUESTLOG,
 }State;
 
 void state_set(State s);

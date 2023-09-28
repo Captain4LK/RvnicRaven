@@ -23,6 +23,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area.h"
 #include "tile.h"
 #include "ai.h"
+#include "log.h"
 
 #include "player.h"
 //-------------------------------------
@@ -263,6 +264,25 @@ unsigned entity_try_descend(Area *a, Entity *e)
 void entity_think(World *w, Area *a, Entity *e)
 {
    ai_think(w, a, e);
+}
+
+void entity_turn(World *w, Area *a, Entity *e)
+{
+   e->fatigue_next--;
+   e->hunger_next--;
+   
+   if(e->fatigue_next<=0)
+   {
+      e->fatigue++;
+      e->fatigue_next = 300;
+   }
+
+   if(e->hunger_next<=0)
+   {
+      e->hunger++;
+      e->hunger_next = 300;
+   }
+
 }
 
 int entity_move_cost(Entity *e)

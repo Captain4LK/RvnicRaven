@@ -31,6 +31,7 @@ unsigned entity_try_ascend(Area *a, Entity *e);
 unsigned entity_try_descend(Area *a, Entity *e);
 
 void entity_think(World *w, Area *a, Entity *e);
+void entity_turn(World *w, Area *a, Entity *e); //Runs everything that should happen once per turn (status effects, etc.)
 
 int entity_move_cost(Entity *e);
 

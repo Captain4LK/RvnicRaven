@@ -70,6 +70,13 @@ struct Entity
    uint64_t id;
    int removed;
 
+   //
+   int fatigue;
+   int hunger;
+   //Timers
+   int fatigue_next;
+   int hunger_next;
+
    Entity_identifier ident;
 
    Action action;
