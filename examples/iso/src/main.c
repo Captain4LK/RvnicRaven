@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area_draw.h"
 #include "world.h"
 #include "state.h"
+#include "defs.h"
 //-------------------------------------
 
 //Internal includes
@@ -54,6 +55,9 @@ int main(int argc, char **argv)
 
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
+
+   defs_init();
+   defs_load("out.bdef");
 
    state_init(STATE_GAME);
    state_set(STATE_GAME_MAP);

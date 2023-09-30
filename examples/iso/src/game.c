@@ -137,6 +137,13 @@ void game_update()
    {
       docent_from_entity(world, area, player.e);
       state_set(STATE_GAME_MAP);
+      return;
+   }
+
+   if(RvR_key_down(RVR_KEY_I))
+   {
+      state_set(STATE_GAME_INVENTORY);
+      return;
    }
 
    player.cam.z = player.e->z;

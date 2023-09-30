@@ -18,10 +18,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "state.h"
-
+#include "player.h"
 #include "game.h"
+#include "draw.h"
+#include "area_draw.h"
 #include "game_inventory.h"
-#include "game_map.h"
 //-------------------------------------
 
 //#defines
@@ -31,7 +32,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static State state = STATE_INVALID;
+int redraw = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -39,47 +40,51 @@ static State state = STATE_INVALID;
 
 //Function implementations
 
-void state_set(State s)
+void game_inventory_set()
 {
-   switch(s)
+   redraw = 1;
+}
+
+void game_inventory_init()
+{
+}
+
+void game_inventory_update()
+{
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
    {
-   case STATE_INVALID: state = s; break;
-   case STATE_GAME: state = s; game_set(); break;
-   case STATE_GAME_INVENTORY: state = s; game_inventory_set(); break;
-   case STATE_GAME_MAP: state = s; game_map_set(); break;
+      state_set(STATE_GAME);
+      return;
    }
 }
 
-void state_init(State s)
+void game_inventory_draw()
 {
-   switch(s)
-   {
-   case STATE_INVALID: state = s; break;
-   case STATE_GAME: state = s; game_init(); break;
-   case STATE_GAME_INVENTORY: state = s; game_inventory_init(); break;
-   case STATE_GAME_MAP: state = s; game_map_init(); break;
-   }
-}
+   if(!redraw)
+      return;
 
-void state_update()
-{
-   switch(state)
-   {
-   case STATE_INVALID: break;
-   case STATE_GAME: game_update(); break;
-   case STATE_GAME_INVENTORY: game_inventory_update(); break;
-   case STATE_GAME_MAP: game_map_update(); break;
-   }
-}
+   redraw = 0;
 
-void state_draw()
-{
-   switch(state)
-   {
-   case STATE_INVALID: break;
-   case STATE_GAME: game_draw(); break;
-   case STATE_GAME_INVENTORY: game_inventory_draw(); break;
-   case STATE_GAME_MAP: game_map_draw(); break;
-   }
+   RvR_render_clear(43);
+   area_draw_begin(world, area, &player.cam);
+
+   //Draw entities
+   Entity *e = area->entities;
+   for(; e!=NULL; e = e->next)
+      area_draw_sprite(e->tex, e->x, e->y, e->z);
+
+   //Draw items
+   Item *i = area->items;
+   for(; i!=NULL; i = i->next)
+      area_draw_sprite(i->tex, i->x, i->y, i->z);
+
+   area_draw_end();
+
+   //Item list
+   draw_fill_rectangle(32, 32, RvR_xres()-64,RvR_yres()-64, 1, 1);
+   draw_line_horizontal(31,RvR_xres()-32,31,42,1);
+   draw_line_horizontal(31,RvR_xres()-32,RvR_yres()-32,42,1);
+   draw_line_vertical(31,32,RvR_yres()-33,42,1);
+   draw_line_vertical(RvR_xres()-32,32,RvR_yres()-33,42,1);
 }
 //-------------------------------------
