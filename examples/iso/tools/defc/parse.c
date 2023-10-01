@@ -55,7 +55,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static ini_type parse_material(Parser *p, const char *name);
+static void parse_material(Parser *p, const char *name);
+static void parse_item(Parser *p, const char *name);
 //-------------------------------------
 
 //Function implementations
@@ -88,7 +89,6 @@ int parse_file(Parser *p, const char *path)
       case INI_TAG:
       case INI_KEY:
          RvR_log("%s:%d: warning: %s outside of section won't have an effect\n",p->ini.path,p->ini.line-1,next==INI_TAG?"tag":"key");
-         next = ini_stream_next(&p->ini);
          break;
       case INI_SECTION:
          //Split into type:name
@@ -110,7 +110,9 @@ int parse_file(Parser *p, const char *path)
          RvR_array_push(name,'\0');
 
          if(strcmp("material",type)==0)
-            next = parse_material(p,name);
+            parse_material(p,name);
+         else if(strcmp("item",type)==0)
+            parse_item(p,name);
          else
          {
             RvR_log("%s:%d: error: unknow type '%s'\n",p->ini.path,p->ini.line,type);
@@ -118,23 +120,30 @@ int parse_file(Parser *p, const char *path)
          }
          break;
       default:
-         next = ini_stream_next(&p->ini);
          break;
       }
+
+      next = ini_stream_next(&p->ini);
    }
 
    if(next==INI_ERROR)
       goto err;
 
+   if(type!=NULL) RvR_array_free(type);
+   if(name!=NULL) RvR_array_free(name);
+
    ini_stream_close(&p->ini);
    return 0;
 
 err:
+   if(type!=NULL) RvR_array_free(type);
+   if(name!=NULL) RvR_array_free(name);
+
    ini_stream_close(&p->ini);
    return 1;
 }
 
-static ini_type parse_material(Parser *p, const char *name)
+static void parse_material(Parser *p, const char *name)
 {
    RvR_rw_write_u32(&p->rw,MKR_MATERIAL_START);
    if(strlen(name)>15)
@@ -152,7 +161,7 @@ static ini_type parse_material(Parser *p, const char *name)
    }
 
    ini_type next = ini_stream_next(&p->ini);
-   while(next!=INI_END&&next!=INI_ERROR)
+   while(next!=INI_END&&next!=INI_ERROR&&next!=INI_SECTION_END)
    {
       switch(next)
       {
@@ -173,9 +182,9 @@ static ini_type parse_material(Parser *p, const char *name)
       case INI_TAG:
          break;
       //Next section
-      case INI_SECTION:
-         RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
-         return INI_SECTION;
+      //case INI_SECTION:
+         //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
+         //return INI_SECTION;
       default:
          break;
       }
@@ -185,9 +194,64 @@ static ini_type parse_material(Parser *p, const char *name)
 
    RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
 
-   return next;
+   return;
 
 err:
-   return INI_ERROR;
+   return;
+}
+
+static void parse_item(Parser *p, const char *name)
+{
+   RvR_rw_write_u32(&p->rw,MKR_ITEM_START);
+   if(strlen(name)>15)
+   {
+      RvR_log("%s:%d: error: item name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
+      goto err;
+   }
+
+   const char *nstr = name;
+   for(int i = 0;i<16;i++)
+   {
+      RvR_rw_write_u8(&p->rw,*nstr);
+      if(*nstr)
+         nstr++;
+   }
+
+   ini_type next = ini_stream_next(&p->ini);
+   while(next!=INI_END&&next!=INI_ERROR&&next!=INI_SECTION_END)
+   {
+      switch(next)
+      {
+      case INI_KEY:
+      {
+         const char *key = ini_stream_key(&p->ini);
+         const char *value = ini_stream_value(&p->ini);
+         if(strcmp(key,"name")==0)
+            field_string(p,"item",MKR_NAME,32,key,value);
+         else
+         {
+            RvR_log("%s:%d: warning: unknown material attribute '%s'\n",p->ini.path,p->ini.line-1,key);
+         }
+      }
+      break;
+      case INI_TAG:
+         break;
+      //Next section
+      //case INI_SECTION:
+         //RvR_rw_write_u32(&p->rw,MKR_ITEM_END);
+         //return INI_SECTION;
+      default:
+         break;
+      }
+
+      next = ini_stream_next(&p->ini);
+   }
+
+   RvR_rw_write_u32(&p->rw,MKR_ITEM_END);
+
+   return;
+
+err:
+   return;
 }
 //-------------------------------------

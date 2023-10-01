@@ -53,18 +53,16 @@ void ini_stream_close(ini_stream *ini)
 ini_type ini_stream_next(ini_stream *ini)
 {
    char next = RvR_rw_read_u8(&ini->stream);
-   for(;next;next = RvR_rw_read_u8(&ini->stream))
+   for(;next&&!RvR_rw_eof(&ini->stream);next = RvR_rw_read_u8(&ini->stream))
    {
       //Skip whitespace
-      while(next&&(next==' '||next=='\t'||next=='\n'))
+      if(next&&(next==' '||next=='\t'||next=='\n'))
       {
          if(next=='\n')
             ini->line++;
-         next = RvR_rw_read_u8(&ini->stream);
       }
-
       //Comment: skip
-      if(next==';')
+      else if(next==';')
       {
          while(next&&next!='\n')
             next = RvR_rw_read_u8(&ini->stream);
@@ -76,6 +74,8 @@ ini_type ini_stream_next(ini_stream *ini)
          RvR_array_length_set(ini->value,0);
 
          next = RvR_rw_read_u8(&ini->stream);
+         if(next==']')
+            return INI_SECTION_END;
          while(next!=']')
          {
             //Check for escaped bracket
@@ -139,7 +139,7 @@ ini_type ini_stream_next(ini_stream *ini)
       //Invalid: skip
       else
       {
-         RvR_log("%s:%d invalid character '%c'\n",ini->path,ini->line,next);
+         RvR_log("%s:%d invalid character '%c'(%d)\n",ini->path,ini->line,next,next);
          while(next&&next!='\n')
             next = RvR_rw_read_u8(&ini->stream);
          ini->line++;

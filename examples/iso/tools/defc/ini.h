@@ -26,6 +26,7 @@ typedef struct
 typedef enum
 {
    INI_SECTION,
+   INI_SECTION_END,
    INI_KEY,
    INI_TAG,
    INI_END,

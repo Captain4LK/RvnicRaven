@@ -12,6 +12,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ITEM_DEFS_H_
 
+#include "defs.h"
+
 typedef struct Item Item;
 
 struct Item
@@ -24,6 +26,9 @@ struct Item
    uint64_t id;
 
    int removed;
+
+   MaterialDef *material;
+   ItemDef *type;
 
    Item *next;
    Item **prev_next;

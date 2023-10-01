@@ -23,10 +23,14 @@ typedef struct
 
 typedef enum
 {
-   MKR_MATERIAL_START = 0,             //name:char[16]
-   MKR_MATERIAL_END = 1,               //
-   MKR_ADJECTIVE = 2,                  //adjective:char[32]
-   MKR_DENSITY = 3,                    //density in mg/cm3: u32
+   MKR_INVALID = 0,                    //
+   MKR_MATERIAL_START = 1,             //type:char[16]
+   MKR_MATERIAL_END = 2,               //
+   MKR_ADJECTIVE = 3,                  //adjective:char[32]
+   MKR_DENSITY = 4,                    //density in mg/cm3: u32
+   MKR_ITEM_START = 5,                 //type:char[16]
+   MKR_ITEM_END = 6,                   //
+   MKR_NAME = 7,                       //name:char[32]
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);

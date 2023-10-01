@@ -12,13 +12,42 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _DEFS_H_
 
-#include "material.h"
+typedef struct
+{
+   char type[16];
+
+   char name[32];
+}ItemDef;
+
+typedef struct
+{
+   char type[16];
+
+   char adjective[32];
+   uint32_t density;
+}MaterialDef;
+
+typedef struct
+{
+   char type[16];
+}BodyDef;
+
+typedef struct
+{
+   char type[16];
+}EntityDef;
+
+typedef struct
+{
+   char type[16];
+}GroupDef;
 
 //DO NOT LOAD ANY DEFS WHILE A GAME IS ACTIVE
 //I.E: ONLY LOAD THEM AT STARTUP
 void defs_init(void);
 void defs_load(const char *path);
 
-const MaterialDef *defs_get_material(const char *name);
+const MaterialDef *defs_get_material(const char *type);
+const ItemDef *defs_get_item(const char *type);
 
 #endif

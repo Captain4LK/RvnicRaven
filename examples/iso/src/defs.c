@@ -19,7 +19,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "defs.h"
-#include "material.h"
 //-------------------------------------
 
 //#defines
@@ -28,10 +27,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Typedefs
 typedef enum
 {
-   MKR_MATERIAL_START = 0,             //name:char[16]
-   MKR_MATERIAL_END = 1,               //
-   MKR_ADJECTIVE = 2,                  //adjective:char[32]
-   MKR_DENSITY = 3,                    //density in mg/cm3: u32
+   MKR_INVALID = 0,                    //
+   MKR_MATERIAL_START = 1,             //type: char[16]
+   MKR_MATERIAL_END = 2,               //
+   MKR_ADJECTIVE = 3,                  //adjective: char[32]
+   MKR_DENSITY = 4,                    //density in mg/cm3: u32
+   MKR_ITEM_START = 5,                 //type: char[16]
+   MKR_ITEM_END = 6,                   //
+   MKR_NAME = 7,                       //name: char[32]
 }Marker;
 //-------------------------------------
 
@@ -42,16 +45,27 @@ struct
    int count;
    int size_exp;
 }material_defs;
+
+struct
+{
+   ItemDef **arr;
+   int count;
+   int size_exp;
+}item_defs;
 //-------------------------------------
 
 //Function prototypes
 static void defs_read_material(RvR_rw *rw, const char *path);
+static void defs_read_item(RvR_rw *rw, const char *path);
 
 static int32_t defs_lookup(uint32_t hash, int exp, uint32_t idx);
 
-static int defs_material_insert(MaterialDef *mat);
+static int defs_material_insert(MaterialDef *item);
 static void defs_material_grow(void);
-static int defs_material_search(const char *name);
+static int defs_material_search(const char *type);
+static int defs_item_insert(ItemDef *mat);
+static void defs_item_grow(void);
+static int defs_item_search(const char *type);
 //-------------------------------------
 
 //Function implementations
@@ -62,6 +76,11 @@ void defs_init(void)
    material_defs.count = 0;
    material_defs.arr = RvR_malloc(sizeof(*material_defs.arr)*(1<<material_defs.size_exp),"MaterialDefs hashmap");
    memset(material_defs.arr,0,sizeof(*material_defs.arr)*(1<<material_defs.size_exp));
+
+   item_defs.size_exp = 8;
+   item_defs.count = 0;
+   item_defs.arr = RvR_malloc(sizeof(*item_defs.arr)*(1<<item_defs.size_exp),"ItemDefs hashmap");
+   memset(item_defs.arr,0,sizeof(*item_defs.arr)*(1<<item_defs.size_exp));
 }
 
 void defs_load(const char *path)
@@ -77,7 +96,10 @@ void defs_load(const char *path)
       case MKR_MATERIAL_START:
          defs_read_material(&rw,path);
          break;
-      defualt:
+      case MKR_ITEM_START:
+         defs_read_item(&rw,path);
+         break;
+      default:
          RvR_log_line("defs_load","invalid marker %" PRIu32 " in file '%s'\n",marker,path);
          exit(0);
          break;
@@ -89,12 +111,20 @@ void defs_load(const char *path)
    RvR_rw_close(&rw);
 }
 
-const MaterialDef *defs_get_material(const char *name)
+const MaterialDef *defs_get_material(const char *type)
 {
-   int idx = defs_material_search(name);
+   int idx = defs_material_search(type);
    if(idx<0)
       return NULL;
    return material_defs.arr[idx];
+}
+
+const ItemDef *defs_get_item(const char *type)
+{
+   int idx = defs_item_search(type);
+   if(idx<0)
+      return NULL;
+   return item_defs.arr[idx];
 }
 
 static void defs_read_material(RvR_rw *rw, const char *path)
@@ -103,8 +133,8 @@ static void defs_read_material(RvR_rw *rw, const char *path)
    memset(mat,0,sizeof(*mat));
 
    //Name is always first
-   for(int i = 0;i<16;i++) mat->name[i] = RvR_rw_read_u8(rw);
-   mat->name[15] = '\0';
+   for(int i = 0;i<16;i++) mat->type[i] = RvR_rw_read_u8(rw);
+   mat->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
    while(marker!=MKR_MATERIAL_END)
@@ -135,6 +165,41 @@ static void defs_read_material(RvR_rw *rw, const char *path)
    defs_material_insert(mat);
 }
 
+static void defs_read_item(RvR_rw *rw, const char *path)
+{
+   ItemDef *item = RvR_malloc(sizeof(*item),"ItemDef struct");
+   memset(item,0,sizeof(*item));
+
+   //Name is always first
+   for(int i = 0;i<16;i++) item->type[i] = RvR_rw_read_u8(rw);
+   item->type[15] = '\0';
+
+   uint32_t marker = RvR_rw_read_u32(rw);
+   while(marker!=MKR_ITEM_END)
+   {
+      switch(marker)
+      {
+      case MKR_NAME:
+         for(int i = 0;i<32;i++) item->name[i] = RvR_rw_read_u8(rw);
+         item->name[31] = '\0';
+         break;
+      default:
+         RvR_log_line("defs_load","invalid item marker %" PRIu32 " in file '%s'\n",marker,path);
+         exit(0);
+         return;
+      }
+
+      if(RvR_rw_eof(rw))
+      {
+         RvR_log_line("defs_load","unterminated item at eof in file '%s'\n",path);
+         exit(0);
+      }
+      marker = RvR_rw_read_u32(rw);
+   }
+
+   defs_item_insert(item);
+}
+
 static int32_t defs_lookup(uint32_t hash, int exp, uint32_t idx)
 {
    uint32_t mask = ((uint32_t)1<<exp)-1;
@@ -144,7 +209,7 @@ static int32_t defs_lookup(uint32_t hash, int exp, uint32_t idx)
 
 static int defs_material_insert(MaterialDef *mat)
 {
-   uint32_t hash = RvR_fnv32a(mat->name);
+   uint32_t hash = RvR_fnv32a(mat->type);
    int32_t current = defs_lookup(hash,material_defs.size_exp,hash);
    while(material_defs.arr[current]!=NULL)
    {
@@ -159,7 +224,7 @@ static int defs_material_insert(MaterialDef *mat)
    else
       return current;
 
-   return defs_material_search(mat->name);
+   return defs_material_search(mat->type);
 }
 
 static void defs_material_grow(void)
@@ -180,15 +245,67 @@ static void defs_material_grow(void)
    RvR_free(old_arr);
 }
 
-static int defs_material_search(const char *name)
+static int defs_material_search(const char *type)
 {
-   uint32_t hash = RvR_fnv32a(name);
+   uint32_t hash = RvR_fnv32a(type);
    int32_t current = defs_lookup(hash,material_defs.size_exp,hash);
    while(material_defs.arr[current]!=NULL)
    {
-      if(strcmp(material_defs.arr[current]->name,name)==0)
+      if(strcmp(material_defs.arr[current]->type,type)==0)
          return current;
       current = defs_lookup(hash,material_defs.size_exp,current);
+   }
+
+   return -1;
+}
+
+static int defs_item_insert(ItemDef *item)
+{
+   uint32_t hash = RvR_fnv32a(item->type);
+   int32_t current = defs_lookup(hash,item_defs.size_exp,hash);
+   while(item_defs.arr[current]!=NULL)
+   {
+      current = defs_lookup(hash,item_defs.size_exp,current);
+   }
+
+   item_defs.arr[current] = item;
+   item_defs.count++;
+
+   if(item_defs.count>(1<<(item_defs.size_exp))/2)
+      defs_item_grow();
+   else
+      return current;
+
+   return defs_item_search(item->type);
+}
+
+static void defs_item_grow(void)
+{
+   int os = 1<<item_defs.size_exp;
+   item_defs.size_exp++;
+   ItemDef **old_arr = item_defs.arr;
+   item_defs.arr = RvR_malloc(sizeof(*item_defs.arr)*(1<<item_defs.size_exp),"ItemDefs hashmap");
+   memset(item_defs.arr,0,sizeof(*item_defs.arr)*(1<<item_defs.size_exp));
+   item_defs.count = 0;
+
+   for(int i = 0;i<os;i++)
+   {
+      if(old_arr[i]!=NULL)
+         defs_item_insert(old_arr[i]);
+   }
+
+   RvR_free(old_arr);
+}
+
+static int defs_item_search(const char *type)
+{
+   uint32_t hash = RvR_fnv32a(type);
+   int32_t current = defs_lookup(hash,item_defs.size_exp,hash);
+   while(item_defs.arr[current]!=NULL)
+   {
+      if(strcmp(item_defs.arr[current]->type,type)==0)
+         return current;
+      current = defs_lookup(hash,item_defs.size_exp,current);
    }
 
    return -1;
