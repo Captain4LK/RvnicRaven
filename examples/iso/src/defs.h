@@ -29,7 +29,16 @@ typedef struct
 
 typedef struct
 {
+   char name[32];
+   int16_t child;
+   int16_t next;
+}BodypartDef;
+
+typedef struct
+{
    char type[16];
+   uint16_t bodypart_count;
+   BodypartDef *bodyparts;
 }BodyDef;
 
 typedef struct
@@ -49,5 +58,8 @@ void defs_load(const char *path);
 
 const MaterialDef *defs_get_material(const char *type);
 const ItemDef *defs_get_item(const char *type);
+const BodyDef *defs_get_body(const char *type);
+const EntityDef *defs_get_entity(const char *type);
+const GroupDef *defs_get_group(const char *type);
 
 #endif

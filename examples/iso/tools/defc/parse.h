@@ -31,6 +31,15 @@ typedef enum
    MKR_ITEM_START = 5,                 //type:char[16]
    MKR_ITEM_END = 6,                   //
    MKR_NAME = 7,                       //name:char[32]
+   MKR_BODY_START = 8,                 //type:char[16]
+   MKR_BODY_END = 9,                   //
+   MKR_ENTITY_START = 10,              //type:char[16]
+   MKR_ENTITY_END = 11,                //
+   MKR_GROUP_START = 12,               //type:char[16]
+   MKR_GROUP_END = 13,                 //
+   MKR_BODYPART_START = 14,            //
+   MKR_BODYPART_END = 15,              //
+   MKR_BODY = 16,                      //bodytype:char[16]
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);
