@@ -418,7 +418,7 @@ static void parse_entity(Parser *p, const char *name)
          //else if(strcmp(key,"density")==0)
             //field_u32(p,"material",MKR_DENSITY,key,value);
          if(strcmp(key,"body")==0)
-            field_string(p,"body",MKR_BODY,32,key,value);
+            field_string(p,"body",MKR_BODY,16,key,value);
          else
          {
             RvR_log("%s:%d: warning: unknown material attribute '%s'\n",p->ini.path,p->ini.line-1,key);

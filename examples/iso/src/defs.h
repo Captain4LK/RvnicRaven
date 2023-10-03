@@ -12,6 +12,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _DEFS_H_
 
+#include "body.h"
+
 typedef struct
 {
    char type[16];
@@ -44,6 +46,7 @@ typedef struct
 typedef struct
 {
    char type[16];
+   BodyDef *body;
 }EntityDef;
 
 typedef struct

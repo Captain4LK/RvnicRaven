@@ -305,7 +305,7 @@ static void defs_read_body(RvR_rw *rw, const char *path)
    body->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
-   while(marker!=MKR_ITEM_END)
+   while(marker!=MKR_BODY_END)
    {
       switch(marker)
       {
@@ -313,6 +313,9 @@ static void defs_read_body(RvR_rw *rw, const char *path)
          //for(int i = 0;i<32;i++) body->name[i] = RvR_rw_read_u8(rw);
          //body->name[31] = '\0';
          //break;
+      case MKR_BODYPART_START:
+         defs_read_bodypart(rw,path,body);
+         break;
       default:
          RvR_log_line("defs_load","invalid body marker %" PRIu32 " in file '%s'\n",marker,path);
          exit(0);
@@ -334,10 +337,36 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
 {
    int16_t cur = body->bodypart_count++;
    body->bodyparts = RvR_realloc(body->bodyparts,sizeof(*body->bodyparts)*body->bodypart_count,"Body bodyparts");
+   body->bodyparts[cur].child = -1;
+   body->bodyparts[cur].next = -1;
 
+   int16_t prev = -1;
    uint32_t marker = RvR_rw_read_u32(rw);
    while(marker!=MKR_BODYPART_END)
    {
+      switch(marker)
+      {
+      case MKR_NAME:
+         for(int i = 0;i<32;i++) body->bodyparts[cur].name[i] = RvR_rw_read_u8(rw);
+         body->bodyparts[cur].name[31] = '\0';
+         break;
+      case MKR_BODYPART_START:
+         int16_t child = defs_read_bodypart(rw,path,body);
+         if(prev==-1)
+         {
+            body->bodyparts[cur].child = child;
+         }
+         else
+         {
+            body->bodyparts[prev].next = child;
+         }
+         prev = child;
+         break;
+      default:
+         RvR_log_line("defs_load","invalid bodypart marker %" PRIu32 " in file '%s'\n",marker,path);
+         exit(0);
+         return -1;
+      }
       marker = RvR_rw_read_u32(rw);
    }
 
@@ -354,7 +383,7 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
    entity->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
-   while(marker!=MKR_ITEM_END)
+   while(marker!=MKR_ENTITY_END)
    {
       switch(marker)
       {
@@ -362,6 +391,12 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
          //for(int i = 0;i<32;i++) entity->name[i] = RvR_rw_read_u8(rw);
          //entity->name[31] = '\0';
          //break;
+      case MKR_BODY:
+         char name[16];
+         for(int i = 0;i<16;i++) name[i] = RvR_rw_read_u8(rw);
+         name[15] = '\0';
+         entity->body = defs_get_body(name);
+         break;
       default:
          RvR_log_line("defs_load","invalid entity marker %" PRIu32 " in file '%s'\n",marker,path);
          exit(0);
@@ -389,7 +424,7 @@ static void defs_read_group(RvR_rw *rw, const char *path)
    group->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
-   while(marker!=MKR_ITEM_END)
+   while(marker!=MKR_GROUP_END)
    {
       switch(marker)
       {
