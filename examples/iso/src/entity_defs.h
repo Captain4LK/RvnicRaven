@@ -13,6 +13,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _ENTITY_TYPE_H_
 
 #include "action_defs.h"
+#include "defs.h"
+#include "body.h"
 
 typedef struct Entity Entity;
 typedef struct Group Group;
@@ -78,6 +80,7 @@ struct Entity
    int hunger_next;
 
    Entity_identifier ident;
+   Body body;
 
    Action action;
 

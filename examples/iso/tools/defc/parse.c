@@ -358,6 +358,13 @@ static void parse_bodypart(Parser *p)
       }
       break;
       case INI_TAG:
+      {
+         const char *key = ini_stream_key(&p->ini);
+         if(strcmp(key,"vital")==0)
+            RvR_rw_write_u32(&p->rw,MKR_BODYPART_VITAL); 
+         else
+            RvR_log("%s:%d: warning: unknown bodypart tag '%s'\n",p->ini.path,p->ini.line-1,key);
+      }
          break;
       case INI_SECTION:
          const char *value = ini_stream_value(&p->ini);

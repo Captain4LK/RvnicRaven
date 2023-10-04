@@ -44,6 +44,7 @@ typedef enum
    MKR_BODYPART_START = 14,            //
    MKR_BODYPART_END = 15,              //
    MKR_BODY = 16,                      //bodytype: char[16]
+   MKR_BODYPART_VITAL = 17,            //
 }Marker;
 //-------------------------------------
 
@@ -351,6 +352,7 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
          body->bodyparts[cur].name[31] = '\0';
          break;
       case MKR_BODYPART_START:
+      {
          int16_t child = defs_read_bodypart(rw,path,body);
          if(prev==-1)
          {
@@ -361,6 +363,10 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
             body->bodyparts[prev].next = child;
          }
          prev = child;
+      }
+         break;
+      case MKR_BODYPART_VITAL:
+         body->bodyparts[cur].tags|=DEF_BODY_VITAL;
          break;
       default:
          RvR_log_line("defs_load","invalid bodypart marker %" PRIu32 " in file '%s'\n",marker,path);
@@ -387,15 +393,13 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
    {
       switch(marker)
       {
-      //case MKR_NAME:
-         //for(int i = 0;i<32;i++) entity->name[i] = RvR_rw_read_u8(rw);
-         //entity->name[31] = '\0';
-         //break;
       case MKR_BODY:
+      {
          char name[16];
          for(int i = 0;i<16;i++) name[i] = RvR_rw_read_u8(rw);
          name[15] = '\0';
          entity->body = defs_get_body(name);
+      }
          break;
       default:
          RvR_log_line("defs_load","invalid entity marker %" PRIu32 " in file '%s'\n",marker,path);

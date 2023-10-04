@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _DEFS_H_
 
-#include "body.h"
+#include <stdint.h>
 
 typedef struct
 {
@@ -32,6 +32,7 @@ typedef struct
 typedef struct
 {
    char name[32];
+   uint64_t tags;
    int16_t child;
    int16_t next;
 }BodypartDef;
@@ -46,7 +47,7 @@ typedef struct
 typedef struct
 {
    char type[16];
-   BodyDef *body;
+   const BodyDef *body;
 }EntityDef;
 
 typedef struct
@@ -64,5 +65,12 @@ const ItemDef *defs_get_item(const char *type);
 const BodyDef *defs_get_body(const char *type);
 const EntityDef *defs_get_entity(const char *type);
 const GroupDef *defs_get_group(const char *type);
+
+//Tags
+
+//Body
+//-------------------------------------
+#define DEF_BODY_VITAL     UINT64_C(1<<0)
+//-------------------------------------
 
 #endif

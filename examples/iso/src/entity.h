@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "world_defs.h"
 #include "entity_defs.h"
+#include "defs.h"
 
 Entity *entity_new(World *w);
 void entity_free(Entity *e);
@@ -34,5 +35,7 @@ void entity_think(World *w, Area *a, Entity *e);
 void entity_turn(World *w, Area *a, Entity *e); //Runs everything that should happen once per turn (status effects, etc.)
 
 int entity_move_cost(Entity *e);
+
+void entity_from_def(Entity *e, const EntityDef *def);
 
 #endif

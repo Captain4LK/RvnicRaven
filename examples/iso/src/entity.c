@@ -24,6 +24,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "tile.h"
 #include "ai.h"
 #include "log.h"
+#include "body.h"
 
 #include "player.h"
 //-------------------------------------
@@ -289,4 +290,12 @@ int entity_move_cost(Entity *e)
 {
    return 184;
 }
+
+void entity_from_def(Entity *e, const EntityDef *def)
+{
+   body_from_def(&e->body,def->body);
+
+   //TODO(Captain4LK): add inventory slots based on bodyparts
+}
+//void body_from_def(Body *body, BodyDef *def);
 //-------------------------------------
