@@ -295,7 +295,9 @@ void entity_from_def(Entity *e, const EntityDef *def)
 {
    body_from_def(&e->body,def->body);
 
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+   }
    //TODO(Captain4LK): add inventory slots based on bodyparts
 }
-//void body_from_def(Body *body, BodyDef *def);
 //-------------------------------------

@@ -176,9 +176,9 @@ void game_draw()
       area_draw_sprite(e->tex, e->x, e->y, e->z);
 
    //Draw items
-   Item *i = area->items;
-   for(; i!=NULL; i = i->next)
-      area_draw_sprite(i->tex, i->x, i->y, i->z);
+   Item *it = area->items;
+   for(; it!=NULL; it = it->next)
+      area_draw_sprite(it->tex, it->x, it->y, it->z);
 
    area_draw_end();
 
@@ -187,6 +187,20 @@ void game_draw()
    //Draw status
    if(player.e->hunger>=2)
       RvR_render_string(1,1,1,"Hungry",5);
+
+   //Draw vital hp bars
+   int dy = RvR_yres()-74;
+   for(int i = 0;i<player.e->body.part_count;i++)
+   {
+      Bodypart *bp = &player.e->body.parts[i];
+      if(bp->def->tags&DEF_BODY_VITAL)
+      {
+         char tmp[128];
+         snprintf(tmp,128,"%5s: %3d/%3d",bp->def->name,bp->hp,bp->hp_max);
+         RvR_render_string(1,dy,1,tmp,12);
+         dy+=8;
+      }
+   }
 }
 
 void game_init()

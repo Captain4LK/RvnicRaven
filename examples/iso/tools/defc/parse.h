@@ -40,7 +40,12 @@ typedef enum
    MKR_BODYPART_START = 14,            //
    MKR_BODYPART_END = 15,              //
    MKR_BODY = 16,                      //bodytype:char[16]
-   MKR_BODYPART_VITAL = 17,            //
+   MKR_VITAL = 17,                     //
+   MKR_SLOT_HEAD = 18,                 //
+   MKR_SLOT_UPPER = 19,                //
+   MKR_SLOT_LOWER = 20,                //
+   MKR_SLOT_HAND = 21,                 //
+   MKR_SLOT_FOOT = 22,                 //
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);

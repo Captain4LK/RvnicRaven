@@ -23,6 +23,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area.h"
 #include "entity.h"
 #include "tile.h"
+#include "defs.h"
 #include "entity_documented.h"
 //-------------------------------------
 
@@ -61,6 +62,7 @@ void player_add(World *w, Area *a)
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    player.e->tex = 16384;
+   entity_from_def(player.e,defs_get_entity("human"));
 
    Entity *e = entity_new(w);
    e->speed = 128;

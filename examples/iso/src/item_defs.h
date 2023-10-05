@@ -37,4 +37,28 @@ struct Item
    Item **g_prev_next;
 };
 
+typedef enum
+{
+   ITEM_SLOT_UPPER,
+   ITEM_SLOT_LOWER,
+   ITEM_SLOT_HEAD,
+   ITEM_SLOT_HAND,
+   ITEM_SLOT_FOOT,
+}Item_slot_type;
+
+typedef enum
+{
+   ITEM_SLOT_UNDER,
+   ITEM_SLOT_OVER,
+   ITEM_SLOT_ARMOR,
+   ITEM_SLOT_BACK,
+}Item_slot_layer;
+
+typedef struct
+{
+   Item_slot_type type;
+   Item_slot_layer layer;
+   Item *it;
+}Item_slot;
+
 #endif

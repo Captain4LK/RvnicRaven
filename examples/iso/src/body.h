@@ -13,12 +13,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _BODY_H_
 
 #include "defs.h"
+#include "item_defs.h"
 
 typedef struct
 {
    const BodypartDef *def;
    int hp;
    int hp_max;
+   int slot_count;
+   Item_slot *slots;
+
    int16_t child;
    int16_t next;
 }Bodypart;
