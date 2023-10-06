@@ -372,6 +372,8 @@ static void parse_bodypart(Parser *p)
             RvR_rw_write_u32(&p->rw,MKR_SLOT_HAND); 
          else if(strcmp(key,"slot_foot")==0)
             RvR_rw_write_u32(&p->rw,MKR_SLOT_FOOT); 
+         else if(strcmp(key,"grasp")==0)
+            RvR_rw_write_u32(&p->rw,MKR_GRASP); 
          else
             RvR_log("%s:%d: warning: unknown bodypart tag '%s'\n",p->ini.path,p->ini.line-1,key);
       }

@@ -49,6 +49,7 @@ void body_from_def(Body *body, const BodyDef *def)
       if(body->parts[i].def->tags&DEF_BODY_SLOT_HEAD) slot_count+=3;
       if(body->parts[i].def->tags&DEF_BODY_SLOT_HAND) slot_count+=3;
       if(body->parts[i].def->tags&DEF_BODY_SLOT_FOOT) slot_count+=3;
+      if(body->parts[i].def->tags&DEF_BODY_GRASP) slot_count+=1;
 
       if(slot_count>0)
       {
@@ -56,6 +57,12 @@ void body_from_def(Body *body, const BodyDef *def)
          body->parts[i].slot_count = slot_count;
 
          int cur = 0;
+         if(body->parts[i].def->tags&DEF_BODY_GRASP)
+         {
+            body->parts[i].slots[cur].type = ITEM_SLOT_GRASP;
+            body->parts[i].slots[cur].layer = ITEM_SLOT_ANY;
+            cur+=1;
+         }
          if(body->parts[i].def->tags&DEF_BODY_SLOT_UPPER)
          {
             body->parts[i].slots[cur].type = ITEM_SLOT_UPPER;

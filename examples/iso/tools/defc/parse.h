@@ -46,6 +46,7 @@ typedef enum
    MKR_SLOT_LOWER = 20,                //
    MKR_SLOT_HAND = 21,                 //
    MKR_SLOT_FOOT = 22,                 //
+   MKR_GRASP = 23,                //
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);

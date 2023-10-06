@@ -44,10 +44,12 @@ typedef enum
    ITEM_SLOT_HEAD,
    ITEM_SLOT_HAND,
    ITEM_SLOT_FOOT,
+   ITEM_SLOT_GRASP,
 }Item_slot_type;
 
 typedef enum
 {
+   ITEM_SLOT_ANY = 0,
    ITEM_SLOT_UNDER,
    ITEM_SLOT_OVER,
    ITEM_SLOT_ARMOR,

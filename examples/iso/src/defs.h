@@ -76,6 +76,7 @@ const GroupDef *defs_get_group(const char *type);
 #define DEF_BODY_SLOT_HEAD       (UINT64_C(1)<<3)
 #define DEF_BODY_SLOT_HAND       (UINT64_C(1)<<4)
 #define DEF_BODY_SLOT_FOOT       (UINT64_C(1)<<5)
+#define DEF_BODY_GRASP           (UINT64_C(1)<<6)
 //-------------------------------------
 
 #endif

@@ -50,6 +50,7 @@ typedef enum
    MKR_SLOT_LOWER = 20,                //
    MKR_SLOT_HAND = 21,                 //
    MKR_SLOT_FOOT = 22,                 //
+   MKR_GRASP = 23,                //
 }Marker;
 //-------------------------------------
 
@@ -376,6 +377,7 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
       case MKR_SLOT_HEAD: body->bodyparts[cur].tags|=DEF_BODY_SLOT_HEAD; break;
       case MKR_SLOT_HAND: body->bodyparts[cur].tags|=DEF_BODY_SLOT_HAND; break;
       case MKR_SLOT_FOOT: body->bodyparts[cur].tags|=DEF_BODY_SLOT_FOOT; break;
+      case MKR_GRASP: body->bodyparts[cur].tags|=DEF_BODY_GRASP; break;
       default:
          RvR_log_line("defs_load","invalid bodypart marker %" PRIu32 " in file '%s'\n",marker,path);
          exit(0);
