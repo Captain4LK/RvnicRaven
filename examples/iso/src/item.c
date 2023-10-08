@@ -140,4 +140,8 @@ void item_grid_remove(Item *i)
    if(i->g_next != NULL)
       i->g_next->prev_next = i->g_prev_next;
 }
+
+void item_sprite_create(Item *it)
+{
+}
 //-------------------------------------

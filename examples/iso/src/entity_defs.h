@@ -63,7 +63,7 @@ struct Entity
    int16_t x;
    int16_t y;
    int16_t z;
-   uint16_t tex;
+   uint16_t sprite;
 
    int speed;
    int action_points;

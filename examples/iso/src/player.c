@@ -61,12 +61,12 @@ void player_add(World *w, Area *a)
    player.e = entity_from_docent(w, a, player.id);
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
-   player.e->tex = 16384;
+   //player.e->tex = 16384;
    entity_from_def(player.e,defs_get_entity("human"));
 
    Entity *e = entity_new(w);
    e->speed = 128;
-   e->tex = 16384;
+   //e->tex = 16384;
    e->x = player.e->x;
    e->y = player.e->y;
    e->z = player.e->z;

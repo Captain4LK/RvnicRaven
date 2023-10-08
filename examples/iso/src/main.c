@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area_draw.h"
 #include "world.h"
 #include "state.h"
+#include "sprite.h"
 #include "defs.h"
 //-------------------------------------
 
@@ -58,6 +59,7 @@ int main(int argc, char **argv)
 
    defs_init();
    defs_load("out.bdef");
+   sprites_init();
 
    state_init(STATE_GAME);
    state_set(STATE_GAME_MAP);

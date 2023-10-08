@@ -38,4 +38,6 @@ int entity_move_cost(Entity *e);
 
 void entity_from_def(Entity *e, const EntityDef *def);
 
+void entity_sprite_create(Entity *e);
+
 #endif

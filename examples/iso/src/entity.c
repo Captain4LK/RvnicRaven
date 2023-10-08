@@ -27,6 +27,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "body.h"
 
 #include "player.h"
+#include "sprite.h"
 //-------------------------------------
 
 //#defines
@@ -294,5 +295,12 @@ int entity_move_cost(Entity *e)
 void entity_from_def(Entity *e, const EntityDef *def)
 {
    body_from_def(&e->body,def->body);
+}
+
+void entity_sprite_create(Entity *e)
+{
+   e->sprite = sprite_new(e);
+   sprite_clear(e->sprite,0);
+   sprite_draw_sprite(e->sprite,16384,0,0,0,0,32,32);
 }
 //-------------------------------------

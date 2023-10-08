@@ -25,4 +25,6 @@ void item_update_pos(Area *a, Item *i, int16_t x, int16_t y, int16_t z);
 void item_grid_add(Area *a, Item *i);
 void item_grid_remove(Item *i);
 
+void item_sprite_create(Item *it);
+
 #endif

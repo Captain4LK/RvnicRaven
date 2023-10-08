@@ -173,12 +173,12 @@ void game_draw()
    //Draw entities
    Entity *e = area->entities;
    for(; e!=NULL; e = e->next)
-      area_draw_sprite(e->tex, e->x, e->y, e->z);
+      area_draw_entity(e, e->x, e->y, e->z);
 
    //Draw items
    Item *it = area->items;
    for(; it!=NULL; it = it->next)
-      area_draw_sprite(it->tex, it->x, it->y, it->z);
+      area_draw_item(it, it->x, it->y, it->z);
 
    area_draw_end();
 

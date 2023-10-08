@@ -21,6 +21,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "tile.h"
 #include "area.h"
 #include "camera.h"
+#include "item_defs.h"
+#include "entity_defs.h"
+#include "sprite.h"
 //-------------------------------------
 
 //#defines
@@ -32,8 +35,14 @@ typedef struct
    int16_t x;
    int16_t y;
    int16_t z;
-   uint16_t tex;
-}Sprite;
+
+   int type;
+   union
+   {
+      Item *i;
+      Entity *e;
+   }as;
+}Draw_sprite;
 //-------------------------------------
 
 //Variables
@@ -41,12 +50,13 @@ static const World *world;
 static const Area *area;
 static const Camera *cam;
 
-static Sprite *sprites = NULL;
+static Draw_sprite *sprites = NULL;
 //-------------------------------------
 
 //Function prototypes
 static void draw_sprite(const RvR_texture *tex, int x, int y);
 static void draw_sprite_bw(const RvR_texture *tex, int x, int y);
+static void area_draw_sprite(Draw_sprite *s);
 
 static int sprite_cmp_r0(const void *a, const void *b);
 static int sprite_cmp_r1(const void *a, const void *b);
@@ -151,13 +161,29 @@ void area_draw_end()
                   RvR_render_present();
             }
 
-            //Sprites
+            //Draw_sprites
             if(sprite_cur<sprite_max)
             {
-               Sprite *sp = sprites + sprite_cur;
+               Draw_sprite *sp = sprites + sprite_cur;
                if(sp->z==z&&sp->y==ty&&sp->x==tx)
                {
-                  RvR_texture *tex = RvR_texture_get(sp->tex);
+                  //TODO
+                  RvR_texture *tex = NULL;
+                  if(sp->type==0)
+                  {
+                     if(!sprite_valid(sp->as.e->sprite,sp->as.e))
+                        entity_sprite_create(sp->as.e);
+
+                     tex = RvR_texture_get(sprite_texture(sp->as.e->sprite));
+                  }
+                  else if(sp->type==1)
+                  {
+                     if(!sprite_valid(sp->as.i->sprite,sp->as.i))
+                        item_sprite_create(sp->as.i);
+
+                     tex = RvR_texture_get(sprite_texture(sp->as.i->sprite));
+                  }
+
                   draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy);
                   sprite_cur++;
                }
@@ -239,8 +265,12 @@ void area_draw_end()
    }
 }
 
-void area_draw_sprite(uint16_t tex, int16_t x, int16_t y, int16_t z)
+static void area_draw_sprite(Draw_sprite *s)
 {
+   int16_t x = s->x;
+   int16_t y = s->y;
+   int16_t z = s->z;
+
    int dx = x;
    int dy = y;
    if(cam->rotation==1)
@@ -266,7 +296,22 @@ void area_draw_sprite(uint16_t tex, int16_t x, int16_t y, int16_t z)
       return;
 
    //Outside of screen
-   RvR_texture *t = RvR_texture_get(tex);
+   RvR_texture *t = NULL;
+   if(s->type==0)
+   {
+      if(!sprite_valid(s->as.e->sprite,s->as.e))
+         entity_sprite_create(s->as.e);
+
+      t = RvR_texture_get(sprite_texture(s->as.e->sprite));
+   }
+   else if(s->type==1)
+   {
+      if(!sprite_valid(s->as.i->sprite,s->as.i))
+         item_sprite_create(s->as.i);
+
+      t = RvR_texture_get(sprite_texture(s->as.i->sprite));
+   }
+   //RvR_texture *t = RvR_texture_get(tex);
    if(t==NULL)
       return;
 
@@ -292,8 +337,32 @@ void area_draw_sprite(uint16_t tex, int16_t x, int16_t y, int16_t z)
       return;
 
    //Push into list
-   Sprite sp = {.tex = tex, .x = x, .y = y, .z = z};
+   Draw_sprite sp = *s;
    RvR_array_push(sprites, sp);
+}
+
+void area_draw_item(Item *it, int16_t x, int16_t y, int16_t z)
+{
+   Draw_sprite sp = {0};
+   sp.type = 1;
+   sp.as.i = it;
+   sp.x = x;
+   sp.y = y;
+   sp.z = z;
+
+   area_draw_sprite(&sp);
+}
+
+void area_draw_entity(Entity*e, int16_t x, int16_t y, int16_t z)
+{
+   Draw_sprite sp = {0};
+   sp.type = 0;
+   sp.as.e = e;
+   sp.x = x;
+   sp.y = y;
+   sp.z = z;
+
+   area_draw_sprite(&sp);
 }
 
 static void draw_sprite(const RvR_texture *tex, int x, int y)
@@ -364,8 +433,8 @@ static void draw_sprite_bw(const RvR_texture *tex, int x, int y)
 
 static int sprite_cmp_r0(const void *a, const void *b)
 {
-   const Sprite *sa = a;
-   const Sprite *sb = b;
+   const Draw_sprite *sa = a;
+   const Draw_sprite *sb = b;
 
    if(sa->z==sb->z)
    {
@@ -380,8 +449,8 @@ static int sprite_cmp_r0(const void *a, const void *b)
 
 static int sprite_cmp_r1(const void *a, const void *b)
 {
-   const Sprite *sa = a;
-   const Sprite *sb = b;
+   const Draw_sprite *sa = a;
+   const Draw_sprite *sb = b;
 
    if(sa->z==sb->z)
    {
@@ -396,8 +465,8 @@ static int sprite_cmp_r1(const void *a, const void *b)
 
 static int sprite_cmp_r2(const void *a, const void *b)
 {
-   const Sprite *sa = a;
-   const Sprite *sb = b;
+   const Draw_sprite *sa = a;
+   const Draw_sprite *sb = b;
 
    if(sa->z==sb->z)
    {
@@ -412,8 +481,8 @@ static int sprite_cmp_r2(const void *a, const void *b)
 
 static int sprite_cmp_r3(const void *a, const void *b)
 {
-   const Sprite *sa = a;
-   const Sprite *sb = b;
+   const Draw_sprite *sa = a;
+   const Draw_sprite *sb = b;
 
    if(sa->z==sb->z)
    {

@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void area_draw_begin(const World *w, const Area *a, const Camera *c);
 void area_draw_end();
 
-void area_draw_sprite(uint16_t tex, int16_t x, int16_t y, int16_t z);
+void area_draw_item(Item *it, int16_t x, int16_t y, int16_t z);
+void area_draw_entity(Entity*e, int16_t x, int16_t y, int16_t z);
 
 #endif
