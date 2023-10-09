@@ -45,6 +45,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
       RvR_rw_write_u32(&(parser)->rw,(uint32_t)strtol((value),NULL,10)); \
    } \
    while(0)
+
+#define field_u16(parser,kind,mkr,key,value) \
+   do \
+   { \
+      RvR_rw_write_u32(&(parser)->rw,mkr); \
+      RvR_rw_write_u16(&(parser)->rw,(uint16_t)strtol((value),NULL,10)); \
+   } \
+   while(0)
       //RvR_log("%s:%d: error: material name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
 //-------------------------------------
 
@@ -292,11 +300,11 @@ static void parse_body(Parser *p, const char *name)
          const char *key = ini_stream_key(&p->ini);
          const char *value = ini_stream_value(&p->ini);
 
-         //if(strcmp(key,"adjective")==0)
-            //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
+         if(strcmp(key,"sprite_sheet")==0)
+            field_u16(p,"body",MKR_SPRITE_SHEET,key,value);
          //else if(strcmp(key,"density")==0)
             //field_u32(p,"material",MKR_DENSITY,key,value);
-         //else
+         else
          {
             RvR_log("%s:%d: warning: unknown body attribute '%s'\n",p->ini.path,p->ini.line-1,key);
          }
@@ -347,6 +355,8 @@ static void parse_bodypart(Parser *p)
          const char *value = ini_stream_value(&p->ini);
          if(strcmp(key,"name")==0)
             field_string(p,"bodypart",MKR_NAME,32,key,value);
+         else if(strcmp(key,"sprite_index")==0)
+            field_u16(p,"bodypart",MKR_SPRITE_INDEX,key,value);
          //if(strcmp(key,"adjective")==0)
             //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
          //else if(strcmp(key,"density")==0)

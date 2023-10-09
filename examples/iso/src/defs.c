@@ -50,7 +50,9 @@ typedef enum
    MKR_SLOT_LOWER = 20,                //
    MKR_SLOT_HAND = 21,                 //
    MKR_SLOT_FOOT = 22,                 //
-   MKR_GRASP = 23,                //
+   MKR_GRASP = 23,                     //
+   MKR_SPRITE_INDEX = 24,              //sprite_index: i16
+   MKR_SPRITE_SHEET = 25,              //sprite_index: u16
 }Marker;
 //-------------------------------------
 
@@ -323,6 +325,7 @@ static void defs_read_body(RvR_rw *rw, const char *path)
       case MKR_BODYPART_START:
          defs_read_bodypart(rw,path,body);
          break;
+      case MKR_SPRITE_SHEET: body->sprite_sheet = RvR_rw_read_u16(rw); break;
       default:
          RvR_log_line("defs_load","invalid body marker %" PRIu32 " in file '%s'\n",marker,path);
          exit(0);
@@ -378,6 +381,7 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
       case MKR_SLOT_HAND: body->bodyparts[cur].tags|=DEF_BODY_SLOT_HAND; break;
       case MKR_SLOT_FOOT: body->bodyparts[cur].tags|=DEF_BODY_SLOT_FOOT; break;
       case MKR_GRASP: body->bodyparts[cur].tags|=DEF_BODY_GRASP; break;
+      case MKR_SPRITE_INDEX: body->bodyparts[cur].sprite_index = RvR_rw_read_u16(rw); break;
       default:
          RvR_log_line("defs_load","invalid bodypart marker %" PRIu32 " in file '%s'\n",marker,path);
          exit(0);

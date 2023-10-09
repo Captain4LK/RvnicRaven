@@ -301,6 +301,20 @@ void entity_sprite_create(Entity *e)
 {
    e->sprite = sprite_new(e);
    sprite_clear(e->sprite,0);
-   sprite_draw_sprite(e->sprite,16384,0,0,0,0,32,32);
+
+   if(e->body.def==NULL)
+   {
+      sprite_draw_sprite(e->sprite,16384,0,0,0,0,32,32);
+      return;
+   }
+   uint16_t sheet = e->body.def->sprite_sheet;
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      const Bodypart *bp = &e->body.parts[i];
+      int16_t index = bp->def->sprite_index;
+      if(index<0)
+         continue;
+      sprite_draw_sprite(e->sprite,sheet,0,0,index*32,0,32,36);
+   }
 }
 //-------------------------------------

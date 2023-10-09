@@ -167,7 +167,6 @@ void area_draw_end()
                Draw_sprite *sp = sprites + sprite_cur;
                if(sp->z==z&&sp->y==ty&&sp->x==tx)
                {
-                  //TODO
                   RvR_texture *tex = NULL;
                   if(sp->type==0)
                   {

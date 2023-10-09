@@ -32,6 +32,7 @@ typedef struct
 typedef struct
 {
    char name[32];
+   int16_t sprite_index;
    uint64_t tags;
    int16_t child;
    int16_t next;
@@ -40,6 +41,7 @@ typedef struct
 typedef struct
 {
    char type[16];
+   uint16_t sprite_sheet;
    uint16_t bodypart_count;
    BodypartDef *bodyparts;
 }BodyDef;
