@@ -62,7 +62,7 @@ void player_add(World *w, Area *a)
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
    //player.e->tex = 16384;
-   entity_from_def(player.e,defs_get_entity("human"));
+   entity_from_def(player.e,defs_get_entity("human"),0);
 
    Entity *e = entity_new(w);
    e->speed = 128;

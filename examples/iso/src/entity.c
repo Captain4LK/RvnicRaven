@@ -292,9 +292,12 @@ int entity_move_cost(Entity *e)
    return 184;
 }
 
-void entity_from_def(Entity *e, const EntityDef *def)
+void entity_from_def(Entity *e, const EntityDef *def, int female)
 {
-   body_from_def(&e->body,def->body);
+   if(female)
+      body_from_def(&e->body,def->female_body);
+   else
+      body_from_def(&e->body,def->male_body);
 }
 
 void entity_sprite_create(Entity *e)

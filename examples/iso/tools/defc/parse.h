@@ -49,6 +49,10 @@ typedef enum
    MKR_GRASP = 23,                     //
    MKR_SPRITE_INDEX = 24,              //sprite_index:i16
    MKR_SPRITE_SHEET = 25,              //sprite_sheet:u16
+   MKR_MALE_START = 26,                //
+   MKR_MALE_END = 27,                  //
+   MKR_FEMALE_START = 28,              //
+   MKR_FEMALE_END = 29,                //
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);

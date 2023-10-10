@@ -183,7 +183,7 @@ void area_draw_end()
                      tex = RvR_texture_get(sprite_texture(sp->as.i->sprite));
                   }
 
-                  draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy);
+                  draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-4);
                   sprite_cur++;
                }
             }

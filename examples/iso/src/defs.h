@@ -49,7 +49,8 @@ typedef struct
 typedef struct
 {
    char type[16];
-   const BodyDef *body;
+   const BodyDef *male_body;
+   const BodyDef *female_body;
 }EntityDef;
 
 typedef struct

@@ -36,7 +36,7 @@ void entity_turn(World *w, Area *a, Entity *e); //Runs everything that should ha
 
 int entity_move_cost(Entity *e);
 
-void entity_from_def(Entity *e, const EntityDef *def);
+void entity_from_def(Entity *e, const EntityDef *def, int female);
 
 void entity_sprite_create(Entity *e);
 

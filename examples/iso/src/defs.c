@@ -53,6 +53,10 @@ typedef enum
    MKR_GRASP = 23,                     //
    MKR_SPRITE_INDEX = 24,              //sprite_index: i16
    MKR_SPRITE_SHEET = 25,              //sprite_index: u16
+   MKR_MALE_START = 26,                //
+   MKR_MALE_END = 27,                  //
+   MKR_FEMALE_START = 28,              //
+   MKR_FEMALE_END = 29,                //
 }Marker;
 //-------------------------------------
 
@@ -403,6 +407,7 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
    entity->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
+   int current_sex = -1;
    while(marker!=MKR_ENTITY_END)
    {
       switch(marker)
@@ -412,8 +417,27 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
          char name[16];
          for(int i = 0;i<16;i++) name[i] = RvR_rw_read_u8(rw);
          name[15] = '\0';
-         entity->body = defs_get_body(name);
+
+         if(current_sex==-1)
+            entity->male_body = entity->female_body = defs_get_body(name);
+         else if(current_sex==0)
+            entity->male_body = defs_get_body(name);
+         else if(current_sex==1)
+            entity->female_body = defs_get_body(name);
       }
+         break;
+      case MKR_MALE_START:
+         current_sex = 0;
+         break;
+      case MKR_FEMALE_START:
+         current_sex = 1;
+         break;
+      //TODO(Captain4LK): error if wrong sex terminated
+      case MKR_MALE_END:
+         current_sex = -1;
+         break;
+      case MKR_FEMALE_END:
+         current_sex = -1;
          break;
       default:
          RvR_log_line("defs_load","invalid entity marker %" PRIu32 " in file '%s'\n",marker,path);

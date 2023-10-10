@@ -434,7 +434,8 @@ static void parse_entity(Parser *p, const char *name)
    }
 
    ini_type next = ini_stream_next(&p->ini);
-   while(next!=INI_END&&next!=INI_ERROR&&next!=INI_SECTION_END)
+   int current_sex = -1;
+   while(next!=INI_END&&next!=INI_ERROR&&(current_sex!=-1||next!=INI_SECTION_END))
    {
       switch(next)
       {
@@ -447,7 +448,7 @@ static void parse_entity(Parser *p, const char *name)
          //else if(strcmp(key,"density")==0)
             //field_u32(p,"material",MKR_DENSITY,key,value);
          if(strcmp(key,"body")==0)
-            field_string(p,"body",MKR_BODY,16,key,value);
+            field_string(p,"entity",MKR_BODY,16,key,value);
          else
          {
             RvR_log("%s:%d: warning: unknown material attribute '%s'\n",p->ini.path,p->ini.line-1,key);
@@ -457,7 +458,32 @@ static void parse_entity(Parser *p, const char *name)
       case INI_TAG:
          break;
       //Next section
-      //case INI_SECTION:
+      case INI_SECTION:
+      {
+         const char *value = ini_stream_value(&p->ini);
+         if(strcmp(value,"male")==0)
+         {
+            RvR_rw_write_u32(&p->rw,MKR_MALE_START);
+            current_sex = 0;
+         }
+         else if(strcmp(value,"female")==0)
+         {
+            RvR_rw_write_u32(&p->rw,MKR_FEMALE_START);
+            current_sex = 1;
+         }
+         else
+         {
+            RvR_log("%s:%d: warning: unknown entity subsection'%s'\n",p->ini.path,p->ini.line-1,value);
+         }
+      }
+         break;
+      case INI_SECTION_END:
+         if(current_sex==0)
+            RvR_rw_write_u32(&p->rw,MKR_MALE_END);
+         else if(current_sex==1)
+            RvR_rw_write_u32(&p->rw,MKR_FEMALE_END);
+         current_sex = -1;
+         break;
          //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
          //return INI_SECTION;
       default:
