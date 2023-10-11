@@ -27,6 +27,8 @@ typedef struct
 
    char adjective[32];
    uint32_t density;
+
+   uint64_t tags;
 }MaterialDef;
 
 typedef struct
@@ -80,6 +82,11 @@ const GroupDef *defs_get_group(const char *type);
 #define DEF_BODY_SLOT_HAND       (UINT64_C(1)<<4)
 #define DEF_BODY_SLOT_FOOT       (UINT64_C(1)<<5)
 #define DEF_BODY_GRASP           (UINT64_C(1)<<6)
+//-------------------------------------
+
+//Material
+//-------------------------------------
+#define DEF_MAT_FROM_CREATURE   (UINT64_C(1)<<0)
 //-------------------------------------
 
 #endif

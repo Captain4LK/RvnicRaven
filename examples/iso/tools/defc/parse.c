@@ -198,6 +198,13 @@ static void parse_material(Parser *p, const char *name)
       }
       break;
       case INI_TAG:
+      {
+         const char *key = ini_stream_key(&p->ini);
+         if(strcmp(key,"from_creature")==0)
+            RvR_rw_write_u32(&p->rw,MKR_FROM_CREATURE);
+         else
+            RvR_log("%s:%d: warning: unknown material tag '%s'\n",p->ini.path,p->ini.line-1,key);
+      }
          break;
       //Next section
       //case INI_SECTION:

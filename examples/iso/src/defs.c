@@ -57,6 +57,7 @@ typedef enum
    MKR_MALE_END = 27,                  //
    MKR_FEMALE_START = 28,              //
    MKR_FEMALE_END = 29,                //
+   MKR_FROM_CREATURE = 30,             //
 }Marker;
 //-------------------------------------
 
@@ -255,6 +256,9 @@ static void defs_read_material(RvR_rw *rw, const char *path)
          break;
       case MKR_DENSITY:
          mat->density = RvR_rw_read_u32(rw);
+         break;
+      case MKR_FROM_CREATURE:
+         mat->tags|=DEF_MAT_FROM_CREATURE;
          break;
       default:
          RvR_log_line("defs_load","invalid material marker %" PRIu32 " in file '%s'\n",marker,path);

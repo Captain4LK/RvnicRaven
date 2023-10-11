@@ -53,6 +53,7 @@ typedef enum
    MKR_MALE_END = 27,                  //
    MKR_FEMALE_START = 28,              //
    MKR_FEMALE_END = 29,                //
+   MKR_FROM_CREATURE = 30,             //
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);
