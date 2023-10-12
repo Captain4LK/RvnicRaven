@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "world_defs.h"
 #include "entity_defs.h"
+#include "item_defs.h"
 #include "defs.h"
 
 Entity *entity_new(World *w);
@@ -39,5 +40,8 @@ int entity_move_cost(Entity *e);
 void entity_from_def(Entity *e, const EntityDef *def, int female);
 
 void entity_sprite_create(Entity *e);
+
+//-1 --> random
+void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part);
 
 #endif

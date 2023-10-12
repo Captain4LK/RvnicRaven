@@ -20,6 +20,8 @@ typedef enum
 
    ACTION_ASCEND = 2,
    ACTION_DESCEND = 3,
+   
+   ACTION_ATTACK = 4,
 }Action_id;
 
 typedef enum
@@ -42,6 +44,11 @@ typedef struct
 
 typedef struct
 {
+   uint8_t dir;
+}AAttack;
+
+typedef struct
+{
    Action_id id;
    int status;
 
@@ -52,6 +59,7 @@ typedef struct
    {
       AWait wait;
       AMove move;
+      AAttack attack;
    }as;
 }Action;
 

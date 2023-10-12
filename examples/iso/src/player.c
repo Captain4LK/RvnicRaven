@@ -72,6 +72,7 @@ void player_add(World *w, Area *a)
    e->z = player.e->z;
    entity_add(a, e);
    entity_grid_add(a, e);
+   entity_from_def(e,defs_get_entity("human"),1);
 }
 
 void player_update()
@@ -111,6 +112,8 @@ void player_update()
 
    if(dir!=-1)
    {
+      //Check for attack target
+
       action_set_move(player.e, dir);
    }
 }

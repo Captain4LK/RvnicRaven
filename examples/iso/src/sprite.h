@@ -8,20 +8,22 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _ACTION_H_
+#ifndef _SPRITE_H_
 
-#define _ACTION_H_
+#define _SPRITE_H_
 
-#include "world_defs.h"
-#include "action_defs.h"
-#include "entity_defs.h"
+typedef struct
+{
+   void *owner;
+}Sprite;
 
-int action_do(World *w, Area *a, Entity *e);
+void sprites_init();
+int sprite_valid(uint16_t id, void *owner);
+uint16_t sprite_new(void *owner);
+uint16_t sprite_texture(uint16_t id);
 
-void action_set_wait(Entity *e, uint32_t time);
-void action_set_move(Entity *e, uint8_t dir);
-void action_set_ascend(Entity *e);
-void action_set_descend(Entity *e);
-void action_set_attack(Entity *e, uint8_t dir);
+//Drawing
+void sprite_clear(uint16_t id, uint8_t color);
+void sprite_draw_sprite(uint16_t id, uint16_t tex, int x, int y, int sx, int sy, int width, int height);
 
 #endif

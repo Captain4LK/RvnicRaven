@@ -36,6 +36,7 @@ static int action_move(World *w, Area *a, Entity *e);
 static int action_wait(World *w, Area *a, Entity *e);
 static int action_ascend(World *w, Area *a, Entity *e);
 static int action_descend(World *w, Area *a, Entity *e);
+static int action_attack(World *w, Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
@@ -69,6 +70,9 @@ int action_do(World *w, Area *a, Entity *e)
       break;
    case ACTION_DESCEND:
       status = action_descend(w, a, e);
+      break;
+   case ACTION_ATTACK:
+      status = action_attack(w, a, e);
       break;
    default:
       break;
@@ -123,6 +127,17 @@ void action_set_descend(Entity *e)
    e->action.can_interrupt = 1;
 }
 
+void action_set_attack(Entity *e, uint8_t dir)
+{
+   if(e==NULL)
+      return;
+
+   e->action.id = ACTION_ATTACK;
+   e->action.remaining = 128;
+   e->action.can_interrupt = 0;
+   e->action.as.attack.dir = dir;
+}
+
 static int action_move(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
@@ -164,6 +179,26 @@ static int action_descend(World *w, Area *a, Entity *e)
    if(act->remaining==0)
    {
       entity_try_descend(a, e);
+      return ACTION_FINISHED;
+   }
+
+   return ACTION_IN_PROGRESS;
+}
+
+static int action_attack(World *w, Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = 0;
+   if(act->remaining==0)
+   {
+      const int16_t dirs[8][2] = { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 }, { -1, 1 }, { -1, -1 }, { 1, -1 }, { 1, 1 }, };
+      Entity *target = area_entity_at(a,e->x+dirs[e->action.as.attack.dir][0],e->y+dirs[e->action.as.attack.dir][1],e->z,e);
+
+      if(target==NULL)
+         return ACTION_FINISHED;
+
+      //Damage random bodypart
+
       return ACTION_FINISHED;
    }
 

@@ -23,4 +23,6 @@ void area_save(World *w, Area *a);
 uint32_t area_tile(const Area *a, int x, int y, int z);
 void area_set_tile(Area *a, int x, int y, int z, uint32_t tile);
 
+Entity *area_entity_at(Area *a, int x, int y, int z, Entity *not);
+
 #endif

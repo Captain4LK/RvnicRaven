@@ -429,4 +429,26 @@ void area_set_tile(Area *a, int x, int y, int z, uint32_t tile)
 
    a->tiles[z * a->dimx * 32 * a->dimy * 32 + y * a->dimx * 32 + x] = tile;
 }
+
+Entity *area_entity_at(Area *a, int x, int y, int z, Entity *not)
+{
+   if(x<0||y<0||z<0)
+      return NULL;
+
+   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+      return NULL;
+
+   int gx = x/8;
+   int gy = y/8;
+   int gz = z/8;
+
+   Entity *cur = a->entity_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx];
+   for(;cur!=NULL;cur = cur->g_next)
+   {
+      if(cur->x==x&&cur->y==y&&cur->z==z&&cur!=not)
+         return cur;
+   }
+
+   return NULL;
+}
 //-------------------------------------

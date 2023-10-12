@@ -320,4 +320,24 @@ void entity_sprite_create(Entity *e)
       sprite_draw_sprite(e->sprite,sheet,0,0,index*32,0,32,36);
    }
 }
+
+void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part)
+{
+   if(e==NULL)
+      return;
+
+   if(body_part==-1)
+   {
+      int part_count = 0;
+      for(int i = 0;i<e->body.part_count;i++)
+         if(e->body.parts[i].hp>0)
+            part_count++;
+   }
+
+   if(body_part<0)
+      return;
+
+   e->body.parts[0].hp-=20;
+   puts("DAMAGE");
+}
 //-------------------------------------
