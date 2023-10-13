@@ -61,10 +61,18 @@ void game_update()
    if(RvR_key_pressed(RVR_KEY_M))
       RvR_malloc_report();
 
+   //if(turn_heap_peek_max!=player.e)
+      //turns_do_until(
+   if(turn_heap_peek_max()!=player.e)
+      RvR_log_line("game_update","warning: player not at start of turn queue\n");
+
    player_update();
 
    if(player.e->action.id!=ACTION_INVALID)
    {
+      //Pop heap
+      turn_heap_max();
+
       int res = action_do(world, area, player.e);
       if(res)
          redraw = 1;
@@ -73,8 +81,8 @@ void game_update()
          Entity_documented pe = {0};
          entity_doc_get(world, player.id, &pe);
 
-         int mx = pe.mx - 1;
-         int my = pe.my - 1;
+         uint16_t mx = pe.mx - 1;
+         uint16_t my = pe.my - 1;
          if(pe.mx>=area->mx + area->dimx) mx = pe.mx;
          else if(pe.mx<area->mx) mx = pe.mx - 2;
          if(pe.my>=area->my + area->dimy) my = pe.my;
@@ -87,9 +95,12 @@ void game_update()
          player_add(world, area);
          state_set(STATE_GAME);
       }
+
+      if(player.e->action_points>0)
+         turn_heap_push(player.e);
    }
 
-   int ox = player.e->x;
+   /*int ox = player.e->x;
    int oy = player.e->y;
    int oz = player.e->z;
    if(player.e->action_points==0)
@@ -100,11 +111,19 @@ void game_update()
       redraw = 1;
       player.e->action_points = player.e->speed;
       entity_turn(world,area,player.e);
+   }*/
+
+   while(turn_heap_peek_max()!=player.e)
+   {
+      redraw = 1;
+      turns_do_until(world,area,player.e);
+      if(turn_heap_peek_max()==NULL)
+         turn_start(world,area);
    }
 
    if(redraw)
    {
-      fov_player(area, player.e, ox, oy, oz);
+      fov_player(area, player.e, player.e->x, player.e->y, player.e->z);
    }
 
    //Camera
@@ -226,5 +245,11 @@ void game_init()
 void game_set()
 {
    redraw = 1;
+   while(turn_heap_peek_max()!=player.e)
+   {
+      turns_do_until(world,area,player.e);
+      if(turn_heap_peek_max()==NULL)
+         turn_start(world,area);
+   }
 }
 //-------------------------------------

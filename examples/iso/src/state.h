@@ -18,7 +18,6 @@ typedef enum
    STATE_GAME_MAP,
    STATE_GAME,
    STATE_GAME_INVENTORY,
-   STATE_GAME_QUESTLOG,
 }State;
 
 void state_set(State s);

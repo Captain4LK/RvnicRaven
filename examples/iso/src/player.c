@@ -25,6 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "tile.h"
 #include "defs.h"
 #include "entity_documented.h"
+#include "game.h"
 //-------------------------------------
 
 //#defines
@@ -113,8 +114,11 @@ void player_update()
    if(dir!=-1)
    {
       //Check for attack target
-
-      action_set_move(player.e, dir);
+      const int16_t dirs[8][2] = { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 }, { -1, 1 }, { -1, -1 }, { 1, -1 }, { 1, 1 }, };
+      if(area_entity_at(area,player.e->x+dirs[dir][0],player.e->y+dirs[dir][1],player.e->z,player.e)!=NULL)
+         action_set_attack(player.e, dir);
+      else
+         action_set_move(player.e, dir);
    }
 }
 //-------------------------------------

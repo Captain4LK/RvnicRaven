@@ -23,6 +23,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "camera.h"
 #include "item_defs.h"
 #include "entity_defs.h"
+#include "entity.h"
+#include "item.h"
 #include "sprite.h"
 //-------------------------------------
 

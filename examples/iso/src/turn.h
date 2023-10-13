@@ -12,6 +12,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _TURN_H_
 
-void turn_do(World *w, Area *a);
+void turn_start(World *w, Area *a);
+void turns_do_until(World *w, Area *a, Entity *until);
+void turn_heap_push(Entity *e);
+Entity *turn_heap_max(void);
+Entity *turn_heap_peek_max(void);
 
 #endif

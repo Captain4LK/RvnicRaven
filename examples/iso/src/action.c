@@ -18,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "action.h"
+#include "area.h"
 #include "entity.h"
 #include "entity_documented.h"
 //-------------------------------------
@@ -197,6 +198,7 @@ static int action_attack(World *w, Area *a, Entity *e)
       if(target==NULL)
          return ACTION_FINISHED;
 
+      entity_hit(target,e,NULL,-1);
       //Damage random bodypart
 
       return ACTION_FINISHED;

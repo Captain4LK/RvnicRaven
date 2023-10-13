@@ -44,7 +44,6 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
    RvR_rand_pcg rand = {0};
    RvR_rand_pcg_seed(&rand, seed);
 
-   int dim = world_size_to_dim(w->size);
    int stridey = dimy * 32 + 1;
    int stridex = dimx * 32 + 1;
    int32_t *elevation = RvR_malloc(sizeof(*elevation) * stridex * stridey, "AreaGen elevation");
@@ -152,14 +151,12 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
    }
 
    int32_t max = INT32_MIN;
-   int32_t maxi = 0;
    int32_t min = INT32_MAX;
    for(int i = 0; i<stridex * stridey; i++)
    {
       if(elevation[i]>max)
       {
          max = elevation[i];
-         maxi = i;
       }
       if(elevation[i]<min)
          min = elevation[i];

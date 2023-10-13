@@ -64,6 +64,7 @@ Entity *entity_new(World *w)
 
    uint64_t id = w->next_eid++;
    memset(n, 0, sizeof(*n));
+   n->action.id = ACTION_INVALID;
    n->next = NULL;
    n->prev_next = NULL;
    n->g_next = NULL;
@@ -124,7 +125,7 @@ void entity_grid_add(Area *a, Entity *e)
    size_t g_index = gz * (a->dimx * 4) * (a->dimy * 4) + gy * (a->dimx * 4) + gx;
    e->g_prev_next = &a->entity_grid[g_index];
    if(a->entity_grid[g_index]!=NULL)
-      a->entity_grid[g_index]->prev_next = &e->g_next;
+      a->entity_grid[g_index]->g_prev_next = &e->g_next;
    e->g_next = a->entity_grid[g_index];
    a->entity_grid[g_index] = e;
 }
@@ -334,8 +335,8 @@ void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part)
             part_count++;
    }
 
-   if(body_part<0)
-      return;
+   //if(body_part<0)
+      //return;
 
    e->body.parts[0].hp-=20;
    puts("DAMAGE");

@@ -118,7 +118,6 @@ void area_exit(World *w, Area *a)
 
 Area *area_load(World *w, uint16_t id)
 {
-   Region *r = NULL;
    RvR_rw rw = {0};
    RvR_rw rw_decomp = {0};
    RvR_rw rw_reg = {0};
