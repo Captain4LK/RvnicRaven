@@ -68,6 +68,9 @@ void game_update()
 
    player_update();
 
+   int ox = player.e->x;
+   int oy = player.e->y;
+   int oz = player.e->z;
    if(player.e->action.id!=ACTION_INVALID)
    {
       //Pop heap
@@ -123,7 +126,7 @@ void game_update()
 
    if(redraw)
    {
-      fov_player(area, player.e, player.e->x, player.e->y, player.e->z);
+      fov_player(area, player.e, ox,oy,oz);
    }
 
    //Camera

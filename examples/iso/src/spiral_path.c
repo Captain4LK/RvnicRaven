@@ -43,6 +43,8 @@ static int fov_queue_tail;
 static int fov_queue_head;
 
 static int fov_initialized = 0;
+
+static FOV_object *objects = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -228,6 +230,145 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
          }
       }
    }
+}
+
+FOV_object *fov_entity(Area *a, Entity *e)
+{
+   if(!fov_initialized)
+      fov_init();
+
+   RvR_array_length_set(objects,0);
+
+   int radius = 8;
+
+   int px = e->x;
+   int py = e->y;
+   int pz = e->z;
+   Entity *te = area_entity_at(a,px,py,pz,e);
+   if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+
+   //Discover up
+   int radius_cur = 0;
+   for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
+   {
+      uint32_t tile0 = area_tile(a, px, py, pz - z + 1);
+      uint32_t tile1 = area_tile(a, px, py, pz - z);
+
+      if(tile_has_wall(tile0))
+         break;
+
+      if(tile_has_floor(tile0))
+         break;
+
+      te = area_entity_at(a,px,py,pz-z,e);
+      if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+   }
+
+   //Discover down
+   for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
+   {
+      uint32_t tile0 = area_tile(a, px, py, pz + z - 1);
+      uint32_t tile1 = area_tile(a, px, py, pz + z);
+
+      if(tile_has_wall(tile0))
+         break;
+
+      if(tile_has_floor(tile1))
+         break;
+
+      te = area_entity_at(a,px,py,pz+z,e);
+      if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+   }
+
+   //test sorrounding squares
+   fov_test_mark(1, 0, 0, 65536, fov_angle_min(1, 0), fov_angle_max(1, 0));
+   fov_test_mark(0, 1, 0, 65536, fov_angle_min(0, 1), fov_angle_max(0, 1));
+   fov_test_mark(-1, 0, 0, 65536, fov_angle_min(-1, 0), fov_angle_max(-1, 0));
+   fov_test_mark(0, -1, 0, 65536, fov_angle_min(0, -1), fov_angle_max(0, -1));
+
+   while(fov_queue_head!=fov_queue_tail)
+   {
+      int cx = fov_queue[fov_queue_head].x;
+      int cy = fov_queue[fov_queue_head].y;
+      fov_queue_head = (fov_queue_head + 1) % (2 * FOV_SIGHT_RADIUS * 2);
+
+      int child0x, child0y;
+      int child1x, child1y;
+      int child2x, child2y;
+      fov_child_first(cx, cy, &child0x, &child0y);
+      fov_child_second(cx, cy, &child1x, &child1y);
+      fov_child_third(cx, cy, &child2x, &child2y);
+
+      RvR_fix16 angle_least = fov_angle_min(cx, cy);
+      RvR_fix16 angle_outer = fov_angle_outer(cx, cy);
+      RvR_fix16 angle_outer2 = fov_angle_outer2(cx, cy);
+      RvR_fix16 angle_greatest = fov_angle_max(cx, cy);
+
+      RvR_fix16 lit_angle_least;
+      RvR_fix16 lit_angle_greatest;
+      fov_lit_angle_get(cx, cy, &lit_angle_least, &lit_angle_greatest);
+
+      fov_lit_angle_set(cx, cy, 0, 0);
+
+      if(cx * cx + cy * cy<=radius * radius&&fov_in_arc(cx, cy, 0, 65536))
+      {
+         te = area_entity_at(a,px+cx,py+cy,pz,e);
+         if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+
+         //Discover up
+         radius_cur = cx * cx + cy * cy;
+         for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
+         {
+            uint32_t tile0 = area_tile(a, px + cx, py + cy, pz - z + 1);
+            uint32_t tile1 = area_tile(a, px + cx, py + cy, pz - z);
+
+            if(tile_has_wall(tile0))
+               break;
+
+            if(tile_has_floor(tile0))
+               break;
+
+            te = area_entity_at(a,px+cx,py+cy,pz-z,e);
+            if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+         }
+
+         //Discover down
+         for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
+         {
+            uint32_t tile0 = area_tile(a, px + cx, py + cy, pz + z - 1);
+            uint32_t tile1 = area_tile(a, px + cx, py + cy, pz + z);
+
+            if(tile_has_wall(tile0))
+               break;
+
+            if(tile_has_floor(tile1))
+               break;
+
+            te = area_entity_at(a,px+cx,py+cy,pz+z,e);
+            if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+         }
+
+         if(fov_transparent(a, e, px + cx, py + cy, pz))
+         {
+            fov_test_mark(child0x, child0y, lit_angle_least, lit_angle_greatest, angle_least, angle_outer);
+            if(angle_outer2!=0)
+            {
+               fov_test_mark(child1x, child1y, lit_angle_least, lit_angle_greatest, angle_outer, angle_outer2);
+               fov_test_mark(child2x, child2y, lit_angle_least, lit_angle_greatest, angle_outer2, angle_greatest);
+            }
+            else
+            {
+               fov_test_mark(child1x, child1y, lit_angle_least, lit_angle_greatest, angle_outer, angle_greatest);
+            }
+         }
+         else if(lit_angle_least==angle_least)
+         {
+            fov_mark(child0x, child0y, angle_least, angle_least);
+         }
+      }
+   }
+
+   return objects;
 }
 
 static void fov_test_mark(int x, int y, RvR_fix16 lit_angle_least, RvR_fix16 lit_angle_greatest, RvR_fix16 angle_min, RvR_fix16 angle_max)

@@ -14,7 +14,26 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "world_defs.h"
 #include "entity_defs.h"
+#include "item_defs.h"
+
+typedef enum
+{
+   FOV_OBJECT_ITEM,
+   FOV_OBJECT_ENTITY,
+}FOV_object_type;
+typedef struct
+{
+   FOV_object_type type;
+   union
+   {
+      Item *i;
+      Entity *e;
+   }as;
+}FOV_object;
 
 void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz);
+
+//Valid until next fov_entity() call
+FOV_object *fov_entity(Area *a, Entity *e);
 
 #endif

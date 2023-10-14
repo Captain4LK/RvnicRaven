@@ -19,4 +19,5 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define SPRITE_CACHE_COUNT (2048)
 
+
 #endif
