@@ -8,17 +8,13 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _CONFIG_H_
+#ifndef _ASTAR_H_
 
-#define _CONFIG_H_
+#define _ASTAR_H_
 
+#include "world_defs.h"
 
-#define ENTITY_SPECIES_MAX (4096)
-
-#define LOG_LENGTH (1024)
-
-#define SPRITE_CACHE_COUNT (2048)
-
-#define ASTAR_HEAP_SIZE (1 << 16)
+void astar_init(Area *a);
+uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, int *path_len);
 
 #endif
