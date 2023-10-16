@@ -22,6 +22,8 @@ typedef enum
    ACTION_DESCEND = 3,
    
    ACTION_ATTACK = 4,
+
+   ACTION_PATH = 5,
 }Action_id;
 
 typedef enum
@@ -49,10 +51,21 @@ typedef struct
 
 typedef struct
 {
+   uint8_t *path;
+   uint32_t pos;
+   uint32_t len;
+   int16_t x;
+   int16_t y;
+   int16_t z;
+}APath;
+
+typedef struct
+{
    Action_id id;
    int status;
 
    int remaining;
+   int interrupt;
    int can_interrupt;
 
    union
@@ -60,6 +73,7 @@ typedef struct
       AWait wait;
       AMove move;
       AAttack attack;
+      APath path;
    }as;
 }Action;
 

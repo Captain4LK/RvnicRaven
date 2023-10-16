@@ -41,22 +41,6 @@ Entity **turn_heap = NULL;
 
 void turn_start(World *w, Area *a)
 {
-   RvR_array_length_set(turn_heap,0);
-
-   //Push player first (to guarantee player is first to act)
-   player.e->action_points = 128;
-   turn_heap_push(player.e);
-
-   Entity *cur = a->entities;
-   for(;cur!=NULL;cur = cur->next)
-   {
-      cur->action_points = 128;
-      entity_turn(w,a,cur);
-      if(cur==player.e)
-         continue;
-      turn_heap_push(cur);
-   }
-
    //TODO: should we run this every turn?
 
    //Delete removed entities
@@ -83,6 +67,22 @@ void turn_start(World *w, Area *a)
 
       it = next;
    }*/
+
+   RvR_array_length_set(turn_heap,0);
+
+   //Push player first (to guarantee player is first to act)
+   player.e->action_points = 128;
+   turn_heap_push(player.e);
+
+   Entity *cur = a->entities;
+   for(;cur!=NULL;cur = cur->next)
+   {
+      cur->action_points = 128;
+      entity_turn(w,a,cur);
+      if(cur==player.e)
+         continue;
+      turn_heap_push(cur);
+   }
 }
 
 void turns_do_until(World *w, Area *a, Entity *until)
@@ -108,13 +108,15 @@ void turns_do_until(World *w, Area *a, Entity *until)
 void turn_heap_push(Entity *e)
 {
    RvR_array_push(turn_heap,e);
-   int index = (int)RvR_array_length(turn_heap)-1;
-   while(index>0&&turn_heap[(index-1)/2]->action_points<turn_heap[index]->action_points)
+   size_t index = RvR_array_length(turn_heap)-1;
+   size_t parent = (index-1)/2;
+   while(index!=0&&turn_heap[parent]->action_points<turn_heap[index]->action_points)
    {
-      Entity *tmp = turn_heap[(index-1)/2];
-      turn_heap[(index-1)/2] = turn_heap[index];
+      Entity *tmp = turn_heap[parent];
+      turn_heap[parent] = turn_heap[index];
       turn_heap[index] = tmp;
-      index = (index-1)/2;
+      index = parent;
+      parent = (index-1)/2;
    }
 }
 
@@ -128,7 +130,7 @@ Entity *turn_heap_max(void)
    size_t len = RvR_array_length(turn_heap);
    RvR_array_length_set(turn_heap,len-1);
    if(RvR_array_length(turn_heap)==0)
-      return NULL;
+      return max;
 
    int index = 0;
    for(;;)

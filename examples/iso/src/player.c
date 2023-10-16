@@ -80,9 +80,11 @@ void player_update()
 {
    if(player.e->action.id!=ACTION_INVALID)
    {
-      if(player.e->action.can_interrupt&&RvR_key_pressed(RVR_KEY_NP5))
-         player.e->action.id = ACTION_INVALID;
-      else
+      if(RvR_key_pressed(RVR_KEY_NP5))
+         action_interrupt(player.e);
+      //if(player.e->action.can_interrupt&&RvR_key_pressed(RVR_KEY_NP5))
+         //player.e->action.id = ACTION_INVALID;
+      //else
          return;
    }
 

@@ -28,6 +28,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "state.h"
 #include "game_map.h"
 #include "area_draw.h"
+#include "astar.h"
 #include "entity_documented.h"
 //-------------------------------------
 
@@ -91,6 +92,7 @@ void game_map_update()
       if(area==NULL)
       {
          area = area_gen(world, 1, pe.mx - 1, pe.my - 1, 3, 3, 2, 0);
+         astar_init(area);
          player_add(world, area);
       }
 

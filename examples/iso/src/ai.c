@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "ai.h"
 #include "action.h"
+#include "player.h"
 #include "spiral_path.h"
 //-------------------------------------
 
@@ -39,6 +40,20 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void ai_think(World *w, Area *a, Entity *e)
 {
    FOV_object *objects = fov_entity(a,e);
+   
+   for(int i = 0;i<RvR_array_length(objects);i++)
+   {
+      if(objects[i].type==FOV_OBJECT_ENTITY&&objects[i].as.e==player.e)
+      {
+         if(e->action.id!=ACTION_INVALID)
+            action_interrupt(e);
+         else
+         {
+            //puts("PATH");
+            action_set_path(a,e,objects[i].as.e->x,objects[i].as.e->y,objects[i].as.e->z);
+         }
+      }
+   }
    //if(e->action.id==ACTION_INVALID)
       //action_set_move(e,rand()&3);
 }

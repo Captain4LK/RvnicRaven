@@ -68,7 +68,7 @@ void astar_init(Area *a)
       heap = RvR_malloc(sizeof(*heap) * ASTAR_HEAP_SIZE, "A* heap");
 }
 
-uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, int *path_len)
+uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_t *path_len)
 {
    const AS_pos dir[10] = { { 1, 0 ,0}, { 0, 1 ,0}, { -1, 0 ,0}, { 0, -1 ,0}, { -1, 1 ,0}, { -1, -1 ,0}, { 1, -1 ,0}, { 1, 1 ,0}, {0,0,1}, {0,0,-1}};
 

@@ -20,6 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "action.h"
 #include "area.h"
 #include "entity.h"
+#include "astar.h"
 #include "entity_documented.h"
 //-------------------------------------
 
@@ -38,6 +39,7 @@ static int action_wait(World *w, Area *a, Entity *e);
 static int action_ascend(World *w, Area *a, Entity *e);
 static int action_descend(World *w, Area *a, Entity *e);
 static int action_attack(World *w, Area *a, Entity *e);
+static int action_path(World *w, Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
@@ -75,6 +77,9 @@ int action_do(World *w, Area *a, Entity *e)
    case ACTION_ATTACK:
       status = action_attack(w, a, e);
       break;
+   case ACTION_PATH:
+      status = action_path(w, a, e);
+      break;
    default:
       break;
    }
@@ -87,14 +92,29 @@ int action_do(World *w, Area *a, Entity *e)
    return status;
 }
 
+void action_free(Entity *e)
+{
+   switch(e->action.id)
+   {
+   case ACTION_PATH:
+      if(e->action.as.path.path!=NULL)
+         RvR_free(e->action.as.path.path);
+      break;
+   default: break;
+   }
+}
+
 void action_set_wait(Entity *e, uint32_t time)
 {
    if(e==NULL)
       return;
 
+   action_free(e);
+
    e->action.id = ACTION_WAIT;
    e->action.remaining = e->action_points;
-   e->action.can_interrupt = 1;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 0;
 }
 
 void action_set_move(Entity *e, uint8_t dir)
@@ -102,10 +122,13 @@ void action_set_move(Entity *e, uint8_t dir)
    if(e==NULL)
       return;
 
+   action_free(e);
+
    e->action.id = ACTION_MOVE;
    e->action.remaining = entity_move_cost(e);
    e->action.as.move.dir = dir;
-   e->action.can_interrupt = 1;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 0;
 }
 
 void action_set_ascend(Entity *e)
@@ -113,9 +136,12 @@ void action_set_ascend(Entity *e)
    if(e==NULL)
       return;
 
+   action_free(e);
+
    e->action.id = ACTION_ASCEND;
    e->action.remaining = entity_move_cost(e);
-   e->action.can_interrupt = 1;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 0;
 }
 
 void action_set_descend(Entity *e)
@@ -123,9 +149,12 @@ void action_set_descend(Entity *e)
    if(e==NULL)
       return;
 
+   action_free(e);
+
    e->action.id = ACTION_DESCEND;
    e->action.remaining = entity_move_cost(e);
-   e->action.can_interrupt = 1;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 0;
 }
 
 void action_set_attack(Entity *e, uint8_t dir)
@@ -133,10 +162,37 @@ void action_set_attack(Entity *e, uint8_t dir)
    if(e==NULL)
       return;
 
+   action_free(e);
+
    e->action.id = ACTION_ATTACK;
    e->action.remaining = 128;
-   e->action.can_interrupt = 0;
    e->action.as.attack.dir = dir;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 0;
+}
+
+void action_set_path(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
+{
+   if(e==NULL)
+      return;
+
+   action_free(e);
+
+   e->action.id = ACTION_PATH;
+   e->action.remaining = entity_move_cost(e);
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 1;
+
+   e->action.as.path.x = x;
+   e->action.as.path.y = y;
+   e->action.as.path.z = z;
+   e->action.as.path.path = astar_path(a,e,x,y,z,&e->action.as.path.len);
+   e->action.as.path.pos = 0;
+}
+
+void action_interrupt(Entity *e)
+{
+   e->action.interrupt = 1;
 }
 
 static int action_move(World *w, Area *a, Entity *e)
@@ -202,6 +258,33 @@ static int action_attack(World *w, Area *a, Entity *e)
       //Damage random bodypart
 
       return ACTION_FINISHED;
+   }
+
+   return ACTION_IN_PROGRESS;
+}
+
+static int action_path(World *w, Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = 0;
+   if(act->as.path.path==NULL)
+      return ACTION_FINISHED;
+
+   if(act->remaining==0)
+   {
+      int status = entity_try_move(w, a, e, act->as.path.path[act->as.path.pos]);
+      if(!status)
+         return ACTION_FINISHED;
+
+      if(!act->interrupt&&(e->x!=act->as.path.x||e->y!=act->as.path.y||e->z!=act->as.path.z)&&act->as.path.pos<act->as.path.len-1)
+      {
+         act->remaining = entity_move_cost(e);
+         act->as.path.pos++;
+
+         return ACTION_IN_PROGRESS;
+      }
+
+      return status==2?ACTION_LEFT_MAP:ACTION_FINISHED;
    }
 
    return ACTION_IN_PROGRESS;

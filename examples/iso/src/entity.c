@@ -148,9 +148,12 @@ void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
 
 void entity_grid_remove(Entity *e)
 {
+   if(e==NULL)
+      return;
+
    *e->g_prev_next = e->g_next;
    if(e->g_next != NULL)
-      e->g_next->prev_next = e->g_prev_next;
+      e->g_next->g_prev_next = e->g_prev_next;
 }
 
 int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
