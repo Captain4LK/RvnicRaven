@@ -181,16 +181,16 @@ void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz)
             uint32_t tile0 = area_tile(a, px + cx, py + cy, pz - z + 1);
             uint32_t tile1 = area_tile(a, px + cx, py + cy, pz - z);
 
-            if(tile_has_wall(tile0))
-               break;
+            tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1, 1), 1);
+            area_set_tile(a, px + cx, py + cy, pz - z, tile1);
 
             tile0 = tile_set_discovered_floor(tile_set_visible_floor(tile0, 1), 1);
             area_set_tile(a, px + cx, py + cy, pz - z + 1, tile0);
+
+            if(tile_has_wall(tile0))
+               break;
             if(tile_has_floor(tile0))
                break;
-
-            tile1 = tile_set_discovered_wall(tile_set_visible_wall(tile1, 1), 1);
-            area_set_tile(a, px + cx, py + cy, pz - z, tile1);
          }
 
          //Discover down
@@ -322,14 +322,14 @@ FOV_object *fov_entity(Area *a, Entity *e)
             uint32_t tile0 = area_tile(a, px + cx, py + cy, pz - z + 1);
             uint32_t tile1 = area_tile(a, px + cx, py + cy, pz - z);
 
+            te = area_entity_at(a,px+cx,py+cy,pz-z,e);
+            if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+
             if(tile_has_wall(tile0))
                break;
 
             if(tile_has_floor(tile0))
                break;
-
-            te = area_entity_at(a,px+cx,py+cy,pz-z,e);
-            if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
          }
 
          //Discover down
