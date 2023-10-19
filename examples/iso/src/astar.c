@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "astar.h"
 #include "tile.h"
 #include "entity.h"
+#include "point.h"
 //-------------------------------------
 
 //#defines
@@ -37,13 +38,6 @@ typedef struct
    uint32_t index;
    uint32_t cost;
 } AS_heapnode;
-
-typedef struct
-{
-   int16_t x;
-   int16_t y;
-   int16_t z;
-} AS_pos;
 //-------------------------------------
 
 //Variables
@@ -71,13 +65,9 @@ void astar_init(Area *a)
 
 uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_t *path_len)
 {
-   const AS_pos dir[26] = { { 1, 0 ,0}, { 0, 1 ,0}, { -1, 0 ,0}, { 0, -1 ,0}, { -1, 1 ,0}, { -1, -1 ,0}, { 1, -1 ,0}, { 1, 1 ,0}, {0,0,1}, {0,0,-1},
-    { 1, 0 ,-1}, { 0, 1 ,-1}, { -1, 0 ,-1}, { 0, -1 ,-1}, { -1, 1 ,-1}, { -1, -1 ,-1}, { 1, -1 ,-1}, { 1, 1 ,-1},
-    { 1, 0 ,1}, { 0, 1 ,1}, { -1, 0 ,1}, { 0, -1 ,1}, { -1, 1 ,1}, { -1, -1 ,1}, { 1, -1 ,1}, { 1, 1 ,1}};
-
    memset(nodes, 0, sizeof(*nodes) * a->dimx*32 * a->dimy*32 *a->dimz*32);
    heap_count = 0;
-   AS_pos p = { .x = e->x, .y = e->y , .z = e->z};
+   Point p = { .x = e->x, .y = e->y , .z = e->z};
    unsigned nindex = p.z*a->dimy*32*a->dimx*32+p.y * a->dimx*32+ p.x;
    AS_node *n = nodes + nindex;
    n->cost = 0;
@@ -103,9 +93,7 @@ uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_
 
       for(unsigned i = 0; i < 8; i++)
       {
-         AS_pos next = p;
-         next.x += dir[i].x;
-         next.y += dir[i].y;
+         Point next = point_add_dir(p,i);
 
          if(entity_pos_valid(a,e, next.x, next.y,next.z))
          {
@@ -194,16 +182,14 @@ uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_
 bail:
    if(found)
    {
-      AS_pos po = p;
+      Point po = p;
       AS_node *no = n;
 
       //Count
       *path_len = 0;
       while(p.x != e->x || p.y != e->y||p.z!=e->z)
       {
-         p.x -= dir[n->dir].x;
-         p.y -= dir[n->dir].y;
-         p.z -= dir[n->dir].z;
+         p = point_sub_dir(p,n->dir);
          n = nodes + (p.z*a->dimx*32*a->dimy*32+p.y*a->dimx*32+p.x);
          (*path_len)++;
       }
@@ -224,9 +210,7 @@ bail:
          else if(dir_path>=10)
             dir_path-=10;
          path[index--] = dir_path;
-         p.x -= dir[n->dir].x;
-         p.y -= dir[n->dir].y;
-         p.z -= dir[n->dir].z;
+         p = point_sub_dir(p,n->dir);
          n = nodes + (p.z*a->dimx*32*a->dimy*32+p.y*a->dimx*32+p.x);
       }
 
