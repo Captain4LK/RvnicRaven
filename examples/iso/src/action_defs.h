@@ -12,6 +12,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _ACTION_DEFS_H_
 
+#include "point.h"
+
 typedef enum
 {
    ACTION_INVALID = -1,
@@ -54,9 +56,7 @@ typedef struct
    uint8_t *path;
    uint32_t pos;
    uint32_t len;
-   int16_t x;
-   int16_t y;
-   int16_t z;
+   Point goal;
 }APath;
 
 typedef struct

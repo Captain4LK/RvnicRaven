@@ -68,9 +68,7 @@ void player_add(World *w, Area *a)
    Entity *e = entity_new(w);
    e->speed = 128;
    //e->tex = 16384;
-   e->x = player.e->x;
-   e->y = player.e->y;
-   e->z = player.e->z;
+   e->pos = player.e->pos;
    entity_add(a, e);
    entity_grid_add(a, e);
    entity_from_def(e,defs_get_entity("human"),1);
@@ -116,8 +114,7 @@ void player_update()
    if(dir!=-1)
    {
       //Check for attack target
-      const int16_t dirs[8][2] = { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 }, { -1, 1 }, { -1, -1 }, { 1, -1 }, { 1, 1 }, };
-      if(area_entity_at(area,player.e->x+dirs[dir][0],player.e->y+dirs[dir][1],player.e->z,player.e)!=NULL)
+      if(area_entity_at(area,point_add_dir(player.e->pos,dir),player.e)!=NULL)
          action_set_attack(player.e, dir);
       else
          action_set_move(player.e, dir);

@@ -66,7 +66,7 @@ Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, 
    a->tiles = RvR_malloc(sizeof(*a->tiles) * (dimx * 32) * (dimy * 32) * (dimz * 32), "Area tiles");
 
    for(int i = 0; i<dimx * 32 * dimy * 32 * dimz * 32; i++)
-      a->tiles[i] = tile_set_discovered(0, 1, 1);
+      a->tiles[i] = tile_set_discovered(0, 0, 0);
 
    return a;
 
@@ -407,44 +407,44 @@ RvR_err:
    return;
 }
 
-uint32_t area_tile(const Area *a, int x, int y, int z)
+uint32_t area_tile(const Area *a, Point pos)
 {
-   if(x<0||y<0||z<0)
+   if(pos.x<0||pos.y<0||pos.z<0)
       return tile_set_discovered(0, 1, 1);
 
-   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
+   if(pos.x>=a->dimx * 32||pos.y>=a->dimy * 32||pos.z>=a->dimz * 32)
       return tile_set_discovered(0, 1, 1);
 
-   return a->tiles[z * a->dimx * 32 * a->dimy * 32 + y * a->dimx * 32 + x];
+   return a->tiles[pos.z * a->dimx * 32 * a->dimy * 32 + pos.y * a->dimx * 32 + pos.x];
 }
 
-void area_set_tile(Area *a, int x, int y, int z, uint32_t tile)
+void area_set_tile(Area *a, Point pos, uint32_t tile)
 {
-   if(x<0||y<0||z<0)
+   if(pos.x<0||pos.y<0||pos.z<0)
       return;
 
-   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
+   if(pos.x>=a->dimx * 32||pos.y>=a->dimy * 32||pos.z>=a->dimz * 32)
       return;
 
-   a->tiles[z * a->dimx * 32 * a->dimy * 32 + y * a->dimx * 32 + x] = tile;
+   a->tiles[pos.z * a->dimx * 32 * a->dimy * 32 + pos.y * a->dimx * 32 + pos.x] = tile;
 }
 
-Entity *area_entity_at(Area *a, int x, int y, int z, Entity *not)
+Entity *area_entity_at(Area *a, Point pos, Entity *not)
 {
-   if(x<0||y<0||z<0)
+   if(pos.x<0||pos.y<0||pos.z<0)
       return NULL;
 
-   if(x>=a->dimx*32||y>=a->dimy*32||z>=a->dimz*32)
+   if(pos.x>=a->dimx*32||pos.y>=a->dimy*32||pos.z>=a->dimz*32)
       return NULL;
 
-   int gx = x/8;
-   int gy = y/8;
-   int gz = z/8;
+   int gx = pos.x/8;
+   int gy = pos.y/8;
+   int gz = pos.z/8;
 
    Entity *cur = a->entity_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx];
    for(;cur!=NULL;cur = cur->g_next)
    {
-      if(cur->x==x&&cur->y==y&&cur->z==z&&cur!=not)
+      if(point_equal(cur->pos,pos)&&cur!=not)
          return cur;
    }
 

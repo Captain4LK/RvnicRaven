@@ -170,7 +170,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
          int z = (elevation[y * stride + x] - min) / 1024 + 1;
          for(; z>0; z--)
          {
-            area_set_tile(a, x, y, dimz * 32 - z, tile_set_discovered(tile_make_wall(2, 2), 1, 1));
+            area_set_tile(a, point(x, y, dimz * 32 - z), tile_set_discovered(tile_make_wall(2, 2), 0, 0));
          }
       }
    }
@@ -186,25 +186,25 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
       {
          for(int z = 0; z<dimz * 32; z++)
          {
-            uint32_t t = area_tile(a, x, y, z);
-            if(!tile_has_wall(t)&&tile_has_floor(area_tile(a,x,y,z+1)))
+            uint32_t t = area_tile(a, point(x, y, z));
+            if(!tile_has_wall(t)&&tile_has_floor(area_tile(a,point(x,y,z+1))))
             {
                uint8_t index = 0;
-               if(tile_has_wall(area_tile(a, x - 1, y, z)))
+               if(tile_has_wall(area_tile(a, point(x - 1, y, z))))
                   index |= 1;
-               if(tile_has_wall(area_tile(a, x, y - 1, z)))
+               if(tile_has_wall(area_tile(a, point(x, y - 1, z))))
                   index |= 2;
-               if(tile_has_wall(area_tile(a, x + 1, y, z)))
+               if(tile_has_wall(area_tile(a, point(x + 1, y, z))))
                   index |= 4;
-               if(tile_has_wall(area_tile(a, x, y + 1, z)))
+               if(tile_has_wall(area_tile(a, point(x, y + 1, z))))
                   index |= 8;
-               if(tile_has_wall(area_tile(a, x - 1, y - 1, z)))
+               if(tile_has_wall(area_tile(a, point(x - 1, y - 1, z))))
                   index |= 16;
-               if(tile_has_wall(area_tile(a, x + 1, y - 1, z)))
+               if(tile_has_wall(area_tile(a, point(x + 1, y - 1, z))))
                   index |= 32;
-               if(tile_has_wall(area_tile(a, x + 1, y + 1, z)))
+               if(tile_has_wall(area_tile(a, point(x + 1, y + 1, z))))
                   index |= 64;
-               if(tile_has_wall(area_tile(a, x - 1, y + 1, z)))
+               if(tile_has_wall(area_tile(a, point(x - 1, y + 1, z))))
                   index |= 128;
 
                if(index!=0)
@@ -229,7 +229,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
                      0, 2, 1, 5, 0, 0, 4, 0, 3, 6, 0, 0, 7, 0, 1, 0,
                   };
 
-                  area_set_tile(a, x, y, z, tile_set_discovered(tile_make_slope(2, slope_var[index]), 1, 1));
+                  area_set_tile(a, point(x, y, z), tile_set_discovered(tile_make_slope(2, slope_var[index]), 0, 0));
                }
             }
          }

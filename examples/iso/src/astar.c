@@ -20,6 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "tile.h"
 #include "entity.h"
 #include "point.h"
+#include "area.h"
 //-------------------------------------
 
 //#defines
@@ -63,16 +64,16 @@ void astar_init(Area *a)
       heap = RvR_malloc(sizeof(*heap) * ASTAR_HEAP_SIZE, "A* heap");
 }
 
-uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_t *path_len)
+uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len)
 {
    memset(nodes, 0, sizeof(*nodes) * a->dimx*32 * a->dimy*32 *a->dimz*32);
    heap_count = 0;
-   Point p = { .x = e->x, .y = e->y , .z = e->z};
+   Point p = e->pos;
    unsigned nindex = p.z*a->dimy*32*a->dimx*32+p.y * a->dimx*32+ p.x;
    AS_node *n = nodes + nindex;
    n->cost = 0;
    n->visited = 1;
-   as_heap_push(nindex, RvR_max(RvR_abs(p.x-dst_x),RvR_max(RvR_abs(p.y-dst_y),RvR_abs(p.z-dst_z))));
+   as_heap_push(nindex, RvR_max(RvR_abs(p.x-dst.x),RvR_max(RvR_abs(p.y-dst.y),RvR_abs(p.z-dst.z))));
 
    int found = 0;
    while(heap_count != 0)
@@ -84,18 +85,18 @@ uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_
       p.z = (int16_t)(nindex/(a->dimx*32*a->dimy*32));
       p.y = (int16_t)((nindex-p.z*a->dimx*32*a->dimy*32)/(a->dimx*32));
       p.x = (int16_t)(nindex%(a->dimx*32));
-      if(p.x == dst_x && p.y == dst_y&& p.z ==dst_z)
+      if(p.x == dst.x && p.y == dst.y&& p.z ==dst.z)
       {
          found = 1;
          break;
       }
       n->visited = 1;
 
-      for(unsigned i = 0; i < 8; i++)
+      for(uint8_t i = 0; i < 8; i++)
       {
          Point next = point_add_dir(p,i);
 
-         if(entity_pos_valid(a,e, next.x, next.y,next.z))
+         if(entity_pos_valid(a,e, next))
          {
             unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
             //unsigned nnext_index = next.y * map.width + next.x;
@@ -114,15 +115,15 @@ uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_
                   goto bail;
                }
 
-               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst_x),RvR_max(RvR_abs(next.y-dst_y),RvR_abs(next.z-dst_z)));
-               //unsigned new_cost = cost + 5 * (abs(next.x - dst_x) + (abs(next.y - dst_y)));
+               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
+               //unsigned new_cost = cost + 5 * (abs(next.x - dst.x) + (abs(next.y - dst.y)));
                as_heap_push(nnext_index, new_cost);
             }
          }
          //Upslope
-         else if((tile_is_slope(area_tile(a, p.x, p.y, p.z))&&
-                 tile_has_wall(area_tile(a, next.x, next.y, p.z))&&
-                 !tile_has_wall(area_tile(a, next.x, next.y, p.z - 1))))
+         else if((tile_is_slope(area_tile(a, p))&&
+                 tile_has_wall(area_tile(a, point(next.x, next.y, p.z)))&&
+                 !tile_has_wall(area_tile(a, point(next.x, next.y, p.z - 1)))))
          {
             next.z--;
 
@@ -143,15 +144,15 @@ uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_
                   goto bail;
                }
 
-               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst_x),RvR_max(RvR_abs(next.y-dst_y),RvR_abs(next.z-dst_z)));
-               //unsigned new_cost = cost + 5 * (abs(next.x - dst_x) + (abs(next.y - dst_y)));
+               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
+               //unsigned new_cost = cost + 5 * (abs(next.x - dst.x) + (abs(next.y - dst.y)));
                as_heap_push(nnext_index, new_cost);
             }
          }
          //Downslope
-         else if(tile_is_slope(area_tile(a, p.x, p.y, p.z + 1))&&
-                 !tile_has_wall(area_tile(a, next.x, next.y, p.z + 1))&&
-                 !tile_has_wall(area_tile(a, next.x, next.y, p.z)))
+         else if(tile_is_slope(area_tile(a, point(p.x, p.y, p.z + 1)))&&
+                 !tile_has_wall(area_tile(a, point(next.x, next.y, p.z + 1)))&&
+                 !tile_has_wall(area_tile(a, point(next.x, next.y, p.z))))
          {
             next.z++;
 
@@ -172,8 +173,8 @@ uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_
                   goto bail;
                }
 
-               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst_x),RvR_max(RvR_abs(next.y-dst_y),RvR_abs(next.z-dst_z)));
-               //unsigned new_cost = cost + 5 * (abs(next.x - dst_x) + (abs(next.y - dst_y)));
+               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
+               //unsigned new_cost = cost + 5 * (abs(next.x - dst.x) + (abs(next.y - dst.y)));
                as_heap_push(nnext_index, new_cost);
             }
          }
@@ -187,7 +188,7 @@ bail:
 
       //Count
       *path_len = 0;
-      while(p.x != e->x || p.y != e->y||p.z!=e->z)
+      while(!point_equal(p,e->pos))
       {
          p = point_sub_dir(p,n->dir);
          n = nodes + (p.z*a->dimx*32*a->dimy*32+p.y*a->dimx*32+p.x);
@@ -202,9 +203,9 @@ bail:
       n = no;
 
       int index = (*path_len) - 1;
-      while(p.x != e->x || p.y != e->y|| p.z!=e->z)
+      while(!point_equal(p,e->pos))
       {
-         int dir_path = n->dir;
+         uint8_t dir_path = n->dir;
          if(dir_path>=18)
             dir_path-=18;
          else if(dir_path>=10)

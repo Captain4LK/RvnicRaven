@@ -61,4 +61,15 @@ Point point_sub_dir(Point p, uint8_t dir)
 
    return p;
 }
+
+int point_equal(Point a, Point b)
+{
+   return (a.x==b.x&&a.y==b.y&&a.z==b.z);
+}
+
+Point point(int x, int y, int z)
+{
+   //TODO(Captain4LK): change parameters to int16_t and handle the great flood of warnings
+   return (Point){.x = (int16_t)x, .y = (int16_t)y, .z = (int16_t)z};
+}
 //-------------------------------------

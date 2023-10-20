@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 #include "entity_defs.h"
 #include "item_defs.h"
+#include "point.h"
 
 typedef enum
 {
@@ -31,7 +32,7 @@ typedef struct
    }as;
 }FOV_object;
 
-void fov_player(Area *a, Entity *e, int oldx, int oldy, int oldz);
+void fov_player(Area *a, Entity *e, Point old_pos);
 
 //Valid until next fov_entity() call
 FOV_object *fov_entity(Area *a, Entity *e);

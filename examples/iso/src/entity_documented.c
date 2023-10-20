@@ -155,13 +155,13 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
 
    Entity *e = entity_new(w);
    e->id = id;
-   e->x = (int16_t)((de->mx - a->mx) * 32 + de->ax);
-   e->y = (int16_t)((de->my - a->my) * 32 + de->ay);
-   e->z = (int16_t)(a->dimz * 32 - 1);
+   e->pos.x = (int16_t)((de->mx - a->mx) * 32 + de->ax);
+   e->pos.y = (int16_t)((de->my - a->my) * 32 + de->ay);
+   e->pos.z = (int16_t)(a->dimz * 32 - 1);
    for(int16_t z = 0; z<a->dimz * 32; z++)
    {
-      e->z = z;
-      if(tile_has_wall(area_tile(a, e->x, e->y, z + 1)))
+      e->pos.z = z;
+      if(tile_has_wall(area_tile(a, point(e->pos.x, e->pos.y, z + 1))))
          break;
    }
 
@@ -182,10 +182,10 @@ void docent_from_entity(World *w, Area *a, Entity *e)
    Entity_documented de = {0};
    entity_doc_get(w, e->id, &de);
 
-   de.mx = (uint16_t)((a->mx * 32 + e->x) / 32);
-   de.my = (uint16_t)((a->my * 32 + e->y) / 32);
-   de.ax = e->x & 31;
-   de.ay = e->y & 31;
+   de.mx = (uint16_t)((a->mx * 32 + e->pos.x) / 32);
+   de.my = (uint16_t)((a->my * 32 + e->pos.y) / 32);
+   de.ax = e->pos.x & 31;
+   de.ay = e->pos.y & 31;
 
    entity_doc_modify(w, e->id, &de);
 }

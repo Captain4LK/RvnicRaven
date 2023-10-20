@@ -114,14 +114,14 @@ void entity_grid_add(Area *a, Entity *e)
 {
    if(e==NULL)
       return;
-   if(e->x<0||e->y<0||e->z<0)
+   if(e->pos.x<0||e->pos.y<0||e->pos.z<0)
       return;
-   if(e->x>=a->dimx * 32||e->y>=a->dimy * 32||e->z>=a->dimz * 32)
+   if(e->pos.x>=a->dimx * 32||e->pos.y>=a->dimy * 32||e->pos.z>=a->dimz * 32)
       return;
 
-   int gx = e->x / 8;
-   int gy = e->y / 8;
-   int gz = e->z / 8;
+   int gx = e->pos.x / 8;
+   int gy = e->pos.y / 8;
+   int gz = e->pos.z / 8;
    size_t g_index = gz * (a->dimx * 4) * (a->dimy * 4) + gy * (a->dimx * 4) + gx;
    e->g_prev_next = &a->entity_grid[g_index];
    if(a->entity_grid[g_index]!=NULL)
@@ -130,19 +130,17 @@ void entity_grid_add(Area *a, Entity *e)
    a->entity_grid[g_index] = e;
 }
 
-void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
+void entity_update_pos(Area *a, Entity *e, Point new_pos)
 {
    if(e==NULL)
       return;
-   if(x<0||y<0||z<0)
+   if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
       return;
-   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
+   if(new_pos.x>=a->dimx * 32||new_pos.y>=a->dimy * 32||new_pos.z>=a->dimz * 32)
       return;
 
    entity_grid_remove(e);
-   e->x = x;
-   e->y = y;
-   e->z = z;
+   e->pos = new_pos;
    entity_grid_add(a, e);
 }
 
@@ -156,83 +154,66 @@ void entity_grid_remove(Entity *e)
       e->g_next->g_prev_next = e->g_prev_next;
 }
 
-int entity_pos_valid(Area *a, Entity *e, int x, int y, int z)
+int entity_pos_valid(Area *a, Entity *e, Point pos)
 {
    if(e==NULL)
       return 0;
 
-   if(x<0||y<0||z<0)
+   if(pos.x<0||pos.y<0||pos.z<0)
       return 0;
 
-   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
+   if(pos.x>=a->dimx * 32||pos.y>=a->dimy * 32||pos.z>=a->dimz * 32)
       return 0;
 
-   uint32_t block = area_tile(a, x, y, z);
-   uint32_t floor = area_tile(a, x, y, z + 1);
+   uint32_t block = area_tile(a, pos);
+   uint32_t floor = area_tile(a, point(pos.x,pos.y,pos.z+1));
    if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
       return 1;
    return 0;
 }
 
-unsigned entity_try_move(World *w, Area *a, Entity *e, int dir)
+unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
 {
    if(e == NULL)
       return 0;
 
-   const int16_t dirs[8][2] =
-   {
-      { 1, 0 },
-      { 0, 1 },
-      { -1, 0 },
-      { 0, -1 },
-
-      //Diagonal
-      { -1, 1 },
-      { -1, -1 },
-      { 1, -1 },
-      { 1, 1 },
-   };
-
    //Leave map
    //Update DocEnt if entity is documented
-   int nx = e->x + dirs[dir][0];
-   int ny = e->y + dirs[dir][1];
-   if(nx<0||ny<0||nx>=a->dimx * 32||ny>=a->dimy * 32)
+   Point n = point_add_dir(e->pos,dir);
+   if(n.x<0||n.y<0||n.x>=a->dimx * 32||n.y>=a->dimy * 32)
    {
       if(entity_is_docent(e))
       {
-         e->x += dirs[dir][0];
-         e->y += dirs[dir][1];
+         e->pos = point_add_dir(e->pos,dir);
          docent_from_entity(w, a, e);
-         e->x -= dirs[dir][0];
-         e->y -= dirs[dir][1];
+         e->pos = point_sub_dir(e->pos,dir);
       }
 
       entity_remove(e);
       return 2;
    }
 
-   if(entity_pos_valid(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z))
+   if(entity_pos_valid(a, e, n))
    {
-      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z);
+      entity_update_pos(a, e, n);
       return 1;
    }
 
    //Moving up slopes
-   if(tile_is_slope(area_tile(a, e->x, e->y, e->z))&&
-      tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z))&&
-      !tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z - 1)))
+   if(tile_is_slope(area_tile(a, e->pos))&&
+      tile_has_wall(area_tile(a, n))&&
+      !tile_has_wall(area_tile(a, point(n.x,n.y,n.z-1))))
    {
-      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z - 1);
+      entity_update_pos(a, e, point(n.x,n.y,n.z-1));
       return 1;
    }
 
    //Moving down slopes
-   if(tile_is_slope(area_tile(a, e->x, e->y, e->z + 1))&&
-      !tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z + 1))&&
-      !tile_has_wall(area_tile(a, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z)))
+   if(tile_is_slope(area_tile(a, point(e->pos.x, e->pos.y, e->pos.z + 1)))&&
+      !tile_has_wall(area_tile(a, point(n.x,n.y,n.z+1)))&&
+      !tile_has_wall(area_tile(a, n)))
    {
-      entity_update_pos(a, e, e->x + dirs[dir][0], e->y + dirs[dir][1], e->z + 1);
+      entity_update_pos(a, e, point(n.x,n.y,n.z+1));
       return 1;
    }
 
@@ -244,9 +225,9 @@ unsigned entity_try_ascend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a, e, e->x, e->y, e->z - 1))
+   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1)))
    {
-      entity_update_pos(a, e, e->x, e->y, e->z - 1);
+      entity_update_pos(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1));
       return 1;
    }
 
@@ -258,9 +239,9 @@ unsigned entity_try_descend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a, e, e->x, e->y, e->z + 1))
+   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1)))
    {
-      entity_update_pos(a, e, e->x, e->y, e->z + 1);
+      entity_update_pos(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1));
       return 1;
    }
 

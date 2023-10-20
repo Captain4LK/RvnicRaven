@@ -35,6 +35,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "state.h"
 #include "spiral_path.h"
 #include "entity_documented.h"
+#include "point.h"
 #include "log.h"
 //-------------------------------------
 
@@ -68,9 +69,7 @@ void game_update()
 
    player_update();
 
-   int ox = player.e->x;
-   int oy = player.e->y;
-   int oz = player.e->z;
+   Point old_pos = player.e->pos;
    if(player.e->action.id!=ACTION_INVALID)
    {
       //Pop heap
@@ -126,14 +125,14 @@ void game_update()
 
    if(redraw)
    {
-      fov_player(area, player.e, ox,oy,oz);
+      fov_player(area, player.e, old_pos);
    }
 
    //Camera
    //-------------------------------------
    if(RvR_key_pressed(RVR_KEY_C))
    {
-      player.cam.z_cutoff = player.cam.z_cutoff?0:player.e->z;
+      player.cam.z_cutoff = player.cam.z_cutoff?0:player.e->pos.z;
       redraw = 1;
    }
 
@@ -150,9 +149,9 @@ void game_update()
 
    if(player.cam.z_cutoff!=0)
    {
-      if(player.cam.z_cutoff!=player.e->z)
+      if(player.cam.z_cutoff!=player.e->pos.z)
          redraw = 1;
-      player.cam.z_cutoff = player.e->z;
+      player.cam.z_cutoff = player.e->pos.z;
    }
 
    if(RvR_key_down(RVR_KEY_LSHIFT)&&RvR_key_pressed(RVR_KEY_T))
@@ -168,14 +167,14 @@ void game_update()
       return;
    }
 
-   player.cam.z = player.e->z;
+   player.cam.z = player.e->pos.z;
 
    switch(player.cam.rotation)
    {
-   case 0: player.cam.x = player.e->x + 2; player.cam.y = player.e->y - 22; break;
-   case 1: player.cam.x = player.e->y + 2; player.cam.y = -player.e->x + area->dimy * 32 - 1 - 22; break;
-   case 2: player.cam.x = -player.e->x + area->dimx * 32 - 1 + 2; player.cam.y = -player.e->y + area->dimy * 32 - 1 - 22; break;
-   case 3: player.cam.x = -player.e->y + area->dimy * 32 - 1 + 2; player.cam.y = player.e->x - 22; break;
+   case 0: player.cam.x = player.e->pos.x + 2; player.cam.y = player.e->pos.y - 22; break;
+   case 1: player.cam.x = player.e->pos.y + 2; player.cam.y = -player.e->pos.x + area->dimy * 32 - 1 - 22; break;
+   case 2: player.cam.x = -player.e->pos.x + area->dimx * 32 - 1 + 2; player.cam.y = -player.e->pos.y + area->dimy * 32 - 1 - 22; break;
+   case 3: player.cam.x = -player.e->pos.y + area->dimy * 32 - 1 + 2; player.cam.y = player.e->pos.x - 22; break;
    }
    //-------------------------------------
 
@@ -195,12 +194,12 @@ void game_draw()
    //Draw entities
    Entity *e = area->entities;
    for(; e!=NULL; e = e->next)
-      area_draw_entity(e, e->x, e->y, e->z);
+      area_draw_entity(e, e->pos);
 
    //Draw items
    Item *it = area->items;
    for(; it!=NULL; it = it->next)
-      area_draw_item(it, it->x, it->y, it->z);
+      area_draw_item(it, it->pos);
 
    area_draw_end();
 

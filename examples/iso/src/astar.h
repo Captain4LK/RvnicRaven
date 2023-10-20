@@ -13,8 +13,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _ASTAR_H_
 
 #include "world_defs.h"
+#include "point.h"
 
 void astar_init(Area *a);
-uint8_t *astar_path(Area *a, Entity *e, int dst_x, int dst_y, int dst_z, uint32_t *path_len);
+uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len);
 
 #endif

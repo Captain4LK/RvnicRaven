@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "entity_defs.h"
 #include "item_defs.h"
 #include "defs.h"
+#include "point.h"
 
 Entity *entity_new(World *w);
 void entity_free(Entity *e);
@@ -23,12 +24,12 @@ void entity_free(Entity *e);
 void entity_remove(Entity *e);
 void entity_add(Area *a, Entity *e);
 
-void entity_update_pos(Area *a, Entity *e, int16_t x, int16_t y, int16_t z);
+void entity_update_pos(Area *a, Entity *e, Point new_pos);
 void entity_grid_add(Area *a, Entity *e);
 void entity_grid_remove(Entity *e);
 
-int entity_pos_valid(Area *a, Entity *e, int x, int y, int z);
-unsigned entity_try_move(World *w, Area *a, Entity *e, int dir);
+int entity_pos_valid(Area *a, Entity *e, Point pos);
+unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir);
 unsigned entity_try_ascend(Area *a, Entity *e);
 unsigned entity_try_descend(Area *a, Entity *e);
 

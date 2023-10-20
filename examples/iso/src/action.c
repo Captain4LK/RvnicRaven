@@ -171,7 +171,7 @@ void action_set_attack(Entity *e, uint8_t dir)
    e->action.can_interrupt = 0;
 }
 
-void action_set_path(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
+void action_set_path(Area *a, Entity *e, Point goal)
 {
    if(e==NULL)
       return;
@@ -183,10 +183,8 @@ void action_set_path(Area *a, Entity *e, int16_t x, int16_t y, int16_t z)
    e->action.interrupt = 0;
    e->action.can_interrupt = 1;
 
-   e->action.as.path.x = x;
-   e->action.as.path.y = y;
-   e->action.as.path.z = z;
-   e->action.as.path.path = astar_path(a,e,x,y,z,&e->action.as.path.len);
+   e->action.as.path.goal = goal;
+   e->action.as.path.path = astar_path(a,e,goal,&e->action.as.path.len);
    e->action.as.path.pos = 0;
 }
 
@@ -248,8 +246,7 @@ static int action_attack(World *w, Area *a, Entity *e)
    act->status = 0;
    if(act->remaining==0)
    {
-      const int16_t dirs[8][2] = { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 }, { -1, 1 }, { -1, -1 }, { 1, -1 }, { 1, 1 }, };
-      Entity *target = area_entity_at(a,e->x+dirs[e->action.as.attack.dir][0],e->y+dirs[e->action.as.attack.dir][1],e->z,e);
+      Entity *target = area_entity_at(a,point_add_dir(e->pos,e->action.as.attack.dir),e);
 
       if(target==NULL)
          return ACTION_FINISHED;
@@ -276,7 +273,7 @@ static int action_path(World *w, Area *a, Entity *e)
       if(!status)
          return ACTION_FINISHED;
 
-      if(!act->interrupt&&(e->x!=act->as.path.x||e->y!=act->as.path.y||e->z!=act->as.path.z)&&act->as.path.pos<act->as.path.len-1)
+      if(!act->interrupt&&!point_equal(e->pos,act->as.path.goal)&&act->as.path.pos<act->as.path.len-1)
       {
          act->remaining = entity_move_cost(e);
          act->as.path.pos++;

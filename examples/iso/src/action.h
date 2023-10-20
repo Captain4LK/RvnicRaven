@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 #include "action_defs.h"
 #include "entity_defs.h"
+#include "point.h"
 
 int action_do(World *w, Area *a, Entity *e);
 
@@ -25,7 +26,7 @@ void action_set_move(Entity *e, uint8_t dir);
 void action_set_ascend(Entity *e);
 void action_set_descend(Entity *e);
 void action_set_attack(Entity *e, uint8_t dir);
-void action_set_path(Area *a, Entity *e, int16_t x, int16_t y, int16_t z);
+void action_set_path(Area *a, Entity *e, Point goal);
 
 void action_interrupt(Entity *e);
 

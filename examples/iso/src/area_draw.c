@@ -34,9 +34,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Typedefs
 typedef struct
 {
-   int16_t x;
-   int16_t y;
-   int16_t z;
+   Point pos;
 
    int type;
    union
@@ -64,10 +62,10 @@ static int sprite_cmp_r0(const void *a, const void *b);
 static int sprite_cmp_r1(const void *a, const void *b);
 static int sprite_cmp_r2(const void *a, const void *b);
 static int sprite_cmp_r3(const void *a, const void *b);
-static int pos_cmp_r0(int x0, int y0, int z0, int x1, int y1, int z1);
-static int pos_cmp_r1(int x0, int y0, int z0, int x1, int y1, int z1);
-static int pos_cmp_r2(int x0, int y0, int z0, int x1, int y1, int z1);
-static int pos_cmp_r3(int x0, int y0, int z0, int x1, int y1, int z1);
+static int pos_cmp_r0(Point p0, Point p1);
+static int pos_cmp_r1(Point p0, Point p1);
+static int pos_cmp_r2(Point p0, Point p1);
+static int pos_cmp_r3(Point p0, Point p1);
 //-------------------------------------
 
 //Function implementations
@@ -134,10 +132,11 @@ void area_draw_end()
             case 3: tx = y; ty = area->dimy * 32 - 1 - x; txf = tx + 1; tyr = ty + 1; break;
             }
 
-            uint32_t tile = area_tile(area, tx, ty, z);
-            uint32_t front = area_tile(area, txf, ty, z);
-            uint32_t right = area_tile(area, tx, tyr, z);
-            uint32_t up = area_tile(area, tx, ty, z - 1);
+            //TODO(Captain4LK): rotate point function?
+            uint32_t tile = area_tile(area, point(tx, ty, z));
+            uint32_t front = area_tile(area, point(txf, ty, z));
+            uint32_t right = area_tile(area, point(tx, tyr, z));
+            uint32_t up = area_tile(area, point(tx, ty, z - 1));
 
             //if(area_tile(area,tx,ty,z)==tile_set_discovered(0,1))
             //continue;
@@ -167,7 +166,7 @@ void area_draw_end()
             if(sprite_cur<sprite_max)
             {
                Draw_sprite *sp = sprites + sprite_cur;
-               if(sp->z==z&&sp->y==ty&&sp->x==tx)
+               if(point_equal(sp->pos,point(tx,ty,z)))
                {
                   RvR_texture *tex = NULL;
                   if(sp->type==0)
@@ -192,10 +191,10 @@ void area_draw_end()
             //Skip sprites until next
             switch(cam->rotation)
             {
-            case 0: for(; sprite_cur<sprite_max&&pos_cmp_r0(sprites[sprite_cur].x, sprites[sprite_cur].y, sprites[sprite_cur].z, tx, ty, z)<0; sprite_cur++); break;
-            case 1: for(; sprite_cur<sprite_max&&pos_cmp_r1(sprites[sprite_cur].x, sprites[sprite_cur].y, sprites[sprite_cur].z, tx, ty, z)<0; sprite_cur++); break;
-            case 2: for(; sprite_cur<sprite_max&&pos_cmp_r2(sprites[sprite_cur].x, sprites[sprite_cur].y, sprites[sprite_cur].z, tx, ty, z)<0; sprite_cur++); break;
-            case 3: for(; sprite_cur<sprite_max&&pos_cmp_r3(sprites[sprite_cur].x, sprites[sprite_cur].y, sprites[sprite_cur].z, tx, ty, z)<0; sprite_cur++); break;
+            case 0: for(; sprite_cur<sprite_max&&pos_cmp_r0(sprites[sprite_cur].pos, point(tx, ty, z))<0; sprite_cur++); break;
+            case 1: for(; sprite_cur<sprite_max&&pos_cmp_r1(sprites[sprite_cur].pos, point(tx, ty, z))<0; sprite_cur++); break;
+            case 2: for(; sprite_cur<sprite_max&&pos_cmp_r2(sprites[sprite_cur].pos, point(tx, ty, z))<0; sprite_cur++); break;
+            case 3: for(; sprite_cur<sprite_max&&pos_cmp_r3(sprites[sprite_cur].pos, point(tx, ty, z))<0; sprite_cur++); break;
             }
 
             if(z==cam->z_cutoff)
@@ -215,9 +214,9 @@ void area_draw_end()
                int tx1 = tx + offs[cam->rotation & 3][2];
                int ty1 = ty + offs[cam->rotation & 3][3];
 
-               if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area, tx0, ty0, z)))
+               if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area, point(tx0, ty0, z))))
                   RvR_render_line((px) * 256 + 128, (py + 8) * 256 + 128, (px + 16) * 256 + 128, (py) * 256 + 128, 1);
-               if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area, tx1, ty1, z)))
+               if(tile_has_draw_wall(tile)&&!tile_has_draw_wall(area_tile(area, point(tx1, ty1, z))))
                   RvR_render_line((px + 16) * 256 + 128, (py + 1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
@@ -249,9 +248,9 @@ void area_draw_end()
                int tx1 = tx + offs[cam->rotation & 3][2];
                int ty1 = ty + offs[cam->rotation & 3][3];
 
-               if(!tile_has_draw_floor(area_tile(area, tx0, ty0, z)))
+               if(!tile_has_draw_floor(area_tile(area, point(tx0, ty0, z))))
                   RvR_render_line((px) * 256 + 128, (py + 8) * 256 + 128, (px + 16) * 256 + 128, (py) * 256 + 128, 1);
-               if(!tile_has_draw_floor(area_tile(area, tx1, ty1, z)))
+               if(!tile_has_draw_floor(area_tile(area, point(tx1, ty1, z))))
                   RvR_render_line((px + 16) * 256 + 128, (py + 1) * 256 + 128, (px + 32) * 256 + 128, (py + 9) * 256 + 128, 1);
 
                if(RvR_key_pressed(RVR_KEY_SPACE))
@@ -268,9 +267,9 @@ void area_draw_end()
 
 static void area_draw_sprite(Draw_sprite *s)
 {
-   int16_t x = s->x;
-   int16_t y = s->y;
-   int16_t z = s->z;
+   int16_t x = s->pos.x;
+   int16_t y = s->pos.y;
+   int16_t z = s->pos.z;
 
    int dx = x;
    int dy = y;
@@ -342,26 +341,22 @@ static void area_draw_sprite(Draw_sprite *s)
    RvR_array_push(sprites, sp);
 }
 
-void area_draw_item(Item *it, int16_t x, int16_t y, int16_t z)
+void area_draw_item(Item *it, Point pos)
 {
    Draw_sprite sp = {0};
    sp.type = 1;
    sp.as.i = it;
-   sp.x = x;
-   sp.y = y;
-   sp.z = z;
+   sp.pos = pos;
 
    area_draw_sprite(&sp);
 }
 
-void area_draw_entity(Entity*e, int16_t x, int16_t y, int16_t z)
+void area_draw_entity(Entity *e, Point pos)
 {
    Draw_sprite sp = {0};
    sp.type = 0;
    sp.as.e = e;
-   sp.x = x;
-   sp.y = y;
-   sp.z = z;
+   sp.pos = pos;
 
    area_draw_sprite(&sp);
 }
@@ -437,15 +432,7 @@ static int sprite_cmp_r0(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   if(sa->z==sb->z)
-   {
-      if(sa->y==sb->y)
-         return (int)sb->x - (int)sa->x;
-
-      return (int)sa->y - (int)sb->y;
-   }
-
-   return (int)sb->z - (int)sa->z;
+   return pos_cmp_r0(sa->pos,sb->pos);
 }
 
 static int sprite_cmp_r1(const void *a, const void *b)
@@ -453,15 +440,7 @@ static int sprite_cmp_r1(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   if(sa->z==sb->z)
-   {
-      if(sa->x==sb->x)
-         return (int)sb->y - (int)sa->y;
-
-      return (int)sb->x - (int)sa->x;
-   }
-
-   return (int)sb->z - (int)sa->z;
+   return pos_cmp_r1(sa->pos,sb->pos);
 }
 
 static int sprite_cmp_r2(const void *a, const void *b)
@@ -469,15 +448,7 @@ static int sprite_cmp_r2(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   if(sa->z==sb->z)
-   {
-      if(sa->y==sb->y)
-         return (int)sa->x - (int)sb->x;
-
-      return (int)sb->y - (int)sa->y;
-   }
-
-   return (int)sb->z - (int)sa->z;
+   return pos_cmp_r2(sa->pos,sb->pos);
 }
 
 static int sprite_cmp_r3(const void *a, const void *b)
@@ -485,66 +456,58 @@ static int sprite_cmp_r3(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   if(sa->z==sb->z)
-   {
-      if(sa->x==sb->x)
-         return (int)sa->y - (int)sb->y;
-
-      return (int)sa->x - (int)sb->x;
-   }
-
-   return (int)sb->z - (int)sa->z;
+   return pos_cmp_r3(sa->pos,sb->pos);
 }
 
-static int pos_cmp_r0(int x0, int y0, int z0, int x1, int y1, int z1)
+static int pos_cmp_r0(Point p0, Point p1)
 {
-   if(z0==z1)
+   if(p0.z==p1.z)
    {
-      if(y0==y1)
-         return x1 - x0;
+      if(p0.y==p1.y)
+         return p1.x - p0.x;
 
-      return y0 - y1;
+      return p0.y - p1.y;
    }
 
-   return z1 - z0;
+   return p1.z - p0.z;
 }
 
-static int pos_cmp_r1(int x0, int y0, int z0, int x1, int y1, int z1)
+static int pos_cmp_r1(Point p0, Point p1)
 {
-   if(z0==z1)
+   if(p0.z==p1.z)
    {
-      if(x0==x1)
-         return y1 - y0;
+      if(p0.x==p1.x)
+         return p1.y - p0.y;
 
-      return x1 - x0;
+      return p1.x - p0.x;
    }
 
-   return z1 - z0;
+   return p1.z - p0.z;
 }
 
-static int pos_cmp_r2(int x0, int y0, int z0, int x1, int y1, int z1)
+static int pos_cmp_r2(Point p0, Point p1)
 {
-   if(z0==z1)
+   if(p0.z==p1.z)
    {
-      if(y0==y1)
-         return x0 - x1;
+      if(p0.y==p1.y)
+         return p0.x - p1.x;
 
-      return y1 - y0;
+      return p1.y - p0.y;
    }
 
-   return z1 - z0;
+   return p1.z - p0.z;
 }
 
-static int pos_cmp_r3(int x0, int y0, int z0, int x1, int y1, int z1)
+static int pos_cmp_r3(Point p0, Point p1)
 {
-   if(z0==z1)
+   if(p0.z==p1.z)
    {
-      if(x0==x1)
-         return y0 - y1;
+      if(p0.x==p1.x)
+         return p0.y - p1.y;
 
-      return x0 - x1;
+      return p0.x - p1.x;
    }
 
-   return z1 - z0;
+   return p1.z - p0.z;
 }
 //-------------------------------------

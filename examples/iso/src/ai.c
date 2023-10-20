@@ -50,7 +50,7 @@ void ai_think(World *w, Area *a, Entity *e)
          else
          {
             //puts("PATH");
-            action_set_path(a,e,objects[i].as.e->x,objects[i].as.e->y,objects[i].as.e->z);
+            action_set_path(a,e,objects[i].as.e->pos);
          }
       }
    }

@@ -98,19 +98,17 @@ void item_add(Area *a, Item *i)
    a->items = i;
 }
 
-void item_update_pos(Area *a, Item *i, int16_t x, int16_t y, int16_t z)
+void item_update_pos(Area *a, Item *i, Point new_pos)
 {
    if(i==NULL)
       return;
-   if(x<0||y<0||z<0)
+   if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
       return;
-   if(x>=a->dimx * 32||y>=a->dimy * 32||z>=a->dimz * 32)
+   if(new_pos.x>=a->dimx * 32||new_pos.y>=a->dimy * 32||new_pos.z>=a->dimz * 32)
       return;
 
    item_grid_remove(i);
-   i->x = x;
-   i->y = y;
-   i->z = z;
+   i->pos = new_pos;
    item_grid_add(a, i);
 }
 
@@ -118,14 +116,14 @@ void item_grid_add(Area *a, Item *i)
 {
    if(i==NULL)
       return;
-   if(i->x<0||i->y<0||i->z<0)
+   if(i->pos.x<0||i->pos.y<0||i->pos.z<0)
       return;
-   if(i->x>=a->dimx * 32||i->y>=a->dimy * 32||i->z>=a->dimz * 32)
+   if(i->pos.x>=a->dimx * 32||i->pos.y>=a->dimy * 32||i->pos.z>=a->dimz * 32)
       return;
 
-   int gx = i->x / 8;
-   int gy = i->y / 8;
-   int gz = i->z / 8;
+   int gx = i->pos.x / 8;
+   int gy = i->pos.y / 8;
+   int gz = i->pos.z / 8;
    size_t g_index = gz * (a->dimx * 4) * (a->dimy * 4) + gy * (a->dimx * 4) + gx;
    i->g_prev_next = &a->item_grid[g_index];
    if(a->item_grid[g_index]!=NULL)

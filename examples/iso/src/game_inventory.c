@@ -71,12 +71,12 @@ void game_inventory_draw()
    //Draw entities
    Entity *e = area->entities;
    for(; e!=NULL; e = e->next)
-      area_draw_entity(e, e->x, e->y, e->z);
+      area_draw_entity(e, e->pos);
 
    //Draw items
    Item *i = area->items;
    for(; i!=NULL; i = i->next)
-      area_draw_item(i, i->x, i->y, i->z);
+      area_draw_item(i, i->pos);
 
    area_draw_end();
 
