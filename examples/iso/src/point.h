@@ -23,5 +23,6 @@ Point point_add_dir(Point p, uint8_t dir);
 Point point_sub_dir(Point p, uint8_t dir);
 int point_equal(Point a, Point b);
 Point point(int x, int y, int z);
+int point_adjacent(Point a, Point b);
 
 #endif

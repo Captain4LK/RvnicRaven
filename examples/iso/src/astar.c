@@ -64,7 +64,7 @@ void astar_init(Area *a)
       heap = RvR_malloc(sizeof(*heap) * ASTAR_HEAP_SIZE, "A* heap");
 }
 
-uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len)
+uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t flags)
 {
    memset(nodes, 0, sizeof(*nodes) * a->dimx*32 * a->dimy*32 *a->dimz*32);
    heap_count = 0;
@@ -85,7 +85,7 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len)
       p.z = (int16_t)(nindex/(a->dimx*32*a->dimy*32));
       p.y = (int16_t)((nindex-p.z*a->dimx*32*a->dimy*32)/(a->dimx*32));
       p.x = (int16_t)(nindex%(a->dimx*32));
-      if(p.x == dst.x && p.y == dst.y&& p.z ==dst.z)
+      if(point_equal(p,dst))
       {
          found = 1;
          break;
@@ -96,7 +96,7 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len)
       {
          Point next = point_add_dir(p,i);
 
-         if(entity_pos_valid(a,e, next))
+         if(entity_pos_valid(a,e, next)||point_equal(next,dst))
          {
             unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
             //unsigned nnext_index = next.y * map.width + next.x;

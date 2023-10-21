@@ -72,4 +72,12 @@ Point point(int x, int y, int z)
    //TODO(Captain4LK): change parameters to int16_t and handle the great flood of warnings
    return (Point){.x = (int16_t)x, .y = (int16_t)y, .z = (int16_t)z};
 }
+
+int point_adjacent(Point a, Point b)
+{
+   if(a.z!=b.z)
+      return 0;
+
+   return RvR_abs(a.x-b.x)<=1&&RvR_abs(a.y-b.y)<=1;
+}
 //-------------------------------------

@@ -171,7 +171,7 @@ void action_set_attack(Entity *e, uint8_t dir)
    e->action.can_interrupt = 0;
 }
 
-void action_set_path(Area *a, Entity *e, Point goal)
+void action_set_path(Area *a, Entity *e, Point goal, uint32_t flags)
 {
    if(e==NULL)
       return;
@@ -184,8 +184,9 @@ void action_set_path(Area *a, Entity *e, Point goal)
    e->action.can_interrupt = 1;
 
    e->action.as.path.goal = goal;
-   e->action.as.path.path = astar_path(a,e,goal,&e->action.as.path.len);
+   e->action.as.path.path = astar_path(a,e,goal,&e->action.as.path.len, flags);
    e->action.as.path.pos = 0;
+   e->action.as.path.flags = flags;
 }
 
 void action_interrupt(Entity *e)
@@ -271,7 +272,11 @@ static int action_path(World *w, Area *a, Entity *e)
    {
       int status = entity_try_move(w, a, e, act->as.path.path[act->as.path.pos]);
       if(!status)
-         return ACTION_FINISHED;
+      {
+         act->as.path.path = astar_path(a,e,act->as.path.goal,&act->as.path.len, act->as.path.flags);
+         if(act->as.path.path==NULL)
+            return ACTION_FINISHED;
+      }
 
       if(!act->interrupt&&!point_equal(e->pos,act->as.path.goal)&&act->as.path.pos<act->as.path.len-1)
       {

@@ -21,6 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "action.h"
 #include "player.h"
 #include "spiral_path.h"
+#include "astar.h"
 //-------------------------------------
 
 //#defines
@@ -50,7 +51,7 @@ void ai_think(World *w, Area *a, Entity *e)
          else
          {
             //puts("PATH");
-            action_set_path(a,e,objects[i].as.e->pos);
+            action_set_path(a,e,objects[i].as.e->pos,0);
          }
       }
    }

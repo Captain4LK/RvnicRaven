@@ -248,7 +248,6 @@ FOV_object *fov_entity(Area *a, Entity *e)
    for(int z = 1; z * z * 4<radius * radius - radius_cur; z++)
    {
       uint32_t tile0 = area_tile(a, point(p.x, p.y, p.z - z + 1));
-      uint32_t tile1 = area_tile(a, point(p.x, p.y, p.z - z));
 
       if(tile_has_wall(tile0))
          break;
@@ -316,7 +315,6 @@ FOV_object *fov_entity(Area *a, Entity *e)
          for(int16_t z = 1; z * z * 4<radius * radius - radius_cur; z++)
          {
             uint32_t tile0 = area_tile(a, point(p.x + cx, p.y + cy, p.z - z + 1));
-            uint32_t tile1 = area_tile(a, point(p.x + cx, p.y + cy, p.z - z));
 
             te = area_entity_at(a,point(p.x+cx,p.y+cy,p.z-z),e);
             if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));

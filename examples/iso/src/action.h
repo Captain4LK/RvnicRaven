@@ -26,7 +26,7 @@ void action_set_move(Entity *e, uint8_t dir);
 void action_set_ascend(Entity *e);
 void action_set_descend(Entity *e);
 void action_set_attack(Entity *e, uint8_t dir);
-void action_set_path(Area *a, Entity *e, Point goal);
+void action_set_path(Area *a, Entity *e, Point goal, uint32_t flags);
 
 void action_interrupt(Entity *e);
 

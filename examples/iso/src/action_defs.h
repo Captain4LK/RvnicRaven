@@ -57,6 +57,7 @@ typedef struct
    uint32_t pos;
    uint32_t len;
    Point goal;
+   uint32_t flags;
 }APath;
 
 typedef struct
