@@ -84,6 +84,9 @@ int action_do(World *w, Area *a, Entity *e)
       break;
    }
 
+   if(status==ACTION_FINISHED||status==ACTION_LEFT_MAP)
+      action_free(e);
+
    if(act->remaining==0)
    {
       act->id = ACTION_INVALID;
@@ -109,8 +112,6 @@ void action_set_wait(Entity *e, uint32_t time)
    if(e==NULL)
       return;
 
-   action_free(e);
-
    e->action.id = ACTION_WAIT;
    e->action.remaining = e->action_points;
    e->action.interrupt = 0;
@@ -121,8 +122,6 @@ void action_set_move(Entity *e, uint8_t dir)
 {
    if(e==NULL)
       return;
-
-   action_free(e);
 
    e->action.id = ACTION_MOVE;
    e->action.remaining = entity_move_cost(e);
@@ -136,8 +135,6 @@ void action_set_ascend(Entity *e)
    if(e==NULL)
       return;
 
-   action_free(e);
-
    e->action.id = ACTION_ASCEND;
    e->action.remaining = entity_move_cost(e);
    e->action.interrupt = 0;
@@ -148,8 +145,6 @@ void action_set_descend(Entity *e)
 {
    if(e==NULL)
       return;
-
-   action_free(e);
 
    e->action.id = ACTION_DESCEND;
    e->action.remaining = entity_move_cost(e);
@@ -162,8 +157,6 @@ void action_set_attack(Entity *e, uint8_t dir)
    if(e==NULL)
       return;
 
-   action_free(e);
-
    e->action.id = ACTION_ATTACK;
    e->action.remaining = 128;
    e->action.as.attack.dir = dir;
@@ -175,8 +168,6 @@ void action_set_path(Area *a, Entity *e, Point goal, uint32_t flags)
 {
    if(e==NULL)
       return;
-
-   action_free(e);
 
    e->action.id = ACTION_PATH;
    e->action.remaining = entity_move_cost(e);
@@ -273,8 +264,14 @@ static int action_path(World *w, Area *a, Entity *e)
       int status = entity_try_move(w, a, e, act->as.path.path[act->as.path.pos]);
       if(!status)
       {
+         if(act->as.path.path!=NULL)
+            RvR_free(act->as.path.path);
          act->as.path.path = astar_path(a,e,act->as.path.goal,&act->as.path.len, act->as.path.flags);
+         act->as.path.pos = 0;
          if(act->as.path.path==NULL)
+            return ACTION_FINISHED;
+         status = entity_try_move(w, a, e, act->as.path.path[act->as.path.pos]);
+         if(!status)
             return ACTION_FINISHED;
       }
 

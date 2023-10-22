@@ -99,14 +99,12 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
          if(entity_pos_valid(a,e, next)||point_equal(next,dst))
          {
             unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
-            //unsigned nnext_index = next.y * map.width + next.x;
             AS_node *nnext = nodes + nnext_index;
-            unsigned cost = n->cost + 1;
+            uint16_t cost = n->cost + 1;
 
             if(!nnext->visited || cost < nnext->cost)
             {
-               //Unlikely to reach a cost of 2047 anyway, so whatever
-               nnext->cost = (cost)&((1<<11)-1);
+               nnext->cost = cost;
                nnext->dir = i&((1<<4)-1);
                nnext->visited = 1;
                if(heap_count == ASTAR_HEAP_SIZE)
@@ -116,26 +114,23 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
                }
 
                unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
-               //unsigned new_cost = cost + 5 * (abs(next.x - dst.x) + (abs(next.y - dst.y)));
                as_heap_push(nnext_index, new_cost);
             }
          }
          //Upslope
          else if((tile_is_slope(area_tile(a, p))&&
                  tile_has_wall(area_tile(a, point(next.x, next.y, p.z)))&&
-                 !tile_has_wall(area_tile(a, point(next.x, next.y, p.z - 1)))))
+                 entity_pos_valid(a,e,point(next.x,next.y,p.z-1))))
          {
             next.z--;
 
             unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
-            //unsigned nnext_index = next.y * map.width + next.x;
             AS_node *nnext = nodes + nnext_index;
-            unsigned cost = n->cost + 1;
+            uint16_t cost = n->cost + 1;
 
             if(!nnext->visited || cost < nnext->cost)
             {
-               //Unlikely to reach a cost of 2047 anyway, so whatever
-               nnext->cost = (cost)&((1<<11)-1);
+               nnext->cost = cost;
                nnext->dir = i+10;
                nnext->visited = 1;
                if(heap_count == ASTAR_HEAP_SIZE)
@@ -145,26 +140,23 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
                }
 
                unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
-               //unsigned new_cost = cost + 5 * (abs(next.x - dst.x) + (abs(next.y - dst.y)));
                as_heap_push(nnext_index, new_cost);
             }
          }
          //Downslope
          else if(tile_is_slope(area_tile(a, point(p.x, p.y, p.z + 1)))&&
-                 !tile_has_wall(area_tile(a, point(next.x, next.y, p.z + 1)))&&
+                 entity_pos_valid(a,e,point(next.x,next.y,p.z+1))&&
                  !tile_has_wall(area_tile(a, point(next.x, next.y, p.z))))
          {
             next.z++;
 
             unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
-            //unsigned nnext_index = next.y * map.width + next.x;
             AS_node *nnext = nodes + nnext_index;
-            unsigned cost = n->cost + 1;
+            uint16_t cost = n->cost + 1;
 
             if(!nnext->visited || cost < nnext->cost)
             {
-               //Unlikely to reach a cost of 2047 anyway, so whatever
-               nnext->cost = (cost)&((1<<11)-1);
+               nnext->cost = cost;
                nnext->dir = i+18;
                nnext->visited = 1;
                if(heap_count == ASTAR_HEAP_SIZE)
@@ -174,7 +166,6 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
                }
 
                unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
-               //unsigned new_cost = cost + 5 * (abs(next.x - dst.x) + (abs(next.y - dst.y)));
                as_heap_push(nnext_index, new_cost);
             }
          }

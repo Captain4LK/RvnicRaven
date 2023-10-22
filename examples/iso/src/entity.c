@@ -167,6 +167,8 @@ int entity_pos_valid(Area *a, Entity *e, Point pos)
 
    uint32_t block = area_tile(a, pos);
    uint32_t floor = area_tile(a, point(pos.x,pos.y,pos.z+1));
+   if(area_entity_at(a,pos,e)!=NULL)
+      return 0;
    if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
       return 1;
    return 0;
@@ -202,7 +204,7 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
    //Moving up slopes
    if(tile_is_slope(area_tile(a, e->pos))&&
       tile_has_wall(area_tile(a, n))&&
-      !tile_has_wall(area_tile(a, point(n.x,n.y,n.z-1))))
+      entity_pos_valid(a,e,point(n.x,n.y,n.z-1)))
    {
       entity_update_pos(a, e, point(n.x,n.y,n.z-1));
       return 1;
@@ -210,7 +212,7 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
 
    //Moving down slopes
    if(tile_is_slope(area_tile(a, point(e->pos.x, e->pos.y, e->pos.z + 1)))&&
-      !tile_has_wall(area_tile(a, point(n.x,n.y,n.z+1)))&&
+      entity_pos_valid(a,e,point(n.x,n.y,n.z+1))&&
       !tile_has_wall(area_tile(a, n)))
    {
       entity_update_pos(a, e, point(n.x,n.y,n.z+1));
@@ -225,7 +227,7 @@ unsigned entity_try_ascend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1)))
+   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1))&&tile_is_slope(area_tile(a,e->pos)))
    {
       entity_update_pos(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1));
       return 1;
@@ -239,7 +241,7 @@ unsigned entity_try_descend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1)))
+   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1))&&tile_is_slope(area_tile(a,point(e->pos.x,e->pos.y,e->pos.z+1))))
    {
       entity_update_pos(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1));
       return 1;
