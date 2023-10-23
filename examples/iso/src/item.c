@@ -142,4 +142,8 @@ void item_grid_remove(Item *i)
 void item_sprite_create(Item *it)
 {
 }
+
+void item_from_material(Item *it, const ItemDef *def, const MaterialDef *mat)
+{
+}
 //-------------------------------------

@@ -22,6 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "player.h"
 #include "spiral_path.h"
 #include "astar.h"
+#include "point.h"
 //-------------------------------------
 
 //#defines
@@ -46,16 +47,11 @@ void ai_think(World *w, Area *a, Entity *e)
    {
       if(objects[i].type==FOV_OBJECT_ENTITY&&objects[i].as.e==player.e)
       {
-         if(e->action.id!=ACTION_INVALID)
-            action_interrupt(e);
+         if(point_adjacent(e->pos,objects[i].as.e->pos))
+            action_set_attack(e,point_dir(e->pos,objects[i].as.e->pos));
          else
-         {
-            //puts("PATH");
             action_set_path(a,e,objects[i].as.e->pos,0);
-         }
       }
    }
-   //if(e->action.id==ACTION_INVALID)
-      //action_set_move(e,rand()&3);
 }
 //-------------------------------------

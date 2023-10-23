@@ -71,16 +71,20 @@ void turn_start(World *w, Area *a)
    RvR_array_length_set(turn_heap,0);
 
    //Push player first (to guarantee player is first to act)
-   player.e->action_points = 128;
-   turn_heap_push(player.e);
+   player.e->action_points+=128;
+   if(player.e->action_points>0)
+      turn_heap_push(player.e);
 
    Entity *cur = a->entities;
    for(;cur!=NULL;cur = cur->next)
    {
-      cur->action_points = 128;
       entity_turn(w,a,cur);
       if(cur==player.e)
          continue;
+      cur->action_points+=128;
+      if(cur->action_points<=0)
+         continue;
+
       turn_heap_push(cur);
    }
 }
@@ -93,10 +97,12 @@ void turns_do_until(World *w, Area *a, Entity *until)
       if(e==NULL)
          return;
 
-      //e->action.id = ACTION_INVALID;
       entity_think(w, a, e);
       if(e->action.id==ACTION_INVALID)
+      {
+         e->action_points = 0;
          continue;
+      }
 
       action_do(w,a,e);
 

@@ -62,12 +62,10 @@ void player_add(World *w, Area *a)
    player.e = entity_from_docent(w, a, player.id);
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
-   //player.e->tex = 16384;
    entity_from_def(player.e,defs_get_entity("human"),0);
 
    Entity *e = entity_new(w);
    e->speed = 128;
-   //e->tex = 16384;
    e->pos = player.e->pos;
    entity_add(a, e);
    entity_grid_add(a, e);
@@ -78,12 +76,6 @@ void player_update()
 {
    if(player.e->action.id!=ACTION_INVALID)
    {
-      if(RvR_key_pressed(RVR_KEY_NP5))
-         action_interrupt(player.e);
-      //if(player.e->action.can_interrupt&&RvR_key_pressed(RVR_KEY_NP5))
-         //player.e->action.id = ACTION_INVALID;
-      //else
-         return;
    }
 
    //Movement

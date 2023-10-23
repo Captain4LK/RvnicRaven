@@ -80,4 +80,22 @@ int point_adjacent(Point a, Point b)
 
    return RvR_abs(a.x-b.x)<=1&&RvR_abs(a.y-b.y)<=1;
 }
+
+uint8_t point_dir(Point from, Point to)
+{
+   int index = 0;
+   if(to.x<from.x)
+      index+=3;
+   else if(to.x>from.x)
+      index+=6;
+
+   if(to.y<from.y)
+      index+=1;
+   else if(to.y>from.y)
+      index+=2;
+
+   uint8_t dirs[9] = {0,3,1,2,5,4,0,6,7};
+
+   return dirs[index];
+}
 //-------------------------------------

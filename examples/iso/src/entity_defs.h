@@ -62,9 +62,6 @@ typedef struct
 struct Entity
 {
    Point pos;
-   //int16_t x;
-   //int16_t y;
-   //int16_t z;
    uint16_t sprite;
 
    int speed;

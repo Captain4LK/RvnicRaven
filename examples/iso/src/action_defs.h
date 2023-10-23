@@ -65,7 +65,7 @@ typedef struct
    Action_id id;
    int status;
 
-   int remaining;
+   int cost;
    int interrupt;
    int can_interrupt;
 

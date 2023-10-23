@@ -327,4 +327,8 @@ void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part)
    e->body.parts[0].hp-=20;
    puts("DAMAGE");
 }
+
+void entity_die(World *w, Area *a, Entity *e)
+{
+}
 //-------------------------------------

@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "world_defs.h"
 #include "item_defs.h"
+#include "defs.h"
 
 Item *item_new(World *w);
 void item_free(Item *i);
@@ -26,5 +27,7 @@ void item_grid_add(Area *a, Item *i);
 void item_grid_remove(Item *i);
 
 void item_sprite_create(Item *it);
+
+void item_from_material(Item *it, const ItemDef *def, const MaterialDef *mat);
 
 #endif

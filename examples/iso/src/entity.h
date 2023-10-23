@@ -45,4 +45,7 @@ void entity_sprite_create(Entity *e);
 //-1 --> random
 void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part);
 
+//Create corpse and remove entity
+void entity_die(World *w, Area *a, Entity *e);
+
 #endif

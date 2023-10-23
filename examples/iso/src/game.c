@@ -102,19 +102,6 @@ void game_update()
          turn_heap_push(player.e);
    }
 
-   /*int ox = player.e->x;
-   int oy = player.e->y;
-   int oz = player.e->z;
-   if(player.e->action_points==0)
-   {
-      //Run entities
-      turn_do(world, area);
-
-      redraw = 1;
-      player.e->action_points = player.e->speed;
-      entity_turn(world,area,player.e);
-   }*/
-
    while(turn_heap_peek_max()!=player.e)
    {
       redraw = 1;
@@ -246,6 +233,7 @@ void game_init()
 
 void game_set()
 {
+   fov_player(area, player.e, player.e->pos);
    redraw = 1;
    while(turn_heap_peek_max()!=player.e)
    {
