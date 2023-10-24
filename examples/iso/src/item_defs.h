@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "defs.h"
 #include "point.h"
+#include "material_defs.h"
 
 typedef struct Item Item;
 
@@ -26,8 +27,8 @@ struct Item
 
    int removed;
 
-   MaterialDef *material;
-   ItemDef *type;
+   Material material;
+   ItemDef *def;
 
    Item *next;
    Item **prev_next;

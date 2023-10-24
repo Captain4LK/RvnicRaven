@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "item.h"
+#include "sprite.h"
 //-------------------------------------
 
 //#defines
@@ -141,9 +142,12 @@ void item_grid_remove(Item *i)
 
 void item_sprite_create(Item *it)
 {
+   it->sprite = sprite_new(it);
+   sprite_clear(it->sprite,0);
 }
 
-void item_from_material(Item *it, const ItemDef *def, const MaterialDef *mat)
+void item_from_def(Item *it, const ItemDef *def)
 {
+   it->def = def;
 }
 //-------------------------------------

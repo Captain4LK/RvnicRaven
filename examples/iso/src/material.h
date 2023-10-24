@@ -8,26 +8,13 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _ITEM_H_
+#ifndef _MATERIAL_H_
 
-#define _ITEM_H_
+#define _MATERIAL_H_
 
-#include "world_defs.h"
-#include "item_defs.h"
+#include "material_defs.h"
 #include "defs.h"
 
-Item *item_new(World *w);
-void item_free(Item *i);
-
-void item_remove(Item *i);
-void item_add(Area *a, Item *i);
-
-void item_update_pos(Area *a, Item *i, Point new_pos);
-void item_grid_add(Area *a, Item *i);
-void item_grid_remove(Item *i);
-
-void item_sprite_create(Item *it);
-
-void item_from_def(Item *it, const ItemDef *def);
+void material_from_def(Material *m, const MaterialDef *def);
 
 #endif
