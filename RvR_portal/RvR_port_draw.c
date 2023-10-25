@@ -282,9 +282,6 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       //No portal
       if(portal<0)
       {
-         int x0 = wall->x0>>16;
-         int x1 = wall->x1>>16;
-
          RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z0,fovy));
          RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z1,fovy));
          cy0 = RvR_yres()*32768-cy0;
@@ -299,14 +296,25 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 fy = fy0;
 
-         RvR_fix16 denom = RvR_fix16_mul(wall->z1,wall->z0);
-         RvR_fix16 num_step_z = RvR_fix16_div(wall->z0-wall->z1,RvR_non_zero(wall->x1-wall->x0));
-         RvR_fix16 num_z = wall->z1;
+         RvR_fix16 denom = RvR_fix16_mul(wall->x1-wall->x0,RvR_fix16_mul(wall->z1,wall->z0));
+         RvR_fix16 num_step_z = wall->z0-wall->z1;
+         RvR_fix16 num_z = RvR_fix16_mul(wall->z1,wall->x1-wall->x0);
 
-         RvR_fix16 num_step_u = RvR_fix16_div(RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0),RvR_non_zero(wall->x1-wall->x0));
-         RvR_fix16 num_u = RvR_fix16_mul(wall->u0,wall->z1);
+         RvR_fix16 num_step_u = RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0);
+         RvR_fix16 num_u = RvR_fix16_mul(wall->x1-wall->x0,RvR_fix16_mul(wall->u0,wall->z1));
+
+         //We don't need as much precision
+         //and this prevents overflow
+         //switch to i64 if you want to change this
+         num_z >>=4;
+         num_u >>=4;
+         num_step_z>>=4;
+         num_step_u>>=4;
+         denom>>=4;
 
          //Adjust for fractional part
+         int x0 = (wall->x0+65535)>>16;
+         int x1 = (wall->x1+65535)>>16;
          RvR_fix16 xfrac = wall->x0-x0*65536;
          cy-=RvR_fix16_mul(xfrac,step_cy);
          fy-=RvR_fix16_mul(xfrac,step_fy);
