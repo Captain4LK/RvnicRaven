@@ -122,6 +122,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       RvR_fix16 tp1y = 0;
       for(int i = 0;i<map->sectors[sector].wall_count;i++,w0++)
       {
+         RvR_texture *tex = RvR_texture_get(8);
          w1 = &map->walls[w0->p2];
 
          RvR_fix16 x0 = w0->x-cam->x;
@@ -152,7 +153,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             continue;
 
          dw.u0 = 0;
-         dw.u1 = RvR_fix16_sqrt(RvR_fix16_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix16_mul(w1->y-w0->y,w1->y-w0->y));
+         //dw.u1 = tex->width*65536-1;
+         dw.u1 = RvR_fix16_sqrt(RvR_fix16_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix16_mul(w1->y-w0->y,w1->y-w0->y))*tex->width-1;
 
          //Clipping
          //Left point in fov
@@ -172,9 +174,9 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             if(tp1x<-tp1y)
                continue;
 
+            dw.x0 = 0;
             RvR_fix16 dx0 = tp1x-tp0x;
             RvR_fix16 dx1 = tp0x+tp0y;
-            dw.x0 = 0;
             dw.z0 = RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y+tp1x-tp0x)-tp0x;
             dw.u0 = dw.u0 + RvR_fix16_div(RvR_fix16_mul(-tp0x-tp0y,dw.u1-dw.u0),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
          }
@@ -301,7 +303,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 num_z = RvR_fix16_mul(wall->z1,wall->x1-wall->x0);
 
          RvR_fix16 num_step_u = RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0);
-         RvR_fix16 num_u = RvR_fix16_mul(wall->x1-wall->x0,RvR_fix16_mul(wall->u0,wall->z1));
+         int64_t num_u = ((int64_t)(wall->x1-wall->x0)*RvR_fix16_mul(wall->u0,wall->z1))/65536;
 
          //We don't need as much precision
          //and this prevents overflow
@@ -313,8 +315,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          denom>>=4;
 
          //Adjust for fractional part
-         int x0 = (wall->x0+65535)>>16;
-         int x1 = (wall->x1+65535)>>16;
+         int x0 = (wall->x0+65535)/65536;
+         int x1 = (wall->x1+65535)/65536;
          RvR_fix16 xfrac = wall->x0-x0*65536;
          cy-=RvR_fix16_mul(xfrac,step_cy);
          fy-=RvR_fix16_mul(xfrac,step_fy);
@@ -323,11 +325,14 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
          for(int x = x0;x<x1;x++)
          {
+            int y0 = (cy+65535)/65536;
+            int y1 = fy/65536;
+
             int wy =  port_ytop[x];
             uint8_t * restrict pix = RvR_framebuffer()+(wy*RvR_xres()+x);
 
             //Ceiling
-            int y_to = RvR_min(cy>>16,port_ybot[x]);
+            int y_to = RvR_min(y0,port_ybot[x]);
             if(y_to>wy)
             {
                port_plane_add(wall->sector,0,x,wy,y_to-1);
@@ -338,12 +343,14 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             //Wall
             y_to = RvR_min((fy>>16)-1,port_ybot[x]);
             RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(num_z));
-            RvR_fix16 u = RvR_fix16_div(num_u,RvR_non_zero(num_z));
+            RvR_fix16 u = num_u/RvR_non_zero(num_z);
+            //printf("%d %d %d\n",u,num_u,num_z);
+            //RvR_fix16 u = RvR_fix16_div(num_u,RvR_non_zero(num_z));
             RvR_fix16 height = map->sectors[wall->sector].ceiling-cam->z;
             RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
             RvR_fix16 texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
             RvR_texture *texture = RvR_texture_get(8);
-            const uint8_t * restrict tex = &texture->data[(((uint32_t)u>>10)%texture->width)*texture->height];
+            const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
             const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>15))));
             RvR_fix16 y_and = (1<<RvR_log2(texture->height))-1;
             for(;wy<=y_to;wy++)
