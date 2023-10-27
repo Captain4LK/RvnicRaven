@@ -90,7 +90,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
    }
 
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
-   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()*65536);
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
    RvR_fix16 cos = RvR_fix16_cos(cam->dir);
    RvR_fix16 sin_fov = RvR_fix16_mul(sin,fovx);
@@ -164,7 +164,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             if(tp0x>tp0y)
                continue;
 
-            dw.x0 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp0x*(RvR_xres()/2),tp0y),RvR_xres()*65536);
+            dw.x0 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp0x*(RvR_xres()/2),RvR_non_zero(tp0y)),RvR_xres()*65536);
             dw.z0 = tp0y;
          }
          //Left point to the left of fov
@@ -177,7 +177,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             dw.x0 = 0;
             RvR_fix16 dx0 = tp1x-tp0x;
             RvR_fix16 dx1 = tp0x+tp0y;
-            dw.z0 = RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y+tp1x-tp0x)-tp0x;
+            dw.z0 = RvR_fix16_div(RvR_fix16_mul(dx0,dx1),RvR_non_zero(tp1y-tp0y+tp1x-tp0x))-tp0x;
             dw.u0 = dw.u0 + RvR_fix16_div(RvR_fix16_mul(-tp0x-tp0y,dw.u1-dw.u0),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
          }
 
@@ -189,7 +189,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
                continue;
 
             //TODO: tpy1-1?
-            dw.x1 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp1x*(RvR_xres()/2),tp1y),RvR_xres()*65536);
+            dw.x1 = RvR_min(RvR_xres()*32768+RvR_fix16_div(tp1x*(RvR_xres()/2),RvR_non_zero(tp1y)),RvR_xres()*65536);
             dw.z1 = tp1y;
          }
          else
@@ -201,7 +201,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             RvR_fix16 dx0 = tp1x-tp0x;
             RvR_fix16 dx1 = tp0y-tp0x;
             dw.x1 = RvR_xres()*65536;
-            dw.z1 = tp0x-RvR_fix16_div(RvR_fix16_mul(dx0,dx1),tp1y-tp0y-tp1x+tp0x);
+            dw.z1 = tp0x-RvR_fix16_div(RvR_fix16_mul(dx0,dx1),RvR_non_zero(tp1y-tp0y-tp1x+tp0x));
             dw.u1 = RvR_fix16_div(RvR_fix16_mul(dx1,dw.u1),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
          }
 
@@ -284,26 +284,26 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       //No portal
       if(portal<0)
       {
-         RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z0,fovy));
-         RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z1,fovy));
+         RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z0,fovy)));
+         RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z1,fovy)));
          cy0 = RvR_yres()*32768-cy0;
          cy1 = RvR_yres()*32768-cy1;
          RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 cy = cy0;
 
-         RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_fix16_mul(wall->z0,fovy));
-         RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_fix16_mul(wall->z1,fovy));
+         RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z0,fovy)));
+         RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z1,fovy)));
          fy0 = RvR_yres()*32768-fy0;
          fy1 = RvR_yres()*32768-fy1;
          RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 fy = fy0;
 
-         RvR_fix16 denom = RvR_fix16_mul(wall->x1-wall->x0,RvR_fix16_mul(wall->z1,wall->z0));
+         RvR_fix16 denom = RvR_fix16_mul(wall->z1,wall->z0);
          RvR_fix16 num_step_z = wall->z0-wall->z1;
-         RvR_fix16 num_z = RvR_fix16_mul(wall->z1,wall->x1-wall->x0);
+         RvR_fix16 num_z = wall->z1;
 
          RvR_fix16 num_step_u = RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0);
-         int64_t num_u = ((int64_t)(wall->x1-wall->x0)*RvR_fix16_mul(wall->u0,wall->z1))/65536;
+         RvR_fix16 num_u = RvR_fix16_mul(wall->u0,wall->z1);
 
          //We don't need as much precision
          //and this prevents overflow
@@ -320,8 +320,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
          RvR_fix16 xfrac = wall->x0-x0*65536;
          cy-=RvR_fix16_mul(xfrac,step_cy);
          fy-=RvR_fix16_mul(xfrac,step_fy);
-         num_z-=RvR_fix16_mul(xfrac,num_step_z);
-         num_u-=RvR_fix16_mul(xfrac,num_step_u);
+         num_z-=RvR_fix16_div(RvR_fix16_mul(xfrac,num_step_z),RvR_non_zero(wall->x1-wall->x0));
+         num_u-=RvR_fix16_div(RvR_fix16_mul(xfrac,num_step_u),RvR_non_zero(wall->x1-wall->x0));
 
          for(int x = x0;x<x1;x++)
          {
@@ -342,10 +342,10 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
             //Wall
             y_to = RvR_min((fy>>16)-1,port_ybot[x]);
-            RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(num_z));
-            RvR_fix16 u = num_u/RvR_non_zero(num_z);
-            //printf("%d %d %d\n",u,num_u,num_z);
-            //RvR_fix16 u = RvR_fix16_div(num_u,RvR_non_zero(num_z));
+            RvR_fix16 nz = num_z+RvR_fix16_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix16 nu = num_u+RvR_fix16_div(num_step_u*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(nz));
+            RvR_fix16 u = nu/RvR_non_zero(nz);
             RvR_fix16 height = map->sectors[wall->sector].ceiling-cam->z;
             RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
             RvR_fix16 texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
@@ -370,8 +370,6 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
 
             cy+=step_cy;
             fy+=step_fy;
-            num_z+=num_step_z;
-            num_u+=num_step_u;
 
             if(RvR_key_pressed(RVR_KEY_SPACE))
                RvR_render_present();
@@ -380,58 +378,74 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
       //Portal
       else
       {
-         int x0 = wall->x0>>16;
-         int x1 = wall->x1>>16;
-
-         RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z0,fovy));
-         RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_fix16_mul(wall->z1,fovy));
+         RvR_fix16 cy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z0,fovy)));
+         RvR_fix16 cy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z1,fovy)));
          cy0 = RvR_yres()*32768-cy0;
          cy1 = RvR_yres()*32768-cy1;
          RvR_fix16 step_cy = RvR_fix16_div(cy1-cy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 cy = cy0;
 
-         RvR_fix16 cph0 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-map->sectors[portal].ceiling),RvR_fix16_mul(wall->z0,fovy)));
-         RvR_fix16 cph1 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-map->sectors[portal].ceiling),RvR_fix16_mul(wall->z1,fovy)));
+         RvR_fix16 cph0 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-map->sectors[portal].ceiling),RvR_non_zero(RvR_fix16_mul(wall->z0,fovy))));
+         RvR_fix16 cph1 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[sector].ceiling-map->sectors[portal].ceiling),RvR_non_zero(RvR_fix16_mul(wall->z1,fovy))));
          RvR_fix16 step_cph = RvR_fix16_div(cph1-cph0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 cph = cph0;
 
-         RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_fix16_mul(wall->z0,fovy));
-         RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_fix16_mul(wall->z1,fovy));
+         RvR_fix16 fy0 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z0,fovy)));
+         RvR_fix16 fy1 = RvR_fix16_div(RvR_yres()*(map->sectors[sector].floor-cam->z),RvR_non_zero(RvR_fix16_mul(wall->z1,fovy)));
          fy0 = RvR_yres()*32768-fy0;
          fy1 = RvR_yres()*32768-fy1;
          RvR_fix16 step_fy = RvR_fix16_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 fy = fy0;
 
-         RvR_fix16 fph0 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[portal].floor-map->sectors[sector].floor),RvR_fix16_mul(wall->z0,fovy)));
-         RvR_fix16 fph1 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[portal].floor-map->sectors[sector].floor),RvR_fix16_mul(wall->z1,fovy)));
+         RvR_fix16 fph0 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[portal].floor-map->sectors[sector].floor),RvR_non_zero(RvR_fix16_mul(wall->z0,fovy))));
+         RvR_fix16 fph1 = RvR_max(0,RvR_fix16_div(RvR_yres()*(map->sectors[portal].floor-map->sectors[sector].floor),RvR_non_zero(RvR_fix16_mul(wall->z1,fovy))));
          RvR_fix16 step_fph = RvR_fix16_div(fph1-fph0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix16 fph = fph0;
 
          RvR_fix16 denom = RvR_fix16_mul(wall->z1,wall->z0);
-         RvR_fix16 num_step_z = RvR_fix16_div(wall->z0-wall->z1,RvR_non_zero(wall->x1-wall->x0));
+         RvR_fix16 num_step_z = wall->z0-wall->z1;
          RvR_fix16 num_z = wall->z1;
 
-         RvR_fix16 num_step_u = RvR_fix16_div(RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0),RvR_non_zero(wall->x1-wall->x0));
+         RvR_fix16 num_step_u = RvR_fix16_mul(wall->z0,wall->u1)-RvR_fix16_mul(wall->z1,wall->u0);
          RvR_fix16 num_u = RvR_fix16_mul(wall->u0,wall->z1);
 
+         //We don't need as much precision
+         //and this prevents overflow
+         //switch to i64 if you want to change this
+         num_z >>=4;
+         num_u >>=4;
+         num_step_z>>=4;
+         num_step_u>>=4;
+         denom>>=4;
+
+         //Adjust for fractional part
+         int x0 = (wall->x0+65535)/65536;
+         int x1 = (wall->x1+65535)/65536;
          RvR_fix16 xfrac = wall->x0-x0*65536;
          cy-=RvR_fix16_mul(xfrac,step_cy);
          cph-=RvR_fix16_mul(xfrac,step_cph);
          fy-=RvR_fix16_mul(xfrac,step_fy);
          fph-=RvR_fix16_mul(xfrac,step_fph);
-         num_z-=RvR_fix16_mul(xfrac,num_step_z);
-         num_u-=RvR_fix16_mul(xfrac,num_step_u);
+         num_z-=RvR_fix16_div(RvR_fix16_mul(xfrac,num_step_z),RvR_non_zero(wall->x1-wall->x0));
+         num_u-=RvR_fix16_div(RvR_fix16_mul(xfrac,num_step_u),RvR_non_zero(wall->x1-wall->x0));
 
          for(int x = x0;x<x1;x++)
          {
-            RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(num_z));
-            RvR_fix16 u = RvR_fix16_div(num_u,RvR_non_zero(num_z));
+            int y0 = (cy+65535)/65536;
+            int y1 = fy/65536;
+
+            //RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(num_z));
+            //RvR_fix16 u = RvR_fix16_div(num_u,RvR_non_zero(num_z));
+            RvR_fix16 nz = num_z+RvR_fix16_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix16 nu = num_u+RvR_fix16_div(num_step_u*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix16 depth = RvR_fix16_div(denom,RvR_non_zero(nz));
+            RvR_fix16 u = nu/RvR_non_zero(nz);
             int wy =  port_ytop[x];
             uint8_t * restrict pix = RvR_framebuffer()+(wy*RvR_xres()+x);
             const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>14))));
 
             //Draw ceiling until ceiling wall
-            int y_to = RvR_min(cy>>16,port_ybot[x]);
+            int y_to = RvR_min(y0,port_ybot[x]);
             if(y_to>wy)
             {
                port_plane_add(wall->sector,0,x,wy,y_to-1);
@@ -447,7 +461,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
             RvR_fix16 texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
             RvR_texture *texture = RvR_texture_get(8);
-            const uint8_t * restrict tex = &texture->data[(((uint32_t)u>>10)%texture->width)*texture->height];
+            const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
             RvR_fix16 y_and = (1<<RvR_log2(texture->height))-1;
             y_to = RvR_min((cy+cph)>>16,port_ybot[x]);
             for(;wy<=y_to;wy++)
@@ -470,7 +484,7 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             coord_step_scaled = RvR_fix16_mul(fovy,depth)/RvR_yres();
             texture_coord_scaled = height+(wy-RvR_yres()/2+1)*coord_step_scaled;
             texture = RvR_texture_get(8);
-            tex = &texture->data[(((uint32_t)u>>10)%texture->width)*texture->height];
+            tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
             y_and = (1<<RvR_log2(texture->height))-1;
             y_to = RvR_min((fy>>16)-1,port_ybot[x]);
             for(;wy<=y_to;wy++)
@@ -495,8 +509,8 @@ void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam)
             cph+=step_cph;
             fy+=step_fy;
             fph+=step_fph;
-            num_z+=num_step_z;
-            num_u+=num_step_u;
+            //num_z+=num_step_z;
+            //num_u+=num_step_u;
          }
       }
    }
@@ -622,7 +636,7 @@ static void port_span_draw(RvR_port_map *map, RvR_port_cam *cam, int16_t sector,
    RvR_fix16 view_sin = RvR_fix16_sin(cam->dir);
    RvR_fix16 view_cos = RvR_fix16_cos(cam->dir);
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov/2);
-   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()<<16);
+   RvR_fix16 fovy = RvR_fix16_div(RvR_yres()*fovx*2,RvR_xres()*65536);
 
    RvR_fix16 dy = RvR_yres()/2-y;
    RvR_fix16 depth = RvR_fix16_div(RvR_abs(cam->z-height),RvR_non_zero(fovy));
