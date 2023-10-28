@@ -21,6 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR/RvR_compress.h"
 #include "RvR/RvR_fix16.h"
 #include "RvR/RvR_fix24.h"
+#include "RvR/RvR_fix22.h"
 #include "RvR/RvR_clip.h"
 #include "RvR/RvR_hash.h"
 #include "RvR/RvR_log.h"

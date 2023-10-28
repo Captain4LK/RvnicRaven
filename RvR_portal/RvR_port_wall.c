@@ -40,7 +40,7 @@ int16_t RvR_port_wall_sector(RvR_port_map *map, int16_t wall)
    return -1;
 }
 
-void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix16 x, RvR_fix16 y)
+void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 y)
 {
    map->walls[wall].x = x;
    map->walls[wall].y = y;
@@ -68,7 +68,7 @@ int16_t RvR_port_wall_first(RvR_port_map *map, int16_t wall)
    }
 }
 
-int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y)
+int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y)
 {
    int16_t first = -1;
    if(map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2==-1)
@@ -126,7 +126,7 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR
    return insert;
 }
 
-int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix16 x, RvR_fix16 y)
+int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y)
 {
    int16_t w1 = map->walls[w0].p2;
 

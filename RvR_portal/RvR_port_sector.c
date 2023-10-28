@@ -30,7 +30,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_fix16 y)
+int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y)
 {
    if(sector<0||sector>=map->sector_count)
       return 0;
@@ -59,7 +59,7 @@ int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix16 x, RvR_f
    return crossed<0;
 }
 
-int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix16 x, RvR_fix16 y)
+int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y)
 {
    if(sector_last>=0&&sector_last<map->sector_count)
    {
@@ -86,7 +86,7 @@ int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix16
    return sector_last;
 }
 
-int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix16 x, RvR_fix16 y)
+int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y)
 {
    int16_t sector = map->sector_count++;
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
