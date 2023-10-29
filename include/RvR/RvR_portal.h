@@ -12,12 +12,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVR_PORTAL_H_
 
+typedef struct RvR_port_depth_buffer_entry RvR_port_depth_buffer_entry;
+
 typedef struct
 {
    int16_t wall_count;
    int16_t wall_first;
-   RvR_fix16 floor;
-   RvR_fix16 ceiling;
+   RvR_fix22 floor;
+   RvR_fix22 ceiling;
    uint16_t floor_tex;
    uint16_t ceiling_tex;
    uint8_t visited;
@@ -48,8 +50,40 @@ typedef struct
    RvR_fix22 z;
    RvR_fix22 dir;
    RvR_fix22 fov;
+   RvR_fix22 shear;
    int16_t sector;
 }RvR_port_cam;
+
+typedef enum
+{
+   RVR_PORT_NONE,
+   RVR_PORT_WALL,
+   RVR_PORT_SECTOR,
+   RVR_PORT_SPRITE_BILL,
+   RVR_PORT_SPRITE_WALL,
+   RVR_PORT_SPRITE_FLOOR,
+}RvR_port_select;
+
+typedef struct
+{
+   int x;
+   int y;
+   RvR_fix22 depth;
+   RvR_port_select type;
+   union
+   {
+      uint32_t wall;
+      uint32_t sector;
+   }as;
+}RvR_port_selection;
+
+struct RvR_port_depth_buffer_entry
+{
+   RvR_fix22 depth;
+   int32_t limit;
+
+   RvR_port_depth_buffer_entry *next;
+};
 
 int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y);
 int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y);
@@ -66,6 +100,12 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
 //For subdividing lines in COMPLETED polygins
 int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y);
 
-void RvR_port_draw(RvR_port_map *map, RvR_port_cam *cam);
+void RvR_port_draw_begin(const RvR_port_cam *cam);
+void RvR_port_draw_map(const RvR_port_map *map, RvR_port_selection *select);
+void RvR_port_draw_end(const RvR_port_map *map, RvR_port_selection *select);
+void RvR_port_draw_sprite(const RvR_port_map *map, RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref);
+
+const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_floor(int x);
+const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_ceiling(int x);
 
 #endif
