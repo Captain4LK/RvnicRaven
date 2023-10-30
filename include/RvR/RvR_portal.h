@@ -100,8 +100,8 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
 //For subdividing lines in COMPLETED polygins
 int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y);
 
-void RvR_port_draw_begin(const RvR_port_cam *cam);
-void RvR_port_draw_map(const RvR_port_map *map, RvR_port_selection *select);
+void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
+void RvR_port_draw_map(RvR_port_selection *select);
 void RvR_port_draw_end(const RvR_port_map *map, RvR_port_selection *select);
 void RvR_port_draw_sprite(const RvR_port_map *map, RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref);
 
