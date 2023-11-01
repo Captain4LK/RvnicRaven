@@ -178,6 +178,9 @@ void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam)
       port_depth_buffer.ceiling[i] = NULL;
    }
 
+   if(RvR_key_down(RVR_KEY_M))
+      RvR_render_clear(0);
+
    //Clear planes
    for(int i = 0; i<128; i++)
    {
@@ -313,28 +316,32 @@ void RvR_port_draw_map(RvR_port_selection *select)
             }
 
             //Wall
-            y_to = RvR_min((fy/1024)-1,port_ybot[x]);
+            y_to = RvR_min(y1,port_ybot[x]);
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 nu = num_u+RvR_fix22_div(num_step_u*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz/4));
             RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
             RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
             RvR_fix22 coord_step_scaled = (4*fovy*depth)/RvR_yres();
-            RvR_fix22 texture_coord_scaled = height*4096+(wy-RvR_yres()/2+1)*coord_step_scaled;
+            RvR_fix22 texture_coord_scaled = height*4096+(wy-RvR_yres()/2)*coord_step_scaled-coord_step_scaled/2;
             RvR_texture *texture = RvR_texture_get(8);
             const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
             const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9))));
             RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
+            //if(texture_coord_scaled/65536<0)
+               //puts("FCKA");
             for(;wy<=y_to;wy++)
             {
                *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
                pix+=RvR_xres();
                texture_coord_scaled+=coord_step_scaled;
             }
+            //if((texture_coord_scaled-coord_step_scaled)/65536>=128)
+               //puts("FCK");
 
             //Floor
             y_to = RvR_min(RvR_yres()-1,port_ybot[x]);
-            if(y_to>wy)
+            if(y_to>=wy)
                port_plane_add(wall->sector,1,x,wy,y_to);
 
             port_ytop[x] = RvR_yres();
@@ -364,8 +371,10 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 step_cy = RvR_fix22_div(cy1-cy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix22 cy = cy0;
 
-         RvR_fix22 cph0 = RvR_max(0,RvR_fix22_div(RvR_yres()*(port_map->sectors[sector].ceiling-port_map->sectors[portal].ceiling),RvR_non_zero(RvR_fix22_mul(wall->z0,fovy))));
-         RvR_fix22 cph1 = RvR_max(0,RvR_fix22_div(RvR_yres()*(port_map->sectors[sector].ceiling-port_map->sectors[portal].ceiling),RvR_non_zero(RvR_fix22_mul(wall->z1,fovy))));
+         RvR_fix22 cph0 = RvR_fix22_div(RvR_yres()*(port_map->sectors[portal].ceiling-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z0,fovy)));
+         RvR_fix22 cph1 = RvR_fix22_div(RvR_yres()*(port_map->sectors[portal].ceiling-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z1,fovy)));
+         cph0 = RvR_yres()*512-cph0;
+         cph1 = RvR_yres()*512-cph1;
          RvR_fix22 step_cph = RvR_fix22_div(cph1-cph0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix22 cph = cph0;
 
@@ -376,8 +385,12 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 step_fy = RvR_fix22_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix22 fy = fy0;
 
-         RvR_fix22 fph0 = RvR_max(0,RvR_fix22_div(RvR_yres()*(port_map->sectors[portal].floor-port_map->sectors[sector].floor),RvR_non_zero(RvR_fix22_mul(wall->z0,fovy))));
-         RvR_fix22 fph1 = RvR_max(0,RvR_fix22_div(RvR_yres()*(port_map->sectors[portal].floor-port_map->sectors[sector].floor),RvR_non_zero(RvR_fix22_mul(wall->z1,fovy))));
+         RvR_fix22 fph0 = RvR_fix22_div(RvR_yres()*(port_map->sectors[portal].floor-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z0,fovy)));
+         RvR_fix22 fph1 = RvR_fix22_div(RvR_yres()*(port_map->sectors[portal].floor-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z1,fovy)));
+         fph0 = RvR_yres()*512-fph0;
+         fph1 = RvR_yres()*512-fph1;
+         fph0 = RvR_min(fph0,fy0);
+         fph1 = RvR_min(fph1,fy1);
          RvR_fix22 step_fph = RvR_fix22_div(fph1-fph0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix22 fph = fph0;
 
@@ -441,11 +454,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
             //Draw ceiling wall
             RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
             RvR_fix22 coord_step_scaled = (4*fovy*depth)/RvR_yres();
-            RvR_fix22 texture_coord_scaled = height*4096+(wy-RvR_yres()/2+1)*coord_step_scaled;
+            RvR_fix22 texture_coord_scaled = height*4096+(wy-RvR_yres()/2)*coord_step_scaled-coord_step_scaled/2;
             RvR_texture *texture = RvR_texture_get(8);
             const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
             RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
-            y_to = RvR_min((cy+cph)/1024,port_ybot[x]);
+            y_to = RvR_min((cph)/1024,port_ybot[x]);
             for(;wy<=y_to;wy++)
             {
                *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
@@ -455,7 +468,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
             }
 
             port_ytop[x] = wy;
-            wy = RvR_max(wy,(fy-fph)/1024);
+            wy = RvR_max(wy,(fph+1023)/1024);
             pix = &RvR_framebuffer()[wy*RvR_xres()+x];
 
             if(RvR_key_pressed(RVR_KEY_SPACE))
@@ -471,11 +484,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
             //Draw floor wall
             height = port_map->sectors[portal].floor-port_cam->z;
             coord_step_scaled = (4*fovy*depth)/RvR_yres();
-            texture_coord_scaled = height*4096+(wy-RvR_yres()/2+1)*coord_step_scaled;
+            texture_coord_scaled = height*4096+(wy-RvR_yres()/2)*coord_step_scaled-coord_step_scaled/2;
             texture = RvR_texture_get(8);
             tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
             y_and = (1<<RvR_log2(texture->height))-1;
-            y_to = RvR_min((fy/1024)-1,port_ybot[x]);
+            y_to = RvR_min(y1,port_ybot[x]);
             for(;wy<=y_to;wy++)
             {
                *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
@@ -489,10 +502,10 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
             //Draw floor
             y_to = RvR_min(RvR_yres()-1,port_ybot[x]);
-            if(y_to>wy)
+            if(y_to>=wy)
                port_plane_add(wall->sector,1,x,wy,y_to);
 
-            port_ybot[x] = RvR_min((fy-fph)/1024,port_ybot[x]);
+            port_ybot[x] = RvR_min((fph+1023)/1024,port_ybot[x]);
 
             cy+=step_cy;
             cph+=step_cph;
@@ -504,6 +517,9 @@ void RvR_port_draw_map(RvR_port_selection *select)
          port_collect_walls(port_map->walls[wall->wall].portal);
       }
    }
+
+   if(RvR_key_down(RVR_KEY_M))
+      return;
 
    //Render floor planes
    for(int i = 0;i<128;i++)
@@ -939,9 +955,9 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres()*fovx*2,RvR_xres()*1024);
 
    RvR_fix22 span_height = RvR_abs(height-cam->z);
-   RvR_fix22 fdy = RvR_abs(RvR_yres()/2-y)*1024-512;
+   RvR_fix22 fdy = RvR_abs(RvR_yres()/2-y)*1024+512;
    if(y>=RvR_yres()/2)
-      fdy = RvR_abs(RvR_yres()/2-y)*1024+512;
+      fdy = RvR_abs(RvR_yres()/2-y)*1024-512;
 
    RvR_fix22 dy = RvR_yres()/2-y;
    RvR_fix22 depth = RvR_fix22_div(span_height,RvR_non_zero(fovx));
