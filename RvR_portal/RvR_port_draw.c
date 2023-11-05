@@ -138,7 +138,6 @@ struct
 //-------------------------------------
 
 //Function prototypes
-static int dwall_comp(const void *a, const void *b);
 static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb);
 
 static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int16_t sector, uint8_t where, int x0, int x1, int y);
@@ -155,11 +154,11 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b);
 static int port_wsprite_can_back(const port_sprite * restrict a, const port_sprite * restrict b);
 
 static void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprite *sp, RvR_port_selection *select);
-static void port_sprite_draw_wall(const RvR_port_map *map, const port_sprite *sp, RvR_port_selection *select);
-static void port_sprite_draw_floor(const RvR_port_map *map, const port_sprite *sp, RvR_port_selection *select);
+static void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select);
+static void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select);
 static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
 
-static void port_collect_walls(int16_t sector);
+static void port_collect_walls(int16_t start);
 //-------------------------------------
 
 //Function implementations
@@ -206,10 +205,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov/2);
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres()*fovx,RvR_xres()*1024);
-   RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
-   RvR_fix22 cos = RvR_fix22_cos(port_cam->dir);
-   RvR_fix22 sin_fov = RvR_fix22_mul(sin,fovx);
-   RvR_fix22 cos_fov = RvR_fix22_mul(cos,fovx);
 
    //memset(port_ytop,0,sizeof(*port_ytop)*RvR_xres());
    for(int i = 0;i<RvR_xres();i++)
@@ -259,6 +254,13 @@ void RvR_port_draw_map(RvR_port_selection *select)
       int16_t sector = wall->sector;
       int16_t portal = port_map->walls[wall->wall].portal;
 
+      //Shrinks u coordinates, results in more
+      //accurate interpolation of texture coordinates
+      RvR_texture *texture = RvR_texture_get(8);
+      int over = wall->u0/(texture->width*1024);
+      wall->u0-=over*texture->width*1024;
+      wall->u1-=over*texture->width*1024;
+
       //No portal
       if(portal<0)
       {
@@ -280,13 +282,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 num_step_z = 4*(wall->z0-wall->z1);
          RvR_fix22 num_z = 4*wall->z1;
 
-         //Shrinks u coordinates, results in more
-         //accurate interpolation of texture coordinates
-         RvR_texture *texture = RvR_texture_get(8);
-         int over = wall->u0/(texture->width*1024);
-         wall->u0-=over*texture->width*1024;
-         wall->u1-=over*texture->width*1024;
-
          RvR_fix22 num_step_u = RvR_fix22_mul(wall->z0,wall->u1)-RvR_fix22_mul(wall->z1,wall->u0);
          RvR_fix22 num_u = RvR_fix22_mul(wall->u0,wall->z1);
 
@@ -305,10 +300,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
             int y1 = fy/4096;
 
             int top = port_ytop[x]+1;
-            int bottom = port_ybot[x];
-
             y0 = RvR_max(y0,top);
-            bottom = y0-1;
+            int bottom = y0-1;
             if(bottom>=port_ybot[x])
                bottom = port_ybot[x]-1;
 
@@ -334,7 +327,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(y0-RvR_yres()/2)*coord_step_scaled;
-               RvR_texture *texture = RvR_texture_get(8);
                RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
                const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9))));
@@ -398,13 +390,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 num_step_z = 4*(wall->z0-wall->z1);
          RvR_fix22 num_z = 4*wall->z1;
 
-         //Shrinks u coordinates, results in more
-         //accurate interpolation of texture coordinates
-         RvR_texture *texture = RvR_texture_get(8);
-         int over = wall->u0/(texture->width*1024);
-         wall->u0-=over*texture->width*1024;
-         wall->u1-=over*texture->width*1024;
-
          RvR_fix22 num_step_u = RvR_fix22_mul(wall->z0,wall->u1)-RvR_fix22_mul(wall->z1,wall->u0);
          RvR_fix22 num_u = RvR_fix22_mul(wall->u0,wall->z1);
 
@@ -456,7 +441,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(y0-RvR_yres()/2)*coord_step_scaled;
-               RvR_texture *texture = RvR_texture_get(8);
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
                uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
                RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
@@ -482,7 +466,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 height = port_map->sectors[portal].floor-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(mid-RvR_yres()/2)*coord_step_scaled+coord_step_scaled/2;
-               RvR_texture *texture = RvR_texture_get(8);
                RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
                uint8_t * restrict pix = RvR_framebuffer()+(mid*RvR_xres()+x);
@@ -626,9 +609,9 @@ void RvR_port_draw_end(const RvR_port_map *map, RvR_port_selection *select)
    {
       port_sprite *sp = port_sprites + i;
       if(sp->flags & 8)
-         port_sprite_draw_wall(map, sp, select);
+         port_sprite_draw_wall(sp, select);
       else if(sp->flags & 16)
-         port_sprite_draw_floor(map, sp, select);
+         port_sprite_draw_floor(sp, select);
       else
          port_sprite_draw_billboard(map, sp, select);
    }
@@ -882,14 +865,6 @@ const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_ceiling(int x)
    return port_depth_buffer.ceiling[x];
 }
 
-static int dwall_comp(const void *a, const void *b)
-{
-   const RvR_port_dwall *wa = a;
-   const RvR_port_dwall *wb = b;
-
-   return wa->zfront-wb->zfront;
-}
-
 //Calculates wether wa can be drawn in front of wb
 static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
 {
@@ -964,18 +939,16 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres()*fovx,RvR_xres()*1024);
 
    RvR_fix22 span_height = (height-cam->z);
-   RvR_fix22 fdy = RvR_abs(RvR_yres()/2-y)*1024-512;
-   if(y>RvR_yres()/2)
-      fdy = RvR_abs(RvR_yres()/2-y)*1024+512;
+   RvR_fix22 fdy = RvR_abs(RvR_yres()/2-y)*1024;
 
    int64_t slope = RvR_abs((span_height*(INT64_C(1)<<30))/RvR_non_zero(fdy));
    RvR_fix22 depth = RvR_fix22_div((RvR_yres()/2)*span_height,RvR_non_zero(RvR_fix22_mul(fovy,fdy)));
    depth = RvR_abs(depth);
 
-   RvR_fix22 step_x = ((int64_t)view_sin*slope)/(1<<20);
-   RvR_fix22 step_y = ((int64_t)view_cos*slope)/(1<<20);
-   RvR_fix22 tx = -(cam->x&1023)*1024-view_cos*depth+(x0-RvR_xres()/2)*step_x;;
-   RvR_fix22 ty = (cam->y&1023)*1024+view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+   RvR_fix22 step_x = ((int64_t)view_sin*slope)/(1<<18);
+   RvR_fix22 step_y = ((int64_t)view_cos*slope)/(1<<18);
+   RvR_fix22 tx = -(cam->x&1023)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
+   RvR_fix22 ty = (cam->y&1023)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
 
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);
@@ -988,7 +961,7 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
 
    for(int x = x0;x<x1;x++)
    {
-      uint8_t c = tex[(((tx>>14)&x_and)<<y_log)+((ty>>14)&y_and)];
+      uint8_t c = tex[(((tx>>16)&x_and)<<y_log)+((ty>>16)&y_and)];
       *pix = col[c];
       tx+=step_x;
       ty+=step_y;
@@ -1315,8 +1288,6 @@ static void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprit
    RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov / 2);
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres() * fovx, RvR_xres()*1024);
-   RvR_fix22 sin_fov = RvR_fix22_mul(sin, fovx);
-   RvR_fix22 cos_fov = RvR_fix22_mul(cos, fovx);
    RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
@@ -1359,10 +1330,6 @@ static void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprit
       x0 = 0;
       left = 0;
    }
-
-   //Adjust for fractional part
-   RvR_fix22 xfrac = left - x0 * 1024;
-   //u -= RvR_fix22_mul(xfrac, step_u);
 
    //Vertical flip
    if(sp->flags & 4)
@@ -1448,7 +1415,7 @@ static void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprit
    }
 }
 
-static void port_sprite_draw_wall(const RvR_port_map *map, const port_sprite *sp, RvR_port_selection *select)
+static void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
 {
    RvR_texture *texture = RvR_texture_get(sp->texture);
    RvR_fix22 scale_vertical = texture->height * 16; //texture height in map coordinates
@@ -1597,7 +1564,7 @@ static void port_sprite_draw_wall(const RvR_port_map *map, const port_sprite *sp
    }
 }
 
-static void port_sprite_draw_floor(const RvR_port_map *map, const port_sprite *sp, RvR_port_selection *select)
+static void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
 {
    //After clipping we will never have more than 8 vertices
    RvR_fix22 verts[8][3];
@@ -1956,18 +1923,17 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
    }
 }
 
-static void port_collect_walls(int16_t sector)
+static void port_collect_walls(int16_t start)
 {
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov/2);
-   RvR_fix22 fovy = RvR_fix22_div(RvR_yres()*fovx,RvR_xres()*1024);
    RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
    RvR_fix22 cos = RvR_fix22_cos(port_cam->dir);
    RvR_fix22 sin_fov = RvR_fix22_mul(sin,fovx);
    RvR_fix22 cos_fov = RvR_fix22_mul(cos,fovx);
 
    RvR_array_length_set(sector_stack,0);
-   RvR_array_push(sector_stack,sector);
-   port_map->sectors[sector].visited = 1;
+   RvR_array_push(sector_stack,start);
+   port_map->sectors[start].visited = 1;
    while(RvR_array_length(sector_stack)>0)
    {
       int16_t sector = sector_stack[RvR_array_length(sector_stack)-1];
