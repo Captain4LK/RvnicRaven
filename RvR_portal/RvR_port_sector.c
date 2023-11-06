@@ -68,7 +68,7 @@ int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix22
          return sector_last;
 
       //Check adjacent sectors
-      //TODO: higher depth search?
+      //TODO(Captain4LK): higher depth search?
       for(int i = 0;i<map->sectors[sector_last].wall_count;i++)
       {
          int16_t portal = map->walls[map->sectors[sector_last].wall_first+i].portal;

@@ -555,7 +555,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
    }
 }
 
-void RvR_port_draw_end(const RvR_port_map *map, RvR_port_selection *select)
+void RvR_port_draw_end(RvR_port_selection *select)
 {
    //Sprites get sorted from back to front
 
@@ -613,18 +613,18 @@ void RvR_port_draw_end(const RvR_port_map *map, RvR_port_selection *select)
       else if(sp->flags & 16)
          port_sprite_draw_floor(sp, select);
       else
-         port_sprite_draw_billboard(map, sp, select);
+         port_sprite_draw_billboard(port_map, sp, select);
    }
 }
 
-void RvR_port_draw_sprite(const RvR_port_map *map, RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref)
+void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref)
 {
    //flagged as invisible
    if(flags & 1)
       return;
 
    //sector not visited
-   if(!map->sectors[sector].visited)
+   if(!port_map->sectors[sector].visited)
       return;
 
    port_sprite sp = {0};

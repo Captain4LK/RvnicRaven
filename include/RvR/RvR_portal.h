@@ -33,6 +33,7 @@ typedef struct
    int16_t p2;
    int16_t portal;
    int16_t join;
+   uint16_t tex;
 }RvR_port_wall;
 
 typedef struct
@@ -85,6 +86,12 @@ struct RvR_port_depth_buffer_entry
    RvR_port_depth_buffer_entry *next;
 };
 
+RvR_port_map *RvR_port_map_create(void);
+void RvR_port_map_save(const RvR_port_map *map, const char *path);
+RvR_port_map *RvR_port_map_load(uint16_t id);
+RvR_port_map *RvR_port_map_load_path(const char *path);
+RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw);
+
 int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y);
 int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y);
 int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y);
@@ -102,8 +109,8 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
 
 void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
 void RvR_port_draw_map(RvR_port_selection *select);
-void RvR_port_draw_end(const RvR_port_map *map, RvR_port_selection *select);
-void RvR_port_draw_sprite(const RvR_port_map *map, RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref);
+void RvR_port_draw_end(RvR_port_selection *select);
+void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref);
 
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_floor(int x);
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_ceiling(int x);
