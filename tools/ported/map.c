@@ -110,6 +110,30 @@ void map_new()
    camera.z = 1024;
 
    editor_undo_reset();
+
+   int16_t sector = RvR_port_sector_new(map, 0, 0);
+   map->sectors[sector].floor = 0;
+   map->sectors[sector].ceiling = 2 * 1024;
+   map->sectors[sector].floor_tex = 15;
+   map->sectors[sector].ceiling_tex = 15;
+   int16_t w = RvR_port_wall_append(map, sector, 8 * 1024, 0);
+   RvR_port_wall_append(map, sector, 8 * 1024, 8 * 1024);
+   RvR_port_wall_append(map, sector, 0, 8 * 1024);
+   RvR_port_wall_append(map, sector, 0, 0);
+   RvR_port_wall_insert(map, w, 12 * 1024, 4 * 1024);
+
+   RvR_port_wall_append(map, sector, 3 * 1024, 3 * 1024);
+   RvR_port_wall_append(map, sector, 5 * 1024, 3 * 1024);
+   RvR_port_wall_append(map, sector, 5 * 1024, 5 * 1024);
+   RvR_port_wall_append(map, sector, 3 * 1024, 5 * 1024);
+   w = RvR_port_wall_append(map, sector, 3 * 1024, 3 * 1024);
+   int16_t s = RvR_port_sector_make_inner(map, w);
+   map->sectors[s].floor = 512;
+   map->sectors[s].ceiling  = 2 * 1024 - 512;
+   map->sectors[s].floor_tex = 5;
+   map->sectors[s].ceiling_tex = 5;
+
+   //RvR_port_wall_insert(&map, map->sectors[s].wall_first, 8 * 1024, 4 * 1024);
 }
 
 void map_save()

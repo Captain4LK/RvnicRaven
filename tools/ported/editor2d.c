@@ -449,17 +449,17 @@ void editor2d_draw(void)
 
    //Draw camera
    //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(camera.direction);
-   RvR_fix16 dirx = RvR_fix16_cos(camera.dir);
-   RvR_fix16 diry = RvR_fix16_sin(camera.dir);
-   int dsx = (dirx * grid_size) / 256;
-   int dsy = (diry * grid_size) / 256;
+   RvR_fix22 dirx = RvR_fix22_cos(camera.dir);
+   RvR_fix22 diry = RvR_fix22_sin(camera.dir);
+   int dsx = (dirx * grid_size) / 4;
+   int dsy = (diry * grid_size) / 4;
    RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 - dsx / 2, RvR_yres() * 128 - dsy / 2, color_white);
-   dirx = RvR_fix16_cos(camera.dir + 32 * 128);
-   diry = RvR_fix16_sin(camera.dir + 32 * 128);
-   RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres() * 128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
-   dirx = RvR_fix16_cos(camera.dir - 32 * 128);
-   diry = RvR_fix16_sin(camera.dir - 32 * 128);
-   RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 + dsx / 2 - (dirx * grid_size / 2) / 256, RvR_yres() * 128 + dsy / 2 - (diry * grid_size / 2) / 256, color_white);
+   dirx = RvR_fix22_cos(camera.dir + 32 * 8);
+   diry = RvR_fix22_sin(camera.dir + 32 * 8);
+   RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 + dsx / 2 - (dirx * grid_size / 2) / 4, RvR_yres() * 128 + dsy / 2 - (diry * grid_size / 2) / 4, color_white);
+   dirx = RvR_fix22_cos(camera.dir - 32 * 8);
+   diry = RvR_fix22_sin(camera.dir - 32 * 8);
+   RvR_render_line(RvR_xres() * 128 + dsx / 2, RvR_yres() * 128 + dsy / 2, RvR_xres() * 128 + dsx / 2 - (dirx * grid_size / 2) / 4, RvR_yres() * 128 + dsy / 2 - (diry * grid_size / 2) / 4, color_white);
 
    //Draw cursor
    int mx, my;

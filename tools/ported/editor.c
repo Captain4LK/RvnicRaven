@@ -97,12 +97,12 @@ void editor_undo_reset()
 
 void camera_update()
 {
-   RvR_fix16 dirx = RvR_fix16_cos(camera.dir) / 8;
-   RvR_fix16 diry = RvR_fix16_sin(camera.dir) / 8;
+   RvR_fix22 dirx = RvR_fix22_cos(camera.dir) / 8;
+   RvR_fix22 diry = RvR_fix22_sin(camera.dir) / 8;
    int speed = 1;
-   RvR_fix16 offx = 0;
-   RvR_fix16 offy = 0;
-   RvR_fix16 offz = 0;
+   RvR_fix22 offx = 0;
+   RvR_fix22 offy = 0;
+   RvR_fix22 offz = 0;
 
    //Faster movement
    if(RvR_key_down(RVR_KEY_LSHIFT))
@@ -126,14 +126,14 @@ void camera_update()
       if(RvR_key_down(RVR_KEY_LALT))
          camera.shear += CAMERA_SHEAR_STEP_FRAME;
       else
-         offz = speed * 64 * 64;
+         offz = speed * 64;
    }
    else if(RvR_key_down(RVR_KEY_Z))
    {
       if(RvR_key_down(RVR_KEY_LALT))
          camera.shear -= CAMERA_SHEAR_STEP_FRAME;
       else
-         offz = -speed * 64 * 64;
+         offz = -speed * 64;
    }
 
    camera.shear = RvR_max(-CAMERA_SHEAR_MAX_PIXELS, RvR_min(CAMERA_SHEAR_MAX_PIXELS, camera.shear));
@@ -148,7 +148,7 @@ void camera_update()
       }
       else
       {
-         camera.dir -= 64 * 8;
+         camera.dir -= 8* 8;
       }
    }
    else if(RvR_key_down(RVR_KEY_RIGHT))
@@ -160,10 +160,14 @@ void camera_update()
       }
       else
       {
-         camera.dir += 64 * 8;
+         camera.dir += 8* 8;
       }
    }
    camera.dir &= 65535;
+
+   camera.x+=offx;
+   camera.y+=offy;
+   camera.z+=offz;
 
    //Collision
    //RvR_fix16 floor_height = 0;

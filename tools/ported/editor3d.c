@@ -46,12 +46,397 @@ static char menu_input[512] = {0};
 //-------------------------------------
 
 //Function prototypes
+static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location);
+
+static Map_sprite *sprite_selected();
 //-------------------------------------
 
 //Function implementations
 
 void editor3d_update(void)
 {
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   if(menu==0)
+   {
+      camera_update();
+
+      //Get real world tile position of mouse
+      if(!RvR_key_down(RVR_KEY_LCTRL))
+      {
+         mouse_world_pos(mx, my, &wx, &wy, &wlocation);
+      }
+
+      Map_sprite *sprite_selec = sprite_selected();
+      if(sprite_selec!=NULL)
+         wlocation = 4;
+      else if(RvR_key_down(RVR_KEY_LCTRL)&&wlocation==4)
+      {
+         wlocation = 0;
+         wx = -1;
+         wy = -1;
+      }
+
+      //TODO: having this would be usefull but the keys are taken
+      //think of different keybindings
+      /*if(RvR_key_down(RVR_KEY_1))
+         wlocation = 0;
+      else if(RvR_key_down(RVR_KEY_2))
+         wlocation = 1;
+      else if(RvR_key_down(RVR_KEY_3))
+         wlocation = 2;
+      else if(RvR_key_down(RVR_KEY_4))
+         wlocation = 3;*/
+
+      if(RvR_key_pressed(RVR_KEY_R)&&wlocation==4&&sprite_selec!=NULL)
+      {
+         int flag = (sprite_selec->flags & 24) >> 3;
+         sprite_selec->flags ^= flag << 3;
+         flag = (flag + 1) % 3;
+         sprite_selec->flags |= flag << 3;
+      }
+
+      if(RvR_key_pressed(RVR_KEY_T)&&wlocation==4&&sprite_selec!=NULL)
+      {
+         int flag = (sprite_selec->flags & 96) >> 5;
+         sprite_selec->flags ^= flag << 5;
+         flag = (flag + 1) % 3;
+         sprite_selec->flags |= flag << 5;
+      }
+
+      else if(RvR_key_pressed(RVR_KEY_PERIOD)&&wlocation==4&&sprite_selec!=NULL)
+         sprite_selec->direction -= RvR_key_down(RVR_KEY_LSHIFT)?32 * 16:8 * 16;
+      else if(RvR_key_pressed(RVR_KEY_COMMA)&&wlocation==4&&sprite_selec!=NULL)
+         sprite_selec->direction += RvR_key_down(RVR_KEY_LSHIFT)?32 * 16:8 * 16;
+
+      if(RvR_key_pressed(RVR_KEY_1)&&wlocation==4&&sprite_selec!=NULL)
+         sprite_selec->flags ^= 128;
+
+      if(RvR_key_pressed(RVR_KEY_F)&&wlocation==4&&sprite_selec!=NULL)
+      {
+         int flag = (sprite_selec->flags & 6) / 2;
+         flag = (flag + 1) & 3;
+         sprite_selec->flags &= ~(uint32_t)6;
+         sprite_selec->flags |= flag * 2;
+      }
+
+      if(RvR_key_pressed(RVR_KEY_PGUP))
+      {
+         if(wlocation==0||wlocation==2)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_floor(wx, wy, 1);
+            //else
+               //editor_ed_floor(wx, wy, 1);
+         }
+         if(wlocation==1||wlocation==3)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_ceiling(wx, wy, 1);
+            //else
+               //editor_ed_ceiling(wx, wy, 1);
+         }
+         if(wlocation==4&&sprite_selec!=NULL)
+            sprite_selec->z += 64 * 64;
+      }
+      else if(RvR_key_pressed(RVR_KEY_PGDN))
+      {
+         if(wlocation==0||wlocation==2)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_floor(wx, wy, -1);
+            //else
+               //editor_ed_floor(wx, wy, -1);
+         }
+         if(wlocation==1||wlocation==3)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_ceiling(wx, wy, -1);
+            //else
+               //editor_ed_ceiling(wx, wy, -1);
+         }
+         if(wlocation==4&&sprite_selec!=NULL)
+            sprite_selec->z -= 64 * 64;
+      }
+
+      //To prevent accidental texture editing after selecting a texture
+      if(RvR_key_pressed(RVR_BUTTON_LEFT))
+      {
+         if(wlocation==4&&sprite_selec!=NULL)
+            sprite_selec->texture = texture_selected;
+         else
+            brush = 1;
+      }
+      if(RvR_key_released(RVR_BUTTON_LEFT))
+         brush = 0;
+      if(brush)
+      {
+         if(wlocation==0)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_floor_tex(wx, wy, texture_selected);
+            //else
+               //editor_ed_floor_tex(wx, wy, texture_selected);
+         }
+         else if(wlocation==1)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_ceiling_tex(wx, wy, texture_selected);
+            //else
+               //editor_ed_ceiling_tex(wx, wy, texture_selected);
+         }
+         else if(wlocation==2)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_floor_wall_tex(wx, wy, texture_selected);
+            //else
+               //editor_ed_floor_wall_tex(wx, wy, texture_selected);
+         }
+         else if(wlocation==3)
+         {
+            //if(RvR_key_down(RVR_KEY_LSHIFT))
+               //editor_ed_flood_ceiling_wall_tex(wx, wy, texture_selected);
+            //else
+               //editor_ed_ceiling_wall_tex(wx, wy, texture_selected);
+         }
+      }
+
+      if(RvR_key_pressed(RVR_KEY_V))
+      {
+         menu = 1;
+         texture_selection_scroll = 0;
+      }
+   }
+   else if(menu==1)
+   {
+      if(RvR_key_pressed(RVR_KEY_V))
+      {
+         menu = 2;
+         texture_selection_scroll = 0;
+      }
+
+      if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         menu = 0;
+
+      if(RvR_key_pressed(RVR_KEY_G))
+      {
+         menu = 3;
+         menu_input[0] = '\0';
+         RvR_text_input_start(menu_input, 64);
+      }
+
+      //texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
+      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
+      if(texture_selection_scroll<0)
+         texture_selection_scroll = 0;
+
+      int tex_per_row = (RvR_xres()) / 64;
+      int tex_per_col = (RvR_yres()) / 64;
+      int index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+      int set_pos = 0;
+      if(RvR_key_pressed(RVR_KEY_UP))
+      {
+         index -= tex_per_row;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+         if(my<0)
+         {
+            texture_selection_scroll--;
+            my += 64;
+         }
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_DOWN))
+      {
+         index += tex_per_row;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+         if(my>tex_per_col * 64)
+         {
+            texture_selection_scroll++;
+            my -= 64;
+         }
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_LEFT))
+      {
+         index--;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_RIGHT))
+      {
+         index++;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+         set_pos = 1;
+      }
+
+      if(index<0)
+      {
+         texture_selection_scroll = 0;
+         RvR_mouse_set_pos(32, 32);
+         mx = 32;
+         my = 32;
+         index = 0;
+         set_pos = 0;
+      }
+
+      if(set_pos)
+         RvR_mouse_set_pos(mx, my);
+
+      if(mx / 64<RvR_xres() / 64)
+      {
+         if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
+         {
+            int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
+            texture_selected = texture_list_used.data[index];
+            texture_list_used_add(texture_selected);
+            menu = 0;
+            brush = 0;
+         }
+         if(RvR_key_pressed(RVR_KEY_S))
+         {
+            int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
+            //map_sky_tex_set(texture_list_used.data[index]);
+            menu = 0;
+            brush = 0;
+         }
+      }
+   }
+   else if(menu==2)
+   {
+      if(RvR_key_pressed(RVR_KEY_ESCAPE))
+         menu = 0;
+
+      if(RvR_key_pressed(RVR_KEY_G))
+      {
+         menu = 4;
+         menu_input[0] = '\0';
+         RvR_text_input_start(menu_input, 64);
+      }
+
+      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
+      if(texture_selection_scroll<0)
+         texture_selection_scroll = 0;
+
+      int tex_per_row = (RvR_xres()) / 64;
+      int tex_per_col = (RvR_yres()) / 64;
+      int index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+      int set_pos = 0;
+      if(RvR_key_pressed(RVR_KEY_UP))
+      {
+         index -= tex_per_row;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+         if(my<0)
+         {
+            texture_selection_scroll--;
+            my += 64;
+         }
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_DOWN))
+      {
+         index += tex_per_row;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+         if(my>tex_per_col * 64)
+         {
+            texture_selection_scroll++;
+            my -= 64;
+         }
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_LEFT))
+      {
+         index--;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+         set_pos = 1;
+      }
+      if(RvR_key_pressed(RVR_KEY_RIGHT))
+      {
+         index++;
+         mx = (index % tex_per_row) * 64 + 32;
+         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+         set_pos = 1;
+      }
+
+      if(index<0)
+      {
+         texture_selection_scroll = 0;
+         RvR_mouse_set_pos(32, 32);
+         mx = 32;
+         my = 32;
+         index = 0;
+         set_pos = 0;
+      }
+
+      if(set_pos)
+         RvR_mouse_set_pos(mx, my);
+
+      if(mx / 64<RvR_xres() / 64)
+      {
+         if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
+         {
+            unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+            if(index<texture_list.data_used)
+            {
+               texture_selected = texture_list.data[index];
+               texture_list_used_add(texture_selected);
+               menu = 0;
+               brush = 0;
+            }
+         }
+         if(RvR_key_pressed(RVR_KEY_S))
+         {
+            unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+            if(index<texture_list.data_used)
+            {
+               //map_sky_tex_set(texture_list.data[index]);
+               menu = 0;
+               brush = 0;
+            }
+         }
+      }
+   }
+
+   if(menu==3||menu==4)
+   {
+      if(RvR_key_pressed(RVR_KEY_ENTER))
+      {
+         RvR_text_input_end();
+         menu = 2;
+
+         int selection = strtol(menu_input, NULL, 10);
+         //TODO: What we should do: binary search
+         //What I did: slow crap
+         for(int i = 0; i<texture_list.data_used; i++)
+         {
+            if(texture_list.data[i]>=selection)
+            {
+               int tex_per_row = (RvR_xres()) / 64;
+               int tex_per_col = (RvR_yres()) / 64;
+               texture_selection_scroll = i / RvR_non_zero(tex_per_row);
+               mx = (i % tex_per_row) * 64 + 32;
+               my = (i / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+               RvR_mouse_set_pos(mx, my);
+               break;
+            }
+         }
+      }
+   }
 }
 
 void editor3d_draw(void)
@@ -231,5 +616,14 @@ void editor3d_draw(void)
    RvR_render_horizontal_line(mx + 1, mx + 4, my, color_magenta);
    RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
    RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
+}
+
+static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location)
+{
+}
+
+static Map_sprite *sprite_selected()
+{
+   return NULL;
 }
 //-------------------------------------
