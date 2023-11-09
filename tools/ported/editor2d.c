@@ -256,8 +256,8 @@ void editor2d_update(void)
    sprite_sel = map_sprites;
    while(sprite_sel!=NULL)
    {
-      int sx = (sprite_sel->x * grid_size) / 65536 - scroll_x;
-      int sy = (sprite_sel->y * grid_size) /  65536 - scroll_y;
+      int sx = (sprite_sel->x * grid_size) / 1024- scroll_x;
+      int sy = (sprite_sel->y * grid_size) /  1024- scroll_y;
       if(mx>sx - grid_size / 4&&mx<sx + grid_size / 4&&my>sy - grid_size / 4&&my<sy + grid_size / 4)
          break;
       sprite_sel = sprite_sel->next;
@@ -290,8 +290,8 @@ void editor2d_update(void)
 
    if(sprite_move!=NULL)
    {
-      sprite_move->x = ((mx + scroll_x) * 65536) / grid_size;
-      sprite_move->y = ((my + scroll_y) * 65536) / grid_size;
+      sprite_move->x = ((mx + scroll_x) * 1024) / grid_size;
+      sprite_move->y = ((my + scroll_y) * 1024) / grid_size;
       sprite_move->z = 1024;
       //sprite_move->z = RvR_ray_map_floor_height_at(map, sprite_move->x / 65536, sprite_move->y / 65536);
    }
@@ -318,8 +318,8 @@ void editor2d_update(void)
       ms->extra1 = 0;
       ms->extra2 = 0;
       ms->flags = 0;
-      ms->x = ((mx + scroll_x) * 65536) / grid_size;
-      ms->y = ((my + scroll_y) * 65536) / grid_size;
+      ms->x = ((mx + scroll_x) * 1024) / grid_size;
+      ms->y = ((my + scroll_y) * 1024) / grid_size;
       ms->z = 1024;
       //ms->z = RvR_ray_map_floor_height_at(map, ms->x / 65536, ms->y / 65536);
 
@@ -331,8 +331,8 @@ void editor2d_update(void)
       mouse_scroll = 1;
       RvR_mouse_relative(1);
 
-      camera.x = ((scroll_x + mx) * 65536) / grid_size;
-      camera.y = ((scroll_y + my) * 65536) / grid_size;
+      camera.x = ((scroll_x + mx) * 1024) / grid_size;
+      camera.y = ((scroll_y + my) * 1024) / grid_size;
    }
 
    if(RvR_key_released(RVR_BUTTON_RIGHT))
@@ -347,34 +347,34 @@ void editor2d_update(void)
       int rx, ry;
       RvR_mouse_relative_pos(&rx, &ry);
 
-      camera.x += (rx * 65536) / grid_size;
-      camera.y += (ry * 65536) / grid_size;
+      camera.x += (rx * 1024) / grid_size;
+      camera.y += (ry * 1024) / grid_size;
    }
    else
    {
       camera_update();
    }
 
-   scroll_x = (camera.x * grid_size) / 65536 - RvR_xres() / 2;
-   scroll_y = (camera.y * grid_size) / 65536 - RvR_yres() / 2;
+   scroll_x = (camera.x * grid_size) / 1024- RvR_xres() / 2;
+   scroll_y = (camera.y * grid_size) / 1024- RvR_yres() / 2;
 
    if(RvR_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)
    {
-      int scrollx = ((scroll_x + RvR_xres() / 2) * 65536) / grid_size;
-      int scrolly = ((scroll_y + RvR_yres() / 2) * 65536) / grid_size;
+      int scrollx = ((scroll_x + RvR_xres() / 2) * 1024) / grid_size;
+      int scrolly = ((scroll_y + RvR_yres() / 2) * 1024) / grid_size;
 
       grid_size += 4;
-      scroll_x = (scrollx * grid_size) / 65536 - RvR_xres() / 2;
-      scroll_y = (scrolly * grid_size) / 65536 - RvR_yres() / 2;
+      scroll_x = (scrollx * grid_size) / 1024- RvR_xres() / 2;
+      scroll_y = (scrolly * grid_size) / 1024- RvR_yres() / 2;
    }
    if(RvR_key_pressed(RVR_KEY_NP_SUB)&&grid_size>4)
    {
-      int scrollx = ((scroll_x + RvR_xres() / 2) * 65536) / grid_size;
+      int scrollx = ((scroll_x + RvR_xres() / 2) * 1024) / grid_size;
       int scrolly = ((scroll_y + RvR_yres() / 2) * 1024) / grid_size;
 
       grid_size -= 4;
-      scroll_x = (scrollx * grid_size) / 65536 - RvR_xres() / 2;
-      scroll_y = (scrolly * grid_size) / 65536 - RvR_yres() / 2;
+      scroll_x = (scrollx * grid_size) / 1024- RvR_xres() / 2;
+      scroll_y = (scrolly * grid_size) / 1024- RvR_yres() / 2;
    }
 }
 
@@ -446,6 +446,52 @@ void editor2d_draw(void)
 
       sp = sp->next;
    }*/
+
+   //Draw sectors
+   for(int i = 0;i<map->sector_count;i++)
+   {
+      for(int j = 0;j<map->sectors[i].wall_count;j++)
+      {
+         RvR_port_wall *p0 = map->walls+map->sectors[i].wall_first+j;
+         RvR_port_wall *p1 = map->walls+p0->p2;
+
+         int x0 = ((p0->x-camera.x)*grid_size)/4+RvR_xres()*128;
+         int y0 = ((p0->y-camera.y)*grid_size)/4+RvR_yres()*128;
+         int x1 = ((p1->x-camera.x)*grid_size)/4+RvR_xres()*128;
+         int y1 = ((p1->y-camera.y)*grid_size)/4+RvR_yres()*128;
+
+         if(p0->portal>=0)
+         {
+            //Only draw one wall for portals
+            if(p0->portal>i)
+               RvR_render_line(x0,y0,x1,y1,color_red);
+         }
+         else
+         {
+            RvR_render_line(x0,y0,x1,y1,color_white);
+         }
+      }
+   }
+
+   //Draw walls
+   for(int i = 0;i<map->sector_count;i++)
+   {
+      for(int j = 0;j<map->sectors[i].wall_count;j++)
+      {
+         RvR_port_wall *p0 = map->walls+map->sectors[i].wall_first+j;
+
+         int x0 = ((p0->x-camera.x)*grid_size)/1024+RvR_xres()/2;
+         int y0 = ((p0->y-camera.y)*grid_size)/1024+RvR_yres()/2;
+
+         //Only draw last wall in chain (not actually guranteed to be last
+         //wall or only wall drawn, but close enough
+         if(p0->join<map->sectors[i].wall_first+j)
+         {
+            RvR_render_rectangle(x0-3,y0-3,5,5,color_orange);
+            //void RvR_render_rectangle(int x, int y, int width, int height, uint8_t index);
+         }
+      }
+   }
 
    //Draw camera
    //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(camera.direction);
