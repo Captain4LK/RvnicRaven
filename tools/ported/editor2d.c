@@ -47,6 +47,8 @@ static Map_list *map_list = NULL;
 static int map_list_scroll = 0;
 
 static Map_sprite *sprite_sel = NULL;
+
+static int16_t wall_move = -1;
 //-------------------------------------
 
 //Function prototypes
@@ -283,10 +285,41 @@ void editor2d_update(void)
    }
 
    static Map_sprite *sprite_move = NULL;
-   if(RvR_key_pressed(RVR_BUTTON_LEFT)&&sprite_sel!=NULL)
-      sprite_move = sprite_sel;
+
+   if(RvR_key_pressed(RVR_BUTTON_LEFT))
+   {
+      //Check for selected wall
+      wall_move = -1;
+      for(int i = 0;i<map->wall_count;i++)
+      { 
+         RvR_port_wall *p0 = map->walls+i;
+         int x0 = ((p0->x-camera.x)*grid_size)/1024+RvR_xres()/2;
+         int y0 = ((p0->y-camera.y)*grid_size)/1024+RvR_yres()/2;
+
+         if(mx>=x0-3&&mx<=x0+3&&my>=y0-3&&my<=y0+3)
+         {
+            wall_move = i;
+            break;
+         }
+      }
+
+      if(wall_move==-1&&sprite_sel!=NULL)
+         sprite_move = sprite_sel;
+   }
    if(RvR_key_released(RVR_BUTTON_LEFT))
-      sprite_move = NULL;
+   {
+      if(sprite_move!=NULL)
+         sprite_move = NULL;
+      if(wall_move>=0)
+         wall_move = -1;
+   }
+
+   if(wall_move>=0)
+   {
+      RvR_fix22 x = ((mx+scroll_x)*1024)/grid_size;
+      RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
+      RvR_port_wall_move(map,wall_move,x,y);
+   }
 
    if(sprite_move!=NULL)
    {
@@ -398,26 +431,6 @@ void editor2d_draw(void)
 
    int sx = scroll_x / grid_size;
    int sy = scroll_y / grid_size;
-   /*for(int y = -1; y<=RvR_yres() / grid_size + 1; y++)
-   {
-      for(int x = -1; x<=RvR_xres() / grid_size + 1; x++)
-      {
-         {
-            int tx = (x + sx) * grid_size - scroll_x;
-            int ty = (y + sy) * grid_size - scroll_y;
-
-            uint16_t ftex = RvR_ray_map_floor_tex_at(map, x + sx, y + sy);
-            uint16_t ctex = RvR_ray_map_ceil_tex_at(map, x + sx, y + sy);
-            RvR_fix16 fheight = RvR_ray_map_floor_height_at(map, x + sx, y + sy);
-            RvR_fix16 cheight = RvR_ray_map_ceiling_height_at(map, x + sx, y + sy);
-
-            if(!map_tile_comp(ftex, ctex, fheight, cheight, x + sx, y + sy - 1))
-               RvR_render_horizontal_line(tx, tx + grid_size, ty, color_light_gray);
-            if(!map_tile_comp(ftex, ctex, fheight, cheight, x + sx - 1, y + sy))
-               RvR_render_vertical_line(tx, ty, ty + grid_size, color_light_gray);
-         }
-      }
-   }*/
 
    /*//Draw sprites
    Map_sprite *sp = map_sprites;
@@ -486,10 +499,7 @@ void editor2d_draw(void)
          //Only draw last wall in chain (not actually guranteed to be last
          //wall or only wall drawn, but close enough
          if(p0->join<map->sectors[i].wall_first+j)
-         {
             RvR_render_rectangle(x0-3,y0-3,5,5,color_orange);
-            //void RvR_render_rectangle(int x, int y, int width, int height, uint8_t index);
-         }
       }
    }
 
