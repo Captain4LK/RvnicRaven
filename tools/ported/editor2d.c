@@ -299,6 +299,7 @@ void editor2d_update(void)
          if(mx>=x0-3&&mx<=x0+3&&my>=y0-3&&my<=y0+3)
          {
             wall_move = i;
+            undo_track_wall_move(wall_move,p0->x,p0->y);
             break;
          }
       }

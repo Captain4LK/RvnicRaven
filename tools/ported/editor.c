@@ -24,26 +24,30 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "editor.h"
 #include "editor2d.h"
 #include "editor3d.h"
+#include "undo.h"
 //-------------------------------------
 
 //#defines
 #define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX * RvR_yres()) / 65536)
 #define CAMERA_SHEAR_STEP_FRAME ((RvR_yres() * CAMERA_SHEAR_SPEED) / (RvR_fps() * 4))
+
+#define WRAP(p) ((p) & (UNDO_BUFFER_SIZE - 1))
+#define UNDO_RECORD (UINT16_MAX)
+#define REDO_RECORD (UINT16_MAX - 2)
+#define JUNK_RECORD (UINT16_MAX - 1)
 //-------------------------------------
 
 //Typedefs
+typedef enum
+{
+   ED_WALL_MOVE = 0,
+}Ed_action;
 //-------------------------------------
 
 //Variables
 RvR_port_cam camera;
 
 static int editor_mode = 0;
-
-static uint16_t *undo_buffer = NULL;
-static int undo_len = 0;
-static int undo_pos = 0;
-static int redo_len = 0;
-static uint32_t undo_entry_len = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -53,8 +57,7 @@ static uint32_t undo_entry_len = 0;
 
 void editor_init(void)
 {
-   undo_buffer = RvR_malloc(sizeof(*undo_buffer) * UNDO_BUFFER_SIZE, "ported undo buffer");
-   memset(undo_buffer, 0, sizeof(*undo_buffer) * UNDO_BUFFER_SIZE);
+   undo_init();
 
    camera.fov = 1024;
    camera.shear = 0;
@@ -81,18 +84,11 @@ void editor_draw(void)
    else
       editor3d_draw();
 
-   //if(RvR_key_pressed(RVR_KEY_U))
-      //editor_undo();
+   if(RvR_key_pressed(RVR_KEY_U))
+      undo();
 
-   //if(RvR_key_pressed(RVR_KEY_R))
-      //editor_redo();
-}
-
-void editor_undo_reset()
-{
-   undo_len = 0;
-   undo_pos = 0;
-   redo_len = 0;
+   if(RvR_key_pressed(RVR_KEY_R))
+      redo();
 }
 
 void camera_update()

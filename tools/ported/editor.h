@@ -18,8 +18,6 @@ void editor_init(void);
 void editor_update(void);
 void editor_draw(void);
 
-void editor_undo_reset();
-
 void camera_update();
 
 #endif

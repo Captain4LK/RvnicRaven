@@ -27,6 +27,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "config.h"
 #include "map.h"
 #include "editor.h"
+#include "undo.h"
 #include "texture.h"
 //-------------------------------------
 
@@ -92,7 +93,7 @@ void map_load(const char *path)
    camera.y = 0;
    camera.z = 1024;
 
-   editor_undo_reset();
+   undo_reset();
 }
 
 void map_new()
@@ -109,7 +110,7 @@ void map_new()
    camera.y = 0;
    camera.z = 1024;
 
-   editor_undo_reset();
+   undo_reset();
 
    int16_t sector = RvR_port_sector_new(map, 0, 0);
    map->sectors[sector].floor = 0;
