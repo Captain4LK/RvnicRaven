@@ -282,8 +282,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 num_step_z = 4*(wall->z0-wall->z1);
          RvR_fix22 num_z = 4*wall->z1;
 
-         RvR_fix22 num_step_u = RvR_fix22_mul(wall->z0,wall->u1)-RvR_fix22_mul(wall->z1,wall->u0);
-         RvR_fix22 num_u = RvR_fix22_mul(wall->u0,wall->z1);
+         int64_t num_step_u = RvR_fix22_mul(wall->z0,wall->u1)-RvR_fix22_mul(wall->z1,wall->u0);
+         int64_t num_u = RvR_fix22_mul(wall->u0,wall->z1);
 
          //Adjust for fractional part
          int x0 = (wall->x0+1023)/1024;
@@ -318,7 +318,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
             port_ytop[x] = RvR_yres();
             port_ybot[x] = -1;
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
-            RvR_fix22 nu = num_u+RvR_fix22_div(num_step_u*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            int64_t nu = num_u+((num_step_u*(x-x0))*1024)/RvR_non_zero(wall->x1-wall->x0);
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
             RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
 
