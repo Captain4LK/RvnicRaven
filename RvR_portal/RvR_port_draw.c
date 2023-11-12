@@ -294,6 +294,9 @@ void RvR_port_draw_map(RvR_port_selection *select)
          num_z+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_z),RvR_non_zero(wall->x1-wall->x0));
          num_u+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u),RvR_non_zero(wall->x1-wall->x0));
 
+         port_plane *plane_floor;
+         port_plane *plane_ceiling;
+
          for(int x = x0;x<x1;x++)
          {
             int y0 = (cy+4095)/4096;

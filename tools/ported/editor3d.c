@@ -437,6 +437,9 @@ void editor3d_update(void)
          }
       }
    }
+
+   if(RvR_key_pressed(RVR_KEY_NP_ENTER))
+      editor_set_2d();
 }
 
 void editor3d_draw(void)

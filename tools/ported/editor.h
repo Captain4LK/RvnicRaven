@@ -20,4 +20,7 @@ void editor_draw(void);
 
 void camera_update();
 
+void editor_set_3d(void);
+void editor_set_2d(void);
+
 #endif

@@ -65,8 +65,8 @@ void editor_init(void)
 
 void editor_update(void)
 {
-   if(RvR_key_pressed(RVR_KEY_NP_ENTER))
-      editor_mode = !editor_mode;
+   //if(RvR_key_pressed(RVR_KEY_NP_ENTER))
+      //editor_mode = !editor_mode;
 
    if(RvR_key_down(RVR_KEY_LCTRL)&&RvR_key_pressed(RVR_KEY_S))
       map_save();
@@ -165,9 +165,20 @@ void camera_update()
    camera.y+=offy;
    camera.z+=offz;
 
+   camera.sector = RvR_port_sector_update(map,camera.sector,camera.x,camera.y);
    //Collision
    //RvR_fix16 floor_height = 0;
    //RvR_fix16 ceiling_height = 0;
    //move_with_collision(offx, offy, offz, 1, 1, &floor_height, &ceiling_height);
+}
+
+void editor_set_3d(void)
+{
+   editor_mode = 1;
+}
+
+void editor_set_2d(void)
+{
+   editor_mode = 0;
 }
 //-------------------------------------

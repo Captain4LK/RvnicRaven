@@ -23,6 +23,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "config.h"
 #include "color.h"
 #include "map.h"
+#include "undo.h"
 #include "editor.h"
 #include "editor2d.h"
 //-------------------------------------
@@ -31,6 +32,20 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
+typedef enum
+{
+   STATE2D_VIEW,
+   STATE2D_VIEW_SCROLL,
+   STATE2D_IO,
+   STATE2D_IO_NEW,
+   STATE2D_IO_SAVED,
+   STATE2D_IO_SAVE_AS,
+   STATE2D_IO_QUIT,
+   STATE2D_IO_QUIT_SAVE,
+   STATE2D_IO_LOAD,
+   STATE2D_WALL_MOVE,
+   STATE2D_SECTOR,
+}State2D;
 //-------------------------------------
 
 //Variables
@@ -49,15 +64,60 @@ static int map_list_scroll = 0;
 static Map_sprite *sprite_sel = NULL;
 
 static int16_t wall_move = -1;
+
+static State2D state = STATE2D_VIEW;
+
+static int16_t sector_current;
+static RvR_fix22 world_mx;
+static RvR_fix22 world_my;
 //-------------------------------------
 
 //Function prototypes
+static void e2d_draw_base(void);
+
+static void e2d_update_view(void);
+static void e2d_draw_view(void);
+static void e2d_update_view_scroll(void);
+static void e2d_draw_view_scroll(void);
+static void e2d_update_io(void);
+static void e2d_draw_io(void);
+static void e2d_update_io_new(void);
+static void e2d_draw_io_new(void);
+static void e2d_update_io_saved(void);
+static void e2d_draw_io_saved(void);
+static void e2d_update_io_save_as(void);
+static void e2d_draw_io_save_as(void);
+static void e2d_update_quit(void);
+static void e2d_draw_quit(void);
+static void e2d_update_quit_save(void);
+static void e2d_draw_quit_save(void);
+static void e2d_update_io_load(void);
+static void e2d_draw_io_load(void);
+static void e2d_update_wall_move(void);
+static void e2d_draw_wall_move(void);
+static void e2d_update_sector(void);
+static void e2d_draw_sector(void);
 //-------------------------------------
 
 //Function implementations
 
 void editor2d_update(void)
 {
+   switch(state)
+   {
+   case STATE2D_VIEW: e2d_update_view(); break;
+   case STATE2D_VIEW_SCROLL: e2d_update_view_scroll(); break;
+   case STATE2D_IO: e2d_update_io(); break;
+   case STATE2D_IO_NEW: e2d_update_io_new(); break;
+   case STATE2D_IO_SAVED: e2d_update_io_saved(); break;
+   case STATE2D_IO_SAVE_AS: e2d_update_io_save_as(); break;
+   case STATE2D_IO_QUIT: e2d_update_quit(); break;
+   case STATE2D_IO_QUIT_SAVE: e2d_update_quit_save(); break;
+   case STATE2D_IO_LOAD: e2d_update_io_load(); break;
+   case STATE2D_WALL_MOVE: e2d_update_wall_move(); break;
+   case STATE2D_SECTOR: e2d_update_sector(); break;
+   }
+#if 0
    int mx, my;
    RvR_mouse_pos(&mx, &my);
 
@@ -67,152 +127,6 @@ void editor2d_update(void)
    {
       switch(menu)
       {
-      case -2:
-         if(RvR_key_pressed(RVR_KEY_BACK))
-            menu = 0;
-         break;
-      case -1:
-         if(RvR_key_pressed(RVR_KEY_BACK))
-            menu = 0;
-         break;
-      case 1:
-         if(RvR_key_pressed(RVR_KEY_BACK))
-            menu = 0;
-
-         if(RvR_key_pressed(RVR_KEY_N))
-         {
-            menu = 2;
-         }
-         else if(RvR_key_pressed(RVR_KEY_S))
-         {
-            map_save();
-            menu = -2;
-         }
-         else if(RvR_key_pressed(RVR_KEY_A))
-         {
-            menu = 5;
-            menu_input[0] = '\0';
-            RvR_text_input_start(menu_input, 64);
-         }
-         else if(RvR_key_pressed(RVR_KEY_Q))
-         {
-            menu = 6;
-         }
-         else if(RvR_key_pressed(RVR_KEY_L))
-         {
-            map_list = map_list_get();
-            menu = 8;
-         }
-         break;
-      case 2:
-         if(RvR_key_pressed(RVR_KEY_BACK)||RvR_key_pressed(RVR_KEY_N))
-         {
-            menu = 0;
-         }
-
-         if(RvR_key_pressed(RVR_KEY_Y))
-         {
-            menu_input[0] = '\0';
-            RvR_text_input_start(menu_input, 512);
-            menu = 3;
-         }
-         break;
-      case 3:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
-         {
-            RvR_text_input_end();
-            menu = 0;
-         }
-
-         if(RvR_key_pressed(RVR_KEY_ENTER))
-         {
-            RvR_text_input_end();
-            menu_new_width = atoi(menu_input);
-            if(menu_new_width<=0)
-            {
-               menu = -1;
-            }
-            else
-            {
-               menu_input[0] = '\0';
-               RvR_text_input_start(menu_input, 512);
-               menu = 4;
-            }
-         }
-         break;
-      case 4:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
-         {
-            RvR_text_input_end();
-            menu = 0;
-         }
-
-         if(RvR_key_pressed(RVR_KEY_ENTER))
-         {
-            RvR_text_input_end();
-            menu_new_height = atoi(menu_input);
-            if(menu_new_height<=0)
-            {
-               menu = -1;
-            }
-            else
-            {
-               map_new();
-               menu = 0;
-            }
-         }
-         break;
-      case 5:
-         if(RvR_key_pressed(RVR_KEY_ESCAPE))
-         {
-            RvR_text_input_end();
-            menu = 0;
-         }
-
-         if(RvR_key_pressed(RVR_KEY_ENTER))
-         {
-            RvR_text_input_end();
-            map_set_path(menu_input);
-            map_save();
-            menu = 0;
-         }
-         break;
-      case 6:
-         if(RvR_key_pressed(RVR_KEY_Y))
-            menu = 7;
-         else if(RvR_key_pressed(RVR_KEY_N))
-            menu = 0;
-         break;
-      case 7:
-         if(RvR_key_pressed(RVR_KEY_Y))
-         {
-            map_save();
-            RvR_quit();
-         }
-         else if(RvR_key_pressed(RVR_KEY_N))
-         {
-            RvR_quit();
-         }
-         break;
-      case 8:
-         if(RvR_key_pressed(RVR_KEY_BACK))
-         {
-            menu = 0;
-         }
-         else if(RvR_key_pressed(RVR_KEY_DOWN)&&map_list_scroll<map_list->data_used - 1)
-         {
-            map_list_scroll++;
-         }
-         else if(RvR_key_pressed(RVR_KEY_UP)&&map_list_scroll>0)
-         {
-            map_list_scroll--;
-         }
-         else if(RvR_key_pressed(RVR_KEY_ENTER))
-         {
-            map_load(map_list->data[map_list_scroll]);
-            menu = 0;
-         }
-         break;
       case 9:
          if(RvR_key_pressed(RVR_KEY_BACK))
             menu = 0;
@@ -315,13 +229,6 @@ void editor2d_update(void)
          wall_move = -1;
    }
 
-   if(wall_move>=0)
-   {
-      RvR_fix22 x = ((mx+scroll_x)*1024)/grid_size;
-      RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
-      RvR_port_wall_move(map,wall_move,x,y);
-   }
-
    if(sprite_move!=NULL)
    {
       sprite_move->x = ((mx + scroll_x) * 1024) / grid_size;
@@ -360,75 +267,54 @@ void editor2d_update(void)
       map_sprite_add(ms);
    }
 
-   if(RvR_key_pressed(RVR_BUTTON_RIGHT))
-   {
-      mouse_scroll = 1;
-      RvR_mouse_relative(1);
-
-      camera.x = ((scroll_x + mx) * 1024) / grid_size;
-      camera.y = ((scroll_y + my) * 1024) / grid_size;
-   }
-
-   if(RvR_key_released(RVR_BUTTON_RIGHT))
-   {
-      mouse_scroll = 0;
-      RvR_mouse_relative(0);
-      RvR_mouse_set_pos(RvR_xres() / 2, RvR_yres() / 2);
-   }
-
-   if(mouse_scroll)
-   {
-      int rx, ry;
-      RvR_mouse_relative_pos(&rx, &ry);
-
-      camera.x += (rx * 1024) / grid_size;
-      camera.y += (ry * 1024) / grid_size;
-   }
-   else
-   {
-      camera_update();
-   }
-
    scroll_x = (camera.x * grid_size) / 1024- RvR_xres() / 2;
    scroll_y = (camera.y * grid_size) / 1024- RvR_yres() / 2;
 
-   if(RvR_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)
-   {
-      int scrollx = ((scroll_x + RvR_xres() / 2) * 1024) / grid_size;
-      int scrolly = ((scroll_y + RvR_yres() / 2) * 1024) / grid_size;
-
-      grid_size += 4;
-      scroll_x = (scrollx * grid_size) / 1024- RvR_xres() / 2;
-      scroll_y = (scrolly * grid_size) / 1024- RvR_yres() / 2;
-   }
-   if(RvR_key_pressed(RVR_KEY_NP_SUB)&&grid_size>4)
-   {
-      int scrollx = ((scroll_x + RvR_xres() / 2) * 1024) / grid_size;
-      int scrolly = ((scroll_y + RvR_yres() / 2) * 1024) / grid_size;
-
-      grid_size -= 4;
-      scroll_x = (scrollx * grid_size) / 1024- RvR_xres() / 2;
-      scroll_y = (scrolly * grid_size) / 1024- RvR_yres() / 2;
-   }
+#endif
 }
 
 void editor2d_draw(void)
 {
-   RvR_render_clear(color_black);
-
-   if(menu==8)
+   switch(state)
    {
-      int scroll = 0;
-      if(map_list_scroll>RvR_yres() / 10)
-         scroll = map_list_scroll - RvR_yres() - 10;
-      for(int i = 0; i<=RvR_yres() / 10; i++)
-      {
-         int index = i + scroll;
-         if(index<map_list->data_used)
-            RvR_render_string(5, i * 10, 1, map_list->data[i], index==map_list_scroll?color_white:color_light_gray);
-      }
-      return;
+   case STATE2D_VIEW: e2d_draw_view(); break;
+   case STATE2D_VIEW_SCROLL: e2d_draw_view_scroll(); break;
+   case STATE2D_IO: e2d_draw_io(); break;
+   case STATE2D_IO_NEW: e2d_draw_io_new(); break;
+   case STATE2D_IO_SAVED: e2d_draw_io_saved(); break;
+   case STATE2D_IO_SAVE_AS: e2d_draw_io_save_as(); break;
+   case STATE2D_IO_QUIT: e2d_draw_quit(); break;
+   case STATE2D_IO_QUIT_SAVE: e2d_draw_quit_save(); break;
+   case STATE2D_IO_LOAD: e2d_draw_io_load(); break;
+   case STATE2D_WALL_MOVE: e2d_draw_wall_move(); break;
+   case STATE2D_SECTOR: e2d_draw_sector(); break;
    }
+
+#if 0
+   char tmp[1024];
+
+   switch(menu)
+   {
+   case -2: snprintf(tmp, 1024, "Saved map to %s", map_path_get()); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   case -1: RvR_render_string(5, RvR_yres() - 10, 1, "Invalid input", color_white); break;
+   case 0: snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   case 1: RvR_render_string(5, RvR_yres() - 10, 1, "(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit", color_white); break;
+   case 2: RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to start a new map? (Y/N)", color_white); break;
+   case 3: snprintf(tmp, 1024, "Map width: %s", menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   case 4: snprintf(tmp, 1024, "Map height: %s", menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   case 5: snprintf(tmp, 1024, "Save as: %s", menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   case 6: RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to quit? (Y/N)", color_white); break;
+   case 7: RvR_render_string(5, RvR_yres() - 10, 1, "Save changes? (Y/N)", color_white); break;
+   case 9: snprintf(tmp, 1024, "Sprite (texture %" PRIu16 ") extra0: %s", sprite_sel->texture, menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   case 10: snprintf(tmp, 1024, "Sprite (texture %" PRIu16 ") extra1: %s", sprite_sel->texture, menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   case 11: snprintf(tmp, 1024, "Sprite (texture %" PRIu16 ") extra2: %s", sprite_sel->texture, menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+   }
+#endif
+}
+
+static void e2d_draw_base(void)
+{
+   RvR_render_clear(color_black);
 
    int sx = scroll_x / grid_size;
    int sy = scroll_y / grid_size;
@@ -468,6 +354,9 @@ void editor2d_draw(void)
       {
          RvR_port_wall *p0 = map->walls+map->sectors[i].wall_first+j;
          RvR_port_wall *p1 = map->walls+p0->p2;
+
+         if(p0->p2==-1)
+            continue;
 
          int x0 = ((p0->x-camera.x)*grid_size)/4+RvR_xres()*128;
          int y0 = ((p0->y-camera.y)*grid_size)/4+RvR_yres()*128;
@@ -536,23 +425,377 @@ void editor2d_draw(void)
    RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
 
    RvR_render_rectangle_fill(0, RvR_yres() - 12, RvR_xres(), 12, color_dark_gray);
-   char tmp[1024];
+}
 
-   switch(menu)
+static void e2d_update_view(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   if(RvR_key_pressed(RVR_KEY_BACK))
+      state = STATE2D_IO;
+
+   camera_update();
+
+   if(RvR_key_pressed(RVR_BUTTON_LEFT))
    {
-   case -2: snprintf(tmp, 1024, "Saved map to %s", map_path_get()); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
-   case -1: RvR_render_string(5, RvR_yres() - 10, 1, "Invalid input", color_white); break;
-   case 0: snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
-   case 1: RvR_render_string(5, RvR_yres() - 10, 1, "(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit", color_white); break;
-   case 2: RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to start a new map? (Y/N)", color_white); break;
-   case 3: snprintf(tmp, 1024, "Map width: %s", menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
-   case 4: snprintf(tmp, 1024, "Map height: %s", menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
-   case 5: snprintf(tmp, 1024, "Save as: %s", menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
-   case 6: RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to quit? (Y/N)", color_white); break;
-   case 7: RvR_render_string(5, RvR_yres() - 10, 1, "Save changes? (Y/N)", color_white); break;
-   case 9: snprintf(tmp, 1024, "Sprite (texture %" PRIu16 ") extra0: %s", sprite_sel->texture, menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
-   case 10: snprintf(tmp, 1024, "Sprite (texture %" PRIu16 ") extra1: %s", sprite_sel->texture, menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
-   case 11: snprintf(tmp, 1024, "Sprite (texture %" PRIu16 ") extra2: %s", sprite_sel->texture, menu_input); RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white); break;
+      //Check for selected wall
+      wall_move = -1;
+      for(int i = 0;i<map->wall_count;i++)
+      { 
+         RvR_port_wall *p0 = map->walls+i;
+         int x0 = ((p0->x-camera.x)*grid_size)/1024+RvR_xres()/2;
+         int y0 = ((p0->y-camera.y)*grid_size)/1024+RvR_yres()/2;
+
+         if(mx>=x0-3&&mx<=x0+3&&my>=y0-3&&my<=y0+3)
+         {
+            wall_move = i;
+            undo_track_wall_move(wall_move,p0->x,p0->y);
+            state = STATE2D_WALL_MOVE;
+            break;
+         }
+      }
+
+      //if(wall_move==-1&&sprite_sel!=NULL)
+         //sprite_move = sprite_sel;
    }
+
+   if(RvR_key_pressed(RVR_KEY_SPACE))
+   {
+      RvR_fix22 x = ((mx+scroll_x)*1024)/grid_size;
+      RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
+      sector_current = RvR_port_sector_update(map,-1,x,y);
+
+      if(sector_current==-1)
+      {
+         sector_current = RvR_port_sector_new(map,x,y);
+         map->sectors[sector_current].floor = 0;
+         map->sectors[sector_current].ceiling = 2*1024;
+         map->sectors[sector_current].floor_tex = 15;
+         map->sectors[sector_current].ceiling_tex = 15;
+
+         state = STATE2D_SECTOR;
+      }
+      else
+      {
+         RvR_port_wall_append(map,sector_current,x,y);
+         state = STATE2D_SECTOR;
+      }
+   }
+
+   if(RvR_key_pressed(RVR_BUTTON_RIGHT))
+   {
+      RvR_mouse_relative(1);
+
+      mouse_scroll = 1;
+      camera.x = ((scroll_x + mx) * 1024) / grid_size;
+      camera.y = ((scroll_y + my) * 1024) / grid_size;
+      state = STATE2D_VIEW_SCROLL;
+   }
+
+   scroll_x = (camera.x * grid_size) / 1024- RvR_xres() / 2;
+   scroll_y = (camera.y * grid_size) / 1024- RvR_yres() / 2;
+
+   if(RvR_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)
+   {
+      int scrollx = ((scroll_x + RvR_xres() / 2) * 1024) / grid_size;
+      int scrolly = ((scroll_y + RvR_yres() / 2) * 1024) / grid_size;
+
+      grid_size += 4;
+      scroll_x = (scrollx * grid_size) / 1024- RvR_xres() / 2;
+      scroll_y = (scrolly * grid_size) / 1024- RvR_yres() / 2;
+   }
+   if(RvR_key_pressed(RVR_KEY_NP_SUB)&&grid_size>4)
+   {
+      int scrollx = ((scroll_x + RvR_xres() / 2) * 1024) / grid_size;
+      int scrolly = ((scroll_y + RvR_yres() / 2) * 1024) / grid_size;
+
+      grid_size -= 4;
+      scroll_x = (scrollx * grid_size) / 1024- RvR_xres() / 2;
+      scroll_y = (scrolly * grid_size) / 1024- RvR_yres() / 2;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_NP_ENTER)&&map->sector_count>0)
+      editor_set_3d();
+}
+
+static void e2d_draw_view(void)
+{
+   e2d_draw_base();
+
+   char tmp[1024];
+   snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir);
+   RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
+}
+
+static void e2d_update_view_scroll(void)
+{
+   int rx, ry;
+   RvR_mouse_relative_pos(&rx, &ry);
+
+   camera.x += (rx * 1024) / grid_size;
+   camera.y += (ry * 1024) / grid_size;
+
+   if(RvR_key_released(RVR_BUTTON_RIGHT))
+   {
+      mouse_scroll = 0;
+      RvR_mouse_relative(0);
+      RvR_mouse_set_pos(RvR_xres() / 2, RvR_yres() / 2);
+      state = STATE2D_VIEW;
+   }
+}
+
+static void e2d_draw_view_scroll(void)
+{
+   e2d_draw_base();
+
+   char tmp[1024];
+   snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir);
+   RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
+}
+
+static void e2d_update_io(void)
+{
+   if(RvR_key_pressed(RVR_KEY_BACK))
+      state = STATE2D_VIEW;
+
+   if(RvR_key_pressed(RVR_KEY_N))
+   {
+      state = STATE2D_IO_NEW;
+   }
+   else if(RvR_key_pressed(RVR_KEY_S))
+   {
+      map_save();
+      state = STATE2D_IO_SAVED;
+   }
+   else if(RvR_key_pressed(RVR_KEY_A))
+   {
+      state = STATE2D_IO_SAVE_AS;
+      menu_input[0] = '\0';
+      RvR_text_input_start(menu_input, 64);
+   }
+   else if(RvR_key_pressed(RVR_KEY_Q))
+   {
+      state = STATE2D_IO_QUIT;
+   }
+   else if(RvR_key_pressed(RVR_KEY_L))
+   {
+      map_list = map_list_get();
+      state = STATE2D_IO_LOAD;
+   }
+}
+
+static void e2d_draw_io(void)
+{
+   e2d_draw_base();
+
+   RvR_render_string(5, RvR_yres() - 10, 1, "(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit", color_white);
+}
+
+static void e2d_update_io_new(void)
+{
+   if(RvR_key_pressed(RVR_KEY_BACK)||RvR_key_pressed(RVR_KEY_N))
+   {
+      state = STATE2D_VIEW;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_Y))
+   {
+      map_new();
+      state = STATE2D_VIEW;
+   }
+}
+
+static void e2d_draw_io_new(void)
+{
+   e2d_draw_base();
+
+   RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to start a new map? (Y/N)", color_white);
+}
+
+static void e2d_update_io_saved(void)
+{
+   if(RvR_key_pressed(RVR_KEY_BACK))
+      state = STATE2D_VIEW;
+}
+
+static void e2d_draw_io_saved(void)
+{
+   e2d_draw_base();
+
+   char tmp[1024];
+   snprintf(tmp, 1024, "Saved map to %s", map_path_get());
+   RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
+}
+
+static void e2d_update_io_save_as(void)
+{
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+   {
+      RvR_text_input_end();
+      state = STATE2D_VIEW;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      RvR_text_input_end();
+      map_set_path(menu_input);
+      map_save();
+      state = STATE2D_VIEW;
+   }
+}
+
+static void e2d_draw_io_save_as(void)
+{
+   e2d_draw_base();
+
+   char tmp[1024];
+   snprintf(tmp, 1024, "Save as: %s", menu_input);
+   RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
+}
+
+static void e2d_update_quit(void)
+{
+   if(RvR_key_pressed(RVR_KEY_Y))
+      state = STATE2D_IO_QUIT_SAVE;
+   else if(RvR_key_pressed(RVR_KEY_N))
+      state = STATE2D_VIEW;
+}
+
+static void e2d_draw_quit(void)
+{
+   e2d_draw_base();
+
+   RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to quit? (Y/N)", color_white);
+}
+
+static void e2d_update_quit_save(void)
+{
+   if(RvR_key_pressed(RVR_KEY_Y))
+   {
+      map_save();
+      RvR_quit();
+   }
+   else if(RvR_key_pressed(RVR_KEY_N))
+   {
+      RvR_quit();
+   }
+}
+
+static void e2d_draw_quit_save(void)
+{
+   e2d_draw_base();
+
+   RvR_render_string(5, RvR_yres() - 10, 1, "Save changes? (Y/N)", color_white);
+}
+
+static void e2d_update_io_load(void)
+{
+   if(RvR_key_pressed(RVR_KEY_BACK))
+   {
+      state = STATE2D_VIEW;
+   }
+   else if(RvR_key_pressed(RVR_KEY_DOWN)&&map_list_scroll<map_list->data_used - 1)
+   {
+      map_list_scroll++;
+   }
+   else if(RvR_key_pressed(RVR_KEY_UP)&&map_list_scroll>0)
+   {
+      map_list_scroll--;
+   }
+   else if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      map_load(map_list->data[map_list_scroll]);
+      state = STATE2D_VIEW;
+   }
+}
+
+static void e2d_draw_io_load(void)
+{
+   RvR_render_clear(color_black);
+
+   int scroll = 0;
+   if(map_list_scroll>RvR_yres() / 10)
+      scroll = map_list_scroll - RvR_yres() - 10;
+   for(int i = 0; i<=RvR_yres() / 10; i++)
+   {
+      int index = i + scroll;
+      if(index<map_list->data_used)
+         RvR_render_string(5, i * 10, 1, map_list->data[i], index==map_list_scroll?color_white:color_light_gray);
+   }
+}
+
+static void e2d_update_wall_move(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   if(RvR_key_released(RVR_BUTTON_LEFT))
+   {
+      wall_move = -1;
+      state = STATE2D_VIEW;
+   }
+
+   if(wall_move>=0)
+   {
+      RvR_fix22 x = ((mx+scroll_x)*1024)/grid_size;
+      RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
+      RvR_port_wall_move(map,wall_move,x,y);
+   }
+   else
+   {
+      state = STATE2D_VIEW;
+   }
+}
+
+static void e2d_draw_wall_move(void)
+{
+   e2d_draw_base();
+}
+
+static void e2d_update_sector(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   world_mx = ((mx+scroll_x)*1024)/grid_size;
+   world_my = ((my+scroll_y)*1024)/grid_size;
+
+   //Snap to nearby walls
+   for(int i = 0;i<map->wall_count;i++)
+   {
+      RvR_port_wall *p0 = map->walls+i;
+      if(RvR_abs(p0->x-world_mx)<((4*1024)/grid_size)&&
+         RvR_abs(p0->y-world_my)<((4*1024)/grid_size))
+      {
+         world_mx = p0->x;
+         world_my = p0->y;
+      }
+   }
+
+   if(RvR_key_pressed(RVR_KEY_SPACE))
+   {
+
+      int16_t first = RvR_port_wall_first(map,map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1);
+      int16_t wall = RvR_port_wall_append(map,sector_current,world_mx,world_my);
+      if(wall==first)
+         state = STATE2D_VIEW;
+   }
+}
+
+static void e2d_draw_sector(void)
+{
+   e2d_draw_base();
+
+   int16_t last = map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1;
+   RvR_port_wall *p0 = map->walls+last;
+   int x0 = ((p0->x-camera.x)*grid_size)/4+RvR_xres()*128;
+   int y0 = ((p0->y-camera.y)*grid_size)/4+RvR_yres()*128;
+   int x1 = ((world_mx-camera.x)*grid_size)/4+RvR_xres()*128;
+   int y1 = ((world_my-camera.y)*grid_size)/4+RvR_yres()*128;
+
+   RvR_render_line(x0,y0,x1,y1,color_white);
+
+   RvR_render_rectangle(x1/256-3,y1/256-3,5,5,color_orange);
 }
 //-------------------------------------
