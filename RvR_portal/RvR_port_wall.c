@@ -252,4 +252,19 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
 
    return insert;
 }
+
+int16_t RvR_port_wall_next(RvR_port_map *map, int16_t wall)
+{
+   return map->walls[wall].p2;
+}
+
+int16_t RvR_port_wall_previous(RvR_port_map *map, int16_t wall)
+{
+   if(wall>0&&map->walls[wall-1].p2==wall)
+      return wall-1;
+
+   for(int i = 0;i<map->wall_count;i++)
+      if(map->walls[i].p2==wall)
+         return i;
+}
 //-------------------------------------

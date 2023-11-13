@@ -464,7 +464,12 @@ static void e2d_update_view(void)
    {
       RvR_fix22 x = ((mx+scroll_x)*1024)/grid_size;
       RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
-      sector_current = RvR_port_sector_update(map,-1,x,y);
+      x&=~(x&127);
+      y&=~(y&127);
+
+      sector_draw_start(x,y);
+      state = STATE2D_SECTOR;
+      /*sector_current = RvR_port_sector_update(map,-1,x,y);
 
       if(sector_current==-1)
       {
@@ -480,7 +485,7 @@ static void e2d_update_view(void)
       {
          RvR_port_wall_append(map,sector_current,x,y);
          state = STATE2D_SECTOR;
-      }
+      }*/
    }
 
    if(RvR_key_pressed(RVR_BUTTON_RIGHT))
@@ -760,9 +765,11 @@ static void e2d_update_sector(void)
 
    world_mx = ((mx+scroll_x)*1024)/grid_size;
    world_my = ((my+scroll_y)*1024)/grid_size;
+   world_mx&=~(world_mx&127);
+   world_my&=~(world_my&127);
 
    //Snap to nearby walls
-   for(int i = 0;i<map->wall_count;i++)
+   /*for(int i = 0;i<map->wall_count;i++)
    {
       RvR_port_wall *p0 = map->walls+i;
       if(RvR_abs(p0->x-world_mx)<((4*1024)/grid_size)&&
@@ -771,15 +778,17 @@ static void e2d_update_sector(void)
          world_mx = p0->x;
          world_my = p0->y;
       }
-   }
+   }*/
 
    if(RvR_key_pressed(RVR_KEY_SPACE))
    {
-
-      int16_t first = RvR_port_wall_first(map,map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1);
-      int16_t wall = RvR_port_wall_append(map,sector_current,world_mx,world_my);
-      if(wall==first)
+      int ret = sector_draw_add(world_mx,world_my);
+      if(ret)
          state = STATE2D_VIEW;
+      //int16_t first = RvR_port_wall_first(map,map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1);
+      //int16_t wall = RvR_port_wall_append(map,sector_current,world_mx,world_my);
+      //if(wall==first)
+         //state = STATE2D_VIEW;
    }
 }
 
@@ -787,7 +796,7 @@ static void e2d_draw_sector(void)
 {
    e2d_draw_base();
 
-   int16_t last = map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1;
+   /*int16_t last = map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1;
    RvR_port_wall *p0 = map->walls+last;
    int x0 = ((p0->x-camera.x)*grid_size)/4+RvR_xres()*128;
    int y0 = ((p0->y-camera.y)*grid_size)/4+RvR_yres()*128;
@@ -796,6 +805,8 @@ static void e2d_draw_sector(void)
 
    RvR_render_line(x0,y0,x1,y1,color_white);
 
-   RvR_render_rectangle(x1/256-3,y1/256-3,5,5,color_orange);
+   RvR_render_rectangle(x1/256-3,y1/256-3,5,5,color_orange);*/
+
+   sector_draw_draw(world_mx,world_my,grid_size);
 }
 //-------------------------------------

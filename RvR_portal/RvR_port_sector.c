@@ -107,12 +107,12 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
 {
    int wall = 0;
    RvR_port_sector *s = map->sectors+sector;
-   while(wall<map->sectors[sector].wall_count)
+   while(wall<map->sectors[sector].wall_count-1)
    {
       int64_t sum = 0;
       int first = wall;
 
-      for(;wall==0||map->walls[map->sectors[sector].wall_first+wall-1].p2==map->sectors[sector].wall_first+wall;wall++)
+      for(;wall==first||map->walls[map->sectors[sector].wall_first+wall-1].p2==map->sectors[sector].wall_first+wall;wall++)
       {
          int64_t x0 = map->walls[s->wall_first+wall].x;
          int64_t y0 = map->walls[s->wall_first+wall].y;
@@ -161,7 +161,6 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
             }
          }
       }
-      wall++;
    }
 }
 
