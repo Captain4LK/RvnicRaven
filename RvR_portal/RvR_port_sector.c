@@ -30,13 +30,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y)
+int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y)
 {
    if(sector<0||sector>=map->sector_count)
       return 0;
 
-   RvR_port_sector *sec = &map->sectors[sector];
-   RvR_port_wall *wall = &map->walls[sec->wall_first];
+   const RvR_port_sector *sec = &map->sectors[sector];
+   const RvR_port_wall *wall = &map->walls[sec->wall_first];
 
    int64_t crossed = 0;
    for(int i = 0;i<sec->wall_count;wall++,i++)
@@ -59,7 +59,7 @@ int RvR_port_sector_inside(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_f
    return crossed<0;
 }
 
-int16_t RvR_port_sector_update(RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y)
+int16_t RvR_port_sector_update(const RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y)
 {
    if(sector_last>=0&&sector_last<map->sector_count)
    {

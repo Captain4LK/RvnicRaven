@@ -31,7 +31,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-int16_t RvR_port_wall_sector(RvR_port_map *map, int16_t wall)
+int16_t RvR_port_wall_sector(const RvR_port_map *map, int16_t wall)
 {
    for(int i = 0;i<map->sector_count;i++)
       if(wall>=map->sectors[i].wall_first&&wall<map->sectors[i].wall_first+map->sectors[i].wall_count)
@@ -53,7 +53,7 @@ void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 
    }
 }
 
-int16_t RvR_port_wall_first(RvR_port_map *map, int16_t wall)
+int16_t RvR_port_wall_first(const RvR_port_map *map, int16_t wall)
 {
    int16_t cur = wall;
    for(;;)
@@ -253,12 +253,12 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
    return insert;
 }
 
-int16_t RvR_port_wall_next(RvR_port_map *map, int16_t wall)
+int16_t RvR_port_wall_next(const RvR_port_map *map, int16_t wall)
 {
    return map->walls[wall].p2;
 }
 
-int16_t RvR_port_wall_previous(RvR_port_map *map, int16_t wall)
+int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall)
 {
    if(wall>0&&map->walls[wall-1].p2==wall)
       return wall-1;
@@ -266,5 +266,7 @@ int16_t RvR_port_wall_previous(RvR_port_map *map, int16_t wall)
    for(int i = 0;i<map->wall_count;i++)
       if(map->walls[i].p2==wall)
          return i;
+
+   return -1;
 }
 //-------------------------------------
