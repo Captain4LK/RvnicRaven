@@ -108,6 +108,7 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
 int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y);
 int16_t RvR_port_wall_next(const RvR_port_map *map, int16_t wall);
 int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall);
+int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall);
 
 void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
 void RvR_port_draw_map(RvR_port_selection *select);

@@ -31,6 +31,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
+//TODO(Captain4LK): we can do a binary search here
+//--> speed up RvR_port_wall_previous() by using RvR_port_wall_sector()
 int16_t RvR_port_wall_sector(const RvR_port_map *map, int16_t wall)
 {
    for(int i = 0;i<map->sector_count;i++)
@@ -268,5 +270,21 @@ int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall)
          return i;
 
    return -1;
+}
+
+int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall)
+{
+   int subsector = 0;
+   for(int i = 0;i<map->sectors[sector].wall_count;i++)
+   {
+      int iwall = map->sectors[sector].wall_first+i;
+      if(iwall==wall)
+         break;
+
+      if(map->walls[iwall].p2<iwall)
+         subsector++;
+   }
+
+   return subsector;
 }
 //-------------------------------------
