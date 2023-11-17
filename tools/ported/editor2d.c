@@ -498,6 +498,9 @@ static void e2d_update_view(void)
       state = STATE2D_VIEW_SCROLL;
    }
 
+   RvR_fix22 x = ((mx+scroll_x)*1024)/grid_size;
+   RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
+
    scroll_x = (camera.x * grid_size) / 1024- RvR_xres() / 2;
    scroll_y = (camera.y * grid_size) / 1024- RvR_yres() / 2;
 

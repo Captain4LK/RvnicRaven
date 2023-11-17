@@ -38,7 +38,8 @@ int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x,
    const RvR_port_sector *sec = &map->sectors[sector];
    const RvR_port_wall *wall = &map->walls[sec->wall_first];
 
-   int64_t crossed = 0;
+   int64_t crossed0 = 0;
+   int64_t crossed1 = 0;
    for(int i = 0;i<sec->wall_count;wall++,i++)
    {
       int64_t x0 = wall->x-x;
@@ -46,17 +47,33 @@ int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x,
       int64_t x1 = map->walls[wall->p2].x-x;
       int64_t y1 = map->walls[wall->p2].y-y;
 
-      if((y0^y1)>=0)
-         continue;
+      //Exactly on wall
+      if((x0==0&&y0==0)||(x1==0&&y1==0))
+         return 1;
 
-      if((x0^x1)>=0)
-         crossed^=x1;
-      else
-         //Originally: (x1-x0)*(0-y0)-(y1-y0)*(0-x0)
-         crossed^=(x0*y1-x1*y0)^y1;
+      if((y0^y1)<0)
+      {
+         if((x0^x1)>=0)
+            crossed0^=x0;
+         else
+            crossed0^=(x0*y1-x1*y0)^y1;
+      }
+
+      y0--;
+      y1--;
+      if((y0^y1)<0)
+      {
+         x0--;
+         x1--;
+
+         if((x0^x1)>=0)
+            crossed1^=x0;
+         else
+            crossed1^=(x0*y1-x1*y0)^y1;
+      }
    }
 
-   return crossed<0;
+   return (crossed0|crossed1)<0;
 }
 
 int16_t RvR_port_sector_update(const RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y)
