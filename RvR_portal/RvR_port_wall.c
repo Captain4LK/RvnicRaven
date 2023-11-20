@@ -51,6 +51,7 @@ void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 
    {
       map->walls[cur].x = x;
       map->walls[cur].y = y;
+      printf("%d %d\n",wall,cur);
       cur = map->walls[cur].join;
    }
 }
@@ -98,8 +99,6 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
    for(int i = 0;i<map->wall_count;i++)
    {
       RvR_port_wall *wall = map->walls+i;
-      if(wall->portal>=insert)
-         wall->portal++;
       if(wall->p2>=insert)
          wall->p2++;
       if(wall->join>=insert)
@@ -169,8 +168,6 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
    for(int i = 0;i<map->wall_count;i++)
    {
       RvR_port_wall *wall = map->walls+i;
-      if(wall->portal>=insert)
-         wall->portal++;
       if(wall->p2>=insert)
          wall->p2++;
       if(wall->join>=insert)
@@ -218,8 +215,6 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
       for(int i = 0;i<map->wall_count;i++)
       {
          RvR_port_wall *wall = map->walls+i;
-         if(wall->portal>=insert1)
-            wall->portal++;
          if(wall->p2>=insert1)
             wall->p2++;
          if(wall->join>=insert1)
@@ -270,6 +265,21 @@ int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall)
          return i;
 
    return -1;
+}
+
+int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall)
+{
+   if(map->walls[wall].join<0)
+      return -1;
+
+   int16_t cur = map->walls[wall].join;
+   while(map->walls[cur].join!=wall)
+   {
+      cur = map->walls[cur].join;
+      if(cur==-1)
+         return -1;
+   }
+   return cur;
 }
 
 int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall)

@@ -316,6 +316,9 @@ static void e2d_draw_base(void)
 {
    RvR_render_clear(color_black);
 
+   int sx = scroll_x / grid_size;
+   int sy = scroll_y / grid_size;
+
    /*//Draw sprites
    Map_sprite *sp = map_sprites;
    while(sp!=NULL)
