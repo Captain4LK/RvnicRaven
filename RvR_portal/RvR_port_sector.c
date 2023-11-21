@@ -211,4 +211,49 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map,int16_t wall)
 
    return sn;
 }
+
+void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
+{
+   //TODO(Captain4LK): update joins and portals to deleted sector
+
+   //Move walls to left
+   int count = map->sectors[sector].wall_count;
+   int remove = map->sectors[sector].wall_first;
+   for(int w = remove;w<map->wall_count-count;w++)
+      map->walls[w] = map->walls[w+count];
+
+   //Update wall references
+   for(int w = 0;w<map->wall_count;w++)
+   {
+      RvR_port_wall *wall = map->walls+w;
+      if(wall->p2>=remove)
+         wall->p2-=count;
+      if(wall->join>=remove)
+         wall->join-=count;
+   }
+
+   //Update sector references
+   for(int s = 0;s<map->sector_count;s++)
+   {
+      RvR_port_sector *sct = map->sectors+s;
+      if(sct->wall_first>=remove)
+         sct->wall_first-=count;
+   }
+
+   //Move sectors to left
+   for(int s = sector;s<map->sector_count-1;s++)
+      map->sectors[s] = map->sectors[s+1];
+
+   //Update portals
+   for(int w = 0;w<map->wall_count;w++)
+   {
+      RvR_port_wall *wall = map->walls+w;
+      if(wall->portal>=sector)
+         wall->portal-=1;
+   }
+
+   //Resize arrays
+   map->wall_count-=count;
+   map->sector_count-=1;
+}
 //-------------------------------------
