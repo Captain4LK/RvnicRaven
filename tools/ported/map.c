@@ -127,6 +127,7 @@ void map_new()
    RvR_port_wall_append(map, sector, 5 * 1024, 3 * 1024);
    RvR_port_wall_append(map, sector, 5 * 1024, 5 * 1024);
    RvR_port_wall_append(map, sector, 3 * 1024, 5 * 1024);
+   RvR_port_wall_append(map, sector, 2 * 1024, 4 * 1024);
    w = RvR_port_wall_append(map, sector, 3 * 1024, 3 * 1024);
    int16_t s = RvR_port_sector_make_inner(map, w);
    map->sectors[s].floor = 512;

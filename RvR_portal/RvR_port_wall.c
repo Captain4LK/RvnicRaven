@@ -51,7 +51,6 @@ void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 
    {
       map->walls[cur].x = x;
       map->walls[cur].y = y;
-      printf("%d %d\n",wall,cur);
       cur = map->walls[cur].join;
    }
 }

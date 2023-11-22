@@ -214,7 +214,25 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map,int16_t wall)
 
 void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
 {
-   //TODO(Captain4LK): update joins and portals to deleted sector
+   for(int w = map->sectors[sector].wall_first;w<map->sectors[sector].wall_first+map->sectors[sector].wall_count;w++)
+   {
+      RvR_port_wall *wall = map->walls+w;
+      if(wall->join>=0)
+      {
+         int16_t prev = RvR_port_wall_join_previous(map,w);
+         if(prev==wall->join)
+            map->walls[prev].join = -1;
+         else
+            map->walls[prev].join = wall->join;
+      }
+   }
+
+   for(int w = 0;w<map->wall_count;w++)
+   {
+      RvR_port_wall *wall = map->walls+w;
+      if(wall->portal==sector)
+         wall->portal = -1;
+   }
 
    //Move walls to left
    int count = map->sectors[sector].wall_count;
@@ -252,8 +270,9 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
          wall->portal-=1;
    }
 
-   //Resize arrays
    map->wall_count-=count;
    map->sector_count-=1;
+   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
+   map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
 }
 //-------------------------------------
