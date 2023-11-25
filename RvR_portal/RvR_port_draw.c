@@ -327,6 +327,12 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
             if(y0<=y1)
             {
+               if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=y1&&select->depth>depth)
+               {
+                  select->type = RVR_PORT_WALL;
+                  select->depth = depth;
+               }
+
                RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(y0-RvR_yres()/2)*coord_step_scaled;
@@ -441,6 +447,12 @@ void RvR_port_draw_map(RvR_port_selection *select)
                mid = port_ybot[x]-1;
             if(mid>=y0)
             {
+               if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=mid&&select->depth>depth)
+               {
+                  select->type = RVR_PORT_WALL;
+                  select->depth = depth;
+               }
+
                RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(y0-RvR_yres()/2)*coord_step_scaled;
@@ -466,6 +478,12 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
             if(mid<=y1)
             {
+               if(select!=NULL&&select->x==x&&select->y>=mid&&select->y<=y1&&select->depth>depth)
+               {
+                  select->type = RVR_PORT_WALL;
+                  select->depth = depth;
+               }
+
                RvR_fix22 height = port_map->sectors[portal].floor-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(mid-RvR_yres()/2)*coord_step_scaled+coord_step_scaled/2;
