@@ -31,6 +31,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
+typedef enum
+{
+   STATE3D_VIEW,
+   STATE3D_TEX_RECENT,
+   STATE3D_TEX_RECENT_GO,
+   STATE3D_TEX_ALL,
+   STATE3D_TEX_ALL_GO,
+}State3D;
 //-------------------------------------
 
 //Variables
@@ -43,18 +51,41 @@ static uint16_t texture_selected = 0;
 static int texture_selection_scroll = 0;
 static int brush = 0;
 static char menu_input[512] = {0};
+
+static State3D state = STATE3D_VIEW;
 //-------------------------------------
 
 //Function prototypes
 static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location);
 
 static Map_sprite *sprite_selected();
+
+static void e3d_update_view(void);
+static void e3d_draw_view(void);
+static void e3d_update_tex_recent(void);
+static void e3d_draw_tex_recent(void);
+static void e3d_update_tex_recent_go(void);
+static void e3d_draw_tex_recent_go(void);
+static void e3d_update_tex_all(void);
+static void e3d_draw_tex_all(void);
+static void e3d_update_tex_all_go(void);
+static void e3d_draw_tex_all_go(void);
 //-------------------------------------
 
 //Function implementations
 
 void editor3d_update(void)
 {
+   switch(state)
+   {
+   case STATE3D_VIEW: e3d_update_view(); break;
+   case STATE3D_TEX_RECENT: e3d_update_tex_recent(); break;
+   case STATE3D_TEX_RECENT_GO: e3d_update_tex_recent_go(); break;
+   case STATE3D_TEX_ALL: e3d_update_tex_all(); break;
+   case STATE3D_TEX_ALL_GO: e3d_update_tex_all_go(); break;
+   }
+
+#if 0
    int mx, my;
    RvR_mouse_pos(&mx, &my);
 
@@ -208,242 +239,22 @@ void editor3d_update(void)
          texture_selection_scroll = 0;
       }
    }
-   else if(menu==1)
-   {
-      if(RvR_key_pressed(RVR_KEY_V))
-      {
-         menu = 2;
-         texture_selection_scroll = 0;
-      }
 
-      if(RvR_key_pressed(RVR_KEY_ESCAPE))
-         menu = 0;
-
-      if(RvR_key_pressed(RVR_KEY_G))
-      {
-         menu = 3;
-         menu_input[0] = '\0';
-         RvR_text_input_start(menu_input, 64);
-      }
-
-      //texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
-      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
-      if(texture_selection_scroll<0)
-         texture_selection_scroll = 0;
-
-      int tex_per_row = (RvR_xres()) / 64;
-      int tex_per_col = (RvR_yres()) / 64;
-      int index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
-      int set_pos = 0;
-      if(RvR_key_pressed(RVR_KEY_UP))
-      {
-         index -= tex_per_row;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-         if(my<0)
-         {
-            texture_selection_scroll--;
-            my += 64;
-         }
-
-         set_pos = 1;
-      }
-      if(RvR_key_pressed(RVR_KEY_DOWN))
-      {
-         index += tex_per_row;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-         if(my>tex_per_col * 64)
-         {
-            texture_selection_scroll++;
-            my -= 64;
-         }
-
-         set_pos = 1;
-      }
-      if(RvR_key_pressed(RVR_KEY_LEFT))
-      {
-         index--;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-
-         set_pos = 1;
-      }
-      if(RvR_key_pressed(RVR_KEY_RIGHT))
-      {
-         index++;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-
-         set_pos = 1;
-      }
-
-      if(index<0)
-      {
-         texture_selection_scroll = 0;
-         RvR_mouse_set_pos(32, 32);
-         mx = 32;
-         my = 32;
-         index = 0;
-         set_pos = 0;
-      }
-
-      if(set_pos)
-         RvR_mouse_set_pos(mx, my);
-
-      if(mx / 64<RvR_xres() / 64)
-      {
-         if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
-         {
-            int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
-            texture_selected = texture_list_used.data[index];
-            texture_list_used_add(texture_selected);
-            menu = 0;
-            brush = 0;
-         }
-         if(RvR_key_pressed(RVR_KEY_S))
-         {
-            int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
-            //map_sky_tex_set(texture_list_used.data[index]);
-            menu = 0;
-            brush = 0;
-         }
-      }
-   }
-   else if(menu==2)
-   {
-      if(RvR_key_pressed(RVR_KEY_ESCAPE))
-         menu = 0;
-
-      if(RvR_key_pressed(RVR_KEY_G))
-      {
-         menu = 4;
-         menu_input[0] = '\0';
-         RvR_text_input_start(menu_input, 64);
-      }
-
-      texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
-      if(texture_selection_scroll<0)
-         texture_selection_scroll = 0;
-
-      int tex_per_row = (RvR_xres()) / 64;
-      int tex_per_col = (RvR_yres()) / 64;
-      int index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
-      int set_pos = 0;
-      if(RvR_key_pressed(RVR_KEY_UP))
-      {
-         index -= tex_per_row;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-         if(my<0)
-         {
-            texture_selection_scroll--;
-            my += 64;
-         }
-
-         set_pos = 1;
-      }
-      if(RvR_key_pressed(RVR_KEY_DOWN))
-      {
-         index += tex_per_row;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-         if(my>tex_per_col * 64)
-         {
-            texture_selection_scroll++;
-            my -= 64;
-         }
-
-         set_pos = 1;
-      }
-      if(RvR_key_pressed(RVR_KEY_LEFT))
-      {
-         index--;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-
-         set_pos = 1;
-      }
-      if(RvR_key_pressed(RVR_KEY_RIGHT))
-      {
-         index++;
-         mx = (index % tex_per_row) * 64 + 32;
-         my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-
-         set_pos = 1;
-      }
-
-      if(index<0)
-      {
-         texture_selection_scroll = 0;
-         RvR_mouse_set_pos(32, 32);
-         mx = 32;
-         my = 32;
-         index = 0;
-         set_pos = 0;
-      }
-
-      if(set_pos)
-         RvR_mouse_set_pos(mx, my);
-
-      if(mx / 64<RvR_xres() / 64)
-      {
-         if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
-         {
-            unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
-            if(index<texture_list.data_used)
-            {
-               texture_selected = texture_list.data[index];
-               texture_list_used_add(texture_selected);
-               menu = 0;
-               brush = 0;
-            }
-         }
-         if(RvR_key_pressed(RVR_KEY_S))
-         {
-            unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
-            if(index<texture_list.data_used)
-            {
-               //map_sky_tex_set(texture_list.data[index]);
-               menu = 0;
-               brush = 0;
-            }
-         }
-      }
-   }
-
-   if(menu==3||menu==4)
-   {
-      if(RvR_key_pressed(RVR_KEY_ENTER))
-      {
-         RvR_text_input_end();
-         menu = 2;
-
-         int selection = strtol(menu_input, NULL, 10);
-         //TODO: What we should do: binary search
-         //What I did: slow crap
-         for(int i = 0; i<texture_list.data_used; i++)
-         {
-            if(texture_list.data[i]>=selection)
-            {
-               int tex_per_row = (RvR_xres()) / 64;
-               int tex_per_col = (RvR_yres()) / 64;
-               texture_selection_scroll = i / RvR_non_zero(tex_per_row);
-               mx = (i % tex_per_row) * 64 + 32;
-               my = (i / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
-               RvR_mouse_set_pos(mx, my);
-               break;
-            }
-         }
-      }
-   }
-
-   if(RvR_key_pressed(RVR_KEY_NP_ENTER))
-      editor_set_2d();
+#endif
 }
 
 void editor3d_draw(void)
 {
+   switch(state)
+   {
+   case STATE3D_VIEW: e3d_draw_view(); break;
+   case STATE3D_TEX_RECENT: e3d_draw_tex_recent(); break;
+   case STATE3D_TEX_RECENT_GO: e3d_draw_tex_recent_go(); break;
+   case STATE3D_TEX_ALL: e3d_draw_tex_all(); break;
+   case STATE3D_TEX_ALL_GO: e3d_draw_tex_all_go(); break;
+   }
+
+#if 0
    int mx, my;
    RvR_mouse_pos(&mx, &my);
 
@@ -556,69 +367,7 @@ void editor3d_draw(void)
       RvR_render_rectangle(8, RvR_yres() - 74, 66, 66, color_white);
       draw_fit64(9, RvR_yres() - 73, texture_selected);
    }
-   else if(menu==1||menu==3)
-   {
-      RvR_render_clear(color_black);
-
-      for(int y = 0; y<=RvR_yres() / 64; y++)
-      {
-         for(int x = 0; x<=RvR_xres() / 64; x++)
-         {
-            int index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
-            index = texture_list_used_wrap(texture_list_used.data_last - index);
-            draw_fit64(x * 64, y * 64, texture_list_used.data[index]);
-
-            RvR_render_font_set(0xF001);
-            const char tmp_font[16];
-            snprintf(tmp_font, 16, "%d", texture_list_used.data[index]);
-            RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
-            RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
-            RvR_render_font_set(0xF000);
-         }
-      }
-
-      if(mx / 64<RvR_xres() / 64)
-         RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
-   }
-   else if(menu==2||menu==4)
-   {
-      RvR_render_clear(color_black);
-
-      for(int y = 0; y<=RvR_yres() / 64; y++)
-      {
-         for(int x = 0; x<=RvR_xres() / 64; x++)
-         {
-            unsigned index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
-            if(index<texture_list.data_used)
-            {
-               draw_fit64(x * 64, y * 64, texture_list.data[index]);
-
-               RvR_render_font_set(0xF001);
-               const char tmp_font[16];
-               snprintf(tmp_font, 16, "%d", texture_list.data[index]);
-               RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
-               RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
-               RvR_render_font_set(0xF000);
-            }
-         }
-      }
-
-      if(mx / 64<RvR_xres() / 64)
-         RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
-   }
-
-   if(menu==3||menu==4)
-   {
-      RvR_render_rectangle_fill(0, 0, RvR_xres(), 12, color_dark_gray);
-      RvR_render_string(2, 2, 1, "Go to: ", color_white);
-      RvR_render_string(35, 2, 1, menu_input, color_white);
-   }
-
-   //Draw cursor
-   RvR_render_horizontal_line(mx - 4, mx - 1, my, color_magenta);
-   RvR_render_horizontal_line(mx + 1, mx + 4, my, color_magenta);
-   RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
-   RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
+#endif
 }
 
 static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location)
@@ -628,5 +377,462 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
 static Map_sprite *sprite_selected()
 {
    return NULL;
+}
+
+static void e3d_update_view(void)
+{
+   camera_update();
+
+   if(RvR_key_pressed(RVR_KEY_V))
+   {
+      state = STATE3D_TEX_RECENT;
+      texture_selection_scroll = 0;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+      editor_set_2d();
+}
+
+static void e3d_draw_view(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   RvR_port_draw_begin(map,&camera);
+   /*Map_sprite *s = map_sprites;
+   while(s!=NULL)
+   {
+      //TODO
+      RvR_ray_draw_sprite(&camera, s->x, s->y, s->z, s->direction, s->texture, s->flags);
+      s = s->next;
+   }*/
+
+   RvR_port_draw_map(NULL);
+   RvR_port_draw_end(NULL);
+
+   RvR_render_rectangle(8, RvR_yres() - 74, 66, 66, color_white);
+   draw_fit64(9, RvR_yres() - 73, texture_selected);
+
+   //Draw cursor
+   RvR_render_horizontal_line(mx - 4, mx - 1, my, color_magenta);
+   RvR_render_horizontal_line(mx + 1, mx + 4, my, color_magenta);
+   RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
+   RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
+}
+
+static void e3d_update_tex_recent(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   if(RvR_key_pressed(RVR_KEY_V))
+   {
+      state = STATE3D_TEX_ALL;
+      texture_selection_scroll = 0;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+      state = STATE3D_VIEW;
+
+   if(RvR_key_pressed(RVR_KEY_G))
+   {
+      state = STATE3D_TEX_RECENT_GO;
+      menu_input[0] = '\0';
+      RvR_text_input_start(menu_input, 64);
+   }
+
+   texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
+   if(texture_selection_scroll<0)
+      texture_selection_scroll = 0;
+
+   int tex_per_row = (RvR_xres()) / 64;
+   int tex_per_col = (RvR_yres()) / 64;
+   int index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+   int set_pos = 0;
+   if(RvR_key_pressed(RVR_KEY_UP))
+   {
+      index -= tex_per_row;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+      if(my<0)
+      {
+         texture_selection_scroll--;
+         my += 64;
+      }
+
+      set_pos = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      index += tex_per_row;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+      if(my>tex_per_col * 64)
+      {
+         texture_selection_scroll++;
+         my -= 64;
+      }
+
+      set_pos = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_LEFT))
+   {
+      index--;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+      set_pos = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_RIGHT))
+   {
+      index++;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+      set_pos = 1;
+   }
+
+   if(index<0)
+   {
+      texture_selection_scroll = 0;
+      RvR_mouse_set_pos(32, 32);
+      mx = 32;
+      my = 32;
+      index = 0;
+      set_pos = 0;
+   }
+
+   if(set_pos)
+      RvR_mouse_set_pos(mx, my);
+
+   if(mx / 64<RvR_xres() / 64)
+   {
+      if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
+      {
+         int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
+         texture_selected = texture_list_used.data[index];
+         texture_list_used_add(texture_selected);
+         state = STATE3D_VIEW;
+         brush = 0;
+      }
+      if(RvR_key_pressed(RVR_KEY_S))
+      {
+         int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
+         //map_sky_tex_set(texture_list_used.data[index]);
+         state = STATE3D_VIEW;
+         brush = 0;
+      }
+   }
+}
+
+static void e3d_draw_tex_recent(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   RvR_render_clear(color_black);
+
+   for(int y = 0; y<=RvR_yres() / 64; y++)
+   {
+      for(int x = 0; x<=RvR_xres() / 64; x++)
+      {
+         int index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
+         index = texture_list_used_wrap(texture_list_used.data_last - index);
+         draw_fit64(x * 64, y * 64, texture_list_used.data[index]);
+
+         RvR_render_font_set(0xF001);
+         const char tmp_font[16];
+         snprintf(tmp_font, 16, "%d", texture_list_used.data[index]);
+         RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+         RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
+         RvR_render_font_set(0xF000);
+      }
+   }
+
+   if(mx / 64<RvR_xres() / 64)
+      RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
+
+   //Draw cursor
+   RvR_render_horizontal_line(mx - 4, mx - 1, my, color_magenta);
+   RvR_render_horizontal_line(mx + 1, mx + 4, my, color_magenta);
+   RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
+   RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
+}
+
+static void e3d_update_tex_recent_go(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      RvR_text_input_end();
+      state = STATE3D_TEX_ALL;
+
+      int selection = strtol(menu_input, NULL, 10);
+      //TODO: What we should do: binary search
+      //What I did: slow crap
+      for(int i = 0; i<texture_list.data_used; i++)
+      {
+         if(texture_list.data[i]>=selection)
+         {
+            int tex_per_row = (RvR_xres()) / 64;
+            int tex_per_col = (RvR_yres()) / 64;
+            texture_selection_scroll = i / RvR_non_zero(tex_per_row);
+            mx = (i % tex_per_row) * 64 + 32;
+            my = (i / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+            RvR_mouse_set_pos(mx, my);
+            break;
+         }
+      }
+   }
+}
+
+static void e3d_draw_tex_recent_go(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   RvR_render_clear(color_black);
+
+   for(int y = 0; y<=RvR_yres() / 64; y++)
+   {
+      for(int x = 0; x<=RvR_xres() / 64; x++)
+      {
+         int index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
+         index = texture_list_used_wrap(texture_list_used.data_last - index);
+         draw_fit64(x * 64, y * 64, texture_list_used.data[index]);
+
+         RvR_render_font_set(0xF001);
+         const char tmp_font[16];
+         snprintf(tmp_font, 16, "%d", texture_list_used.data[index]);
+         RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+         RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
+         RvR_render_font_set(0xF000);
+      }
+   }
+
+   if(mx / 64<RvR_xres() / 64)
+      RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
+
+   RvR_render_rectangle_fill(0, 0, RvR_xres(), 12, color_dark_gray);
+   RvR_render_string(2, 2, 1, "Go to: ", color_white);
+   RvR_render_string(35, 2, 1, menu_input, color_white);
+
+   //Draw cursor
+   RvR_render_horizontal_line(mx - 4, mx - 1, my, color_magenta);
+   RvR_render_horizontal_line(mx + 1, mx + 4, my, color_magenta);
+   RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
+   RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
+}
+
+static void e3d_update_tex_all(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+      state = STATE3D_VIEW;
+
+   if(RvR_key_pressed(RVR_KEY_G))
+   {
+      state = STATE3D_TEX_ALL_GO;
+      menu_input[0] = '\0';
+      RvR_text_input_start(menu_input, 64);
+   }
+
+   texture_selection_scroll += RvR_mouse_wheel_scroll() * -3;
+   if(texture_selection_scroll<0)
+      texture_selection_scroll = 0;
+
+   int tex_per_row = (RvR_xres()) / 64;
+   int tex_per_col = (RvR_yres()) / 64;
+   int index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+   int set_pos = 0;
+   if(RvR_key_pressed(RVR_KEY_UP))
+   {
+      index -= tex_per_row;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+      if(my<0)
+      {
+         texture_selection_scroll--;
+         my += 64;
+      }
+
+      set_pos = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      index += tex_per_row;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+      if(my>tex_per_col * 64)
+      {
+         texture_selection_scroll++;
+         my -= 64;
+      }
+
+      set_pos = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_LEFT))
+   {
+      index--;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+      set_pos = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_RIGHT))
+   {
+      index++;
+      mx = (index % tex_per_row) * 64 + 32;
+      my = (index / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+
+      set_pos = 1;
+   }
+
+   if(index<0)
+   {
+      texture_selection_scroll = 0;
+      RvR_mouse_set_pos(32, 32);
+      mx = 32;
+      my = 32;
+      index = 0;
+      set_pos = 0;
+   }
+
+   if(set_pos)
+      RvR_mouse_set_pos(mx, my);
+
+   if(mx / 64<RvR_xres() / 64)
+   {
+      if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
+      {
+         unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+         if(index<texture_list.data_used)
+         {
+            texture_selected = texture_list.data[index];
+            texture_list_used_add(texture_selected);
+            state = STATE3D_VIEW;
+            brush = 0;
+         }
+      }
+      if(RvR_key_pressed(RVR_KEY_S))
+      {
+         unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+         if(index<texture_list.data_used)
+         {
+            //map_sky_tex_set(texture_list.data[index]);
+            state = STATE3D_VIEW;
+            brush = 0;
+         }
+      }
+   }
+}
+
+static void e3d_draw_tex_all(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   RvR_render_clear(color_black);
+
+   for(int y = 0; y<=RvR_yres() / 64; y++)
+   {
+      for(int x = 0; x<=RvR_xres() / 64; x++)
+      {
+         unsigned index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
+         if(index<texture_list.data_used)
+         {
+            draw_fit64(x * 64, y * 64, texture_list.data[index]);
+
+            RvR_render_font_set(0xF001);
+            const char tmp_font[16];
+            snprintf(tmp_font, 16, "%d", texture_list.data[index]);
+            RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+            RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
+            RvR_render_font_set(0xF000);
+         }
+      }
+   }
+
+   if(mx / 64<RvR_xres() / 64)
+      RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
+
+   //Draw cursor
+   RvR_render_horizontal_line(mx - 4, mx - 1, my, color_magenta);
+   RvR_render_horizontal_line(mx + 1, mx + 4, my, color_magenta);
+   RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
+   RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
+}
+
+static void e3d_update_tex_all_go(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      RvR_text_input_end();
+      state = STATE3D_TEX_ALL;
+
+      int selection = strtol(menu_input, NULL, 10);
+      //TODO: What we should do: binary search
+      //What I did: slow crap
+      for(int i = 0; i<texture_list.data_used; i++)
+      {
+         if(texture_list.data[i]>=selection)
+         {
+            int tex_per_row = (RvR_xres()) / 64;
+            int tex_per_col = (RvR_yres()) / 64;
+            texture_selection_scroll = i / RvR_non_zero(tex_per_row);
+            mx = (i % tex_per_row) * 64 + 32;
+            my = (i / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
+            RvR_mouse_set_pos(mx, my);
+            break;
+         }
+      }
+   }
+}
+
+static void e3d_draw_tex_all_go(void)
+{
+   int mx, my;
+   RvR_mouse_pos(&mx, &my);
+
+   RvR_render_clear(color_black);
+
+   for(int y = 0; y<=RvR_yres() / 64; y++)
+   {
+      for(int x = 0; x<=RvR_xres() / 64; x++)
+      {
+         unsigned index = texture_selection_scroll * (RvR_xres() / 64) + y * (RvR_xres() / 64) + x;
+         if(index<texture_list.data_used)
+         {
+            draw_fit64(x * 64, y * 64, texture_list.data[index]);
+
+            RvR_render_font_set(0xF001);
+            const char tmp_font[16];
+            snprintf(tmp_font, 16, "%d", texture_list.data[index]);
+            RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+            RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
+            RvR_render_font_set(0xF000);
+         }
+      }
+   }
+
+   if(mx / 64<RvR_xres() / 64)
+      RvR_render_rectangle((mx / 64) * 64, (my / 64) * 64, 64, 64, color_white);
+
+   RvR_render_rectangle_fill(0, 0, RvR_xres(), 12, color_dark_gray);
+   RvR_render_string(2, 2, 1, "Go to: ", color_white);
+   RvR_render_string(35, 2, 1, menu_input, color_white);
+
+   //Draw cursor
+   RvR_render_horizontal_line(mx - 4, mx - 1, my, color_magenta);
+   RvR_render_horizontal_line(mx + 1, mx + 4, my, color_magenta);
+   RvR_render_vertical_line(mx, my - 1, my - 4, color_magenta);
+   RvR_render_vertical_line(mx, my + 1, my + 4, color_magenta);
 }
 //-------------------------------------

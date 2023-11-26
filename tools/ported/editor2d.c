@@ -464,8 +464,10 @@ static void e2d_update_view(void)
    {
       RvR_fix22 x = ((mx+scroll_x)*1024)/grid_size;
       RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
-      x&=~(x&127);
-      y&=~(y&127);
+      x&=~(x&255);
+      y&=~(y&255);
+      x+=128;
+      y+=128;
 
       sector_draw_start(x,y);
       state = STATE2D_SECTOR;
@@ -523,7 +525,7 @@ static void e2d_update_view(void)
       scroll_y = (scrolly * grid_size) / 1024- RvR_yres() / 2;
    }
 
-   if(RvR_key_pressed(RVR_KEY_NP_ENTER)&&map->sector_count>0)
+   if(RvR_key_pressed(RVR_KEY_ENTER)&&map->sector_count>0)
       editor_set_3d();
 }
 
@@ -768,47 +770,22 @@ static void e2d_update_sector(void)
 
    world_mx = ((mx+scroll_x)*1024)/grid_size;
    world_my = ((my+scroll_y)*1024)/grid_size;
-   world_mx&=~(world_mx&127);
-   world_my&=~(world_my&127);
-
-   //Snap to nearby walls
-   /*for(int i = 0;i<map->wall_count;i++)
-   {
-      RvR_port_wall *p0 = map->walls+i;
-      if(RvR_abs(p0->x-world_mx)<((4*1024)/grid_size)&&
-         RvR_abs(p0->y-world_my)<((4*1024)/grid_size))
-      {
-         world_mx = p0->x;
-         world_my = p0->y;
-      }
-   }*/
+   world_mx&=~(world_mx&255);
+   world_my&=~(world_my&255);
+   world_mx+=128;
+   world_my+=128;
 
    if(RvR_key_pressed(RVR_KEY_SPACE))
    {
       int ret = sector_draw_add(world_mx,world_my);
       if(ret)
          state = STATE2D_VIEW;
-      //int16_t first = RvR_port_wall_first(map,map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1);
-      //int16_t wall = RvR_port_wall_append(map,sector_current,world_mx,world_my);
-      //if(wall==first)
-         //state = STATE2D_VIEW;
    }
 }
 
 static void e2d_draw_sector(void)
 {
    e2d_draw_base();
-
-   /*int16_t last = map->sectors[sector_current].wall_first+map->sectors[sector_current].wall_count-1;
-   RvR_port_wall *p0 = map->walls+last;
-   int x0 = ((p0->x-camera.x)*grid_size)/4+RvR_xres()*128;
-   int y0 = ((p0->y-camera.y)*grid_size)/4+RvR_yres()*128;
-   int x1 = ((world_mx-camera.x)*grid_size)/4+RvR_xres()*128;
-   int y1 = ((world_my-camera.y)*grid_size)/4+RvR_yres()*128;
-
-   RvR_render_line(x0,y0,x1,y1,color_white);
-
-   RvR_render_rectangle(x1/256-3,y1/256-3,5,5,color_orange);*/
 
    sector_draw_draw(world_mx,world_my,grid_size);
 }
