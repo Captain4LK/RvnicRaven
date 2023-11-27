@@ -301,6 +301,10 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             int y0 = (cy+4095)/4096;
             int y1 = fy/4096;
+            RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            int64_t nu = num_u+((num_step_u*(x-x0))*1024)/RvR_non_zero(wall->x1-wall->x0);
+            RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
+            RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
 
             int top = port_ytop[x]+1;
             y0 = RvR_max(y0,top);
@@ -309,27 +313,42 @@ void RvR_port_draw_map(RvR_port_selection *select)
                bottom = port_ybot[x]-1;
 
             if(top<=bottom)
+            {
+               if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
+               {
+                  select->type = RVR_PORT_CEILING;
+                  select->as.sector = wall->sector;
+                  select->depth = depth;
+               }
+
                port_plane_add(wall->sector,0,x,top,bottom);
+            }
 
             bottom = port_ybot[x]-1;
             y1 = RvR_min(y1,bottom);
 
             top = RvR_max(y1,port_ytop[x])+1;
             if(top<=bottom)
+            {
+               if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
+               {
+                  select->type = RVR_PORT_FLOOR;
+                  select->as.sector = wall->sector;
+                  select->depth = depth;
+               }
+
                port_plane_add(wall->sector,1,x,top,bottom);
+            }
 
             port_ytop[x] = RvR_yres();
             port_ybot[x] = -1;
-            RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
-            int64_t nu = num_u+((num_step_u*(x-x0))*1024)/RvR_non_zero(wall->x1-wall->x0);
-            RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
-            RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
 
             if(y0<=y1)
             {
                if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=y1&&select->depth>depth)
                {
-                  select->type = RVR_PORT_WALL;
+                  select->type = RVR_PORT_WALL_BOT;
+                  select->as.wall = wall->wall;
                   select->depth = depth;
                }
 
@@ -418,6 +437,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
             int y0 = (cy+1023)/1024;
             int y1 = fy/1024;
 
+            RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix22 nu = num_u+RvR_fix22_div(num_step_u*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
+            RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
+
             int top = port_ytop[x]+1;
             int bottom = port_ybot[x];
 
@@ -427,19 +451,31 @@ void RvR_port_draw_map(RvR_port_selection *select)
                bottom = port_ybot[x]-1;
 
             if(top<=bottom)
+            {
+               if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
+               {
+                  select->type = RVR_PORT_CEILING;
+                  select->as.sector = wall->sector;
+                  select->depth = depth;
+               }
                port_plane_add(wall->sector,0,x,top,bottom);
+            }
 
             bottom = port_ybot[x]-1;
             y1 = RvR_min(y1,bottom);
 
             top = RvR_max(y1,port_ytop[x])+1;
             if(top<=bottom)
-               port_plane_add(wall->sector,1,x,top,bottom);
+            {
+               if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
+               {
+                  select->type = RVR_PORT_FLOOR;
+                  select->as.sector = wall->sector;
+                  select->depth = depth;
+               }
 
-            RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
-            RvR_fix22 nu = num_u+RvR_fix22_div(num_step_u*(x-x0),RvR_non_zero(wall->x1-wall->x0));
-            RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
-            RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
+               port_plane_add(wall->sector,1,x,top,bottom);
+            }
 
             const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9))));
             int mid = cph/1024;
@@ -449,7 +485,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
             {
                if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=mid&&select->depth>depth)
                {
-                  select->type = RVR_PORT_WALL;
+                  select->type = RVR_PORT_WALL_TOP;
+                  select->as.wall = wall->wall;
                   select->depth = depth;
                }
 
@@ -480,7 +517,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
             {
                if(select!=NULL&&select->x==x&&select->y>=mid&&select->y<=y1&&select->depth>depth)
                {
-                  select->type = RVR_PORT_WALL;
+                  select->type = RVR_PORT_WALL_BOT;
+                  select->as.wall = wall->wall;
                   select->depth = depth;
                }
 

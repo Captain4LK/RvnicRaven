@@ -18,8 +18,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RvR_max(a, b) ((a)>(b)?(a):(b))
 #define RvR_abs(a) ((a)<0?-(a):(a))
 #define RvR_non_zero(a) ((a) + ((a)==0))
-#define RvR_sign_equal(a, b) (((a) ^ (b))>=0)
 #define RvR_clamp(a, min, max) (RvR_max((min), RvR_min((max), (a))))
+
+//Let the fighting begin, mathematicans
+//This definition is more practical
+#define RvR_sign(a) ((a)>=0?1:-1)
+#define RvR_sign_equal(a, b) (RvR_sign(a)==RvR_sign(b))
+//#define RvR_sign_equal(a, b) (((a) ^ (b))>=0)
 
 uint32_t RvR_log2(uint32_t a);
 

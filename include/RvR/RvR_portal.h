@@ -58,8 +58,10 @@ typedef struct
 typedef enum
 {
    RVR_PORT_NONE,
-   RVR_PORT_WALL,
-   RVR_PORT_SECTOR,
+   RVR_PORT_WALL_TOP,
+   RVR_PORT_WALL_BOT,
+   RVR_PORT_FLOOR,
+   RVR_PORT_CEILING,
    RVR_PORT_SPRITE_BILL,
    RVR_PORT_SPRITE_WALL,
    RVR_PORT_SPRITE_FLOOR,
@@ -73,8 +75,8 @@ typedef struct
    RvR_port_select type;
    union
    {
-      uint32_t wall;
-      uint32_t sector;
+      int16_t wall;
+      int16_t sector;
    }as;
 }RvR_port_selection;
 

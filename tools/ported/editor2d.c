@@ -466,8 +466,6 @@ static void e2d_update_view(void)
       RvR_fix22 y = ((my+scroll_y)*1024)/grid_size;
       x&=~(x&255);
       y&=~(y&255);
-      x+=128;
-      y+=128;
 
       sector_draw_start(x,y);
       state = STATE2D_SECTOR;
@@ -772,8 +770,6 @@ static void e2d_update_sector(void)
    world_my = ((my+scroll_y)*1024)/grid_size;
    world_mx&=~(world_mx&255);
    world_my&=~(world_my&255);
-   world_mx+=128;
-   world_my+=128;
 
    if(RvR_key_pressed(RVR_KEY_SPACE))
    {

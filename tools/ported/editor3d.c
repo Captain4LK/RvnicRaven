@@ -53,6 +53,7 @@ static int brush = 0;
 static char menu_input[512] = {0};
 
 static State3D state = STATE3D_VIEW;
+static RvR_port_selection world_selection;
 //-------------------------------------
 
 //Function prototypes
@@ -389,6 +390,49 @@ static void e3d_update_view(void)
       texture_selection_scroll = 0;
    }
 
+   if(RvR_key_pressed(RVR_KEY_PGUP))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT)
+      {
+         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         map->sectors[sector].floor+=128;
+      }
+      else if(world_selection.type==RVR_PORT_WALL_TOP)
+      {
+         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         map->sectors[sector].ceiling+=128;
+      }
+      else if(world_selection.type==RVR_PORT_FLOOR)
+      {
+         map->sectors[world_selection.as.sector].floor+=128;
+      }
+      else if(world_selection.type==RVR_PORT_CEILING)
+      {
+         map->sectors[world_selection.as.sector].ceiling+=128;
+      }
+   }
+   else if(RvR_key_pressed(RVR_KEY_PGDN))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT)
+      {
+         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         map->sectors[sector].floor-=128;
+      }
+      else if(world_selection.type==RVR_PORT_WALL_TOP)
+      {
+         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         map->sectors[sector].ceiling-=128;
+      }
+      else if(world_selection.type==RVR_PORT_FLOOR)
+      {
+         map->sectors[world_selection.as.sector].floor-=128;
+      }
+      else if(world_selection.type==RVR_PORT_CEILING)
+      {
+         map->sectors[world_selection.as.sector].ceiling-=128;
+      }
+   }
+
    if(RvR_key_pressed(RVR_KEY_ENTER))
       editor_set_2d();
 }
@@ -407,7 +451,9 @@ static void e3d_draw_view(void)
       s = s->next;
    }*/
 
-   RvR_port_draw_map(NULL);
+   world_selection.x = mx;
+   world_selection.y = my;
+   RvR_port_draw_map(&world_selection);
    RvR_port_draw_end(NULL);
 
    RvR_render_rectangle(8, RvR_yres() - 74, 66, 66, color_white);

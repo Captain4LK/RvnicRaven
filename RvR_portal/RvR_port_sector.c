@@ -51,9 +51,11 @@ int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x,
       if((x0==0&&y0==0)||(x1==0&&y1==0))
          return 1;
 
-      if((y0^y1)<0)
+      //If signs are not equal, then one of the points
+      //is above (x,y), the other below
+      if(!RvR_sign_equal(y0,y1))
       {
-         if((x0^x1)>=0)
+         if(RvR_sign_equal(x0,x1))
             crossed0^=x0;
          else
             crossed0^=(x0*y1-x1*y0)^y1;
@@ -61,19 +63,19 @@ int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x,
 
       y0--;
       y1--;
-      if((y0^y1)<0)
+      if(!RvR_sign_equal(y0,y1))
       {
          x0--;
          x1--;
 
-         if((x0^x1)>=0)
+         if(RvR_sign_equal(x0,x1))
             crossed1^=x0;
          else
             crossed1^=(x0*y1-x1*y0)^y1;
       }
    }
 
-   return (crossed0|crossed1)<0;
+   return crossed0<0||crossed1<0;
 }
 
 int16_t RvR_port_sector_update(const RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y)
