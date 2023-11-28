@@ -36,16 +36,23 @@ int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x,
       return 0;
 
    const RvR_port_sector *sec = &map->sectors[sector];
-   const RvR_port_wall *wall = &map->walls[sec->wall_first];
 
+   //Even-odd rule for checking if inside
    int64_t crossed0 = 0;
    int64_t crossed1 = 0;
-   for(int i = 0;i<sec->wall_count;wall++,i++)
+   for(int i = 0;i<sec->wall_count;i++)
    {
-      int64_t x0 = wall->x-x;
-      int64_t y0 = wall->y-y;
-      int64_t x1 = map->walls[wall->p2].x-x;
-      int64_t y1 = map->walls[wall->p2].y-y;
+      //Translate, so that (x,y) is at (0,0)
+      //--> easier comparisons later
+      RvR_port_wall *w0 = map->walls+sec->wall_first+i;
+      RvR_port_wall *w1 = map->walls+w0->p2;
+      int64_t x0 = w0->x-x;
+      int64_t y0 = w0->y-y;
+      int64_t x1 = w1->x-x;
+      int64_t y1 = w1->y-y;
+
+      //We count the amount of walls on the line y = 0, incrementing
+      //for every wall left of x = 0
 
       //Exactly on wall
       if((x0==0&&y0==0)||(x1==0&&y1==0))
@@ -55,27 +62,40 @@ int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x,
       //is above (x,y), the other below
       if(!RvR_sign_equal(y0,y1))
       {
+         //If both on one side
          if(RvR_sign_equal(x0,x1))
-            crossed0^=x0;
+            //If both to the left --> increment
+            crossed0+=x0<0;
          else
-            crossed0^=(x0*y1-x1*y0)^y1;
+            //One of the x coordinates on the right of line, the other on the left
+            //--> more complicated check
+            //we use the 2d cross product/perp doct product
+            //to compute on which side of the line we are
+            //the result is dependant on the sign of y1 (or y0)
+            //because we don't know, which of the two coordinates is the upper one
+            crossed0+=!RvR_sign_equal(x0*y1-x1*y0,y1);
       }
 
+      //Same thing again, but with
+      //half-open interval
+      x0--;
       y0--;
+      x1--;
       y1--;
       if(!RvR_sign_equal(y0,y1))
       {
-         x0--;
-         x1--;
 
          if(RvR_sign_equal(x0,x1))
-            crossed1^=x0;
+            crossed1+=x0<0;
          else
-            crossed1^=(x0*y1-x1*y0)^y1;
+            crossed1+=!RvR_sign_equal(x0*y1-x1*y0,y1);
       }
    }
 
-   return crossed0<0||crossed1<0;
+   //If we've corrsed an odd number of walls
+   //on one of the counting rules, we are
+   //inside the sector
+   return crossed0&1||crossed1&1;
 }
 
 int16_t RvR_port_sector_update(const RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y)
