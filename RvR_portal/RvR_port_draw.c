@@ -1013,6 +1013,8 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    RvR_fix22 y_log = RvR_log2(texture->height);
    RvR_fix22 x_and = (1<<x_log)-1;
    RvR_fix22 y_and = (1<<y_log)-1;
+   y_log = RvR_max(0,16-y_log);
+   x_and<<=(16-y_log);
 
    uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
    const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9))));
@@ -1020,13 +1022,11 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
 
    for(int x = x0;x<x1;x++)
    {
-      uint8_t c = tex[(((tx>>16)&x_and)<<y_log)+((ty>>16)&y_and)];
+      uint8_t c = tex[((tx>>y_log)&x_and)+((ty>>16)&y_and)];
       *pix = col[c];
       tx+=step_x;
       ty+=step_y;
       pix++;
-      //if(RvR_key_pressed(RVR_KEY_SPACE))
-         //RvR_render_present();
    }
 }
 
