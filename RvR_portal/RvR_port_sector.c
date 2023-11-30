@@ -32,8 +32,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y)
 {
-   if(sector<0||sector>=map->sector_count)
-      return 0;
+   RvR_error_check(map!=NULL,"RvR_port_sector_inside","argument 'map' must be non-NULL\n");
+   RvR_error_check(sector>=0,"RvR_port_sector_inside","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
+   RvR_error_check(sector<map->sector_count,"RvR_port_sector_inside","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
 
    const RvR_port_sector *sec = &map->sectors[sector];
 
@@ -96,10 +97,15 @@ int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x,
    //on one of the counting rules, we are
    //inside the sector
    return crossed0&1||crossed1&1;
+
+RvR_err:
+   return 0;
 }
 
 int16_t RvR_port_sector_update(const RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y)
 {
+   RvR_error_check(map!=NULL,"RvR_port_sector_update","argument 'map' must be non-NULL\n");
+
    if(sector_last>=0&&sector_last<map->sector_count)
    {
       //Check if still in same sector
@@ -123,10 +129,17 @@ int16_t RvR_port_sector_update(const RvR_port_map *map, int16_t sector_last, RvR
 
    //Not found, pretend we are still in the same sector
    return sector_last;
+
+RvR_err:
+   return -1;
 }
 
+//TODO(Captain4LK): remove this function, the editor doesn't need it
+//so we can remove it once its done
 int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y)
 {
+   RvR_error_check(map!=NULL,"RvR_port_sector_new","argument 'map' must be non-NULL\n");
+
    int16_t sector = map->sector_count++;
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
    map->sectors[sector].wall_count = 1;
@@ -140,10 +153,17 @@ int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y)
    map->walls[map->sectors[sector].wall_first].join = -1;
 
    return sector;
+
+RvR_err:
+   return -1;
 }
 
 void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
 {
+   RvR_error_check(map!=NULL,"RvR_port_sector_fix_winding","argument 'map' must be non-NULL\n");
+   RvR_error_check(sector>=0,"RvR_port_sector_fix_winding","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
+   RvR_error_check(sector<map->sector_count,"RvR_port_sector_fix_winding","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
+
    int wall = 0;
    RvR_port_sector *s = map->sectors+sector;
    while(wall<map->sectors[sector].wall_count-1)
@@ -201,10 +221,19 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
          }
       }
    }
+
+   return;
+
+RvR_err:
+   return;
 }
 
-int16_t RvR_port_sector_make_inner(RvR_port_map *map,int16_t wall)
+int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall)
 {
+   RvR_error_check(map!=NULL,"RvR_port_sector_make_inner","argument 'map' must be non-NULL\n");
+   RvR_error_check(wall>=0,"RvR_port_sector_make_inner","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
+   RvR_error_check(wall<map->wall_count,"RvR_port_make_inner","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
+
    int16_t sector = RvR_port_wall_sector(map,wall);
    int16_t first = RvR_port_wall_first(map,wall);
 
@@ -232,10 +261,17 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map,int16_t wall)
    RvR_port_wall_append(map,sn,map->walls[first].x,map->walls[first].y);
 
    return sn;
+
+RvR_err:
+   return -1;
 }
 
 void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
 {
+   RvR_error_check(map!=NULL,"RvR_port_sector_delete","argument 'map' must be non-NULL\n");
+   RvR_error_check(sector>=0,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
+   RvR_error_check(sector<map->sector_count,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
+
    for(int w = map->sectors[sector].wall_first;w<map->sectors[sector].wall_first+map->sectors[sector].wall_count;w++)
    {
       RvR_port_wall *wall = map->walls+w;
@@ -296,5 +332,10 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
    map->sector_count-=1;
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
+
+   return;
+
+RvR_err:
+   return;
 }
 //-------------------------------------
