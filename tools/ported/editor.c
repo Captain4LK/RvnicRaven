@@ -61,6 +61,8 @@ void editor_init(void)
 
    camera.fov = 1024;
    camera.shear = 0;
+   camera.x = 1024;
+   camera.y = 1024;
 }
 
 void editor_update(void)

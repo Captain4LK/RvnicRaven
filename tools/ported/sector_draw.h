@@ -14,6 +14,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void sector_draw_start(RvR_fix22 x, RvR_fix22 y);
 int sector_draw_add(RvR_fix22 x, RvR_fix22 y);
-void sector_draw_draw(RvR_fix22 x, RvR_fix22 y, int grid_size);
+void sector_draw_draw(RvR_fix22 x, RvR_fix22 y, RvR_fix22 zoom);
 
 #endif
