@@ -382,14 +382,10 @@ static void e2d_draw_base(void)
          if(p0->p2==-1)
             continue;
 
-         int x0 = ((p0->x-camera.x)*256)/RvR_non_zero(zoom)+RvR_xres()*128;
-         int y0 = ((p0->y-camera.y)*256)/RvR_non_zero(zoom)+RvR_yres()*128;
-         int x1 = ((p1->x-camera.x)*256)/RvR_non_zero(zoom)+RvR_xres()*128;
-         int y1 = ((p1->y-camera.y)*256)/RvR_non_zero(zoom)+RvR_yres()*128;
-         //int x0 = ((p0->x-camera.x)*grid_size)/4+RvR_xres()*128;
-         //int y0 = ((p0->y-camera.y)*grid_size)/4+RvR_yres()*128;
-         //int x1 = ((p1->x-camera.x)*grid_size)/4+RvR_xres()*128;
-         //int y1 = ((p1->y-camera.y)*grid_size)/4+RvR_yres()*128;
+         int x0 = ((p0->x-camera.x)*256)/RvR_non_zero(zoom)+RvR_xres()*128+128;
+         int y0 = ((p0->y-camera.y)*256)/RvR_non_zero(zoom)+RvR_yres()*128+128;
+         int x1 = ((p1->x-camera.x)*256)/RvR_non_zero(zoom)+RvR_xres()*128+128;
+         int y1 = ((p1->y-camera.y)*256)/RvR_non_zero(zoom)+RvR_yres()*128+128;
 
          if(p0->portal>=0)
          {
@@ -419,7 +415,7 @@ static void e2d_draw_base(void)
          //Only draw last wall in chain (not actually guranteed to be last
          //wall or only wall drawn, but close enough
          if(p0->join<map->sectors[i].wall_first+j)
-            RvR_render_rectangle(x0-3,y0-3,5,5,color_orange);
+            RvR_render_rectangle(x0-2,y0-2,5,5,color_orange);
       }
    }
 
@@ -791,6 +787,15 @@ static void e2d_update_wall_move(void)
    {
       RvR_fix22 x = ((mx+scroll_x)*zoom);
       RvR_fix22 y = ((my+scroll_y)*zoom);
+      if(draw_grid_sizes[draw_grid]>0)
+      {
+         RvR_fix22 dgrid = 1<<draw_grid_sizes[draw_grid];
+         x+=dgrid/2;
+         y+=dgrid/2;
+         x&=~(x&(dgrid-1));
+         y&=~(y&(dgrid-1));
+      }
+
       RvR_port_wall_move(map,wall_move,x,y);
    }
    else
