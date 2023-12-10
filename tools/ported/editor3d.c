@@ -433,6 +433,26 @@ static void e3d_update_view(void)
       }
    }
 
+   if(RvR_key_pressed(RVR_BUTTON_LEFT))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT)
+      {
+         map->walls[world_selection.as.wall].tex = texture_selected;
+      }
+      else if(world_selection.type==RVR_PORT_WALL_TOP)
+      {
+         map->walls[world_selection.as.wall].tex = texture_selected;
+      }
+      else if(world_selection.type==RVR_PORT_FLOOR)
+      {
+         map->sectors[world_selection.as.sector].floor_tex = texture_selected;
+      }
+      else if(world_selection.type==RVR_PORT_CEILING)
+      {
+         map->sectors[world_selection.as.sector].ceiling_tex = texture_selected;
+      }
+   }
+
    if(RvR_key_pressed(RVR_KEY_ENTER))
       editor_set_2d();
 }

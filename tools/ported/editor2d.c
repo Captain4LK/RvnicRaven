@@ -374,6 +374,8 @@ static void e2d_draw_base(void)
    //Draw sectors
    for(int i = 0;i<map->sector_count;i++)
    {
+      if(i==3)
+         continue;
       for(int j = 0;j<map->sectors[i].wall_count;j++)
       {
          RvR_port_wall *p0 = map->walls+map->sectors[i].wall_first+j;
@@ -390,7 +392,7 @@ static void e2d_draw_base(void)
          if(p0->portal>=0)
          {
             //Only draw one wall for portals
-            if(p0->portal>i)
+            //if(p0->portal>i)
                RvR_render_line(x0,y0,x1,y1,color_red);
          }
          else
@@ -460,6 +462,9 @@ static void e2d_update_view(void)
 
    if(RvR_key_pressed(RVR_KEY_BACK))
       state = STATE2D_IO;
+   RvR_fix22 wx = ((mx+scroll_x)*zoom);
+   RvR_fix22 wy = ((my+scroll_y)*zoom);
+   //printf("%d\n",RvR_port_sector_update(map,-1,wx,wy));
 
    camera_update();
 
