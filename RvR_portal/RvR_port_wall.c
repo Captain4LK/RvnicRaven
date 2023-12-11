@@ -281,6 +281,24 @@ int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall)
    return cur;
 }
 
+int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall)
+{
+   int64_t sum = 0;
+   int cur = map->walls[wall].p2;
+
+   while(cur!=wall)
+   {
+      int64_t x0 = map->walls[cur].x;
+      int64_t y0 = map->walls[cur].y;
+      int64_t x1 = map->walls[map->walls[cur].p2].x;
+      int64_t y1 = map->walls[map->walls[cur].p2].y;
+      sum+=(x1-x0)*(y0+y1);
+      cur = map->walls[cur].p2;
+   }
+   
+   return sum>0;
+}
+
 int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall)
 {
    int subsector = 0;
