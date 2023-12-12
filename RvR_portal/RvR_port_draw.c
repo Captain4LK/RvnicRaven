@@ -256,7 +256,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
       //Shrinks u coordinates, results in more
       //accurate interpolation of texture coordinates
-      RvR_texture *texture = RvR_texture_get(8);
+      RvR_texture *texture = RvR_texture_get(port_map->walls[wall->wall].tex);
       int over = wall->u0/(texture->width*1024);
       wall->u0-=over*texture->width*1024;
       wall->u1-=over*texture->width*1024;
