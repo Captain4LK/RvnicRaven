@@ -171,6 +171,7 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
       int64_t sum = 0;
       int first = wall;
 
+      //Calculate winding number, positive if clockwise
       for(;wall==first||map->walls[map->sectors[sector].wall_first+wall-1].p2==map->sectors[sector].wall_first+wall;wall++)
       {
          int64_t x0 = map->walls[s->wall_first+wall].x;
@@ -180,9 +181,10 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
          sum+=(x1-x0)*(y0+y1);
       }
 
+      //First subsector must be clockwise, all other subsectors counter-clockwise
       if((first==0&&sum>0)||(first!=0&&sum<0))
       {
-         //Need reversing
+         //Reverse walls
          for(int j = 0;j<(wall-first)/2;j++)
          {
             int16_t w0 = s->wall_first+first+j;
@@ -234,6 +236,8 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall)
    RvR_error_check(wall>=0,"RvR_port_sector_make_inner","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
    RvR_error_check(wall<map->wall_count,"RvR_port_make_inner","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
 
+   //TODO(Captain4LK): handle inner sector already partially being a portal
+
    int16_t sector = RvR_port_wall_sector(map,wall);
    int16_t first = RvR_port_wall_first(map,wall);
 
@@ -272,19 +276,21 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
    RvR_error_check(sector>=0,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
    RvR_error_check(sector<map->sector_count,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
 
+   //Delete joins to walls in sector
    for(int w = map->sectors[sector].wall_first;w<map->sectors[sector].wall_first+map->sectors[sector].wall_count;w++)
    {
       RvR_port_wall *wall = map->walls+w;
       if(wall->join>=0)
       {
          int16_t prev = RvR_port_wall_join_previous(map,w);
-         if(prev==wall->join)
+         if(prev==wall->join) //join list might only contain one element after removal
             map->walls[prev].join = -1;
          else
             map->walls[prev].join = wall->join;
       }
    }
 
+   //Remove portals to sector
    for(int w = 0;w<map->wall_count;w++)
    {
       RvR_port_wall *wall = map->walls+w;
@@ -292,13 +298,14 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
          wall->portal = -1;
    }
 
-   //Move walls to left
+   //Move walls after deleted sector to left
    int count = map->sectors[sector].wall_count;
    int remove = map->sectors[sector].wall_first;
    for(int w = remove;w<map->wall_count-count;w++)
       map->walls[w] = map->walls[w+count];
 
-   //Update wall references
+   //After moving the walls, some references (p2,join,wall_first) are incorrect, so...
+   //...update wall references
    for(int w = 0;w<map->wall_count;w++)
    {
       RvR_port_wall *wall = map->walls+w;
@@ -308,7 +315,7 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
          wall->join-=count;
    }
 
-   //Update sector references
+   //...and update sector references
    for(int s = 0;s<map->sector_count;s++)
    {
       RvR_port_sector *sct = map->sectors+s;
@@ -316,11 +323,12 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
          sct->wall_first-=count;
    }
 
-   //Move sectors to left
+   //Move sectors after deleted sector to left
    for(int s = sector;s<map->sector_count-1;s++)
       map->sectors[s] = map->sectors[s+1];
 
-   //Update portals
+   //After moving portals, some portal references are incorrect, so...
+   //...update portals
    for(int w = 0;w<map->wall_count;w++)
    {
       RvR_port_wall *wall = map->walls+w;
@@ -328,6 +336,7 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
          wall->portal-=1;
    }
 
+   //Shrink wall and sector arrays in map
    map->wall_count-=count;
    map->sector_count-=1;
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
