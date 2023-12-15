@@ -1,5 +1,19 @@
 # Documentation overview
 
+# texture
+
+## Functions
+
+[RvR_texture_get](texture_get.md)
+
+[RvR_texture_create](texture_create.md)
+
+[RvR_texture_create_free](texture_create_free.md)
+
+## Types
+
+[RvR_texture](texture.md)
+
 ## Types {#types}
 
 [RvR_fix16](fix16.md)
@@ -318,8 +332,3 @@
 
 [RvR_rw_read_u64](rw_read_u64.md)
 
-[RvR_texture_get](texture_get.md)
-
-[RvR_texture_create](texture_create.md)
-
-[RvR_texture_create_free](texture_create_free.md)

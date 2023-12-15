@@ -10,8 +10,8 @@ void RvR_texture_create_free(uint16_t id);
 
 ## Related
 
-[RvR_texture](/rvr/rvr/texture)
+[RvR_texture](texture.md)
 
-[RvR_texture_get](/rvr/rvr/texture_get)
+[RvR_texture_get](texture_get.md)
 
-[RvR_texture_create](/rvr/rvr/texture_create)
+[RvR_texture_create](texture_create.md)

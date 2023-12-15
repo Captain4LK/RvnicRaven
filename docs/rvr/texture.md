@@ -15,4 +15,4 @@ typedef struct
 
 ## Related
 
-[RvR_texture_load](/rvr/rvr/texture_load)
+[RvR_texture_get](texture_get.md)
