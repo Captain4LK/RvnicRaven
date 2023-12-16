@@ -314,4 +314,20 @@ int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wal
 
    return subsector;
 }
+
+void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join)
+{
+   if(map->walls[wall].join==-1)
+   {
+      map->walls[wall].join = join;
+      map->walls[join].join = wall;
+      return;
+   }
+
+   //TODO(Captain4LK): check if wall already joined
+
+   int16_t next = map->walls[wall].join;
+   map->walls[wall].join = join;
+   map->walls[join].join = next;
+}
 //-------------------------------------
