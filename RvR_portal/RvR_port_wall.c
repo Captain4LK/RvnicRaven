@@ -324,7 +324,13 @@ void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join)
       return;
    }
 
-   //TODO(Captain4LK): check if wall already joined
+   int16_t cur = map->walls[wall].join;
+   while(cur!=wall)
+   {
+      if(cur==join)
+         return;
+      cur = map->walls[cur].join;
+   }
 
    int16_t next = map->walls[wall].join;
    map->walls[wall].join = join;
