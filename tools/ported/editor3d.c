@@ -25,6 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "color.h"
 #include "editor.h"
 #include "editor2d.h"
+#include "draw.h"
 //-------------------------------------
 
 //#defines
@@ -44,7 +45,6 @@ typedef enum
 //Variables
 static int16_t wx = 0;
 static int16_t wy = 0;
-static int menu = 0;
 static int wlocation = 0;
 
 static uint16_t texture_selected = 0;
@@ -57,8 +57,6 @@ static RvR_port_selection world_selection;
 //-------------------------------------
 
 //Function prototypes
-static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location);
-
 static Map_sprite *sprite_selected();
 
 static void e3d_update_view(void);
@@ -371,10 +369,6 @@ void editor3d_draw(void)
 #endif
 }
 
-static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location)
-{
-}
-
 static Map_sprite *sprite_selected()
 {
    return NULL;
@@ -581,13 +575,6 @@ static void e3d_update_tex_recent(void)
          state = STATE3D_VIEW;
          brush = 0;
       }
-      if(RvR_key_pressed(RVR_KEY_S))
-      {
-         int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
-         //map_sky_tex_set(texture_list_used.data[index]);
-         state = STATE3D_VIEW;
-         brush = 0;
-      }
    }
 }
 
@@ -607,7 +594,7 @@ static void e3d_draw_tex_recent(void)
          draw_fit64(x * 64, y * 64, texture_list_used.data[index]);
 
          RvR_render_font_set(0xF001);
-         const char tmp_font[16];
+         char tmp_font[16];
          snprintf(tmp_font, 16, "%d", texture_list_used.data[index]);
          RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
          RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
@@ -643,7 +630,6 @@ static void e3d_update_tex_recent_go(void)
          if(texture_list.data[i]>=selection)
          {
             int tex_per_row = (RvR_xres()) / 64;
-            int tex_per_col = (RvR_yres()) / 64;
             texture_selection_scroll = i / RvR_non_zero(tex_per_row);
             mx = (i % tex_per_row) * 64 + 32;
             my = (i / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
@@ -670,7 +656,7 @@ static void e3d_draw_tex_recent_go(void)
          draw_fit64(x * 64, y * 64, texture_list_used.data[index]);
 
          RvR_render_font_set(0xF001);
-         const char tmp_font[16];
+         char tmp_font[16];
          snprintf(tmp_font, 16, "%d", texture_list_used.data[index]);
          RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
          RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
@@ -814,7 +800,7 @@ static void e3d_draw_tex_all(void)
             draw_fit64(x * 64, y * 64, texture_list.data[index]);
 
             RvR_render_font_set(0xF001);
-            const char tmp_font[16];
+            char tmp_font[16];
             snprintf(tmp_font, 16, "%d", texture_list.data[index]);
             RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
             RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
@@ -851,7 +837,6 @@ static void e3d_update_tex_all_go(void)
          if(texture_list.data[i]>=selection)
          {
             int tex_per_row = (RvR_xres()) / 64;
-            int tex_per_col = (RvR_yres()) / 64;
             texture_selection_scroll = i / RvR_non_zero(tex_per_row);
             mx = (i % tex_per_row) * 64 + 32;
             my = (i / tex_per_row) * 64 + 32 - texture_selection_scroll * 64;
@@ -879,7 +864,7 @@ static void e3d_draw_tex_all_go(void)
             draw_fit64(x * 64, y * 64, texture_list.data[index]);
 
             RvR_render_font_set(0xF001);
-            const char tmp_font[16];
+            char tmp_font[16];
             snprintf(tmp_font, 16, "%d", texture_list.data[index]);
             RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
             RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);

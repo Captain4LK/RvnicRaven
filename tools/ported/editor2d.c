@@ -26,6 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "undo.h"
 #include "editor.h"
 #include "editor2d.h"
+#include "sector_draw.h"
 //-------------------------------------
 
 //#defines
@@ -53,10 +54,7 @@ static int scroll_x = 0;
 static int scroll_y = 0;
 //static int grid_size = 24;
 static int mouse_scroll = 0;
-static int menu = 0;
 static char menu_input[512] = {0};
-static uint16_t menu_new_width = 0;
-static uint16_t menu_new_height = 0;
 
 static Map_list *map_list = NULL;
 static int map_list_scroll = 0;
@@ -67,7 +65,6 @@ static int16_t wall_move = -1;
 
 static State2D state = STATE2D_VIEW;
 
-static int16_t sector_current;
 static RvR_fix22 world_mx;
 static RvR_fix22 world_my;
 
@@ -366,7 +363,6 @@ static void e2d_draw_base(void)
       for(int x = start;x<=end;x++)
       {
          RvR_fix22 wx = -(camera.x%dgrid)+x*dgrid+(camera.x);
-         int dx = ((x*dgrid)/RvR_non_zero(zoom));
          RvR_render_vertical_line((wx-camera.x)/RvR_non_zero(zoom)+RvR_xres()/2,0,RvR_yres(),color_dark_gray);
       }
    }
@@ -374,8 +370,8 @@ static void e2d_draw_base(void)
    //Draw sectors
    for(int i = 0;i<map->sector_count;i++)
    {
-      if(i==3)
-         continue;
+      //if(i==2)
+         //continue;
       for(int j = 0;j<map->sectors[i].wall_count;j++)
       {
          RvR_port_wall *p0 = map->walls+map->sectors[i].wall_first+j;
@@ -462,8 +458,6 @@ static void e2d_update_view(void)
 
    if(RvR_key_pressed(RVR_KEY_BACK))
       state = STATE2D_IO;
-   RvR_fix22 wx = ((mx+scroll_x)*zoom);
-   RvR_fix22 wy = ((my+scroll_y)*zoom);
    //printf("%d\n",RvR_port_sector_update(map,-1,wx,wy));
 
    camera_update();
@@ -537,9 +531,6 @@ static void e2d_update_view(void)
       camera.y = ((scroll_y + my) * zoom);
       state = STATE2D_VIEW_SCROLL;
    }
-
-   RvR_fix22 x = ((mx+scroll_x)*zoom);
-   RvR_fix22 y = ((my+scroll_y)*zoom);
 
    scroll_x = (camera.x ) / RvR_non_zero(zoom)- RvR_xres() / 2;
    scroll_y = (camera.y ) / RvR_non_zero(zoom)- RvR_yres() / 2;
