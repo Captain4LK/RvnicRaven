@@ -74,6 +74,7 @@ void sector_draw_start(RvR_fix22 x, RvR_fix22 y)
 
 int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
 {
+   //If not back at first wall, add new wall at (x,y)
    if(x!=sd_walls[0].x||y!=sd_walls[0].y)
    {
       int overlap = 0;
@@ -830,10 +831,12 @@ static int sector_draw_split()
 
 static int sector_draw_connect()
 {
-   //Remove last wall
+   //Remove last wall, will be added again
    RvR_array_length_set(sd_walls,RvR_array_length(sd_walls)-1);
    int old_length = RvR_array_length(sd_walls);
 
+   //Add the entire loop of the last wall
+   //(wall removed above will be added again here)
    int start = sd_split_wall_end;
    int end = sd_split_wall_end;
    int cur = start;
@@ -847,21 +850,14 @@ static int sector_draw_connect()
    }
    while(cur!=end);
 
-   int sub_split = RvR_port_wall_subsector(map,sd_split_sector,sd_split_wall);
-   int last_copied = sub_split;
-   int split0_start = 0;
-
-
-   int subsector = 0;
-
-   //Add first walls in reverse
+   //Add first walls again, in reverse
    for(int i = 0;i<old_length;i++)
    {
       RvR_array_push(sd_walls,sd_walls[old_length-i]);
       sd_walls[RvR_array_length(sd_walls)-1].p2 = RvR_array_length(sd_walls);
-      puts("ADD");
    }
 
+   //Add the entire loop of the first wall
    start = sd_split_wall;
    end = sd_split_wall;
    cur = start;
@@ -877,10 +873,10 @@ static int sector_draw_connect()
    }
    while(cur!=end);
 
-   sub_split = RvR_port_wall_subsector(map,sd_split_sector,sd_split_wall);
-   last_copied = sub_split;
-
-   subsector = 0;
+   //Add all other subsectors
+   int sub_split = RvR_port_wall_subsector(map,sd_split_sector,sd_split_wall);
+   int last_copied = sub_split;
+   int subsector = 0;
    int sub_start = RvR_port_wall_subsector(map,sd_split_sector,sd_split_wall);
    int sub_end = RvR_port_wall_subsector(map,sd_split_sector,sd_split_wall_end);
    int split1_start = 0;
@@ -888,6 +884,9 @@ static int sector_draw_connect()
    {
       if(subsector!=last_copied&&subsector!=sub_start&&subsector!=sub_end)
       {
+         last_copied = subsector;
+         int old_len = RvR_array_length(sd_walls);
+
          int p2 = RvR_array_length(sd_walls);
          int start = i;
          int end = i;
@@ -903,13 +902,53 @@ static int sector_draw_connect()
             cur = map->walls[cur].p2;
          }
          while(cur!=end);
+
+         //if we come across the first subsector, it needs to be moved
+         //to the front of the sd_walls array, since the outer
+         //subsector must always be first
+         if(subsector==0)
+         {
+            int rot_amount = RvR_array_length(sd_walls)-old_len;
+            int rot_start = RvR_array_length(sd_walls)-rot_amount;
+            split1_start+=rot_amount;
+
+            //Reverse all
+            for(int j = 0;j<RvR_array_length(sd_walls)/2;j++)
+            {
+               RvR_port_wall tmp = sd_walls[j];
+               sd_walls[j] = sd_walls[RvR_array_length(sd_walls)-j-1];
+               sd_walls[RvR_array_length(sd_walls)-j-1] = tmp;
+            }
+
+            //Reverse last rot_start
+            for(int j = 0;j<rot_start/2;j++)
+            {
+               RvR_port_wall tmp = sd_walls[rot_amount+j];
+               sd_walls[rot_amount+j] = sd_walls[RvR_array_length(sd_walls)-j-1];
+               sd_walls[RvR_array_length(sd_walls)-j-1] = tmp;
+            }
+
+            //Reverse until rot_amount
+            for(int j = 0;j<rot_amount/2;j++)
+            {
+               RvR_port_wall tmp = sd_walls[j];
+               sd_walls[j] = sd_walls[rot_amount-j-1];
+               sd_walls[rot_amount-j-1] = tmp;
+            }
+
+            //Adjust indices
+            for(int j = 0;j<RvR_array_length(sd_walls);j++)
+               sd_walls[j].p2 = (sd_walls[j].p2+rot_amount)%RvR_array_length(sd_walls);
+
+            //printf("rot %d\n",rot_amount);
+         }
       }
 
       if(map->walls[i].p2<i)
          subsector++;
    }
 
-   //Add new sector
+   //Create new sector
    int16_t sector0 = map->sector_count++;
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
    map->sectors[sector0].wall_count = RvR_array_length(sd_walls);
@@ -941,9 +980,6 @@ static int sector_draw_connect()
       }
    }
 
-   //Add joins to new sectors
-   printf("%d %d\n",split0_start,split1_start);
-
    //Fix links and portals
    for(int i = 0;i<map->sectors[sector0].wall_count;i++)
    {
@@ -955,6 +991,8 @@ static int sector_draw_connect()
          int16_t next = RvR_port_wall_next(map,j);
          int16_t prev = RvR_port_wall_previous(map,j);
          int16_t wall_sector = RvR_port_wall_sector(map,j);
+         if(wall_sector==sd_split_sector)
+            continue;
 
          if(map->walls[j].x==map->walls[swall].x&&map->walls[j].y==map->walls[swall].y)
          {
@@ -964,6 +1002,7 @@ static int sector_draw_connect()
                {
                   map->walls[swall].portal = wall_sector;
                   map->walls[j].portal = sector0;
+                  printf("0 %d %d\n",wall_sector,i);
                   RvR_port_wall_join(map,swall,j);
                   RvR_port_wall_join(map,snext,next);
                }
@@ -974,6 +1013,7 @@ static int sector_draw_connect()
                {
                   map->walls[swall].portal = wall_sector;
                   map->walls[prev].portal = sector0;
+                  printf("1 %d %d\n",wall_sector,i);
                   RvR_port_wall_join(map,swall,j);
                   RvR_port_wall_join(map,snext,prev);
                }
