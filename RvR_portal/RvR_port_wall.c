@@ -272,12 +272,21 @@ int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall)
       return -1;
 
    int16_t cur = map->walls[wall].join;
-   while(map->walls[cur].join!=wall)
+   for(int i = 0;i<1024&&map->walls[cur].join!=wall;i++)
    {
       cur = map->walls[cur].join;
       if(cur==-1)
          return -1;
+      if(map->walls[cur].join==wall)
+         return cur;
    }
+
+   puts("HIT");
+   for(int i = 0;i<map->wall_count;i++)
+      if(map->walls[i].join==wall)
+         puts("FOUND");
+
+
    return cur;
 }
 
@@ -317,7 +326,10 @@ int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wal
 
 void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join)
 {
-   if(map->walls[wall].join==-1)
+   if(wall<0||join<0)
+      return;
+
+   if(map->walls[wall].join<0)
    {
       map->walls[wall].join = join;
       map->walls[join].join = wall;
@@ -325,7 +337,7 @@ void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join)
    }
 
    int16_t cur = map->walls[wall].join;
-   while(cur!=wall)
+   while(cur!=wall&&cur!=-1)
    {
       if(cur==join)
          return;
