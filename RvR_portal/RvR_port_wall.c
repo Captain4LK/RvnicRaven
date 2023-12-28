@@ -281,7 +281,7 @@ int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall)
          return cur;
    }
 
-   puts("HIT");
+   printf("hit %d\n",wall);
    for(int i = 0;i<map->wall_count;i++)
       if(map->walls[i].join==wall)
          puts("FOUND");
