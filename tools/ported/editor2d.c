@@ -810,6 +810,45 @@ static void e2d_update_sector(void)
    int mx, my;
    RvR_mouse_pos(&mx, &my);
 
+   //Camera
+   //-------------------------------------
+   if(RvR_key_pressed(RVR_KEY_G))
+      draw_grid = (draw_grid+1)&7;
+
+   if(RvR_key_pressed(RVR_BUTTON_RIGHT))
+   {
+      RvR_mouse_relative(1);
+
+      mouse_scroll = 1;
+      camera.x = ((scroll_x + mx) * zoom);
+      camera.y = ((scroll_y + my) * zoom);
+   }
+
+   if(mouse_scroll)
+   {
+      int rx, ry;
+      RvR_mouse_relative_pos(&rx, &ry);
+
+      camera.x += (rx * zoom) / 1;
+      camera.y += (ry * zoom) / 1;
+   }
+
+   if(RvR_key_released(RVR_BUTTON_RIGHT))
+   {
+      mouse_scroll = 0;
+      RvR_mouse_relative(0);
+      RvR_mouse_set_pos(RvR_xres() / 2, RvR_yres() / 2);
+   }
+
+   scroll_x = (camera.x ) / RvR_non_zero(zoom)- RvR_xres() / 2;
+   scroll_y = (camera.y ) / RvR_non_zero(zoom)- RvR_yres() / 2;
+
+   if(RvR_key_pressed(RVR_KEY_NP_ADD)&&zoom>1)
+      zoom-=1;
+   if(RvR_key_pressed(RVR_KEY_NP_SUB)&&zoom<1024)
+      zoom+=1;
+   //-------------------------------------
+
    world_mx = ((mx+scroll_x)*zoom);
    world_my = ((my+scroll_y)*zoom);
    if(draw_grid_sizes[draw_grid]>0)
@@ -825,6 +864,12 @@ static void e2d_update_sector(void)
    {
       int ret = sector_draw_add(world_mx,world_my);
       if(ret)
+         state = STATE2D_VIEW;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_BACK))
+   {
+      if(sector_draw_back())
          state = STATE2D_VIEW;
    }
 }

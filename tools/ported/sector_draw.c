@@ -53,7 +53,11 @@ void sector_draw_start(RvR_fix22 x, RvR_fix22 y)
 {
    RvR_array_length_set(sd_walls,0);
    sd_wall_overlap = -1;
+
    sd_split = 0;
+   sd_split_wall = -1;
+   sd_split_sector = -1;
+   sd_split_wall_end = -1;
 
    RvR_port_wall w = {0};
    w.x = x;
@@ -303,15 +307,15 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
                   {
                      map->walls[swall].portal = wall_sector;
                      map->walls[j].portal = sector;
-                     RvR_port_wall_join(map,swall,j);
-                     RvR_port_wall_join(map,snext,next);
+                     if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
+                     if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
                   }
                   else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
                   {
                      map->walls[swall].portal = wall_sector;
                      map->walls[prev].portal = sector;
-                     RvR_port_wall_join(map,swall,j);
-                     RvR_port_wall_join(map,snext,prev);
+                     if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
+                     if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
                   }
                }
             }
@@ -374,6 +378,36 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          return sector_draw_split();
       else
          return sector_draw_connect();
+   }
+
+   return 0;
+}
+
+int sector_draw_back()
+{
+   if(RvR_array_length(sd_walls)==1)
+      return 1;
+
+   if(RvR_array_length(sd_walls)==2)
+   {
+      sd_split = 0;
+      sd_split_sector = -1;
+      sd_split_wall = -1;
+      sd_split_wall_end = -1;
+   }
+
+   RvR_array_length_set(sd_walls,RvR_array_length(sd_walls)-1);
+
+   //Recheck overlapping walls
+   sd_overlap = -1;
+   for(int i = 0;i<RvR_array_length(sd_walls);i++)
+   {
+      for(int j = 0;j<map->wall_count;j++)
+      {
+         RvR_port_wall *p0 = map->walls+j;
+         if(p0->x==sd_walls[i].x&&p0->y==sd_walls[i].y)
+            sd_wall_overlap = j;
+      }
    }
 
    return 0;
@@ -744,9 +778,6 @@ static int sector_draw_split()
                   if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
                   if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
                }
-               //printf("j0 %d %d %d %d\n",map->walls[swall].join,map->walls[snext].join,map->walls[j].join,map->walls[next].join);
-               //RvR_port_wall_join(map,swall,j);
-               //RvR_port_wall_join(map,snext,next);
             }
             else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
             {
@@ -757,9 +788,6 @@ static int sector_draw_split()
                   if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
                   if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
                }
-               //printf("j1 %d %d %d %d\n",map->walls[swall].join,map->walls[snext].join,map->walls[j].join,map->walls[prev].join);
-               //RvR_port_wall_join(map,swall,j);
-               //RvR_port_wall_join(map,snext,prev);
             }
          }
       }
@@ -787,8 +815,6 @@ static int sector_draw_split()
                   if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
                   if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
                }
-               //RvR_port_wall_join(map,swall,j);
-               //RvR_port_wall_join(map,snext,next);
             }
             else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
             {
@@ -799,8 +825,6 @@ static int sector_draw_split()
                   if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
                   if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
                }
-               //RvR_port_wall_join(map,swall,j);
-               //RvR_port_wall_join(map,snext,prev);
             }
          }
       }
@@ -816,7 +840,6 @@ static int sector_draw_split()
    RvR_port_sector_fix_winding(map,sector0);
    RvR_port_sector_fix_winding(map,sector1);
 
-   //puts("DEL SPLIT");
    RvR_port_sector_delete(map,sd_split_sector);
 
    return 1;
@@ -959,9 +982,7 @@ static int sector_draw_connect()
       map->walls[map->sectors[sector0].wall_first+i].y = sd_walls[i].y;
       map->walls[map->sectors[sector0].wall_first+i].p2 = sd_walls[i].p2+map->sectors[sector0].wall_first;
       map->walls[map->sectors[sector0].wall_first+i].portal = sd_walls[i].portal;
-      //printf("%d %d\n",i,sd_walls[i].portal);
       map->walls[map->sectors[sector0].wall_first+i].join = -1;
-      //map->walls[map->sectors[sector0].wall_first+i].join = sd_walls[i].join;
       RvR_port_wall_join(map,sd_walls[i].join,map->sectors[sector0].wall_first+i);
    }
 
@@ -989,8 +1010,6 @@ static int sector_draw_connect()
                   map->walls[j].portal = sector0;
                   if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
                   if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
-                  //RvR_port_wall_join(map,swall,j);
-                  //RvR_port_wall_join(map,snext,next);
                }
             }
             else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
@@ -1001,8 +1020,6 @@ static int sector_draw_connect()
                   map->walls[prev].portal = sector0;
                   if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
                   if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
-                  //RvR_port_wall_join(map,swall,j);
-                  //RvR_port_wall_join(map,snext,prev);
                }
             }
          }
@@ -1016,7 +1033,6 @@ static int sector_draw_connect()
    //Fix sector windings
    RvR_port_sector_fix_winding(map,sector0);
 
-   //puts("DEL CONNECT");
    RvR_port_sector_delete(map,sd_split_sector);
 
    return 1;
