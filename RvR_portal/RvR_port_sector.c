@@ -184,6 +184,7 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
       //First subsector must be clockwise, all other subsectors counter-clockwise
       if((first==0&&sum>0)||(first!=0&&sum<0))
       {
+         printf("Reverse %d, %d to %d\n",sector,first,wall-1);
          //Reverse walls
          for(int j = 0;j<(wall-first)/2;j++)
          {
@@ -220,6 +221,14 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
                }
                cur = map->walls[cur].join;
             }
+         }
+
+         //Reverse all wall attributes except last
+         for(int j = 0;j<(wall-first-1)/2;j++)
+         {
+            int16_t tmp = map->walls[s->wall_first+wall-j-2].portal;
+            map->walls[s->wall_first+wall-j-2].portal = map->walls[s->wall_first+first+j].portal;
+            map->walls[s->wall_first+first+j].portal = tmp;
          }
       }
    }
