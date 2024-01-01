@@ -191,4 +191,26 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
 RvR_err:
    return NULL;
 }
+
+int RvR_port_map_check(const RvR_port_map *map)
+{
+   //Check if walls sorted, sectors don't overlap, no gaps between sectors
+   {
+      int16_t next_first = 0;
+      int16_t last_first = -1;
+      for(int i = 0;i<map->sector_count;i++)
+      {
+         RvR_error_check(next_first>last_first,"RvR_port_map_check","walls of sector %d not sorted in relation to sector %d\n",i-1,i);
+         RvR_error_check(map->sectors[i].wall_first>=next_first,"RvR_port_map_check","walls of sector %d and sector %d are overlapping\n",i-1,i);
+         RvR_error_check(map->sectors[i].wall_first<=next_first,"RvR_port_map_check","gaps between walls of sector %d and sector %d\n",i-1,i);
+         last_first = next_first;
+         next_first+=map->sectors[i].wall_count;
+      }
+   }
+
+   return 1;
+
+RvR_err:
+   return 0;
+}
 //-------------------------------------

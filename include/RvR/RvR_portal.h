@@ -117,6 +117,7 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector);
 int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall);
 void RvR_port_sector_delete(RvR_port_map *map, int16_t sector);
 void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join);
+int RvR_port_map_check(const RvR_port_map *map);
 
 void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
 void RvR_port_draw_map(RvR_port_selection *select);

@@ -458,7 +458,10 @@ static void e2d_update_view(void)
 
    if(RvR_key_pressed(RVR_KEY_BACK))
       state = STATE2D_IO;
-   //printf("%d\n",RvR_port_sector_update(map,-1,wx,wy));
+
+   //RvR_fix22 x = ((mx+scroll_x)*zoom);
+   //RvR_fix22 y = ((my+scroll_y)*zoom);
+   //printf("%d\n",RvR_port_sector_update(map,-1,x,y));
 
    camera_update();
 
@@ -484,6 +487,9 @@ static void e2d_update_view(void)
       //if(wall_move==-1&&sprite_sel!=NULL)
          //sprite_move = sprite_sel;
    }
+
+   if(RvR_key_pressed(RVR_KEY_L))
+      printf("map check: %d\n",RvR_port_map_check(map));
 
    if(RvR_key_pressed(RVR_KEY_G))
       draw_grid = (draw_grid+1)&7;

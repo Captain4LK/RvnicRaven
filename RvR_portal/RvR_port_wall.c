@@ -1,7 +1,7 @@
 /*
 RvnicRaven - portal walls 
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -293,9 +293,8 @@ int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall)
 int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall)
 {
    int64_t sum = 0;
-   int cur = map->walls[wall].p2;
-
-   while(cur!=wall)
+   int cur = wall;
+   do
    {
       int64_t x0 = map->walls[cur].x;
       int64_t y0 = map->walls[cur].y;
@@ -304,6 +303,7 @@ int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall)
       sum+=(x1-x0)*(y0+y1);
       cur = map->walls[cur].p2;
    }
+   while(cur!=wall);
    
    return sum>0;
 }
