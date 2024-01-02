@@ -2008,7 +2008,7 @@ static void port_collect_walls(int16_t start)
       RvR_fix22 tp1y = 0;
       for(int i = 0;i<port_map->sectors[sector].wall_count;i++,w0++)
       {
-         RvR_texture *tex = RvR_texture_get(8);
+         RvR_texture *tex = RvR_texture_get(w0->tex);
          w1 = &port_map->walls[w0->p2];
 
          RvR_fix22 x0 = w0->x-port_cam->x;
