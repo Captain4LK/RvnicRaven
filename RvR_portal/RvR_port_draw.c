@@ -2008,7 +2008,6 @@ static void port_collect_walls(int16_t start)
       RvR_fix22 tp1y = 0;
       for(int i = 0;i<port_map->sectors[sector].wall_count;i++,w0++)
       {
-         RvR_texture *tex = RvR_texture_get(w0->tex);
          w1 = &port_map->walls[w0->p2];
 
          RvR_fix22 x0 = w0->x-port_cam->x;
@@ -2053,7 +2052,7 @@ static void port_collect_walls(int16_t start)
             continue;
 
          dw.u0 = 0;
-         dw.u1 = RvR_fix22_sqrt(RvR_fix22_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix22_mul(w1->y-w0->y,w1->y-w0->y))*tex->width-1;
+         dw.u1 = RvR_fix22_sqrt(RvR_fix22_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix22_mul(w1->y-w0->y,w1->y-w0->y))*64-1;
 
          //Clipping
          //Left point in fov
