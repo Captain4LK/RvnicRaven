@@ -256,10 +256,10 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
       //Shrinks u coordinates, results in more
       //accurate interpolation of texture coordinates
-      RvR_texture *texture = RvR_texture_get(port_map->walls[wall->wall].tex);
-      int over = wall->u0/(texture->width*1024);
-      wall->u0-=over*texture->width*1024;
-      wall->u1-=over*texture->width*1024;
+      //RvR_texture *texture = RvR_texture_get(port_map->walls[wall->wall].tex);
+      //int over = wall->u0/(texture->width*1024);
+      //wall->u0-=over*texture->width*1024;
+      //wall->u1-=over*texture->width*1024;
 
       //No portal
       if(portal<0)
@@ -282,8 +282,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 num_step_z = 4*(wall->z0-wall->z1);
          RvR_fix22 num_z = 4*wall->z1;
 
-         int64_t num_step_u = RvR_fix22_mul(wall->z0,wall->u1)-RvR_fix22_mul(wall->z1,wall->u0);
-         int64_t num_u = RvR_fix22_mul(wall->u0,wall->z1);
+         RvR_texture *texture = RvR_texture_get(port_map->walls[wall->wall].tex_lower);
+         RvR_fix22 u0 = wall->u0-(wall->u0&(~(1024*texture->width-1)));
+         RvR_fix22 u1 = wall->u1-(wall->u0&(~(1024*texture->width-1)));
+         int64_t num_step_u = RvR_fix22_mul(wall->z0,u1)-RvR_fix22_mul(wall->z1,u0);
+         int64_t num_u = RvR_fix22_mul(u0,wall->z1);
 
          //Adjust for fractional part
          int x0 = (wall->x0+1023)/1024;
@@ -418,8 +421,16 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 num_step_z = 4*(wall->z0-wall->z1);
          RvR_fix22 num_z = 4*wall->z1;
 
-         RvR_fix22 num_step_u = RvR_fix22_mul(wall->z0,wall->u1)-RvR_fix22_mul(wall->z1,wall->u0);
-         RvR_fix22 num_u = RvR_fix22_mul(wall->u0,wall->z1);
+         RvR_texture *texture_lower = RvR_texture_get(port_map->walls[wall->wall].tex_lower);
+         RvR_texture *texture_upper = RvR_texture_get(port_map->walls[wall->wall].tex_upper);
+         RvR_fix22 u0_lower = wall->u0-(wall->u0&(~(1024*texture_lower->width-1)));
+         RvR_fix22 u1_lower = wall->u1-(wall->u0&(~(1024*texture_lower->width-1)));
+         RvR_fix22 u0_upper = wall->u0-(wall->u0&(~(1024*texture_upper->width-1)));
+         RvR_fix22 u1_upper = wall->u1-(wall->u0&(~(1024*texture_upper->width-1)));
+         RvR_fix22 num_step_u_lower = RvR_fix22_mul(wall->z0,u1_lower)-RvR_fix22_mul(wall->z1,u0_lower);
+         RvR_fix22 num_u_lower = RvR_fix22_mul(u0_lower,wall->z1);
+         RvR_fix22 num_step_u_upper = RvR_fix22_mul(wall->z0,u1_upper)-RvR_fix22_mul(wall->z1,u0_upper);
+         RvR_fix22 num_u_upper = RvR_fix22_mul(u0_upper,wall->z1);
 
          //Adjust for fractional part
          int x0 = (wall->x0+1023)/1024;
@@ -430,7 +441,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
          fy+=(xfrac*step_fy)/1024;
          fph+=(xfrac*step_fph)/1024;
          num_z+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_z),RvR_non_zero(wall->x1-wall->x0));
-         num_u+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u),RvR_non_zero(wall->x1-wall->x0));
+         num_u_lower+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u_lower),RvR_non_zero(wall->x1-wall->x0));
+         num_u_upper+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u_upper),RvR_non_zero(wall->x1-wall->x0));
 
          for(int x = x0;x<x1;x++)
          {
@@ -438,9 +450,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
             int y1 = fy/1024;
 
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
-            RvR_fix22 nu = num_u+RvR_fix22_div(num_step_u*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix22 nu_lower = num_u_lower+RvR_fix22_div(num_step_u_lower*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            RvR_fix22 nu_upper = num_u_upper+RvR_fix22_div(num_step_u_upper*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
-            RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
+            RvR_fix22 u_lower = (4*nu_lower)/RvR_non_zero(nz);
+            RvR_fix22 u_upper = (4*nu_upper)/RvR_non_zero(nz);
 
             int top = port_ytop[x]+1;
             int bottom = port_ybot[x];
@@ -493,9 +507,9 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(y0-RvR_yres()/2)*coord_step_scaled;
-               const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
+               const uint8_t * restrict tex = &texture_upper->data[(((uint32_t)u_upper)%texture_upper->width)*texture_upper->height];
                uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
-               RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
+               RvR_fix22 y_and = (1<<RvR_log2(texture_upper->height))-1;
                for(int y = y0;y<=mid;y++)
                {
                   *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
@@ -525,8 +539,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 height = port_map->sectors[portal].floor-port_cam->z;
                RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
                RvR_fix22 texture_coord_scaled = height*4096+(mid-RvR_yres()/2)*coord_step_scaled+coord_step_scaled/2;
-               RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
-               const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
+               RvR_fix22 y_and = (1<<RvR_log2(texture_lower->height))-1;
+               const uint8_t * restrict tex = &texture_lower->data[(((uint32_t)u_lower)%texture_lower->width)*texture_lower->height];
                uint8_t * restrict pix = RvR_framebuffer()+(mid*RvR_xres()+x);
                for(int y = mid;y<=y1;y++)
                {

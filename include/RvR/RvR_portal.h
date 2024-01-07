@@ -33,7 +33,9 @@ typedef struct
    int16_t p2;
    int16_t portal;
    int16_t join;
-   uint16_t tex;
+   uint16_t tex_lower;
+   uint16_t tex_upper;
+   uint16_t tex_mid;
 }RvR_port_wall;
 
 typedef struct

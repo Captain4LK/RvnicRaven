@@ -431,11 +431,11 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
-         map->walls[world_selection.as.wall].tex = texture_selected;
+         map->walls[world_selection.as.wall].tex_lower = texture_selected;
       }
       else if(world_selection.type==RVR_PORT_WALL_TOP)
       {
-         map->walls[world_selection.as.wall].tex = texture_selected;
+         map->walls[world_selection.as.wall].tex_upper = texture_selected;
       }
       else if(world_selection.type==RVR_PORT_FLOOR)
       {
