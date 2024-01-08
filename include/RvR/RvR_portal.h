@@ -1,7 +1,7 @@
 /*
 RvnicRaven - Portal renderer
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -18,6 +18,7 @@ typedef struct
 {
    int16_t wall_count;
    int16_t wall_first;
+   uint32_t flags;
    RvR_fix22 floor;
    RvR_fix22 ceiling;
    uint16_t floor_tex;
@@ -89,6 +90,10 @@ struct RvR_port_depth_buffer_entry
 
    RvR_port_depth_buffer_entry *next;
 };
+
+//Sector flags
+#define RVR_PORT_PARALLAX_FLOOR            UINT32_C(0x1)
+#define RVR_PORT_PARALLAX_CEILING          UINT32_C(0x2)
 
 RvR_port_map *RvR_port_map_create(void);
 void RvR_port_map_save(const RvR_port_map *map, const char *path);

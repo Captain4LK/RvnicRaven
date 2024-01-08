@@ -384,6 +384,18 @@ static void e3d_update_view(void)
       texture_selection_scroll = 0;
    }
 
+   if(RvR_key_pressed(RVR_KEY_P))
+   {
+      if(world_selection.type==RVR_PORT_FLOOR)
+      {
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_PARALLAX_FLOOR;
+      }
+      else if(world_selection.type==RVR_PORT_CEILING)
+      {
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_PARALLAX_CEILING;
+      }
+   }
+
    if(RvR_key_pressed(RVR_KEY_PGUP))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT)

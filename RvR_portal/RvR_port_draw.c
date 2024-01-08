@@ -598,6 +598,70 @@ void RvR_port_draw_map(RvR_port_selection *select)
             continue;
          }
 
+         //Parallax --> render differently
+         if((port_map->sectors[pl->sector].flags&RVR_PORT_PARALLAX_FLOOR&&pl->where==1)||
+            (port_map->sectors[pl->sector].flags&RVR_PORT_PARALLAX_CEILING&&pl->where==0))
+         {
+            RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
+            RvR_texture *texture = NULL;
+            if(pl->where==1)
+               texture = RvR_texture_get(port_map->sectors[pl->sector].floor_tex);
+            else
+               texture = RvR_texture_get(port_map->sectors[pl->sector].ceiling_tex);
+
+            int skyw = 1 << RvR_log2(texture->width);
+            int skyh = 1 << RvR_log2(texture->height);
+            int mask = skyh - 1;
+
+            RvR_fix16 angle_step = (skyw * 1024) / RvR_xres();
+            RvR_fix16 tex_step = (1024 * skyh - 1) / RvR_yres();
+
+            //TODO(Captain4LK): include fov in calculation
+            RvR_fix22 angle = port_cam->dir*texture->width;
+            angle += (pl->min - 1) * angle_step;
+
+            for(int x = pl->min; x<pl->max + 1; x++)
+            {
+               //Sky is rendered fullbright, no lut needed
+               uint8_t * restrict pix = &RvR_framebuffer()[(pl->start[x]) * RvR_xres() + x - 1];
+               const uint8_t * restrict tex = &texture->data[((angle/1024) & (skyw - 1)) * skyh];
+               const uint8_t * restrict col = RvR_shade_table(32);
+
+               //Split in two parts: above and below horizon
+               int middle = RvR_max(0, RvR_min(RvR_yres(), middle_row + RvR_yres() / 32));
+               int tex_start = pl->start[x];
+               int tex_end = middle;
+               if(tex_end>pl->end[x])
+                  tex_end = pl->end[x];
+               if(tex_start>tex_end)
+                  tex_end = tex_start;
+               if(tex_start>middle)
+                  tex_end = tex_start - 1;
+               int solid_end = pl->end[x];
+               RvR_fix16 texture_coord = (RvR_yres() - middle + pl->start[x]) * tex_step;
+
+               for(int y = tex_start; y<tex_end + 1; y++)
+               {
+                  *pix = tex[texture_coord/1024];
+                  texture_coord += tex_step;
+                  pix += RvR_xres();
+               }
+               RvR_fix16 tex_coord = (RvR_yres()) * tex_step - 1;
+               texture_coord = RvR_min(tex_coord, tex_coord - tex_step * (tex_end - middle));
+               for(int y = tex_end + 1; y<solid_end + 1; y++)
+               {
+                  *pix = col[tex[(texture_coord/1024) & mask]];
+                  texture_coord -= tex_step;
+                  pix += RvR_xres();
+               }
+
+               angle += angle_step;
+            }
+
+            pl = pl->next;
+            continue;
+         }
+
          for(int x = pl->min;x<pl->max+2;x++)
          {
             RvR_fix22 s0 = pl->start[x-1];
