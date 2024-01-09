@@ -360,7 +360,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 texture_coord_scaled = height*4096+(y0-RvR_yres()/2)*coord_step_scaled;
                RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
-               const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9))));
+               const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9)+port_map->walls[wall->wall].shade_offset)));
                uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
                for(int y = y0;y<=y1;y++)
                {
@@ -491,7 +491,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                port_plane_add(wall->sector,1,x,top,bottom);
             }
 
-            const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9))));
+            const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9)+port_map->walls[wall->wall].shade_offset)));
             int mid = cph/1024;
             if(mid>=port_ybot[x])
                mid = port_ybot[x]-1;

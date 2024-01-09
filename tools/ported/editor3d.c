@@ -384,6 +384,18 @@ static void e3d_update_view(void)
       texture_selection_scroll = 0;
    }
 
+   //Shading
+   if(RvR_key_pressed(RVR_KEY_NP_ADD))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+         map->walls[world_selection.as.wall].shade_offset++;
+   }
+   if(RvR_key_pressed(RVR_KEY_NP_SUB))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+         map->walls[world_selection.as.wall].shade_offset--;
+   }
+
    if(RvR_key_pressed(RVR_KEY_P))
    {
       if(world_selection.type==RVR_PORT_FLOOR)

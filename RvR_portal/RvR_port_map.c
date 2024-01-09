@@ -45,7 +45,7 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
    size += 2; //version
    size += 4; //map->wall_count
    size += 4; //map->sector_count
-   size+=map->wall_count*(4+4+4+2+2+2+2+2+2); //Walls
+   size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1); //Walls
    size+=map->sector_count*(2+2+4+4+2+2+4); //Sectors
 
    uint8_t *mem = RvR_malloc(size, "RvR_port map save buffer");
@@ -73,6 +73,7 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u16(&rw,map->walls[i].tex_lower);
       RvR_rw_write_u16(&rw,map->walls[i].tex_upper);
       RvR_rw_write_u16(&rw,map->walls[i].tex_mid);
+      RvR_rw_write_u8(&rw,map->walls[i].shade_offset);
    }
 
    //Sectors
@@ -178,6 +179,7 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->walls[i].tex_lower = RvR_rw_read_u16(rw);
       map->walls[i].tex_upper = RvR_rw_read_u16(rw);
       map->walls[i].tex_mid = RvR_rw_read_u16(rw);
+      map->walls[i].shade_offset = RvR_rw_read_u8(rw);
    }
 
    //Sectors
