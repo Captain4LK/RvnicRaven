@@ -414,21 +414,29 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
          map->walls[world_selection.as.wall].x_off++;
+      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].x_off++;
    }
    if(RvR_key_pressed(RVR_KEY_NP6))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
          map->walls[world_selection.as.wall].x_off--;
+      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].x_off--;
    }
    if(RvR_key_pressed(RVR_KEY_NP8))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
          map->walls[world_selection.as.wall].y_off++;
+      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].y_off--;
    }
    if(RvR_key_pressed(RVR_KEY_NP2))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
          map->walls[world_selection.as.wall].y_off--;
+      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].y_off++;
    }
 
    if(RvR_key_pressed(RVR_KEY_PGUP))

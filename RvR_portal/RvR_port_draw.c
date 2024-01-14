@@ -1084,6 +1084,9 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    RvR_fix22 tx = -(cam->x&1023)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
    RvR_fix22 ty = (cam->y&1023)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
 
+   tx+=((int32_t)map->sectors[sector].x_off)*65536;
+   ty+=((int32_t)map->sectors[sector].y_off)*65536;
+
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);
    RvR_fix22 x_and = (1<<x_log)-1;

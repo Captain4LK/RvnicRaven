@@ -24,6 +24,9 @@ typedef struct
    uint16_t floor_tex;
    uint16_t ceiling_tex;
    uint8_t visited;
+
+   int16_t x_off;
+   int16_t y_off;
 }RvR_port_sector;
 
 typedef struct
