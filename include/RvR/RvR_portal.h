@@ -38,6 +38,8 @@ typedef struct
    uint16_t tex_upper;
    uint16_t tex_mid;
    int8_t shade_offset;
+   int16_t x_off;
+   int16_t y_off;
 }RvR_port_wall;
 
 typedef struct

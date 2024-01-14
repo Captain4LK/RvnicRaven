@@ -396,6 +396,7 @@ static void e3d_update_view(void)
          map->walls[world_selection.as.wall].shade_offset--;
    }
 
+   //Parallax
    if(RvR_key_pressed(RVR_KEY_P))
    {
       if(world_selection.type==RVR_PORT_FLOOR)
@@ -406,6 +407,28 @@ static void e3d_update_view(void)
       {
          map->sectors[world_selection.as.sector].flags^=RVR_PORT_PARALLAX_CEILING;
       }
+   }
+
+   //Texture coordinates
+   if(RvR_key_pressed(RVR_KEY_NP4))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+         map->walls[world_selection.as.wall].x_off++;
+   }
+   if(RvR_key_pressed(RVR_KEY_NP6))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+         map->walls[world_selection.as.wall].x_off--;
+   }
+   if(RvR_key_pressed(RVR_KEY_NP8))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+         map->walls[world_selection.as.wall].y_off++;
+   }
+   if(RvR_key_pressed(RVR_KEY_NP2))
+   {
+      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+         map->walls[world_selection.as.wall].y_off--;
    }
 
    if(RvR_key_pressed(RVR_KEY_PGUP))
