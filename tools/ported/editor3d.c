@@ -439,6 +439,15 @@ static void e3d_update_view(void)
          map->sectors[world_selection.as.sector].y_off++;
    }
 
+   //Floor/Ceiling align
+   if(RvR_key_pressed(RVR_KEY_R))
+   {
+      if(world_selection.type==RVR_PORT_FLOOR)
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_ALIGN_FLOOR;
+      else if(world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_ALIGN_CEILING;
+   }
+
    if(RvR_key_pressed(RVR_KEY_PGUP))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT)

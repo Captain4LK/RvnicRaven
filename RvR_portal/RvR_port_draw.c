@@ -1081,11 +1081,44 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
 
    RvR_fix22 step_x = ((int64_t)view_sin*slope)/(1<<18);
    RvR_fix22 step_y = ((int64_t)view_cos*slope)/(1<<18);
-   RvR_fix22 tx = -(cam->x&1023)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
-   RvR_fix22 ty = (cam->y&1023)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+   RvR_fix22 tx,ty;
 
+   if((where==1&&map->sectors[sector].flags&RVR_PORT_ALIGN_FLOOR)||
+      (where==0&&map->sectors[sector].flags&RVR_PORT_ALIGN_CEILING))
+   {
+      RvR_fix22 wx0 = map->walls[map->sectors[sector].wall_first].x;
+      RvR_fix22 wy0 = map->walls[map->sectors[sector].wall_first].y;
+      tx = -(cam->x-wx0)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
+      ty = (cam->y-wy0)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+   }
+   else
+   {
+      tx = -(cam->x&1023)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
+      ty = (cam->y&1023)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+   }
+
+   //Offset textures
    tx+=((int32_t)map->sectors[sector].x_off)*65536;
    ty+=((int32_t)map->sectors[sector].y_off)*65536;
+
+   //Rotate textures
+   if((where==1&&map->sectors[sector].flags&RVR_PORT_ALIGN_FLOOR)||
+      (where==0&&map->sectors[sector].flags&RVR_PORT_ALIGN_CEILING))
+   {
+      RvR_fix22 wx0 = map->walls[map->sectors[sector].wall_first].x;
+      RvR_fix22 wy0 = map->walls[map->sectors[sector].wall_first].y;
+      RvR_fix22 wx1 = map->walls[map->walls[map->sectors[sector].wall_first].p2].x;
+      RvR_fix22 wy1 = map->walls[map->walls[map->sectors[sector].wall_first].p2].y;
+      RvR_fix22 len = RvR_non_zero(RvR_fix22_sqrt(RvR_fix22_mul(wx0-wx1,wx0-wx1)+RvR_fix22_mul(wy0-wy1,wy0-wy1)));
+      RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
+      RvR_fix22 sp_sin = -RvR_fix22_div(wy1-wy0,len);
+      RvR_fix22 tmp = tx;
+      tx = RvR_fix22_mul(-sp_sin, tx) + RvR_fix22_mul(sp_cos, ty);
+      ty = RvR_fix22_mul(sp_cos, tmp) + RvR_fix22_mul(sp_sin, ty);
+      tmp = step_x;
+      step_x = RvR_fix22_mul(-sp_sin, step_x) + RvR_fix22_mul(sp_cos, step_y);
+      step_y = RvR_fix22_mul(sp_cos, tmp) + RvR_fix22_mul(sp_sin, step_y);
+   }
 
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);

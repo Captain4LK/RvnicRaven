@@ -100,6 +100,8 @@ struct RvR_port_depth_buffer_entry
 //Sector flags
 #define RVR_PORT_PARALLAX_FLOOR            UINT32_C(0x1)
 #define RVR_PORT_PARALLAX_CEILING          UINT32_C(0x2)
+#define RVR_PORT_ALIGN_FLOOR               UINT32_C(0x4)
+#define RVR_PORT_ALIGN_CEILING             UINT32_C(0x8)
 
 RvR_port_map *RvR_port_map_create(void);
 void RvR_port_map_save(const RvR_port_map *map, const char *path);
