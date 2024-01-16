@@ -596,8 +596,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
          }
 
          //Parallax --> render differently
-         if((port_map->sectors[pl->sector].flags&RVR_PORT_PARALLAX_FLOOR&&pl->where==1)||
-            (port_map->sectors[pl->sector].flags&RVR_PORT_PARALLAX_CEILING&&pl->where==0))
+         if((port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_PARALLAX_FLOOR&&pl->where==1)||
+            (port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_PARALLAX_CEILING&&pl->where==0))
          {
             RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
             RvR_texture *texture = NULL;
@@ -1083,8 +1083,8 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    RvR_fix22 step_y = ((int64_t)view_cos*slope)/(1<<18);
    RvR_fix22 tx,ty;
 
-   if((where==1&&map->sectors[sector].flags&RVR_PORT_ALIGN_FLOOR)||
-      (where==0&&map->sectors[sector].flags&RVR_PORT_ALIGN_CEILING))
+   if((where==1&&map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
+      (where==0&&map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_CEILING))
    {
       RvR_fix22 wx0 = map->walls[map->sectors[sector].wall_first].x;
       RvR_fix22 wy0 = map->walls[map->sectors[sector].wall_first].y;
@@ -1102,8 +1102,8 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    ty+=((int32_t)map->sectors[sector].y_off)*65536;
 
    //Rotate textures
-   if((where==1&&map->sectors[sector].flags&RVR_PORT_ALIGN_FLOOR)||
-      (where==0&&map->sectors[sector].flags&RVR_PORT_ALIGN_CEILING))
+   if((where==1&&map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
+      (where==0&&map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_CEILING))
    {
       RvR_fix22 wx0 = map->walls[map->sectors[sector].wall_first].x;
       RvR_fix22 wy0 = map->walls[map->sectors[sector].wall_first].y;

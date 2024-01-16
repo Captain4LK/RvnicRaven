@@ -401,11 +401,11 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_FLOOR)
       {
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_PARALLAX_FLOOR;
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_PARALLAX_FLOOR;
       }
       else if(world_selection.type==RVR_PORT_CEILING)
       {
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_PARALLAX_CEILING;
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_PARALLAX_CEILING;
       }
    }
 
@@ -443,9 +443,9 @@ static void e3d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_R))
    {
       if(world_selection.type==RVR_PORT_FLOOR)
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_ALIGN_FLOOR;
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_ALIGN_FLOOR;
       else if(world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_ALIGN_CEILING;
+         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_ALIGN_CEILING;
    }
 
    if(RvR_key_pressed(RVR_KEY_PGUP))
