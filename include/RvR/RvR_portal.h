@@ -98,17 +98,28 @@ struct RvR_port_depth_buffer_entry
 };
 
 //Sector flags
+//-------------------------------------
 #define RVR_PORT_SECTOR_PARALLAX_FLOOR           UINT32_C(0x1)
 #define RVR_PORT_SECTOR_PARALLAX_CEILING         UINT32_C(0x2)
 #define RVR_PORT_SECTOR_ALIGN_FLOOR              UINT32_C(0x4)
 #define RVR_PORT_SECTOR_ALIGN_CEILING            UINT32_C(0x8)
-#define RVR_PORT_SECTOR_FLIP_X                   UINT32_C(0x10)
-#define RVR_PORT_SECTOR_FLIP_Y                   UINT32_C(0x20)
-#define RVR_PORT_SECTOR_ROT                      UINT32_C(0x40)
+
+#define RVR_PORT_SECTOR_FLIP_X_FLOOR             UINT32_C(0x10)
+#define RVR_PORT_SECTOR_FLIP_Y_FLOOR             UINT32_C(0x20)
+#define RVR_PORT_SECTOR_ROT_FLOOR                UINT32_C(0x40)
+#define RVR_PORT_SECTOR_FLOOR                    (RVR_POR_SECTOR_FLIP_X_FLOOR|RVR_PORT_SECTOR_FLIP_Y_FLOOR|RVR_POR_SECTOR_ROT_FLOOR)
+
+#define RVR_PORT_SECTOR_FLIP_X_CEILING           UINT32_C(0x80)
+#define RVR_PORT_SECTOR_FLIP_Y_CEILING           UINT32_C(0x100)
+#define RVR_PORT_SECTOR_ROT_CEILING              UINT32_C(0x200)
+#define RVR_PORT_SECTOR_CEILING                  (RVR_POR_SECTOR_FLIP_X_CEILING|RVR_PORT_SECTOR_FLIP_Y_CEILING|RVR_POR_SECTOR_ROT_CEILING)
+//-------------------------------------
 
 //Wall flags
+//-------------------------------------
 #define RVR_PORT_WALL_FLIP_X                     UINT32_C(0x1)
 #define RVR_PORT_WALL_FLIP_Y                     UINT32_C(0x2)
+//-------------------------------------
 
 RvR_port_map *RvR_port_map_create(void);
 void RvR_port_map_save(const RvR_port_map *map, const char *path);
