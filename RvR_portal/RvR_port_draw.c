@@ -1120,6 +1120,12 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
       step_y = RvR_fix22_mul(sp_cos, tmp) + RvR_fix22_mul(sp_sin, step_y);
    }
 
+   //Rotate 90 degrees
+   if((where==1&&map->sectors[sector].flags&RVR_PORT_SECTOR_ROT_FLOOR)||
+      (where==0&&map->sectors[sector].flags&RVR_PORT_SECTOR_ROT_CEILING))
+   {
+   }
+
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);
    RvR_fix22 x_and = (1<<x_log)-1;
@@ -2098,70 +2104,75 @@ static void port_collect_walls(int16_t start)
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov/2);
    RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
    RvR_fix22 cos = RvR_fix22_cos(port_cam->dir);
+   //Instead of correcting for fov later, we premultiply
+   //here, this allows us to assume that the edges
+   //of the view frustumg are lines with a slope of
+   //one through the origin
    RvR_fix22 sin_fov = RvR_fix22_mul(sin,fovx);
    RvR_fix22 cos_fov = RvR_fix22_mul(cos,fovx);
 
    RvR_array_length_set(sector_stack,0);
    RvR_array_push(sector_stack,start);
+
    port_map->sectors[start].visited = 1;
    while(RvR_array_length(sector_stack)>0)
    {
       int16_t sector = sector_stack[RvR_array_length(sector_stack)-1];
       RvR_array_length_set(sector_stack,RvR_array_length(sector_stack)-1);
 
-      RvR_port_wall *w0 = &port_map->walls[port_map->sectors[sector].wall_first];
-      RvR_port_wall *w1 = NULL;
-
-      //Clipped and projected points
-      RvR_fix22 tp0x = 0;
-      RvR_fix22 tp0y = 0;
-      RvR_fix22 tp1x = 0;
-      RvR_fix22 tp1y = 0;
-      for(int i = 0;i<port_map->sectors[sector].wall_count;i++,w0++)
+      for(int i = 0;i<port_map->sectors[sector].wall_count;i++)
       {
-         w1 = &port_map->walls[w0->p2];
+         RvR_port_wall *w0 = port_map->walls+port_map->sectors[sector].wall_first+i;
+         RvR_port_wall *w1 = port_map->walls+w0->p2;
+         RvR_port_dwall dw = {0};
 
+         //Translate to camera space
          RvR_fix22 x0 = w0->x-port_cam->x;
          RvR_fix22 y0 = w0->y-port_cam->y;
          RvR_fix22 x1 = w1->x-port_cam->x;
          RvR_fix22 y1 = w1->y-port_cam->y;
 
+         //Rotate to camera space
+         //tp0y and tp1y are depth afterwards
+         //Could cache here, but I don't think it's worth it
+         //TODO(Captain4LK): reuse x0,y0,x1,y1 once the render has been checked properly
+         RvR_fix22 tp0x = RvR_fix22_mul(-x0,sin)+RvR_fix22_mul(y0,cos);
+         RvR_fix22 tp0y = RvR_fix22_mul(x0,cos_fov)+RvR_fix22_mul(y0,sin_fov);
+         RvR_fix22 tp1x = RvR_fix22_mul(-x1,sin)+RvR_fix22_mul(y1,cos);
+         RvR_fix22 tp1y = RvR_fix22_mul(x1,cos_fov)+RvR_fix22_mul(y1,sin_fov);
+
          //Add portals if wall is very slim
-         //(less than 1 pixel, usually), wouldn't be drawn otherwise
+         //The 2d cross product is used to check how close the angles of the two lines
+         //are. If they are very similar, the value goes towards zero.
+         //After the z-division these lines end up very thin, so they might not be
+         //rendered at all. The compare with the length of the lines is
+         //basically just arbitrary, short lines are less likely to produce rendering artifacts
+         //TODO(Captain4LK): recheck this
+         //TODO(Captain4LK): maybe don't consider lines outside of view frustum?
          int16_t portal = w0->portal;
          if(portal>=0&&!port_map->sectors[portal].visited)
          {
-            int64_t cross = (int64_t)x0*y1-(int64_t)x1*y0;
-            if((cross*cross)/256<=(x1-x0)*(x1-x0)+(y1-y0)*(y1-y0))
+            int64_t cross = (int64_t)tp0x*tp1y-(int64_t)tp1x*tp0y;
+            int64_t len = ((int64_t)tp1x-tp0x)*((int64_t)tp1x-tp0x);
+            len+=((int64_t)tp1y-tp0y)*((int64_t)tp1y-tp0y);
+
+            if((cross*cross)/256<=len)
             {
                RvR_array_push(sector_stack,portal);
                port_map->sectors[portal].visited = 1;
             }
          }
 
-         RvR_port_dwall dw = {0};
-
-         if(i==0||(w0-1)->p2!=i+port_map->sectors[sector].wall_first)
-         {
-            tp0x = RvR_fix22_mul(-x0,sin)+RvR_fix22_mul(y0,cos);
-            tp0y = RvR_fix22_mul(x0,cos_fov)+RvR_fix22_mul(y0,sin_fov);
-         }
-         else
-         {
-            tp0x = tp1x;
-            tp0y = tp1y;
-         }
-         tp1x = RvR_fix22_mul(-x1,sin)+RvR_fix22_mul(y1,cos);
-         tp1y = RvR_fix22_mul(x1,cos_fov)+RvR_fix22_mul(y1,sin_fov);
-
          //Behind camera
-         if(tp0y<1&&tp1y<1)
+         if(tp0y<=0&&tp1y<=0)
             continue;
 
-         //Not facing port_camera --> winding
+         //Not facing camera --> winding
+         //if 2d cross product is less than zero, p0 is to the left of p1
          if(RvR_fix22_mul(tp0x,tp1y)-RvR_fix22_mul(tp1x,tp0y)>0)
             continue;
 
+         //Calculate texture coordinates based on line length
          dw.u0 = 0;
          dw.u1 = RvR_fix22_sqrt(RvR_fix22_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix22_mul(w1->y-w0->y,w1->y-w0->y))*64-1;
 
@@ -2173,6 +2184,7 @@ static void port_collect_walls(int16_t start)
             if(tp0x>tp0y)
                continue;
 
+            //Simply divide by z 
             dw.x0 = RvR_min(RvR_xres()*512+RvR_fix22_div(tp0x*(RvR_xres()/2),RvR_non_zero(tp0y)),RvR_xres()*1024-1);
             dw.z0 = tp0y;
          }
@@ -2183,6 +2195,8 @@ static void port_collect_walls(int16_t start)
             if(tp1x<-tp1y)
                continue;
 
+            //Calculate intersection of line with frustum
+            //and adjust texture and depth acordingly
             dw.x0 = 0;
             RvR_fix22 dx0 = tp1x-tp0x;
             RvR_fix22 dx1 = tp0x+tp0y;
@@ -2197,7 +2211,7 @@ static void port_collect_walls(int16_t start)
             if(tp1x<-tp1y)
                continue;
 
-            //TODO(Captain4LK): tpy1-1?
+            //Simply divide by z 
             dw.x1 = RvR_min(RvR_xres()*512+RvR_fix22_div(tp1x*(RvR_xres()/2),RvR_non_zero(tp1y)),RvR_xres()*1024);
             dw.z1 = tp1y;
          }
@@ -2207,6 +2221,8 @@ static void port_collect_walls(int16_t start)
             if(tp0x>tp0y)
                continue;
 
+            //Calculate intersection of line with frustum
+            //and adjust texture and depth acordingly
             RvR_fix22 dx0 = tp1x-tp0x;
             RvR_fix22 dx1 = tp0y-tp0x;
             dw.x1 = RvR_xres()*1024;
@@ -2214,22 +2230,17 @@ static void port_collect_walls(int16_t start)
             dw.u1 = RvR_fix22_div(RvR_fix22_mul(dx1,dw.u1),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
          }
 
+         //If the wall somehow ends up having a
+         //negativ width, skip it (don't think this can happen)
          if(dw.x0>dw.x1)
             continue;
 
          //Near clip
-         if(dw.z0<1||dw.z1<1)
+         if(dw.z0<=0||dw.z1<1)
             continue;
-
-
-         if(dw.z0<dw.z1)
-            dw.zfront = dw.z0;
-         else
-            dw.zfront = dw.z1;
 
          dw.wall = port_map->sectors[sector].wall_first+i;
          dw.sector = sector;
-
          RvR_array_push(dwalls,dw);
       }
    }
