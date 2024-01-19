@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -29,6 +29,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "texture.h"
 #include "map.h"
 #include "editor.h"
+
+#include "../../libraries/HLH_gui/HLH_gui.h"
+#include "../../libraries/HLH_gui/HLH_gui_all.c"
+#include "RvR/RvR_gui.h"
 //-------------------------------------
 
 //#defines
@@ -43,12 +47,18 @@ static uint8_t mem[MEM_SIZE];
 //-------------------------------------
 
 //Function prototypes
+static void main_loop();
 //-------------------------------------
 
 //Function implementations
 
 int main(int argc, char **argv)
 {
+   HLH_gui_init();
+
+   HLH_gui_window *win = HLH_gui_window_create("Ported",800,600,NULL);
+   HLH_gui_group *group = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
+
    if(argc<2)
    {
       puts("No pak path specified!");
@@ -59,6 +69,7 @@ int main(int argc, char **argv)
    RvR_malloc_init(mem, MEM_SIZE);
 
    //Init RvnicRaven core
+   HLH_gui_rvr *rvr = HLH_gui_rvr_create(&group->e,HLH_GUI_EXPAND,main_loop);
    RvR_init("Ported", 0);
    RvR_mouse_relative(0);
    RvR_mouse_show(0);
@@ -84,7 +95,7 @@ int main(int argc, char **argv)
 
    editor_init();
 
-   while(RvR_running())
+   /*while(RvR_running())
    {
       RvR_update();
 
@@ -98,8 +109,21 @@ int main(int argc, char **argv)
    }
 
    map_set_path("autosave.map");
-   map_save();
+   map_save();*/
 
-   return 0;
+   return HLH_gui_message_loop();
+}
+
+static void main_loop()
+{
+   RvR_update();
+
+   editor_update();
+   editor_draw();
+
+   if(RvR_key_pressed(RVR_KEY_M))
+      RvR_malloc_report();
+
+   RvR_render_present();
 }
 //-------------------------------------

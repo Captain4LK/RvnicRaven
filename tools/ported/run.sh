@@ -1,2 +1,2 @@
-gcc -o ported *.c -I../../external -I../../include ../../RvR_portal/libRvR_port.a ../../RvR/libRvR.a -lSDL2 -g -O3 -Wall -Wextra -Wno-sign-compare -lprofiler -fsanitize=undefined,address
+gcc -o ported *.c -I../../external -I../../include ../../RvR_portal/libRvR_port.a ../../RvR/libRvR_gui.a -lSDL2 -lm -g -O3 -Wall -Wextra -Wno-sign-compare
 gdb --args ./ported  $1

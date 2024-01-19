@@ -1,7 +1,7 @@
 /*
 RvnicRaven - portal drawing
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -175,9 +175,6 @@ void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam)
       port_depth_buffer.ceiling[i] = NULL;
    }
 
-   if(RvR_key_down(RVR_KEY_M))
-      RvR_render_clear(0);
-
    //Clear planes
    for(int i = 0; i<128; i++)
    {
@@ -185,14 +182,21 @@ void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam)
       port_planes[i] = NULL;
    }
 
-   port_cam = cam;
-   port_map = map;
-   RvR_array_length_set(port_sprites, 0);
-
    //Clear sector visited flags
    RvR_array_length_set(dwalls,0);
    for(int i = 0;i<map->sector_count;i++)
       map->sectors[i].visited = 0;
+
+   //Clear sprites
+   RvR_array_length_set(port_sprites, 0);
+
+   port_cam = cam;
+   port_map = map;
+
+#if RVR_PORT_PIXELBYPIXEL
+   if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+      RvR_render_clear(0);
+#endif
 }
 
 void RvR_port_draw_map(RvR_port_selection *select)
@@ -206,13 +210,13 @@ void RvR_port_draw_map(RvR_port_selection *select)
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov/2);
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres()*fovx,RvR_xres()*1024);
 
-   //memset(port_ytop,0,sizeof(*port_ytop)*RvR_xres());
    for(int i = 0;i<RvR_xres();i++)
    {
       port_ytop[i] = -1;
       port_ybot[i] = RvR_yres();
    }
 
+   //Start with sector of camera
    port_collect_walls(port_cam->sector);
    while(RvR_array_length(dwalls)>0)
    {
@@ -364,6 +368,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
                   pix+=RvR_xres();
                   texture_coord_scaled+=coord_step_scaled;
+
+#if RVR_PORT_PIXELBYPIXEL
+                  if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+                     RvR_render_present();
+#endif
                }
             }
 
@@ -512,6 +521,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
                   pix+=RvR_xres();
                   texture_coord_scaled+=coord_step_scaled;
+
+#if RVR_PORT_PIXELBYPIXEL
+                  if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+                     RvR_render_present();
+#endif
                }
                port_ytop[x] = mid;
             }
@@ -544,6 +558,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
                   pix+=RvR_xres();
                   texture_coord_scaled+=coord_step_scaled;
+
+#if RVR_PORT_PIXELBYPIXEL
+                  if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+                     RvR_render_present();
+#endif
                }
                port_ybot[x] = mid;
             }
@@ -579,9 +598,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
             port_collect_walls(port_map->walls[wall->wall].portal);
       }
    }
-
-   if(RvR_key_down(RVR_KEY_M))
-      return;
 
    //Render floor planes
    for(int i = 0;i<128;i++)
@@ -642,6 +658,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   *pix = tex[texture_coord/1024];
                   texture_coord += tex_step;
                   pix += RvR_xres();
+
+#if RVR_PORT_PIXELBYPIXEL
+                  if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+                     RvR_render_present();
+#endif
                }
                RvR_fix16 tex_coord = (RvR_yres()) * tex_step - 1;
                texture_coord = RvR_min(tex_coord, tex_coord - tex_step * (tex_end - middle));
@@ -650,6 +671,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   *pix = col[tex[(texture_coord/1024) & mask]];
                   texture_coord -= tex_step;
                   pix += RvR_xres();
+
+#if RVR_PORT_PIXELBYPIXEL
+                  if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+                     RvR_render_present();
+#endif
                }
 
                angle += angle_step;
@@ -1144,6 +1170,11 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
       tx+=step_x;
       ty+=step_y;
       pix++;
+
+#if RVR_PORT_PIXELBYPIXEL
+      if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+         RvR_render_present();
+#endif
    }
 }
 
@@ -2231,7 +2262,7 @@ static void port_collect_walls(int16_t start)
          }
 
          //If the wall somehow ends up having a
-         //negativ width, skip it (don't think this can happen)
+         //negativ width, skip it
          if(dw.x0>dw.x1)
             continue;
 

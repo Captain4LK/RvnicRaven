@@ -1,7 +1,7 @@
 /*
 RvnicRaven - Portal renderer config
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -12,6 +12,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVR_PORT_CONFIG_H_
 
-#define RVR_PORT_SECTOR_STACK 256
+//If the RVR_PORT_PIXELKEY button is pressed, the renderer
+//redraws every framebuffer write, showing how the scene
+//is rendered pixel by pixel
+#define RVR_PORT_PIXELBYPIXEL 1
+#define RVR_PORT_PIXELKEY RVR_KEY_M
 
 #endif
