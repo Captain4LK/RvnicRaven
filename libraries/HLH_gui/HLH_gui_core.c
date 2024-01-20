@@ -120,6 +120,7 @@ HLH_gui_window *HLH_gui_window_create(const char *title, int width, int height, 
    //window->hover = &window->e;
    window->width = width;
    window->height = height;
+   window->blocking = NULL;
    core_window_count++;
    core_windows = realloc(core_windows,sizeof(*core_windows)*core_window_count);
    core_windows[core_window_count-1] = window;
@@ -131,6 +132,12 @@ HLH_gui_window *HLH_gui_window_create(const char *title, int width, int height, 
    window->target = SDL_CreateTexture(window->renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,window->width,window->height);
    if(window->target==NULL)
       fprintf(stderr,"SDL_CreateTexture(): %s\n",SDL_GetError());
+
+   window->overlay = SDL_CreateTexture(window->renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,window->width,window->height);
+   if(window->overlay==NULL)
+      fprintf(stderr,"SDL_CreateTexture(): %s\n",SDL_GetError());
+   if(SDL_SetTextureBlendMode(window->overlay,SDL_BLENDMODE_BLEND)<0)
+      fprintf(stderr,"SDL_SetTextureBlendMode(): %s\n",SDL_GetError());
 
    window->font = SDL_CreateTextureFromSurface(window->renderer,core_font_surface);
    if(window->font==NULL)
@@ -149,32 +156,28 @@ HLH_gui_window *HLH_gui_window_create(const char *title, int width, int height, 
       }
    }
 
+   //Send fake resize event
+   SDL_Event e;
+   e.type = SDL_WINDOWEVENT;
+
+   e.window.windowID = SDL_GetWindowID(window->window);
+   if(e.window.windowID==0)
+      fprintf(stderr,"SDL_GetWindowID(): %s\n",SDL_GetError());
+
+   e.window.data1 = window->width;
+   e.window.data2 = window->height;
+   e.window.event = SDL_WINDOWEVENT_SIZE_CHANGED;
+   window->width = -1;
+   window->height = -1;
+
+   if(SDL_PushEvent(&e)<0)
+      fprintf(stderr,"SDL_PushEvent(): %s\n",SDL_GetError());
+
    return window;
 }
 
 int HLH_gui_message_loop(void)
 {
-   //Send fake resize event
-   for(int i = 0;i<core_window_count;i++)
-   {
-      HLH_gui_window *win = core_windows[i];
-      SDL_Event e;
-      e.type = SDL_WINDOWEVENT;
-
-      e.window.windowID = SDL_GetWindowID(win->window);
-      if(e.window.windowID==0)
-         fprintf(stderr,"SDL_GetWindowID(): %s\n",SDL_GetError());
-
-      e.window.data1 = win->width;
-      e.window.data2 = win->height;
-      e.window.event = SDL_WINDOWEVENT_SIZE_CHANGED;
-      win->width = -1;
-      win->height = -1;
-
-      if(SDL_PushEvent(&e)<0)
-         fprintf(stderr,"SDL_PushEvent(): %s\n",SDL_GetError());
-   }
-
    HLH_gui_mouse mouse = {0};
 
    for(;;)
@@ -216,6 +219,8 @@ int HLH_gui_message_loop(void)
                fprintf(stderr,"SDL_RenderClear(): %s\n",SDL_GetError());
             if(SDL_RenderCopy(win->renderer,win->target,NULL,NULL)<0)
                fprintf(stderr,"SDL_RenderCopy(): %s\n",SDL_GetError());
+            if(SDL_RenderCopy(win->renderer,win->overlay,NULL,NULL)<0)
+               fprintf(stderr,"SDL_RenderCopy(): %s\n",SDL_GetError());
             SDL_RenderPresent(win->renderer);
             break;
          case SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -231,6 +236,14 @@ int HLH_gui_message_loop(void)
                   win->target = SDL_CreateTexture(win->renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,win->width,win->height);
                   if(win->target==NULL)
                      fprintf(stderr,"SDL_CreateTexture(): %s\n",SDL_GetError());
+                  SDL_DestroyTexture(win->overlay);
+
+                  win->overlay= SDL_CreateTexture(win->renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,win->width,win->height);
+                  if(win->overlay==NULL)
+                     fprintf(stderr,"SDL_CreateTexture(): %s\n",SDL_GetError());
+                  if(SDL_SetTextureBlendMode(win->overlay,SDL_BLENDMODE_BLEND)<0)
+                     fprintf(stderr,"SDL_SetTextureBlendMode(): %s\n",SDL_GetError());
+
                   if(SDL_SetRenderTarget(win->renderer,win->target)<0)
                      fprintf(stderr,"SDL_SetRenderTarget(): %s\n",SDL_GetError());
 
@@ -255,6 +268,12 @@ int HLH_gui_message_loop(void)
                   HLH_gui_element_destroy(&core_windows[i]->e);
 
                return 0;
+            }
+
+            for(int i = 0;i<core_window_count;i++)
+            {
+               if(core_windows[i]->blocking==win)
+                  core_windows[i]->blocking = NULL;
             }
             
             for(int i = 0;i<core_window_count;i++)
@@ -403,6 +422,30 @@ void HLH_gui_window_close(HLH_gui_window *win)
    SDL_PushEvent(&event);
 }
 
+void HLH_gui_overlay_clear(HLH_gui_element *e)
+{
+   SDL_Texture *target = SDL_GetRenderTarget(e->window->renderer);
+
+   if(SDL_SetRenderTarget(e->window->renderer,e->window->overlay)<0)
+      fprintf(stderr,"SDL_SetRenderTarget(): %s\n",SDL_GetError());
+   if(SDL_RenderClear(e->window->renderer)<0)
+      fprintf(stderr,"SDL_RenderClear(): %s\n",SDL_GetError());
+   if(SDL_SetRenderDrawColor(e->window->renderer,0,0,0,0)<0)
+      fprintf(stderr,"SDL_SetRenderDrawColor(): %s\n",SDL_GetError());
+   if(SDL_RenderClear(e->window->renderer)<0)
+      fprintf(stderr,"SDL_RenderClear(): %s\n",SDL_GetError());
+   if(SDL_SetRenderDrawColor(e->window->renderer,0,0,0,255)<0)
+      fprintf(stderr,"SDL_SetRenderDrawColor(): %s\n",SDL_GetError());
+
+   if(SDL_SetRenderTarget(e->window->renderer,target)<0)
+      fprintf(stderr,"SDL_SetRenderTarget(): %s\n",SDL_GetError());
+}
+
+void HLH_gui_window_block(HLH_gui_window *root, HLH_gui_window *blocking)
+{
+   root->blocking = blocking;
+}
+
 uint32_t *HLH_gui_image_load(const char *path, int *width, int *height)
 {
    if(path==NULL)
@@ -475,6 +518,7 @@ static int core_window_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp
    else if(msg==HLH_GUI_MSG_DESTROY)
    {
       SDL_DestroyTexture(win->target);
+      SDL_DestroyTexture(win->overlay);
       SDL_DestroyTexture(win->font);
       if(win->icons!=NULL)
          SDL_DestroyTexture(win->icons);

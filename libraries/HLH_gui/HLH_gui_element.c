@@ -54,6 +54,8 @@ HLH_gui_element *HLH_gui_element_create(size_t bytes, HLH_gui_element *parent, u
          parent->children = realloc(parent->children,sizeof(*parent->children)*parent->child_count);
          parent->children[parent->child_count-1] = e;
       }
+      if(parent->flags&HLH_GUI_OVERLAY)
+         e->flags|=HLH_GUI_OVERLAY;
    }
 
    return e;
@@ -68,6 +70,8 @@ int HLH_gui_element_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    if(e->flags&HLH_GUI_IGNORE)
       return 0;
    if(msg==HLH_GUI_MSG_DRAW&&e->flags&HLH_GUI_INVISIBLE)
+      return 0;
+   if(e->window->blocking!=NULL&&(msg<HLH_GUI_MSG_NO_BLOCK_START||msg>HLH_GUI_MSG_NO_BLOCK_END))
       return 0;
 
    if(e->msg_usr!=NULL)
@@ -102,8 +106,22 @@ int HLH_gui_element_msg_all(HLH_gui_element *e, HLH_gui_msg msg, int di, void *d
 
 void HLH_gui_element_redraw(HLH_gui_element *e)
 {
-   if(SDL_SetRenderTarget(e->window->renderer,e->window->target)<0)
-      fprintf(stderr,"SDL_SetRenderTarget(): %s\n",SDL_GetError());
+   if(e->flags&HLH_GUI_OVERLAY)
+   {
+      if(SDL_SetRenderTarget(e->window->renderer,e->window->overlay)<0)
+         fprintf(stderr,"SDL_SetRenderTarget(): %s\n",SDL_GetError());
+      //if(SDL_SetRenderDrawColor(e->window->renderer,0,0,0,0)<0)
+         //fprintf(stderr,"SDL_SetRenderDrawColor(): %s\n",SDL_GetError());
+      //if(SDL_RenderClear(e->window->renderer)<0)
+         //fprintf(stderr,"SDL_RenderClear(): %s\n",SDL_GetError());
+      //if(SDL_SetRenderDrawColor(e->window->renderer,0,0,0,255)<0)
+         //fprintf(stderr,"SDL_SetRenderDrawColor(): %s\n",SDL_GetError());
+   }
+   else
+   {
+      if(SDL_SetRenderTarget(e->window->renderer,e->window->target)<0)
+         fprintf(stderr,"SDL_SetRenderTarget(): %s\n",SDL_GetError());
+   }
 
    element_redraw(e);
 
@@ -112,6 +130,8 @@ void HLH_gui_element_redraw(HLH_gui_element *e)
    if(SDL_RenderClear(e->window->renderer)<0)
       fprintf(stderr,"SDL_RenderClear(): %s\n",SDL_GetError());
    if(SDL_RenderCopy(e->window->renderer,e->window->target,NULL,NULL)<0)
+      fprintf(stderr,"SDL_RenderCopy(): %s\n",SDL_GetError());
+   if(SDL_RenderCopy(e->window->renderer,e->window->overlay,NULL,NULL)<0)
       fprintf(stderr,"SDL_RenderCopy(): %s\n",SDL_GetError());
    SDL_RenderPresent(e->window->renderer);
 }

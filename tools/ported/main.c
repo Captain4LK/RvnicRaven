@@ -29,6 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "texture.h"
 #include "map.h"
 #include "editor.h"
+#include "util.h"
 
 #include "../../libraries/HLH_gui/HLH_gui.h"
 #include "../../libraries/HLH_gui/HLH_gui_all.c"
@@ -44,10 +45,18 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static uint8_t mem[MEM_SIZE];
+static HLH_gui_window *window_root;
 //-------------------------------------
 
 //Function prototypes
 static void main_loop();
+
+static void ui_construct();
+static void ui_construct_ask_new();
+static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
+static int menu_edit_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
+static int menu_help_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
+static int ask_new_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 //-------------------------------------
 
 //Function implementations
@@ -55,9 +64,6 @@ static void main_loop();
 int main(int argc, char **argv)
 {
    HLH_gui_init();
-
-   HLH_gui_window *win = HLH_gui_window_create("Ported",800,600,NULL);
-   HLH_gui_group *group = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
 
    if(argc<2)
    {
@@ -68,11 +74,12 @@ int main(int argc, char **argv)
    //Init memory manager
    RvR_malloc_init(mem, MEM_SIZE);
 
+   ui_construct();
+
    //Init RvnicRaven core
-   HLH_gui_rvr *rvr = HLH_gui_rvr_create(&group->e,HLH_GUI_EXPAND,main_loop);
    RvR_init("Ported", 0);
    RvR_mouse_relative(0);
-   RvR_mouse_show(0);
+   //RvR_mouse_show(0);
    RvR_key_repeat(1);
 
    for(int i = 1; i<argc; i++)
@@ -125,5 +132,142 @@ static void main_loop()
       RvR_malloc_report();
 
    RvR_render_present();
+}
+
+static void ui_construct()
+{
+   HLH_gui_window *win = HLH_gui_window_create("Ported",800,600,NULL);
+   window_root = win;
+
+   const char *menu0[] = 
+   {
+      "New",
+      "Save",
+      "Save As",
+      "Load",
+   };
+   const char *menu1[] = 
+   {
+      "Test 1",
+      "Test 2",
+      "Test 3",
+   };
+   const char *menu2[] = 
+   {
+      "About",
+      "Test 2",
+      "Test 3",
+   };
+
+   HLH_gui_element *menus[3];
+   menus[0] = (HLH_gui_element *)HLH_gui_menu_create(&win->e,HLH_GUI_STYLE_01|HLH_GUI_NO_PARENT|HLH_GUI_OVERLAY,HLH_GUI_FILL_X|HLH_GUI_STYLE_01,menu0,4,menu_file_msg);
+   menus[1] = (HLH_gui_element *)HLH_gui_menu_create(&win->e,HLH_GUI_STYLE_01|HLH_GUI_NO_PARENT|HLH_GUI_OVERLAY,HLH_GUI_FILL_X|HLH_GUI_STYLE_01,menu1,3,menu_edit_msg);
+   menus[2] = (HLH_gui_element *)HLH_gui_menu_create(&win->e,HLH_GUI_STYLE_01|HLH_GUI_NO_PARENT|HLH_GUI_OVERLAY,HLH_GUI_FILL_X|HLH_GUI_STYLE_01,menu2,3,menu_help_msg);
+
+   const char *menubar[] = 
+   {
+      "File",
+      "Edit",
+      "Help",
+   };
+
+   HLH_gui_group *group_root = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
+   HLH_gui_menubar_create(&group_root->e,HLH_GUI_FILL_X,HLH_GUI_PACK_WEST|HLH_GUI_STYLE_01,menubar,menus,3,NULL);
+   HLH_gui_separator_create(&group_root->e,HLH_GUI_FILL_X,0);
+
+   HLH_gui_group *group = HLH_gui_group_create(&group_root->e,HLH_GUI_EXPAND);
+   HLH_gui_rvr *rvr = HLH_gui_rvr_create(&group->e,HLH_GUI_EXPAND,main_loop);
+}
+
+static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
+{
+   HLH_gui_menubutton *m = (HLH_gui_menubutton *)e;
+   if(msg==HLH_GUI_MSG_CLICK_MENU)
+   {
+      //New
+      if(m->index==0)
+      {
+         //user if sure
+         ui_construct_ask_new();
+      }
+      //Save
+      else if(m->index==1)
+      {
+      }
+      //Save as
+      else if(m->index==2)
+      {
+      }
+      //Load
+      else if(m->index==3)
+      {
+      }
+   }
+   return 0;
+}
+
+static int menu_edit_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
+{
+   HLH_gui_menubutton *m = (HLH_gui_menubutton *)e;
+   if(msg==HLH_GUI_MSG_CLICK_MENU)
+   {
+   }
+   return 0;
+}
+
+static int menu_help_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
+{
+   HLH_gui_menubutton *m = (HLH_gui_menubutton *)e;
+   if(msg==HLH_GUI_MSG_CLICK_MENU)
+   {
+   }
+   return 0;
+}
+
+static void ui_construct_ask_new()
+{
+   HLH_gui_window *win = HLH_gui_window_create("Create new map",300,100,NULL);
+   HLH_gui_window_block(window_root,win);
+   HLH_gui_group *group = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
+
+   HLH_gui_label_create(&group->e,0,"Are you sure you want");
+   HLH_gui_label_create(&group->e,0,"to start a new map?");
+   group = HLH_gui_group_create(&group->e,HLH_GUI_PACK_SOUTH);
+   HLH_gui_button *button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Cancel",NULL);
+   button->e.msg_usr = ask_new_msg;
+   button->e.usr = 0;
+   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Save",NULL);
+   button->e.msg_usr = ask_new_msg;
+   button->e.usr = 1;
+   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Confirm",NULL);
+   button->e.msg_usr = ask_new_msg;
+   button->e.usr = 2;
+}
+
+static int ask_new_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
+{
+   if(msg==HLH_GUI_MSG_CLICK)
+   {
+      if(e->usr==0)
+      {
+         HLH_gui_window_close(e->window);
+      }
+      else if(e->usr==1)
+      {
+         HLH_gui_window_close(e->window);
+
+         //Save
+
+         //Create New
+      }
+      else if(e->usr==2)
+      {
+         HLH_gui_window_close(e->window);
+
+         //Create New
+      }
+   }
+
+   return 0;
 }
 //-------------------------------------
