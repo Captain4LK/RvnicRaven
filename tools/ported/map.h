@@ -12,12 +12,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _MAP_H_
 
-typedef struct
+/*typedef struct
 {
    char (*data)[128];
    unsigned data_used;
    unsigned data_size;
-}Map_list;
+}Map_list;*/
 
 typedef struct Map_sprite
 {
@@ -44,8 +44,8 @@ void map_save();
 void map_set_path(const char *path);
 const char *map_path_get();
 
-void map_path_add(const char *path);
-Map_list *map_list_get();
+//void map_path_add(const char *path);
+//Map_list *map_list_get();
 
 Map_sprite *map_sprite_new();
 void map_sprite_add(Map_sprite *sp);

@@ -41,13 +41,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 RvR_port_map *map = NULL;
 Map_sprite *map_sprites = NULL;
 
-static struct
+/*static struct
 {
    char (*data)[128];
    unsigned data_used;
    unsigned data_size;
-} path_list = {0};
-static Map_list map_list = {0};
+} path_list = {0};*/
+//static Map_list map_list = {0};
 static char map_path[128];
 
 static Map_sprite *map_sprite_pool = NULL;
@@ -181,7 +181,7 @@ const char *map_path_get()
    return map_path;
 }
 
-void map_path_add(const char *path)
+/*void map_path_add(const char *path)
 {
    if(path_list.data==NULL)
    {
@@ -225,9 +225,9 @@ static void map_list_add(const char *path)
       map_list.data_size += 1;
       map_list.data = RvR_realloc(map_list.data, sizeof(*map_list.data) * map_list.data_size, "rayed map list grow");
    }
-}
+}*/
 
-Map_list *map_list_get()
+/*Map_list *map_list_get()
 {
    char path[128];
    map_list.data_used = 0;
@@ -256,7 +256,7 @@ Map_list *map_list_get()
    }
 
    return &map_list;
-}
+}*/
 
 Map_sprite *map_sprite_new()
 {

@@ -56,8 +56,8 @@ static int scroll_y = 0;
 static int mouse_scroll = 0;
 static char menu_input[512] = {0};
 
-static Map_list *map_list = NULL;
-static int map_list_scroll = 0;
+//static Map_list *map_list = NULL;
+//static int map_list_scroll = 0;
 
 static Map_sprite *sprite_sel = NULL;
 
@@ -629,7 +629,7 @@ static void e2d_update_io(void)
    }
    else if(RvR_key_pressed(RVR_KEY_L))
    {
-      map_list = map_list_get();
+      //map_list = map_list_get();
       state = STATE2D_IO_LOAD;
    }
 }
@@ -740,7 +740,7 @@ static void e2d_draw_quit_save(void)
 
 static void e2d_update_io_load(void)
 {
-   if(RvR_key_pressed(RVR_KEY_BACK))
+   /*if(RvR_key_pressed(RVR_KEY_BACK))
    {
       state = STATE2D_VIEW;
    }
@@ -756,12 +756,12 @@ static void e2d_update_io_load(void)
    {
       map_load(map_list->data[map_list_scroll]);
       state = STATE2D_VIEW;
-   }
+   }*/
 }
 
 static void e2d_draw_io_load(void)
 {
-   RvR_render_clear(color_black);
+   /*RvR_render_clear(color_black);
 
    int scroll = 0;
    if(map_list_scroll>RvR_yres() / 10)
@@ -771,7 +771,7 @@ static void e2d_draw_io_load(void)
       int index = i + scroll;
       if(index<map_list->data_used)
          RvR_render_string(5, i * 10, 1, map_list->data[i], index==map_list_scroll?color_white:color_light_gray);
-   }
+   }*/
 }
 
 static void e2d_update_wall_move(void)

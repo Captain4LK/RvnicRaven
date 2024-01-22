@@ -95,10 +95,10 @@ int main(int argc, char **argv)
    char path[512];
    path_pop(argv[0], path, NULL);
    strcat(path, "/");
-   map_path_add(path);
+   //map_path_add(path);
    path_pop(argv[1], path, NULL);
    strcat(path, "/");
-   map_path_add(path);
+   //map_path_add(path);
 
    editor_init();
 
