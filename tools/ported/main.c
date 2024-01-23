@@ -53,10 +53,12 @@ static void main_loop();
 
 static void ui_construct();
 static void ui_construct_ask_new();
+static void ui_construct_ask_load();
 static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 static int menu_edit_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 static int menu_help_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 static int ask_new_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
+static int ask_load_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 //-------------------------------------
 
 //Function implementations
@@ -187,20 +189,43 @@ static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
       //New
       if(m->index==0)
       {
-         //user if sure
+         //ask user if sure
          ui_construct_ask_new();
       }
       //Save
       else if(m->index==1)
       {
+         if(strlen(map_path_get())>0)
+         {
+            map_save();
+         }
+         else
+         {
+            if(util_select_map_path())
+            {
+               //TODO(Captain4LK): warn user, that map not saved?
+               return 0;
+            }
+
+            map_save();
+         }
       }
       //Save as
       else if(m->index==2)
       {
+         if(util_select_map_path())
+         {
+            //TODO(Captain4LK): warn user, that map not saved?
+            return 0;
+         }
+
+         map_save();
       }
       //Load
       else if(m->index==3)
       {
+         //ask user if sure
+         ui_construct_ask_load();
       }
    }
    return 0;
@@ -244,6 +269,26 @@ static void ui_construct_ask_new()
    button->e.usr = 2;
 }
 
+static void ui_construct_ask_load()
+{
+   HLH_gui_window *win = HLH_gui_window_create("Load a map",300,100,NULL);
+   HLH_gui_window_block(window_root,win);
+   HLH_gui_group *group = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
+
+   HLH_gui_label_create(&group->e,0,"Are you sure you want");
+   HLH_gui_label_create(&group->e,0,"to load a map?");
+   group = HLH_gui_group_create(&group->e,HLH_GUI_PACK_SOUTH);
+   HLH_gui_button *button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Cancel",NULL);
+   button->e.msg_usr = ask_load_msg;
+   button->e.usr = 0;
+   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Save",NULL);
+   button->e.msg_usr = ask_load_msg;
+   button->e.usr = 1;
+   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Confirm",NULL);
+   button->e.msg_usr = ask_load_msg;
+   button->e.usr = 2;
+}
+
 static int ask_new_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
 {
    if(msg==HLH_GUI_MSG_CLICK)
@@ -254,17 +299,70 @@ static int ask_new_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
       }
       else if(e->usr==1)
       {
-         HLH_gui_window_close(e->window);
-
          //Save
+         if(strlen(map_path_get())>0)
+         {
+            map_save();
+         }
+         else
+         {
+            if(util_select_map_path())
+               return 0;
+
+            map_save();
+         }
 
          //Create New
+         map_new();
+
+         HLH_gui_window_close(e->window);
       }
       else if(e->usr==2)
       {
          HLH_gui_window_close(e->window);
 
          //Create New
+         map_new();
+      }
+   }
+
+   return 0;
+}
+
+static int ask_load_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
+{
+   if(msg==HLH_GUI_MSG_CLICK)
+   {
+      if(e->usr==0)
+      {
+         HLH_gui_window_close(e->window);
+      }
+      else if(e->usr==1)
+      {
+         //Save
+         if(strlen(map_path_get())>0)
+         {
+            map_save();
+         }
+         else
+         {
+            if(util_select_map_path())
+               return 0;
+
+            map_save();
+         }
+
+         //TODO(Captain4LK): report error?
+         util_load_map();
+
+         HLH_gui_window_close(e->window);
+      }
+      else if(e->usr==2)
+      {
+         //TODO(Captain4LK): report error?
+         util_load_map();
+
+         HLH_gui_window_close(e->window);
       }
    }
 

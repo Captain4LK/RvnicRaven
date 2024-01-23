@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _UTIL_H_
 
-
+int util_select_map_path();
+int util_load_map();
 
 #endif

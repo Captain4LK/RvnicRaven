@@ -102,7 +102,8 @@ void map_new()
    while(map_sprites!=NULL)
       map_sprite_free(map_sprites);
 
-   snprintf(map_path, 127, "map%" PRIu64 ".map", (uint64_t)time(NULL));
+   map_path[0] = '\0';
+   //snprintf(map_path, 127, "map%" PRIu64 ".map", (uint64_t)time(NULL));
    map = RvR_port_map_create();
    //printf("%d\n",texture_sky);
 
