@@ -37,13 +37,6 @@ typedef enum
 {
    STATE2D_VIEW,
    STATE2D_VIEW_SCROLL,
-   STATE2D_IO,
-   STATE2D_IO_NEW,
-   STATE2D_IO_SAVED,
-   STATE2D_IO_SAVE_AS,
-   STATE2D_IO_QUIT,
-   STATE2D_IO_QUIT_SAVE,
-   STATE2D_IO_LOAD,
    STATE2D_WALL_MOVE,
    STATE2D_SECTOR,
 }State2D;
@@ -80,20 +73,6 @@ static void e2d_update_view(void);
 static void e2d_draw_view(void);
 static void e2d_update_view_scroll(void);
 static void e2d_draw_view_scroll(void);
-static void e2d_update_io(void);
-static void e2d_draw_io(void);
-static void e2d_update_io_new(void);
-static void e2d_draw_io_new(void);
-static void e2d_update_io_saved(void);
-static void e2d_draw_io_saved(void);
-static void e2d_update_io_save_as(void);
-static void e2d_draw_io_save_as(void);
-static void e2d_update_quit(void);
-static void e2d_draw_quit(void);
-static void e2d_update_quit_save(void);
-static void e2d_draw_quit_save(void);
-static void e2d_update_io_load(void);
-static void e2d_draw_io_load(void);
 static void e2d_update_wall_move(void);
 static void e2d_draw_wall_move(void);
 static void e2d_update_sector(void);
@@ -108,13 +87,6 @@ void editor2d_update(void)
    {
    case STATE2D_VIEW: e2d_update_view(); break;
    case STATE2D_VIEW_SCROLL: e2d_update_view_scroll(); break;
-   case STATE2D_IO: e2d_update_io(); break;
-   case STATE2D_IO_NEW: e2d_update_io_new(); break;
-   case STATE2D_IO_SAVED: e2d_update_io_saved(); break;
-   case STATE2D_IO_SAVE_AS: e2d_update_io_save_as(); break;
-   case STATE2D_IO_QUIT: e2d_update_quit(); break;
-   case STATE2D_IO_QUIT_SAVE: e2d_update_quit_save(); break;
-   case STATE2D_IO_LOAD: e2d_update_io_load(); break;
    case STATE2D_WALL_MOVE: e2d_update_wall_move(); break;
    case STATE2D_SECTOR: e2d_update_sector(); break;
    }
@@ -280,13 +252,6 @@ void editor2d_draw(void)
    {
    case STATE2D_VIEW: e2d_draw_view(); break;
    case STATE2D_VIEW_SCROLL: e2d_draw_view_scroll(); break;
-   case STATE2D_IO: e2d_draw_io(); break;
-   case STATE2D_IO_NEW: e2d_draw_io_new(); break;
-   case STATE2D_IO_SAVED: e2d_draw_io_saved(); break;
-   case STATE2D_IO_SAVE_AS: e2d_draw_io_save_as(); break;
-   case STATE2D_IO_QUIT: e2d_draw_quit(); break;
-   case STATE2D_IO_QUIT_SAVE: e2d_draw_quit_save(); break;
-   case STATE2D_IO_LOAD: e2d_draw_io_load(); break;
    case STATE2D_WALL_MOVE: e2d_draw_wall_move(); break;
    case STATE2D_SECTOR: e2d_draw_sector(); break;
    }
@@ -456,9 +421,6 @@ static void e2d_update_view(void)
    int mx, my;
    RvR_mouse_pos(&mx, &my);
 
-   if(RvR_key_pressed(RVR_KEY_BACK))
-      state = STATE2D_IO;
-
    //RvR_fix22 x = ((mx+scroll_x)*zoom);
    //RvR_fix22 y = ((my+scroll_y)*zoom);
    //printf("%d\n",RvR_port_sector_update(map,-1,x,y));
@@ -601,177 +563,6 @@ static void e2d_draw_view_scroll(void)
    char tmp[1024];
    snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir);
    RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
-}
-
-static void e2d_update_io(void)
-{
-   if(RvR_key_pressed(RVR_KEY_BACK))
-      state = STATE2D_VIEW;
-
-   if(RvR_key_pressed(RVR_KEY_N))
-   {
-      state = STATE2D_IO_NEW;
-   }
-   else if(RvR_key_pressed(RVR_KEY_S))
-   {
-      map_save();
-      state = STATE2D_IO_SAVED;
-   }
-   else if(RvR_key_pressed(RVR_KEY_A))
-   {
-      state = STATE2D_IO_SAVE_AS;
-      menu_input[0] = '\0';
-      RvR_text_input_start(menu_input, 64);
-   }
-   else if(RvR_key_pressed(RVR_KEY_Q))
-   {
-      state = STATE2D_IO_QUIT;
-   }
-   else if(RvR_key_pressed(RVR_KEY_L))
-   {
-      //map_list = map_list_get();
-      state = STATE2D_IO_LOAD;
-   }
-}
-
-static void e2d_draw_io(void)
-{
-   e2d_draw_base();
-
-   RvR_render_string(5, RvR_yres() - 10, 1, "(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit", color_white);
-}
-
-static void e2d_update_io_new(void)
-{
-   if(RvR_key_pressed(RVR_KEY_BACK)||RvR_key_pressed(RVR_KEY_N))
-   {
-      state = STATE2D_VIEW;
-   }
-
-   if(RvR_key_pressed(RVR_KEY_Y))
-   {
-      map_new();
-      state = STATE2D_VIEW;
-   }
-}
-
-static void e2d_draw_io_new(void)
-{
-   e2d_draw_base();
-
-   RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to start a new map? (Y/N)", color_white);
-}
-
-static void e2d_update_io_saved(void)
-{
-   if(RvR_key_pressed(RVR_KEY_BACK))
-      state = STATE2D_VIEW;
-}
-
-static void e2d_draw_io_saved(void)
-{
-   e2d_draw_base();
-
-   char tmp[1024];
-   snprintf(tmp, 1024, "Saved map to %s", map_path_get());
-   RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
-}
-
-static void e2d_update_io_save_as(void)
-{
-   if(RvR_key_pressed(RVR_KEY_ESCAPE))
-   {
-      RvR_text_input_end();
-      state = STATE2D_VIEW;
-   }
-
-   if(RvR_key_pressed(RVR_KEY_ENTER))
-   {
-      RvR_text_input_end();
-      map_set_path(menu_input);
-      map_save();
-      state = STATE2D_VIEW;
-   }
-}
-
-static void e2d_draw_io_save_as(void)
-{
-   e2d_draw_base();
-
-   char tmp[1024];
-   snprintf(tmp, 1024, "Save as: %s", menu_input);
-   RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
-}
-
-static void e2d_update_quit(void)
-{
-   if(RvR_key_pressed(RVR_KEY_Y))
-      state = STATE2D_IO_QUIT_SAVE;
-   else if(RvR_key_pressed(RVR_KEY_N))
-      state = STATE2D_VIEW;
-}
-
-static void e2d_draw_quit(void)
-{
-   e2d_draw_base();
-
-   RvR_render_string(5, RvR_yres() - 10, 1, "Are you sure you want to quit? (Y/N)", color_white);
-}
-
-static void e2d_update_quit_save(void)
-{
-   if(RvR_key_pressed(RVR_KEY_Y))
-   {
-      map_save();
-      RvR_quit();
-   }
-   else if(RvR_key_pressed(RVR_KEY_N))
-   {
-      RvR_quit();
-   }
-}
-
-static void e2d_draw_quit_save(void)
-{
-   e2d_draw_base();
-
-   RvR_render_string(5, RvR_yres() - 10, 1, "Save changes? (Y/N)", color_white);
-}
-
-static void e2d_update_io_load(void)
-{
-   /*if(RvR_key_pressed(RVR_KEY_BACK))
-   {
-      state = STATE2D_VIEW;
-   }
-   else if(RvR_key_pressed(RVR_KEY_DOWN)&&map_list_scroll<map_list->data_used - 1)
-   {
-      map_list_scroll++;
-   }
-   else if(RvR_key_pressed(RVR_KEY_UP)&&map_list_scroll>0)
-   {
-      map_list_scroll--;
-   }
-   else if(RvR_key_pressed(RVR_KEY_ENTER))
-   {
-      map_load(map_list->data[map_list_scroll]);
-      state = STATE2D_VIEW;
-   }*/
-}
-
-static void e2d_draw_io_load(void)
-{
-   /*RvR_render_clear(color_black);
-
-   int scroll = 0;
-   if(map_list_scroll>RvR_yres() / 10)
-      scroll = map_list_scroll - RvR_yres() - 10;
-   for(int i = 0; i<=RvR_yres() / 10; i++)
-   {
-      int index = i + scroll;
-      if(index<map_list->data_used)
-         RvR_render_string(5, i * 10, 1, map_list->data[i], index==map_list_scroll?color_white:color_light_gray);
-   }*/
 }
 
 static void e2d_update_wall_move(void)
