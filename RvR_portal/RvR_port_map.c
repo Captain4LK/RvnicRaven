@@ -1,7 +1,7 @@
 /*
 RvnicRaven - portal map 
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -45,8 +45,8 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
    size += 2; //version
    size += 4; //map->wall_count
    size += 4; //map->sector_count
-   size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1); //Walls
-   size+=map->sector_count*(2+2+4+4+2+2+4); //Sectors
+   size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1+2+2); //Walls
+   size+=map->sector_count*(2+2+4+4+2+2+4+2+2); //Sectors
 
    uint8_t *mem = RvR_malloc(size, "RvR_port map save buffer");
    RvR_rw rw = {0};
@@ -74,6 +74,8 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u16(&rw,map->walls[i].tex_upper);
       RvR_rw_write_u16(&rw,map->walls[i].tex_mid);
       RvR_rw_write_u8(&rw,map->walls[i].shade_offset);
+      RvR_rw_write_u16(&rw,map->walls[i].x_off);
+      RvR_rw_write_u16(&rw,map->walls[i].y_off);
    }
 
    //Sectors
@@ -86,6 +88,8 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u16(&rw,map->sectors[i].floor_tex);
       RvR_rw_write_u16(&rw,map->sectors[i].ceiling_tex);
       RvR_rw_write_u32(&rw,map->sectors[i].flags);
+      RvR_rw_write_u16(&rw,map->sectors[i].x_off);
+      RvR_rw_write_u16(&rw,map->sectors[i].y_off);
    }
 
    //Compress and write to disk
@@ -180,6 +184,8 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->walls[i].tex_upper = RvR_rw_read_u16(rw);
       map->walls[i].tex_mid = RvR_rw_read_u16(rw);
       map->walls[i].shade_offset = RvR_rw_read_u8(rw);
+      map->walls[i].x_off = RvR_rw_read_u16(rw);
+      map->walls[i].y_off = RvR_rw_read_u16(rw);
    }
 
    //Sectors
@@ -192,6 +198,8 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->sectors[i].floor_tex = RvR_rw_read_u16(rw);
       map->sectors[i].ceiling_tex = RvR_rw_read_u16(rw);
       map->sectors[i].flags = RvR_rw_read_u32(rw);
+      map->sectors[i].x_off = RvR_rw_read_u16(rw);
+      map->sectors[i].y_off = RvR_rw_read_u16(rw);
    }
 
    return map;
