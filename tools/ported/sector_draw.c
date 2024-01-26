@@ -193,6 +193,9 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             map->sectors[sector].ceiling = 2*1024;
             map->sectors[sector].floor_tex = 15;
             map->sectors[sector].ceiling_tex = 15;
+            map->sectors[sector].x_off = 0;
+            map->sectors[sector].y_off = 0;
+            map->sectors[sector].flags = 0;
             map->wall_count+=RvR_array_length(sd_walls);
             map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
             for(int i = 0;i<RvR_array_length(sd_walls);i++)
@@ -200,6 +203,13 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
                map->walls[map->sectors[sector].wall_first+i].x = sd_walls[i].x;
                map->walls[map->sectors[sector].wall_first+i].y = sd_walls[i].y;
                map->walls[map->sectors[sector].wall_first+i].p2 = sd_walls[i].p2+map->sectors[sector].wall_first;
+               map->walls[map->sectors[sector].wall_first+i].flags = sd_walls[i].flags;
+               map->walls[map->sectors[sector].wall_first+i].shade_offset = sd_walls[i].shade_offset;
+               map->walls[map->sectors[sector].wall_first+i].x_off = sd_walls[i].x_off;
+               map->walls[map->sectors[sector].wall_first+i].y_off = sd_walls[i].y_off;
+               map->walls[map->sectors[sector].wall_first+i].tex_lower = sd_walls[i].tex_lower;
+               map->walls[map->sectors[sector].wall_first+i].tex_upper = sd_walls[i].tex_upper;
+               map->walls[map->sectors[sector].wall_first+i].tex_mid = sd_walls[i].tex_mid;
                map->walls[map->sectors[sector].wall_first+i].portal = -1;
                map->walls[map->sectors[sector].wall_first+i].join = -1;
                if(i==RvR_array_length(sd_walls)-1)
@@ -249,6 +259,13 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
                wall->x = sd_walls[i].x;
                wall->y = sd_walls[i].y;
                wall->p2 = sd_walls[i].p2+map->sectors[sector_inside].wall_first+map->sectors[sector_inside].wall_count;
+               wall->flags = sd_walls[i].flags;
+               wall->shade_offset = sd_walls[i].shade_offset;
+               wall->x_off = sd_walls[i].x_off;
+               wall->y_off = sd_walls[i].y_off;
+               wall->tex_lower = sd_walls[i].tex_lower;
+               wall->tex_upper = sd_walls[i].tex_upper;
+               wall->tex_mid = sd_walls[i].tex_mid;
                wall->portal = -1;
                wall->join = -1;
                if(i==RvR_array_length(sd_walls)-1)
@@ -279,6 +296,13 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             map->walls[map->sectors[sector].wall_first+i].x = sd_walls[i].x;
             map->walls[map->sectors[sector].wall_first+i].y = sd_walls[i].y;
             map->walls[map->sectors[sector].wall_first+i].p2 = sd_walls[i].p2+map->sectors[sector].wall_first;
+            map->walls[map->sectors[sector].wall_first+i].flags = sd_walls[i].flags;
+            map->walls[map->sectors[sector].wall_first+i].shade_offset = sd_walls[i].shade_offset;
+            map->walls[map->sectors[sector].wall_first+i].x_off = sd_walls[i].x_off;
+            map->walls[map->sectors[sector].wall_first+i].y_off = sd_walls[i].y_off;
+            map->walls[map->sectors[sector].wall_first+i].tex_lower = sd_walls[i].tex_lower;
+            map->walls[map->sectors[sector].wall_first+i].tex_upper = sd_walls[i].tex_upper;
+            map->walls[map->sectors[sector].wall_first+i].tex_mid = sd_walls[i].tex_mid;
             map->walls[map->sectors[sector].wall_first+i].portal = -1;
             map->walls[map->sectors[sector].wall_first+i].join = -1;
             if(i==RvR_array_length(sd_walls)-1)
@@ -602,6 +626,13 @@ static int sector_draw_split()
       map->walls[map->sectors[sector0].wall_first+i].x = sd_walls[i].x;
       map->walls[map->sectors[sector0].wall_first+i].y = sd_walls[i].y;
       map->walls[map->sectors[sector0].wall_first+i].p2 = sd_walls[i].p2+map->sectors[sector0].wall_first;
+      map->walls[map->sectors[sector0].wall_first+i].flags = sd_walls[i].flags;
+      map->walls[map->sectors[sector0].wall_first+i].shade_offset = sd_walls[i].shade_offset;
+      map->walls[map->sectors[sector0].wall_first+i].x_off = sd_walls[i].x_off;
+      map->walls[map->sectors[sector0].wall_first+i].y_off = sd_walls[i].y_off;
+      map->walls[map->sectors[sector0].wall_first+i].tex_lower = sd_walls[i].tex_lower;
+      map->walls[map->sectors[sector0].wall_first+i].tex_upper = sd_walls[i].tex_upper;
+      map->walls[map->sectors[sector0].wall_first+i].tex_mid = sd_walls[i].tex_mid;
       map->walls[map->sectors[sector0].wall_first+i].portal = sd_walls[i].portal;
       map->walls[map->sectors[sector0].wall_first+i].join = -1;
       RvR_port_wall_join(map,sd_walls[i].join,map->sectors[sector0].wall_first+i);
@@ -741,6 +772,13 @@ static int sector_draw_split()
       map->walls[map->sectors[sector1].wall_first+i].x = sd_walls[i].x;
       map->walls[map->sectors[sector1].wall_first+i].y = sd_walls[i].y;
       map->walls[map->sectors[sector1].wall_first+i].p2 = sd_walls[i].p2+map->sectors[sector1].wall_first;
+      map->walls[map->sectors[sector1].wall_first+i].flags = sd_walls[i].flags;
+      map->walls[map->sectors[sector1].wall_first+i].shade_offset = sd_walls[i].shade_offset;
+      map->walls[map->sectors[sector1].wall_first+i].x_off = sd_walls[i].x_off;
+      map->walls[map->sectors[sector1].wall_first+i].y_off = sd_walls[i].y_off;
+      map->walls[map->sectors[sector1].wall_first+i].tex_lower = sd_walls[i].tex_lower;
+      map->walls[map->sectors[sector1].wall_first+i].tex_upper = sd_walls[i].tex_upper;
+      map->walls[map->sectors[sector1].wall_first+i].tex_mid = sd_walls[i].tex_mid;
       map->walls[map->sectors[sector1].wall_first+i].portal = sd_walls[i].portal;
       map->walls[map->sectors[sector1].wall_first+i].join = -1;
       RvR_port_wall_join(map,sd_walls[i].join,map->sectors[sector1].wall_first+i);
@@ -1007,6 +1045,13 @@ static int sector_draw_connect()
       map->walls[map->sectors[sector0].wall_first+i].x = sd_walls[i].x;
       map->walls[map->sectors[sector0].wall_first+i].y = sd_walls[i].y;
       map->walls[map->sectors[sector0].wall_first+i].p2 = sd_walls[i].p2+map->sectors[sector0].wall_first;
+      map->walls[map->sectors[sector0].wall_first+i].flags = sd_walls[i].flags;
+      map->walls[map->sectors[sector0].wall_first+i].shade_offset = sd_walls[i].shade_offset;
+      map->walls[map->sectors[sector0].wall_first+i].x_off = sd_walls[i].x_off;
+      map->walls[map->sectors[sector0].wall_first+i].y_off = sd_walls[i].y_off;
+      map->walls[map->sectors[sector0].wall_first+i].tex_lower = sd_walls[i].tex_lower;
+      map->walls[map->sectors[sector0].wall_first+i].tex_upper = sd_walls[i].tex_upper;
+      map->walls[map->sectors[sector0].wall_first+i].tex_mid = sd_walls[i].tex_mid;
       map->walls[map->sectors[sector0].wall_first+i].portal = sd_walls[i].portal;
       map->walls[map->sectors[sector0].wall_first+i].join = -1;
       RvR_port_wall_join(map,sd_walls[i].join,map->sectors[sector0].wall_first+i);
