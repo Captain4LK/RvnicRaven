@@ -302,6 +302,8 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    {
       HLH_gui_mouse *m = dp;
 
+      rvr_mouse_wheel+=m->wheel;
+
       if(m->button&HLH_GUI_MOUSE_LEFT)
          rvr_new_key_state[RVR_BUTTON_LEFT] = 1;
       else
@@ -336,6 +338,7 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    {
       rvr->main_loop();
       memcpy(rvr_old_key_state, rvr_new_key_state, sizeof(rvr_new_key_state));
+      rvr_mouse_wheel = 0;
    }
 
    return 0;
@@ -572,7 +575,6 @@ void RvR_update()
 {
    rvr_core_frame++;
 
-   rvr_mouse_wheel = 0;
    //memcpy(rvr_old_key_state, rvr_new_key_state, sizeof(rvr_new_key_state));
 
    int x, y;

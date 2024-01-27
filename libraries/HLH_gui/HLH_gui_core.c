@@ -258,6 +258,7 @@ int HLH_gui_message_loop(void)
 
             mouse.pos.x = -1;
             mouse.pos.y = -1;
+            mouse.wheel = 0;
             HLH_gui_handle_mouse(&win->e,mouse);
             break;
          case SDL_WINDOWEVENT_CLOSE:
@@ -302,8 +303,16 @@ int HLH_gui_message_loop(void)
 
          mouse.pos.x = event.motion.x;
          mouse.pos.y = event.motion.y;
+         mouse.wheel = 0;
          HLH_gui_handle_mouse(&win->e,mouse);
 
+         break;
+      case SDL_MOUSEWHEEL:
+         win = core_find_window(SDL_GetWindowFromID(event.wheel.windowID));
+         if(win==NULL)
+            continue;
+         mouse.wheel = event.wheel.y;
+         HLH_gui_handle_mouse(&win->e,mouse);
          break;
       case SDL_KEYDOWN:
          if(event.key.state==SDL_PRESSED)
@@ -335,6 +344,7 @@ int HLH_gui_message_loop(void)
 
          mouse.pos.x = event.motion.x;
          mouse.pos.y = event.motion.y;
+         mouse.wheel = 0;
          switch(event.button.button)
          {
          case SDL_BUTTON_LEFT: mouse.button|=HLH_GUI_MOUSE_LEFT; break;
@@ -351,6 +361,7 @@ int HLH_gui_message_loop(void)
 
          mouse.pos.x = event.motion.x;
          mouse.pos.y = event.motion.y;
+         mouse.wheel = 0;
          switch(event.button.button)
          {
          case SDL_BUTTON_LEFT: mouse.button&=~HLH_GUI_MOUSE_LEFT; break;
