@@ -55,6 +55,7 @@ static char menu_input[512] = {0};
 static Map_sprite *sprite_sel = NULL;
 
 static int16_t wall_move = -1;
+static int16_t hover = -1;
 
 static State2D state = STATE2D_VIEW;
 
@@ -350,15 +351,18 @@ static void e2d_draw_base(void)
          int x1 = ((p1->x-camera.x)*256)/RvR_non_zero(zoom)+RvR_xres()*128+128;
          int y1 = ((p1->y-camera.y)*256)/RvR_non_zero(zoom)+RvR_yres()*128+128;
 
+         int blink = j+map->sectors[i].wall_first==hover&&(RvR_frame()/15)%2;
          if(p0->portal>=0)
          {
             //Only draw one wall for portals
-            //if(p0->portal>i)
-               RvR_render_line(x0,y0,x1,y1,color_red);
+            if(p0->portal>i)
+            {
+               RvR_render_line(x0,y0,x1,y1,blink?color_light_gray:color_red);
+            }
          }
          else
          {
-            RvR_render_line(x0,y0,x1,y1,color_white);
+            RvR_render_line(x0,y0,x1,y1,blink?color_light_gray:color_white);
          }
       }
    }
@@ -507,6 +511,50 @@ static void e2d_update_view(void)
       zoom-=1;
    if(RvR_key_pressed(RVR_KEY_NP_SUB)&&zoom<1024)
       zoom+=1;
+
+   //Check for wall hover
+   hover = -1;
+   RvR_fix22 x = ((mx+scroll_x)*zoom);
+   RvR_fix22 y = ((my+scroll_y)*zoom);
+   for(int i = 0;i<map->wall_count;i++)
+   {
+      int64_t x0 = map->walls[i].x;
+      int64_t y0 = map->walls[i].y;
+      int64_t x1 = map->walls[map->walls[i].p2].x;
+      int64_t y1 = map->walls[map->walls[i].p2].y;
+
+      int64_t t = -(1024*((x0-x)*(x1-x0)+(y0-y)*(y1-y0)))/RvR_non_zero((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));
+      if(t<0||t>1024)
+         continue;
+      
+      int64_t dist = (x1-x0)*(y0-y)-(y1-y0)*(x0-x);
+      dist = (dist*dist)/RvR_non_zero((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));
+      if(dist>36*zoom*zoom)
+         continue;
+
+      hover = i;
+
+      if(RvR_key_pressed(RVR_KEY_INS))
+      {
+         int16_t nwall = RvR_port_wall_insert(map,i,x,y);
+
+         RvR_fix22 dgrid = 1<<draw_grid_sizes[draw_grid];
+         int nx = x+dgrid/2;
+         int ny = y+dgrid/2;
+         nx&=~(nx&(dgrid-1));
+         ny&=~(ny&(dgrid-1));
+         RvR_port_wall_move(map,nwall,nx,ny);
+
+         break;
+      }
+
+      break;
+      //printf("%d %ld\n",i,dist<36*zoom*zoom);
+      //int64_t d0 = (int64_t)(x1-x)*(x1-x)+(int64_t)(y1-y)*(y1-y);
+      //int64_t d1 = (int64_t)(x0-x)*(x0-x)+(int64_t)(y0-y)*(y0-y);
+      //printf("%d %ld %ld\n",i,d0,d1);
+   }
+
    /*if(RvR_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)
    {
       int scrollx = ((scroll_x + RvR_xres() / 2) * 1024) / grid_size;

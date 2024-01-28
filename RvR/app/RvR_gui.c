@@ -339,6 +339,7 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
       rvr->main_loop();
       memcpy(rvr_old_key_state, rvr_new_key_state, sizeof(rvr_new_key_state));
       rvr_mouse_wheel = 0;
+      rvr_core_frame++;
    }
 
    return 0;
@@ -573,8 +574,6 @@ int RvR_running()
 
 void RvR_update()
 {
-   rvr_core_frame++;
-
    //memcpy(rvr_old_key_state, rvr_new_key_state, sizeof(rvr_new_key_state));
 
    int x, y;

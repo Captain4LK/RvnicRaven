@@ -372,7 +372,7 @@ void RvR_update()
             strcat(rvr_text_input, event.text.text);
          break;
       case SDL_MOUSEWHEEL:
-         rvr_mouse_wheel = event.wheel.y;
+         rvr_mouse_wheel+=event.wheel.y;
          break;
       case SDL_CONTROLLERBUTTONDOWN:
          if(event.cbutton.state==SDL_PRESSED)
