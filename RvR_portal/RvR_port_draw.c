@@ -26,9 +26,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 typedef struct
 {
    RvR_fix22 x0;
+   RvR_fix22 xw0;
    RvR_fix22 z0;
+   RvR_fix22 zw0;
    RvR_fix22 x1;
+   RvR_fix22 xw1;
    RvR_fix22 z1;
+   RvR_fix22 zw1;
    RvR_fix22 zfront;
 
    RvR_fix22 u0;
@@ -218,6 +222,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
    //Start with sector of camera
    port_collect_walls(port_cam->sector);
+   puts("Start");
    while(RvR_array_length(dwalls)>0)
    {
       int len = RvR_array_length(dwalls);
@@ -227,8 +232,10 @@ void RvR_port_draw_map(RvR_port_selection *select)
          int j = 0+1;
          while(j<len)
          {
+            printf("Checking %d: ",j);
             if(dwall_can_front(dwalls+0,dwalls+j))
             {
+               puts("all good");
                j++;
             }
             else if(0+swaps>j)
@@ -237,9 +244,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
                //Here we would split the wall, 
                //but since intersecting walls aren't supported we just pretend nothing happended
                j++;
+               puts("skip");
             }
             else
             {
+               puts("swap");
                RvR_port_dwall tmp = dwalls[j];
                for(int w = j;w>0;w--)
                   dwalls[w] = dwalls[w-1];
@@ -251,9 +260,12 @@ void RvR_port_draw_map(RvR_port_selection *select)
       }
 
       RvR_port_dwall tmp = dwalls[0];
-      dwalls[0] = dwalls[RvR_array_length(dwalls)-1];
-      dwalls[RvR_array_length(dwalls)-1] = tmp;
-      RvR_port_dwall *wall = dwalls+RvR_array_length(dwalls)-1;
+      //dwalls[0] = dwalls[RvR_array_length(dwalls)-1];
+      for(int w = 0;w<len-1;w++)
+         dwalls[w] = dwalls[w+1];
+      //dwalls[RvR_array_length(dwalls)-1] = tmp;
+      //RvR_port_dwall *wall = dwalls+RvR_array_length(dwalls)-1;
+      RvR_port_dwall *wall = &tmp;
       RvR_array_length_set(dwalls,RvR_array_length(dwalls)-1);
       int16_t sector = wall->sector;
       int16_t portal = port_map->walls[wall->wall].portal;
@@ -1028,14 +1040,14 @@ const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_ceiling(int x)
 //Calculates wether wa can be drawn in front of wb
 static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
 {
-   int64_t x00 = wa->x0;
-   int64_t z00 = wa->z0;
-   int64_t x01 = wa->x1;
-   int64_t z01 = wa->z1;
-   int64_t x10 = wb->x0;
-   int64_t z10 = wb->z0;
-   int64_t x11 = wb->x1;
-   int64_t z11 = wb->z1;
+   int64_t x00 = wa->xw0;
+   int64_t z00 = wa->zw0;
+   int64_t x01 = wa->xw1;
+   int64_t z01 = wa->zw1;
+   int64_t x10 = wb->xw0;
+   int64_t z10 = wb->zw0;
+   int64_t x11 = wb->xw1;
+   int64_t z11 = wb->zw1;
 
    int64_t dx0 = x01-x00;
    int64_t dz0 = z01-z00;
@@ -1062,6 +1074,9 @@ static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
    //p0 and p1 of wa in front of wb
    if(cross10<=0&&cross11<=0)
       return 1;
+
+   printf("%ld %ld %ld %ld (%ld %ld) (%ld %ld)\n",cross00,cross01,cross10,cross11,x00/1024,x01/1024,x10/1024,x11/1024);
+   printf("(%ld, %ld) (%ld, %ld) (%ld, %ld) (%ld, %ld)\n",x00,z00,x01,z01,x10,z10,x11,z11);
    
    //Need swapping
    return 0;
@@ -2171,6 +2186,10 @@ static void port_collect_walls(int16_t start)
          RvR_fix22 tp0y = RvR_fix22_mul(x0,cos_fov)+RvR_fix22_mul(y0,sin_fov);
          RvR_fix22 tp1x = RvR_fix22_mul(-x1,sin)+RvR_fix22_mul(y1,cos);
          RvR_fix22 tp1y = RvR_fix22_mul(x1,cos_fov)+RvR_fix22_mul(y1,sin_fov);
+         dw.xw0 = tp0x;
+         dw.xw1 = tp1x;
+         dw.zw0 = tp0y;
+         dw.zw1 = tp1y;
 
          //Add portals if wall is very slim
          //The 2d cross product is used to check how close the angles of the two lines
