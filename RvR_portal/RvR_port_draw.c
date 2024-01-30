@@ -222,7 +222,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
    //Start with sector of camera
    port_collect_walls(port_cam->sector);
-   puts("Start");
    while(RvR_array_length(dwalls)>0)
    {
       int len = RvR_array_length(dwalls);
@@ -232,10 +231,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
          int j = 0+1;
          while(j<len)
          {
-            printf("Checking %d: ",j);
             if(dwall_can_front(dwalls+0,dwalls+j))
             {
-               puts("all good");
                j++;
             }
             else if(0+swaps>j)
@@ -248,7 +245,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
             }
             else
             {
-               puts("swap");
                RvR_port_dwall tmp = dwalls[j];
                for(int w = j;w>0;w--)
                   dwalls[w] = dwalls[w-1];
@@ -260,11 +256,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
       }
 
       RvR_port_dwall tmp = dwalls[0];
-      //dwalls[0] = dwalls[RvR_array_length(dwalls)-1];
       for(int w = 0;w<len-1;w++)
          dwalls[w] = dwalls[w+1];
-      //dwalls[RvR_array_length(dwalls)-1] = tmp;
-      //RvR_port_dwall *wall = dwalls+RvR_array_length(dwalls)-1;
       RvR_port_dwall *wall = &tmp;
       RvR_array_length_set(dwalls,RvR_array_length(dwalls)-1);
       int16_t sector = wall->sector;
@@ -1063,8 +1056,8 @@ static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
    if(RvR_min(z10,z11)>RvR_max(z00,z01))
       return 1;
 
-   //no overlap
-   if(x00>=x11||x01<=x10)
+   //no overlap on screen
+   if(wa->x0>=wb->x1||wa->x1<=wb->x0)
       return 1;
 
    //p0 and p1 of wb behind wa
@@ -1074,9 +1067,6 @@ static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
    //p0 and p1 of wa in front of wb
    if(cross10<=0&&cross11<=0)
       return 1;
-
-   printf("%ld %ld %ld %ld (%ld %ld) (%ld %ld)\n",cross00,cross01,cross10,cross11,x00/1024,x01/1024,x10/1024,x11/1024);
-   printf("(%ld, %ld) (%ld, %ld) (%ld, %ld) (%ld, %ld)\n",x00,z00,x01,z01,x10,z10,x11,z11);
    
    //Need swapping
    return 0;

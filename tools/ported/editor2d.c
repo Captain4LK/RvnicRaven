@@ -548,6 +548,18 @@ static void e2d_update_view(void)
          break;
       }
 
+      if(RvR_key_pressed(RVR_KEY_S)&&RvR_key_down(RVR_KEY_LALT))
+      {
+         //Needs to be inner subsector and not have portal
+         if(RvR_port_wall_subsector(map,RvR_port_wall_sector(map,i),i)==0||map->walls[i].portal>=0)
+            break;
+
+         //Make inner
+         RvR_port_sector_make_inner(map,i);
+
+         break;
+      }
+
       break;
       //printf("%d %ld\n",i,dist<36*zoom*zoom);
       //int64_t d0 = (int64_t)(x1-x)*(x1-x)+(int64_t)(y1-y)*(y1-y);
