@@ -453,11 +453,15 @@ static void e3d_update_view(void)
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
          int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         if(map->walls[world_selection.as.wall].portal>=0)
+            sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].floor+=128;
       }
       else if(world_selection.type==RVR_PORT_WALL_TOP)
       {
          int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         if(map->walls[world_selection.as.wall].portal>=0)
+            sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].ceiling+=128;
       }
       else if(world_selection.type==RVR_PORT_FLOOR)
@@ -474,11 +478,15 @@ static void e3d_update_view(void)
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
          int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         if(map->walls[world_selection.as.wall].portal>=0)
+            sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].floor-=128;
       }
       else if(world_selection.type==RVR_PORT_WALL_TOP)
       {
          int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         if(map->walls[world_selection.as.wall].portal>=0)
+            sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].ceiling-=128;
       }
       else if(world_selection.type==RVR_PORT_FLOOR)
