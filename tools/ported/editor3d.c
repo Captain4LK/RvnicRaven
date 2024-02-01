@@ -52,6 +52,8 @@ static int texture_selection_scroll = 0;
 static int brush = 0;
 static char menu_input[512] = {0};
 
+static int painting = 0;
+
 static State3D state = STATE3D_VIEW;
 static RvR_port_selection world_selection;
 //-------------------------------------
@@ -381,7 +383,9 @@ static void e3d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_V))
    {
       state = STATE3D_TEX_RECENT;
+      painting = 0;
       texture_selection_scroll = 0;
+      return;
    }
 
    //Shading
@@ -500,6 +504,11 @@ static void e3d_update_view(void)
    }
 
    if(RvR_key_pressed(RVR_BUTTON_LEFT))
+      painting = 1;
+   if(RvR_key_released(RVR_BUTTON_LEFT))
+      painting = 0;
+
+   if(painting)
    {
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
