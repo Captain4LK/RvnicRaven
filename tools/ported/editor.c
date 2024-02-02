@@ -168,6 +168,7 @@ void camera_update()
    camera.z+=offz;
 
    camera.sector = RvR_port_sector_update(map,camera.sector,camera.x,camera.y);
+   //camera.z = RvR_max(map->sectors[camera.sector].floor,RvR_min(map->sectors[camera.sector].ceiling,camera.z));
    //Collision
    //RvR_fix16 floor_height = 0;
    //RvR_fix16 ceiling_height = 0;

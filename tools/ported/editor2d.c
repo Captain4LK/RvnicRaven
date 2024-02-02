@@ -381,8 +381,9 @@ static void e2d_draw_base(void)
 
          //Only draw last wall in chain (not actually guranteed to be last
          //wall or only wall drawn, but close enough
-         if(p0->join<map->sectors[i].wall_first+j)
             RvR_render_rectangle(x0-2,y0-2,5,5,color_orange);
+         //if(p0->join<map->sectors[i].wall_first+j)
+            //RvR_render_rectangle(x0-2,y0-2,5,5,color_orange);
       }
    }
 
@@ -606,6 +607,8 @@ static void e2d_update_view_scroll(void)
 
    camera.x += (rx * zoom) / 1;
    camera.y += (ry * zoom) / 1;
+   camera.sector = RvR_port_sector_update(map,camera.sector,camera.x,camera.y);
+   camera.z = map->sectors[camera.sector].floor+1024;
 
    if(RvR_key_released(RVR_BUTTON_RIGHT))
    {
@@ -688,6 +691,7 @@ static void e2d_update_sector(void)
 
       camera.x += (rx * zoom) / 1;
       camera.y += (ry * zoom) / 1;
+      camera.z = map->sectors[camera.sector].floor+512;
    }
 
    if(RvR_key_released(RVR_BUTTON_RIGHT))

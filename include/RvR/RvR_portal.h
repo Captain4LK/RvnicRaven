@@ -36,7 +36,8 @@ typedef struct
    uint32_t flags;
    int16_t p2;
    int16_t portal;
-   int16_t join;
+   int16_t portal_wall;
+   //int16_t join;
    uint16_t tex_lower;
    uint16_t tex_upper;
    uint16_t tex_mid;

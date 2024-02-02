@@ -69,7 +69,8 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u32(&rw,map->walls[i].flags);
       RvR_rw_write_u16(&rw,map->walls[i].p2);
       RvR_rw_write_u16(&rw,map->walls[i].portal);
-      RvR_rw_write_u16(&rw,map->walls[i].join);
+      RvR_rw_write_u16(&rw,map->walls[i].portal_wall);
+      //RvR_rw_write_u16(&rw,map->walls[i].join);
       RvR_rw_write_u16(&rw,map->walls[i].tex_lower);
       RvR_rw_write_u16(&rw,map->walls[i].tex_upper);
       RvR_rw_write_u16(&rw,map->walls[i].tex_mid);
@@ -179,7 +180,8 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->walls[i].flags = RvR_rw_read_u32(rw);
       map->walls[i].p2 = RvR_rw_read_u16(rw);
       map->walls[i].portal = RvR_rw_read_u16(rw);
-      map->walls[i].join = RvR_rw_read_u16(rw);
+      map->walls[i].portal_wall = RvR_rw_read_u16(rw);
+      //map->walls[i].join = RvR_rw_read_u16(rw);
       map->walls[i].tex_lower = RvR_rw_read_u16(rw);
       map->walls[i].tex_upper = RvR_rw_read_u16(rw);
       map->walls[i].tex_mid = RvR_rw_read_u16(rw);
@@ -223,6 +225,32 @@ int RvR_port_map_check(const RvR_port_map *map)
          next_first+=map->sectors[i].wall_count;
       }
    }
+
+#if 0
+   //Check joins
+   {
+      for(int i = 0;i<map->wall_count;i++)
+      {
+         if(map->walls[i].join==-1)
+            continue;
+         RvR_error_check(map->walls[i].join>=0,"RvR_port_map_check","negative join on wall %d: join = %d\n",i,map->walls[i].join);
+         RvR_error_check(map->walls[i].join<map->wall_count,"RvR_port_map_check","join on wall %d out of bounds: join = %d\n",i,map->walls[i].join);
+
+         int16_t cur = map->walls[i].join;
+         int found = 0;
+         for(int j = 0;j<256;j++)
+         {
+            cur = map->walls[cur].join;
+            if(cur==i)
+            {
+               found = 1;
+               break;
+            }
+         }
+         RvR_error_check(found,"RvR_port_map_check","corrupt join list on wall %d\n",i);
+      }
+   }
+#endif
 
    return 1;
 

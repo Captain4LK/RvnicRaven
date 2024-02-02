@@ -44,6 +44,78 @@ int16_t RvR_port_wall_sector(const RvR_port_map *map, int16_t wall)
 
 void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 y)
 {
+   if(map->walls[wall].x==x&&map->walls[wall].y==y)
+      return;
+
+   int16_t old_x = map->walls[wall].x;
+   int16_t old_y = map->walls[wall].y;
+
+   map->walls[wall].x = x;
+   map->walls[wall].y = y;
+   int16_t prev = RvR_port_wall_previous(map,wall);
+
+   //wall adjacent
+   //-------------------------------------
+   int16_t next = map->walls[wall].portal_wall;
+   while(next!=-1)
+   {
+      int16_t p2 = RvR_port_wall_next(map,next);
+      if(map->walls[next].x==old_x&&map->walls[next].y==old_y)
+      {
+         puts("BRANCH 0 0");
+         map->walls[next].x = x;
+         map->walls[next].y = y;
+         next = map->walls[next].portal_wall;
+      }
+      else if(map->walls[p2].x==old_x&&map->walls[p2].y==old_y)
+      {
+         puts("BRANCH 0 1");
+         map->walls[p2].x = x;
+         map->walls[p2].y = y;
+         next = map->walls[RvR_port_wall_previous(map,next)].portal_wall;
+      }
+      else
+      {
+         break;
+      }
+   }
+   //-------------------------------------
+
+   //prev adjacent
+   //-------------------------------------
+   next = map->walls[prev].portal_wall;
+   while(next!=-1)
+   {
+      int16_t p2 = RvR_port_wall_next(map,next);
+      if(map->walls[next].x==old_x&&map->walls[next].y==old_y)
+      {
+         puts("BRANCH 1 0");
+         map->walls[next].x = x;
+         map->walls[next].y = y;
+         next = map->walls[RvR_port_wall_previous(map,next)].portal_wall;
+      }
+      else if(map->walls[p2].x==old_x&&map->walls[p2].y==old_y)
+      {
+         puts("BRANCH 1 1");
+         map->walls[p2].x = x;
+         map->walls[p2].y = y;
+         next = map->walls[next].portal_wall;
+      }
+      else
+      {
+         break;
+      }
+   }
+   //-------------------------------------
+
+
+   //TODO(Captain4LK): get rid of recursion here
+   /*if(map->walls[wall].portal_wall!=-1)
+      RvR_port_wall_move(map,map->walls[wall].portal_wall,x,y);
+   if(map->walls[prev].portal_wall!=-1)
+      RvR_port_wall_move(map,map->walls[prev].portal_wall,x,y);*/
+
+#if 0
    map->walls[wall].x = x;
    map->walls[wall].y = y;
    int16_t cur = map->walls[wall].join;
@@ -53,6 +125,7 @@ void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 
       map->walls[cur].y = y;
       cur = map->walls[cur].join;
    }
+#endif
 }
 
 int16_t RvR_port_wall_first(const RvR_port_map *map, int16_t wall)
@@ -100,8 +173,10 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
       RvR_port_wall *wall = map->walls+i;
       if(wall->p2>=insert)
          wall->p2++;
-      if(wall->join>=insert)
-         wall->join++;
+      if(wall->portal_wall>=insert)
+         wall->portal_wall++;
+      //if(wall->join>=insert)
+         //wall->join++;
    }
    //Update sector first_wall
    for(int i = 0;i<map->sector_count;i++)
@@ -117,8 +192,9 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
    map->walls[insert].p2 = -1;
    if(first>=0)
       map->walls[insert-1].p2 = insert;
-   map->walls[insert].join = -1;
+   //map->walls[insert].join = -1;
    map->walls[insert].portal = -1;
+   map->walls[insert].portal_wall = -1;
    map->walls[insert].flags = 0;
    map->sectors[sector].wall_count++;
    //-------------------------------------
@@ -128,6 +204,116 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
 
 int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y)
 {
+   int16_t w1 = map->walls[w0].p2;
+   int16_t w2 = map->walls[w0].portal_wall;
+   int16_t w3 = -1;
+
+   //Add wall to org sector
+   //-------------------------------------
+   map->wall_count++;
+   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
+   int16_t insert = w0+1;
+
+   //Move existing walls to right
+   for(int16_t w = map->wall_count-1;w>insert;w--)
+      map->walls[w] = map->walls[w-1];
+
+   //Update indices
+   for(int i = 0;i<map->wall_count;i++)
+   {
+      RvR_port_wall *wall = map->walls+i;
+      if(wall->p2>=insert)
+         wall->p2++;
+      if(wall->portal_wall>=insert)
+         wall->portal_wall++;
+      //if(wall->join>=insert)
+         //wall->join++;
+   }
+   //Update sector first_wall
+   for(int i = 0;i<map->sector_count;i++)
+   {
+      if(i==RvR_port_wall_sector(map,w0))
+         continue;
+      RvR_port_sector *sect = map->sectors+i;
+      if(sect->wall_first>=insert)
+         sect->wall_first++;
+   }
+   if(w2>=insert)
+      w2++;
+   if(w1>=insert)
+      w1++;
+
+   //Insert new wall
+   int16_t sector = RvR_port_wall_sector(map,insert);
+   map->walls[insert].x = x;
+   map->walls[insert].y = y;
+   map->walls[insert].p2 = w1;
+   //map->walls[insert].join = -1;
+   map->walls[insert].portal = map->walls[w0].portal;
+   //TODO
+   map->walls[insert].portal_wall = -1;
+   map->walls[insert].flags = 0;
+   map->walls[w0].p2 = insert;
+   map->sectors[sector].wall_count++;
+   //-------------------------------------
+
+   //Add wall to adjacent sector
+   //-------------------------------------
+   if(w2>=0)
+   {
+      map->wall_count++;
+      map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
+      w3 = map->walls[w2].p2;
+      int16_t insert1 = w2+1;
+
+      //Move existing walls to right
+      for(int16_t w = map->wall_count-1;w>insert1;w--)
+         map->walls[w] = map->walls[w-1];
+
+      //Update indices
+      for(int i = 0;i<map->wall_count;i++)
+      {
+         RvR_port_wall *wall = map->walls+i;
+         if(wall->p2>=insert1)
+            wall->p2++;
+         if(wall->portal_wall>=insert1)
+            wall->portal_wall++;
+         //if(wall->join>=insert1)
+            //wall->join++;
+      }
+      //Update sector first_wall
+      for(int i = 0;i<map->sector_count;i++)
+      {
+         if(i==RvR_port_wall_sector(map,w2))
+            continue;
+         RvR_port_sector *sect = map->sectors+i;
+         if(sect->wall_first>=insert1)
+            sect->wall_first++;
+      }
+      if(insert>=insert1)
+         insert++;
+      if(w3>=insert1)
+         w3++;
+
+      //Insert new wall
+      sector = RvR_port_wall_sector(map,insert1);
+      map->walls[insert1].x = x;
+      map->walls[insert1].y = y;
+      map->walls[insert1].p2 = w3;
+      //TODO
+      //map->walls[insert1].join = insert;
+      //map->walls[insert].join = insert1;
+      map->walls[insert1].portal = map->walls[w2].portal;
+      map->walls[insert1].flags = 0;
+      map->walls[w2].p2 = insert1;
+      map->sectors[sector].wall_count++;
+   }
+
+   return insert;
+   //-------------------------------------
+
+   //TODO
+#if 0
    int16_t w1 = map->walls[w0].p2;
 
    //Check for second wall pair
@@ -247,6 +433,8 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
    }
 
    return insert;
+#endif
+   return -1;
 }
 
 int16_t RvR_port_wall_next(const RvR_port_map *map, int16_t wall)
@@ -266,6 +454,7 @@ int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall)
    return -1;
 }
 
+#if 0
 int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall)
 {
    if(map->walls[wall].join<0)
@@ -289,6 +478,7 @@ int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall)
 
    return cur;
 }
+#endif
 
 int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall)
 {
@@ -324,6 +514,7 @@ int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wal
    return subsector;
 }
 
+#if 0
 void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join)
 {
    if(wall<0||join<0)
@@ -348,4 +539,5 @@ void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join)
    map->walls[wall].join = join;
    map->walls[join].join = next;
 }
+#endif
 //-------------------------------------
