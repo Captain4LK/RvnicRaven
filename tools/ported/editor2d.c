@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -376,14 +376,8 @@ static void e2d_draw_base(void)
 
          int x0 = ((p0->x-camera.x))/RvR_non_zero(zoom)+RvR_xres()/2;
          int y0 = ((p0->y-camera.y))/RvR_non_zero(zoom)+RvR_yres()/2;
-         //int x0 = ((p0->x-camera.x)*grid_size)/1024+RvR_xres()/2;
-         //int y0 = ((p0->y-camera.y)*grid_size)/1024+RvR_yres()/2;
 
-         //Only draw last wall in chain (not actually guranteed to be last
-         //wall or only wall drawn, but close enough
-            RvR_render_rectangle(x0-2,y0-2,5,5,color_orange);
-         //if(p0->join<map->sectors[i].wall_first+j)
-            //RvR_render_rectangle(x0-2,y0-2,5,5,color_orange);
+         RvR_render_rectangle(x0-2,y0-2,5,5,color_orange);
       }
    }
 

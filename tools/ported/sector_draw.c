@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -65,7 +65,6 @@ void sector_draw_start(RvR_fix22 x, RvR_fix22 y)
    w.p2 = 1;
    w.portal = -1;
    w.portal_wall = -1;
-   //w.join = -1;
    RvR_array_push(sd_walls,w);
 
    //Search for overlapping walls
@@ -144,7 +143,6 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          w.p2 = RvR_array_length(sd_walls)+1;
          w.portal = -1;
          w.portal_wall = -1;
-         //w.join = -1;
          RvR_array_push(sd_walls,w);
 
          //Search for overlapping walls
@@ -214,7 +212,6 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
                map->walls[map->sectors[sector].wall_first+i].tex_mid = sd_walls[i].tex_mid;
                map->walls[map->sectors[sector].wall_first+i].portal = -1;
                map->walls[map->sectors[sector].wall_first+i].portal_wall = -1;
-               //map->walls[map->sectors[sector].wall_first+i].join = -1;
                if(i==RvR_array_length(sd_walls)-1)
                   map->walls[map->sectors[sector].wall_first+i].p2 = map->sectors[sector].wall_first;
             }
@@ -246,8 +243,6 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
                   wall->p2+=count;
                if(wall->portal_wall>=insert)
                   wall->portal_wall+=count;
-               //if(wall->join>=insert)
-                  //wall->join+=count;
             }
             //Update sectors first wall
             for(int i = 0;i<map->sector_count;i++)
@@ -273,7 +268,6 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
                wall->tex_mid = sd_walls[i].tex_mid;
                wall->portal = -1;
                wall->portal_wall = -1;
-               //wall->join = -1;
                if(i==RvR_array_length(sd_walls)-1)
                   wall->p2 = map->sectors[sector_inside].wall_first+map->sectors[sector_inside].wall_count;
             }
@@ -311,7 +305,6 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             map->walls[map->sectors[sector].wall_first+i].tex_mid = sd_walls[i].tex_mid;
             map->walls[map->sectors[sector].wall_first+i].portal = -1;
             map->walls[map->sectors[sector].wall_first+i].portal_wall = -1;
-            //map->walls[map->sectors[sector].wall_first+i].join = -1;
             if(i==RvR_array_length(sd_walls)-1)
                map->walls[map->sectors[sector].wall_first+i].p2 = map->sectors[sector].wall_first;
          }
@@ -323,6 +316,7 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          {
             int16_t swall = map->sectors[sector].wall_first+i;
             int16_t snext = RvR_port_wall_next(map,swall);
+            int16_t sprev = RvR_port_wall_previous(map,swall);
 
             for(int j = 0;j<map->wall_count-map->sectors[sector].wall_count;j++)
             {
@@ -332,21 +326,12 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
 
                if(map->walls[j].x==map->walls[swall].x&&map->walls[j].y==map->walls[swall].y)
                {
-                  if(map->walls[next].x==map->walls[snext].x&&map->walls[next].y==map->walls[snext].y)
+                  if(map->walls[next].x==map->walls[sprev].x&&map->walls[next].y==map->walls[sprev].y)
                   {
-                     map->walls[swall].portal = wall_sector;
+                     map->walls[sprev].portal = wall_sector;
                      map->walls[j].portal = sector;
-                     //TODO
-                     //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                     //if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
-                  }
-                  else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
-                  {
-                     map->walls[swall].portal = wall_sector;
-                     map->walls[prev].portal = sector;
-                     //TODO
-                     //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                     //if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
+                     map->walls[sprev].portal_wall = j;
+                     map->walls[j].portal_wall = sprev;
                   }
                }
             }
@@ -643,10 +628,7 @@ static int sector_draw_split()
       map->walls[map->sectors[sector0].wall_first+i].tex_upper = sd_walls[i].tex_upper;
       map->walls[map->sectors[sector0].wall_first+i].tex_mid = sd_walls[i].tex_mid;
       map->walls[map->sectors[sector0].wall_first+i].portal = sd_walls[i].portal;
-      //TODO
       map->walls[map->sectors[sector0].wall_first+i].portal_wall = -1;
-      //map->walls[map->sectors[sector0].wall_first+i].join = -1;
-      //RvR_port_wall_join(map,sd_walls[i].join,map->sectors[sector0].wall_first+i);
    }
 
    //Reset sd_walls
@@ -656,7 +638,6 @@ static int sector_draw_split()
       {
          sd_walls[i] = sd_walls[i+split0_start];
          sd_walls[i].p2 = i+1;
-         //sd_walls[i].join = -1;
          sd_walls[i].portal = -1;
          sd_walls[i].portal_wall = -1;
       }
@@ -792,41 +773,15 @@ static int sector_draw_split()
       map->walls[map->sectors[sector1].wall_first+i].tex_upper = sd_walls[i].tex_upper;
       map->walls[map->sectors[sector1].wall_first+i].tex_mid = sd_walls[i].tex_mid;
       map->walls[map->sectors[sector1].wall_first+i].portal = sd_walls[i].portal;
-      //TODO
       map->walls[map->sectors[sector1].wall_first+i].portal_wall = -1;
-      //map->walls[map->sectors[sector1].wall_first+i].join = -1;
-      //RvR_port_wall_join(map,sd_walls[i].join,map->sectors[sector1].wall_first+i);
    }
-
-   //Add joins to new sectors
-   //printf("%d %d\n",split0_start,split1_start);
-   /*for(int i = 0;i<=split_length;i++)
-   {
-      int iwall0 = map->sectors[sector0].wall_first+i+split0_start;
-      int iwall01 = map->sectors[sector1].wall_first+(split1_start+split_length-i);
-      int iwall1 = map->sectors[sector1].wall_first+i+split1_start;
-      RvR_port_wall *wall0 = map->walls+iwall0;
-      RvR_port_wall *wall01 = map->walls+iwall01;
-      RvR_port_wall *wall1 = map->walls+iwall1;
-
-      if(i!=split_length)
-      {
-         wall0->portal = sector1;
-         wall1->portal = sector0;
-      }
-
-      if(wall01->join==-1&&wall0->join==-1)
-      {
-         wall01->join = iwall0;
-         wall0->join = iwall01;
-      }
-   }*/
 
    //Fix links and portals
    for(int i = 0;i<map->sectors[sector0].wall_count;i++)
    {
       int16_t swall = map->sectors[sector0].wall_first+i;
       int16_t snext = RvR_port_wall_next(map,swall);
+      int16_t sprev = RvR_port_wall_previous(map,swall);
 
       for(int j = 0;j<map->wall_count;j++)
       {
@@ -839,27 +794,12 @@ static int sector_draw_split()
 
          if(map->walls[j].x==map->walls[swall].x&&map->walls[j].y==map->walls[swall].y)
          {
-            if(map->walls[next].x==map->walls[snext].x&&map->walls[next].y==map->walls[snext].y)
+            if(map->walls[next].x==map->walls[sprev].x&&map->walls[next].y==map->walls[sprev].y)
             {
-               if(map->walls[j].portal==sd_split_sector||map->walls[j].portal<0)
-               {
-                  map->walls[swall].portal = wall_sector;
-                  map->walls[j].portal = sector0;
-                  //TODO
-                  //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                  //if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
-               }
-            }
-            else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
-            {
-               if(map->walls[prev].portal==sd_split_sector||map->walls[prev].portal<0)
-               {
-                  map->walls[swall].portal = wall_sector;
-                  map->walls[prev].portal = sector0;
-                  //TODO
-                  //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                  //if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
-               }
+               map->walls[sprev].portal = wall_sector;
+               map->walls[j].portal = sector0;
+               map->walls[sprev].portal_wall = j;
+               map->walls[j].portal_wall = sprev;
             }
          }
       }
@@ -869,6 +809,7 @@ static int sector_draw_split()
    {
       int16_t swall = map->sectors[sector1].wall_first+i;
       int16_t snext = RvR_port_wall_next(map,swall);
+      int16_t sprev = RvR_port_wall_previous(map,swall);
 
       for(int j = 0;j<map->wall_count;j++)
       {
@@ -881,27 +822,12 @@ static int sector_draw_split()
 
          if(map->walls[j].x==map->walls[swall].x&&map->walls[j].y==map->walls[swall].y)
          {
-            if(map->walls[next].x==map->walls[snext].x&&map->walls[next].y==map->walls[snext].y)
+            if(map->walls[next].x==map->walls[sprev].x&&map->walls[next].y==map->walls[sprev].y)
             {
-               if(map->walls[j].portal==sd_split_sector||map->walls[j].portal<0)
-               {
-                  map->walls[swall].portal = wall_sector;
-                  map->walls[j].portal = sector1;
-                  //TODO
-                  //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                  //if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
-               }
-            }
-            else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
-            {
-               if(map->walls[prev].portal==sd_split_sector||map->walls[prev].portal<0)
-               {
-                  map->walls[swall].portal = wall_sector;
-                  map->walls[prev].portal = sector1;
-                  //TODO
-                  //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                  //if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
-               }
+               map->walls[sprev].portal = wall_sector;
+               map->walls[j].portal = sector1;
+               map->walls[sprev].portal_wall = j;
+               map->walls[j].portal_wall = sprev;
             }
          }
       }
@@ -955,7 +881,6 @@ static int sector_draw_connect()
       sd_walls[RvR_array_length(sd_walls)-1].p2 = RvR_array_length(sd_walls);
       sd_walls[RvR_array_length(sd_walls)-1].portal = -1;
       sd_walls[RvR_array_length(sd_walls)-1].portal_wall = -1;
-      //sd_walls[RvR_array_length(sd_walls)-1].join = -1;
    }
 
    //Add the entire loop of the first wall
@@ -1072,10 +997,7 @@ static int sector_draw_connect()
       map->walls[map->sectors[sector0].wall_first+i].tex_upper = sd_walls[i].tex_upper;
       map->walls[map->sectors[sector0].wall_first+i].tex_mid = sd_walls[i].tex_mid;
       map->walls[map->sectors[sector0].wall_first+i].portal = sd_walls[i].portal;
-      //TODO
       map->walls[map->sectors[sector0].wall_first+i].portal_wall = -1;
-      //map->walls[map->sectors[sector0].wall_first+i].join = -1;
-      //RvR_port_wall_join(map,sd_walls[i].join,map->sectors[sector0].wall_first+i);
    }
 
    //Fix links and portals
@@ -1083,6 +1005,7 @@ static int sector_draw_connect()
    {
       int16_t swall = map->sectors[sector0].wall_first+i;
       int16_t snext = RvR_port_wall_next(map,swall);
+      int16_t sprev = RvR_port_wall_previous(map,swall);
 
       for(int j = 0;j<map->wall_count-map->sectors[sector0].wall_count;j++)
       {
@@ -1094,27 +1017,12 @@ static int sector_draw_connect()
 
          if(map->walls[j].x==map->walls[swall].x&&map->walls[j].y==map->walls[swall].y)
          {
-            if(map->walls[next].x==map->walls[snext].x&&map->walls[next].y==map->walls[snext].y)
+            if(map->walls[next].x==map->walls[sprev].x&&map->walls[next].y==map->walls[sprev].y)
             {
-               if(map->walls[j].portal==sd_split_sector||map->walls[j].portal<0)
-               {
-                  map->walls[swall].portal = wall_sector;
-                  map->walls[j].portal = sector0;
-                  //TODO
-                  //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                  //if(map->walls[snext].join<0) RvR_port_wall_join(map,next,snext);
-               }
-            }
-            else if(map->walls[prev].x==map->walls[snext].x&&map->walls[prev].y==map->walls[snext].y)
-            {
-               if(map->walls[prev].portal==sd_split_sector||map->walls[prev].portal<0)
-               {
-                  map->walls[swall].portal = wall_sector;
-                  map->walls[prev].portal = sector0;
-                  //TODO
-                  //if(map->walls[swall].join<0) RvR_port_wall_join(map,j,swall);
-                  //if(map->walls[snext].join<0) RvR_port_wall_join(map,prev,snext);
-               }
+               map->walls[sprev].portal = wall_sector;
+               map->walls[j].portal = sector0;
+               map->walls[sprev].portal_wall = j;
+               map->walls[j].portal_wall = sprev;
             }
          }
       }

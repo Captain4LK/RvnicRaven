@@ -229,8 +229,8 @@ int RvR_port_map_check(const RvR_port_map *map)
    {
       if(map->walls[i].portal!=-1)
       {
-         RvR_error_check(map->walls[i].portal>=0,"RvR_port_map_check","invalid portal value %d for wall %d",map->walls[i].portal,i);
-         RvR_error_check(map->walls[i].portal<map->sector_count,"RvR_port_map_check","portal value %d of wall %d out of bounds",map->walls[i].portal,i);
+         RvR_error_check(map->walls[i].portal>=0,"RvR_port_map_check","invalid portal value %d for wall %d\n",map->walls[i].portal,i);
+         RvR_error_check(map->walls[i].portal<map->sector_count,"RvR_port_map_check","portal value %d of wall %d out of bounds\n",map->walls[i].portal,i);
          RvR_error_check(map->walls[i].portal_wall!=-1,"RvR_port_map_check","portal of wall %d is %d, but portal_wall not set\n",i,map->walls[i].portal);
       }
 
@@ -239,8 +239,8 @@ int RvR_port_map_check(const RvR_port_map *map)
 
       int16_t pwall = map->walls[i].portal_wall;
 
-      RvR_error_check(map->walls[i].portal_wall>=0,"RvR_port_map_check","invalid portal_wall value %d for wall %d",map->walls[i].portal_wall,i);
-      RvR_error_check(map->walls[i].portal_wall<map->wall_count,"RvR_port_map_check","portal_wall value %d of wall %d out of bounds",map->walls[i].portal_wall,i);
+      RvR_error_check(map->walls[i].portal_wall>=0,"RvR_port_map_check","invalid portal_wall value %d for wall %d\n",map->walls[i].portal_wall,i);
+      RvR_error_check(map->walls[i].portal_wall<map->wall_count,"RvR_port_map_check","portal_wall value %d of wall %d out of bounds\n",map->walls[i].portal_wall,i);
       RvR_error_check(map->walls[pwall].portal_wall==i,"RvR_port_map_check","portal wall of wall %d not referencing wall %d\n",pwall,i);
       RvR_error_check(map->walls[i].portal!=-1,"RvR_port_map_check","portal_wall of wall %d is %d, but portal not set\n",i,pwall);
 
