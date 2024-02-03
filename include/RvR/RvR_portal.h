@@ -37,7 +37,6 @@ typedef struct
    int16_t p2;
    int16_t portal;
    int16_t portal_wall;
-   //int16_t join;
    uint16_t tex_lower;
    uint16_t tex_upper;
    uint16_t tex_mid;
@@ -141,17 +140,17 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
 int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y);
 int16_t RvR_port_wall_next(const RvR_port_map *map, int16_t wall);
 int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall);
-int16_t RvR_port_wall_join_previous(const RvR_port_map *map, int16_t wall);
 int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall);
 int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall);
+int RvR_port_subsector_length(const RvR_port_map *map, int16_t wall);
 
 //Map manipulation
 int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y);
 void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector);
 int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall);
 void RvR_port_sector_delete(RvR_port_map *map, int16_t sector);
-void RvR_port_wall_join(RvR_port_map *map, int16_t wall, int16_t join);
 int RvR_port_map_check(const RvR_port_map *map);
+void RvR_port_map_print_walls(const RvR_port_map *map);
 
 void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
 void RvR_port_draw_map(RvR_port_selection *select);

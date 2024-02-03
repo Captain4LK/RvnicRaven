@@ -70,7 +70,6 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u16(&rw,map->walls[i].p2);
       RvR_rw_write_u16(&rw,map->walls[i].portal);
       RvR_rw_write_u16(&rw,map->walls[i].portal_wall);
-      //RvR_rw_write_u16(&rw,map->walls[i].join);
       RvR_rw_write_u16(&rw,map->walls[i].tex_lower);
       RvR_rw_write_u16(&rw,map->walls[i].tex_upper);
       RvR_rw_write_u16(&rw,map->walls[i].tex_mid);
@@ -181,7 +180,6 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->walls[i].p2 = RvR_rw_read_u16(rw);
       map->walls[i].portal = RvR_rw_read_u16(rw);
       map->walls[i].portal_wall = RvR_rw_read_u16(rw);
-      //map->walls[i].join = RvR_rw_read_u16(rw);
       map->walls[i].tex_lower = RvR_rw_read_u16(rw);
       map->walls[i].tex_upper = RvR_rw_read_u16(rw);
       map->walls[i].tex_mid = RvR_rw_read_u16(rw);
@@ -226,35 +224,49 @@ int RvR_port_map_check(const RvR_port_map *map)
       }
    }
 
-#if 0
-   //Check joins
+   //Check portals
+   for(int i = 0;i<map->wall_count;i++)
    {
-      for(int i = 0;i<map->wall_count;i++)
+      if(map->walls[i].portal!=-1)
       {
-         if(map->walls[i].join==-1)
-            continue;
-         RvR_error_check(map->walls[i].join>=0,"RvR_port_map_check","negative join on wall %d: join = %d\n",i,map->walls[i].join);
-         RvR_error_check(map->walls[i].join<map->wall_count,"RvR_port_map_check","join on wall %d out of bounds: join = %d\n",i,map->walls[i].join);
-
-         int16_t cur = map->walls[i].join;
-         int found = 0;
-         for(int j = 0;j<256;j++)
-         {
-            cur = map->walls[cur].join;
-            if(cur==i)
-            {
-               found = 1;
-               break;
-            }
-         }
-         RvR_error_check(found,"RvR_port_map_check","corrupt join list on wall %d\n",i);
+         RvR_error_check(map->walls[i].portal>=0,"RvR_port_map_check","invalid portal value %d for wall %d",map->walls[i].portal,i);
+         RvR_error_check(map->walls[i].portal<map->sector_count,"RvR_port_map_check","portal value %d of wall %d out of bounds",map->walls[i].portal,i);
+         RvR_error_check(map->walls[i].portal_wall!=-1,"RvR_port_map_check","portal of wall %d is %d, but portal_wall not set\n",i,map->walls[i].portal);
       }
+
+      if(map->walls[i].portal_wall==-1)
+         continue;
+
+      int16_t pwall = map->walls[i].portal_wall;
+
+      RvR_error_check(map->walls[i].portal_wall>=0,"RvR_port_map_check","invalid portal_wall value %d for wall %d",map->walls[i].portal_wall,i);
+      RvR_error_check(map->walls[i].portal_wall<map->wall_count,"RvR_port_map_check","portal_wall value %d of wall %d out of bounds",map->walls[i].portal_wall,i);
+      RvR_error_check(map->walls[pwall].portal_wall==i,"RvR_port_map_check","portal wall of wall %d not referencing wall %d\n",pwall,i);
+      RvR_error_check(map->walls[i].portal!=-1,"RvR_port_map_check","portal_wall of wall %d is %d, but portal not set\n",i,pwall);
+
+      RvR_fix22 x00 = map->walls[i].x;
+      RvR_fix22 y00 = map->walls[i].y;
+      RvR_fix22 x01 = map->walls[map->walls[i].p2].x;
+      RvR_fix22 y01 = map->walls[map->walls[i].p2].y;
+      RvR_fix22 x10 = map->walls[pwall].x;
+      RvR_fix22 y10 = map->walls[pwall].y;
+      RvR_fix22 x11 = map->walls[map->walls[pwall].p2].x;
+      RvR_fix22 y11 = map->walls[map->walls[pwall].p2].y;
+
+      RvR_error_check(x00==x11&&y00==y11&& x01==x10&&y01==y10, "RvR_port_map_check","wall %d and portal_wall %d don't match up\n",i,pwall);
    }
-#endif
 
    return 1;
 
 RvR_err:
    return 0;
+}
+
+void RvR_port_map_print_walls(const RvR_port_map *map)
+{
+   for(int i = 0;i<map->wall_count;i++)
+   {
+      printf("Wall %d: (%d %d) portal = %d, portal_wall = %d, p2 = %d\n",i,map->walls[i].x,map->walls[i].y,map->walls[i].portal,map->walls[i].portal_wall,map->walls[i].p2);
+   }
 }
 //-------------------------------------

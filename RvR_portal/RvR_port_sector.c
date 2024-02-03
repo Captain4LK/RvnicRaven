@@ -1,7 +1,7 @@
 /*
 RvnicRaven - portal sectors
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -151,7 +151,6 @@ int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y)
    map->walls[map->sectors[sector].wall_first].p2 = -1;
    map->walls[map->sectors[sector].wall_first].portal = -1;
    map->walls[map->sectors[sector].wall_first].portal_wall = -1;
-   //map->walls[map->sectors[sector].wall_first].join = -1;
 
    return sector;
 
@@ -189,50 +188,41 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector)
          //Reverse walls
          for(int j = 0;j<(wall-first)/2;j++)
          {
-            int16_t w0 = s->wall_first+first+j;
-            int16_t w1 = s->wall_first+wall-j-1;
-
             RvR_port_wall tmp = map->walls[s->wall_first+first+j];
             int16_t pt20 = tmp.p2;
             int16_t pt21 = map->walls[s->wall_first+wall-j-1].p2;
-            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
+            int16_t pw0 = tmp.portal_wall;
+            int16_t pw1 = map->walls[s->wall_first+wall-j-1].portal_wall;
 
+            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
             map->walls[s->wall_first+wall-j-1] = tmp;
+
             map->walls[s->wall_first+first+j].p2 = pt20;
             map->walls[s->wall_first+wall-j-1].p2 = pt21;
-            
-#if 0
-            //Update joins
-            int16_t cur = map->walls[w0].join;
-            while(cur>=0&&cur!=w0)
-            {
-               if(map->walls[cur].join==w1)
-               {
-                  map->walls[cur].join = w0;
-                  break;
-               }
-               cur = map->walls[cur].join;
-            }
-            cur = map->walls[w1].join;
-            while(cur>=0&&cur!=w1)
-            {
-               if(map->walls[cur].join==w0)
-               {
-                  map->walls[cur].join = w1;
-                  break;
-               }
-               cur = map->walls[cur].join;
-            }
-#endif
+            map->walls[s->wall_first+first+j].portal_wall = pw0;
+            map->walls[s->wall_first+wall-j-1].portal_wall = pw1;
          }
 
          //Reverse all wall attributes except last
-         //TODO(Captain4LK): fix portal_wall references
          for(int j = 0;j<(wall-first-1)/2;j++)
          {
             int16_t tmp = map->walls[s->wall_first+wall-j-2].portal;
             map->walls[s->wall_first+wall-j-2].portal = map->walls[s->wall_first+first+j].portal;
             map->walls[s->wall_first+first+j].portal = tmp;
+         }
+
+         for(int j = 0;j<(wall-first-1)/2;j++)
+         {
+            int16_t pw0 = map->walls[s->wall_first+wall-j-2].portal_wall;
+            int16_t pw1 = map->walls[s->wall_first+first+j].portal_wall;
+
+            int16_t tmp = map->walls[s->wall_first+wall-j-2].portal_wall;
+            map->walls[s->wall_first+wall-j-2].portal_wall = map->walls[s->wall_first+first+j].portal_wall;
+            map->walls[s->wall_first+first+j].portal_wall = tmp;
+
+            tmp = map->walls[pw0].portal_wall;
+            map->walls[pw0].portal_wall = map->walls[pw1].portal_wall;
+            map->walls[pw1].portal_wall = tmp;
          }
       }
    }
@@ -250,38 +240,54 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall)
    RvR_error_check(wall<map->wall_count,"RvR_port_make_inner","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
 
    //TODO(Captain4LK): handle inner sector already partially being a portal
+   
+   int16_t sector_root = RvR_port_wall_sector(map,wall);
 
-   int16_t sector = RvR_port_wall_sector(map,wall);
-   int16_t first = RvR_port_wall_first(map,wall);
+   //Add enough new walls to hold subsector
+   //-------------------------------------
+   int len = RvR_port_subsector_length(map,wall);
+   int16_t first = map->wall_count;
+   map->wall_count+=len;
+   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
+   int16_t sector = map->sector_count;
+   map->sector_count++;
+   map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sector grow");
+   map->sectors[sector].wall_count = len;
+   map->sectors[sector].wall_first = first;
+   //-------------------------------------
 
-   int16_t sn = RvR_port_sector_new(map,map->walls[first].x,map->walls[first].y);
-   map->sectors[sn].floor = map->sectors[sector].floor;
-   map->sectors[sn].ceiling = map->sectors[sector].ceiling;
-   map->walls[map->sectors[sn].wall_first].portal_wall = first;
-   map->walls[first].portal_wall = map->sectors[sn].wall_first;
-   //map->walls[map->sectors[sn].wall_first].join = first;
-   //map->walls[first].join = map->sectors[sn].wall_first;
-   map->walls[map->sectors[sn].wall_first].portal = sector;
-   map->walls[first].portal = sn;
-
-   int16_t w = map->walls[first].p2;
-   while(w!=first)
+   //Copy subsector and add portals
+   //-------------------------------------
+   int16_t cur = first;
+   int16_t cur_src = wall;
+   map->walls[cur] = map->walls[wall];
+   map->walls[cur].p2 = cur+1;
+   map->walls[cur].portal = sector_root;
+   map->walls[wall].portal = sector;
+   map->walls[cur].portal_wall = wall;
+   map->walls[wall].portal_wall = cur;
+   cur = map->walls[cur].p2;
+   cur_src = map->walls[cur_src].p2;
+   while(cur_src!=wall)
    {
-      int16_t wn = RvR_port_wall_append(map,sn,map->walls[w].x,map->walls[w].y);
-      if(w>=wn) w++;
-      if(first>=wn) first++;
+      map->walls[cur] = map->walls[cur_src];
+      map->walls[cur].p2 = cur+1;
+      map->walls[cur].portal = sector_root;
+      map->walls[cur_src].portal = sector;
+      map->walls[cur].portal_wall = cur_src;
+      map->walls[cur_src].portal_wall = cur;
+      cur_src = map->walls[cur_src].p2;
 
-      map->walls[wn].portal_wall = w;
-      map->walls[w].portal_wall = wn;
-      //map->walls[wn].join = w;
-      //map->walls[w].join = wn;
-      map->walls[wn].portal = sector;
-      map->walls[w].portal = sn;
-      w = map->walls[w].p2;
+      if(cur_src==wall)
+         map->walls[cur].p2 = first;
+
+      cur = map->walls[cur].p2;
    }
-   RvR_port_wall_append(map,sn,map->walls[first].x,map->walls[first].y);
+   //-------------------------------------
 
-   return sn;
+   RvR_port_sector_fix_winding(map,sector);
+
+   return sector;
 
 RvR_err:
    return -1;
@@ -293,28 +299,15 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
    RvR_error_check(sector>=0,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
    RvR_error_check(sector<map->sector_count,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
 
-   //Delete joins to walls in sector
-   for(int w = map->sectors[sector].wall_first;w<map->sectors[sector].wall_first+map->sectors[sector].wall_count;w++)
-   {
-      RvR_port_wall *wall = map->walls+w;
-#if 0
-      if(wall->join>=0)
-      {
-         int16_t prev = RvR_port_wall_join_previous(map,w);
-         if(prev==wall->join) //join list might only contain one element after removal
-            map->walls[prev].join = -1;
-         else
-            map->walls[prev].join = wall->join;
-      }
-#endif
-   }
-
    //Remove portals to sector
    for(int w = 0;w<map->wall_count;w++)
    {
       RvR_port_wall *wall = map->walls+w;
       if(wall->portal==sector)
+      {
          wall->portal = -1;
+         wall->portal_wall = -1;
+      }
    }
 
    //Move walls after deleted sector to left
@@ -323,7 +316,7 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
    for(int w = remove;w<map->wall_count-count;w++)
       map->walls[w] = map->walls[w+count];
 
-   //After moving the walls, some references (p2,join,wall_first) are incorrect, so...
+   //After moving the walls, some references (p2,portal_wall,wall_first) are incorrect, so...
    //...update wall references
    for(int w = 0;w<map->wall_count;w++)
    {
@@ -332,8 +325,6 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
          wall->p2-=count;
       if(wall->portal_wall>=remove)
          wall->portal_wall-=count;
-      //if(wall->join>=remove)
-         //wall->join-=count;
    }
 
    //...and update sector references

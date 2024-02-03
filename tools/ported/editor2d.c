@@ -432,6 +432,12 @@ static void e2d_update_view(void)
 
    camera_update();
 
+   if(RvR_key_pressed(RVR_KEY_O))
+   {
+      printf("Check: %d\n",RvR_port_map_check(map));
+      //RvR_port_map_print_walls(map);
+   }
+
    if(RvR_key_pressed(RVR_BUTTON_LEFT))
    {
       //Check for selected wall
