@@ -113,7 +113,7 @@ void map_new()
 
    undo_reset();
 
-   int16_t sector = RvR_port_sector_new(map, 0, 0);
+   /*int16_t sector = RvR_port_sector_new(map, 0, 0);
    map->sectors[sector].floor = 0;
    map->sectors[sector].ceiling = 2 * 1024;
    map->sectors[sector].floor_tex = 15;
@@ -134,7 +134,7 @@ void map_new()
    map->sectors[s].floor = 512;
    map->sectors[s].ceiling  = 2 * 1024 - 512;
    map->sectors[s].floor_tex = 5;
-   map->sectors[s].ceiling_tex = 5;
+   map->sectors[s].ceiling_tex = 5;*/
 
    //RvR_port_wall_insert(&map, map->sectors[s].wall_first, 8 * 1024, 4 * 1024);
 }

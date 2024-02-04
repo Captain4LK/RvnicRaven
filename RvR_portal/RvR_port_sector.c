@@ -285,7 +285,9 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall)
    }
    //-------------------------------------
 
+   printf("Check: %d\n",RvR_port_map_check(map));
    RvR_port_sector_fix_winding(map,sector);
+   printf("Check: %d\n",RvR_port_map_check(map));
 
    return sector;
 

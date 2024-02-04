@@ -429,7 +429,7 @@ static void e2d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_O))
    {
       printf("Check: %d\n",RvR_port_map_check(map));
-      //RvR_port_map_print_walls(map);
+      RvR_port_map_print_walls(map);
    }
 
    if(RvR_key_pressed(RVR_BUTTON_LEFT))
