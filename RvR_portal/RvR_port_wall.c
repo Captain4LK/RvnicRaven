@@ -332,4 +332,34 @@ int RvR_port_subsector_length(const RvR_port_map *map, int16_t wall)
 
    return len;
 }
+
+int16_t RvR_port_wall_next_onesided(const RvR_port_map *map, int16_t wall)
+{
+   int16_t p2 = map->walls[wall].p2;
+   if(map->walls[p2].portal==-1)
+      return p2;
+
+   int16_t pw = map->walls[p2].portal_wall;
+   for(;;)
+   {
+      int16_t pw2 = map->walls[pw].p2;
+      if(map->walls[pw2].portal==-1)
+         return pw2;
+
+      pw = map->walls[pw2].portal_wall;
+   }
+}
+
+int RvR_port_wall_onesided_length(const RvR_port_map *map, int16_t wall)
+{
+   int len = 1;
+   int16_t cur = RvR_port_wall_next_onesided(map,wall);
+   while(cur!=wall)
+   {
+      cur = RvR_port_wall_next_onesided(map,cur);
+      len++;
+   }
+
+   return len;
+}
 //-------------------------------------

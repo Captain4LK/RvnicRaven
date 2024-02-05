@@ -143,6 +143,8 @@ int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall);
 int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall);
 int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall);
 int RvR_port_subsector_length(const RvR_port_map *map, int16_t wall);
+int16_t RvR_port_wall_next_onesided(const RvR_port_map *map, int16_t wall);
+int RvR_port_wall_onesided_length(const RvR_port_map *map, int16_t wall);
 
 //Map manipulation
 int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y);

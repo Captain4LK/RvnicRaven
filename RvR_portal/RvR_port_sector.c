@@ -239,13 +239,11 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall)
    RvR_error_check(wall>=0,"RvR_port_sector_make_inner","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
    RvR_error_check(wall<map->wall_count,"RvR_port_make_inner","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
 
-   //TODO(Captain4LK): handle inner sector already partially being a portal
-   
    int16_t sector_root = RvR_port_wall_sector(map,wall);
 
    //Add enough new walls to hold subsector
    //-------------------------------------
-   int len = RvR_port_subsector_length(map,wall);
+   int len = RvR_port_wall_onesided_length(map,wall);
    int16_t first = map->wall_count;
    map->wall_count+=len;
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
@@ -263,25 +261,29 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall)
    map->walls[cur] = map->walls[wall];
    map->walls[cur].p2 = cur+1;
    map->walls[cur].portal = sector_root;
-   map->walls[wall].portal = sector;
    map->walls[cur].portal_wall = wall;
-   map->walls[wall].portal_wall = cur;
    cur = map->walls[cur].p2;
-   cur_src = map->walls[cur_src].p2;
+   cur_src = RvR_port_wall_next_onesided(map,cur_src);
    while(cur_src!=wall)
    {
       map->walls[cur] = map->walls[cur_src];
       map->walls[cur].p2 = cur+1;
-      map->walls[cur].portal = sector_root;
-      map->walls[cur_src].portal = sector;
+      map->walls[cur].portal = RvR_port_wall_sector(map,cur_src);
       map->walls[cur].portal_wall = cur_src;
-      map->walls[cur_src].portal_wall = cur;
-      cur_src = map->walls[cur_src].p2;
+
+      cur_src = RvR_port_wall_next_onesided(map,cur_src);
 
       if(cur_src==wall)
          map->walls[cur].p2 = first;
 
       cur = map->walls[cur].p2;
+   }
+
+   for(int i = 0;i<map->sectors[sector].wall_count;i++)
+   {
+      int w = map->sectors[sector].wall_first+i;
+      map->walls[map->walls[w].portal_wall].portal_wall = w;
+      map->walls[map->walls[w].portal_wall].portal = sector;
    }
    //-------------------------------------
 

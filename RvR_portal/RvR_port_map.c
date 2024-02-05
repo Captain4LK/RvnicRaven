@@ -265,8 +265,7 @@ int RvR_port_map_check(const RvR_port_map *map)
       RvR_fix22 x11 = map->walls[map->walls[pwall].p2].x;
       RvR_fix22 y11 = map->walls[map->walls[pwall].p2].y;
 
-      RvR_error_check((x00==x11&&y00==y11&& x01==x10&&y01==y10)||
-                     (x00==x10&&y00==y10&& x01==x11&&y01==y11), "RvR_port_map_check","wall %d and portal_wall %d don't match up\n",i,pwall);
+      RvR_error_check(x00==x11&&y00==y11&& x01==x10&&y01==y10, "RvR_port_map_check","wall %d and portal_wall %d don't match up\n",i,pwall);
    }
 
    //Check winding
