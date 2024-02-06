@@ -361,11 +361,19 @@ void RvR_update()
          break;
       case SDL_MOUSEBUTTONDOWN:
          if(event.button.state==SDL_PRESSED)
+         {
+            if(event.button.button==SDL_BUTTON_LEFT&&event.button.clicks==2)
+               rvr_new_key_state[RVR_BUTTON_DBLECLICK] = 1;
             rvr_new_key_state[rvr_mouse_map[event.button.button]] = 1;
+         }
          break;
       case SDL_MOUSEBUTTONUP:
          if(event.button.state==SDL_RELEASED)
+         {
+            if(event.button.button==SDL_BUTTON_LEFT)
+               rvr_new_key_state[RVR_BUTTON_DBLECLICK] = 0;
             rvr_new_key_state[rvr_mouse_map[event.button.button]] = 0;
+         }
          break;
       case SDL_TEXTINPUT:
          if(rvr_text_input_active&&strlen(rvr_text_input) + strlen(event.text.text)<rvr_text_input_max)

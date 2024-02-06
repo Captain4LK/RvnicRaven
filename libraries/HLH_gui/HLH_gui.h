@@ -64,7 +64,8 @@ typedef struct
 #define HLH_GUI_MOUSE_LEFT      (UINT8_C(0x1))
 #define HLH_GUI_MOUSE_RIGHT     (UINT8_C(0x2))
 #define HLH_GUI_MOUSE_MIDDLE    (UINT8_C(0x4))
-#define HLH_GUI_MOUSE_OUT       (UINT8_C(0x8))
+#define HLH_GUI_MOUSE_DBLE      (UINT8_C(0x8))
+#define HLH_GUI_MOUSE_OUT       (UINT8_C(0x10))
 
 //Flags (not enum because enums are int, we need u64)
 //-------------------------------------

@@ -347,7 +347,7 @@ int HLH_gui_message_loop(void)
          mouse.wheel = 0;
          switch(event.button.button)
          {
-         case SDL_BUTTON_LEFT: mouse.button|=HLH_GUI_MOUSE_LEFT; break;
+         case SDL_BUTTON_LEFT: mouse.button|=HLH_GUI_MOUSE_LEFT; if(event.button.clicks==2) mouse.button|=HLH_GUI_MOUSE_DBLE; break;
          case SDL_BUTTON_RIGHT: mouse.button|=HLH_GUI_MOUSE_RIGHT; break;
          case SDL_BUTTON_MIDDLE: mouse.button|=HLH_GUI_MOUSE_MIDDLE; break;
          }
@@ -364,7 +364,7 @@ int HLH_gui_message_loop(void)
          mouse.wheel = 0;
          switch(event.button.button)
          {
-         case SDL_BUTTON_LEFT: mouse.button&=~HLH_GUI_MOUSE_LEFT; break;
+         case SDL_BUTTON_LEFT: mouse.button&=~HLH_GUI_MOUSE_LEFT; mouse.button&=~HLH_GUI_MOUSE_DBLE; break;
          case SDL_BUTTON_RIGHT: mouse.button&=~HLH_GUI_MOUSE_RIGHT; break;
          case SDL_BUTTON_MIDDLE: mouse.button&=~HLH_GUI_MOUSE_MIDDLE; break;
          }

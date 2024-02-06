@@ -309,6 +309,11 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
       else
          rvr_new_key_state[RVR_BUTTON_LEFT] = 0;
 
+      if(m->button&HLH_GUI_MOUSE_DBLE)
+         rvr_new_key_state[RVR_BUTTON_DBLECLICK] = 1;
+      else
+         rvr_new_key_state[RVR_BUTTON_DBLECLICK] = 0;
+
       if(m->button&HLH_GUI_MOUSE_RIGHT)
          rvr_new_key_state[RVR_BUTTON_RIGHT] = 1;
       else
