@@ -393,11 +393,19 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
          map->walls[world_selection.as.wall].shade_offset++;
+      else if(world_selection.type==RVR_PORT_FLOOR)
+         map->sectors[world_selection.as.sector].shade_floor++;
+      else if(world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].shade_ceiling++;
    }
    if(RvR_key_pressed(RVR_KEY_NP_SUB))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
          map->walls[world_selection.as.wall].shade_offset--;
+      else if(world_selection.type==RVR_PORT_FLOOR)
+         map->sectors[world_selection.as.sector].shade_floor--;
+      else if(world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].shade_ceiling--;
    }
 
    //Parallax

@@ -46,7 +46,7 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
    size += 4; //map->wall_count
    size += 4; //map->sector_count
    size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1+2+2); //Walls
-   size+=map->sector_count*(2+2+4+4+2+2+4+2+2); //Sectors
+   size+=map->sector_count*(2+2+4+4+2+2+4+2+2+1+1); //Sectors
 
    uint8_t *mem = RvR_malloc(size, "RvR_port map save buffer");
    RvR_rw rw = {0};
@@ -90,6 +90,8 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u32(&rw,map->sectors[i].flags);
       RvR_rw_write_u16(&rw,map->sectors[i].x_off);
       RvR_rw_write_u16(&rw,map->sectors[i].y_off);
+      RvR_rw_write_u8(&rw,map->sectors[i].shade_floor);
+      RvR_rw_write_u8(&rw,map->sectors[i].shade_ceiling);
    }
 
    //Compress and write to disk
@@ -200,6 +202,8 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->sectors[i].flags = RvR_rw_read_u32(rw);
       map->sectors[i].x_off = RvR_rw_read_u16(rw);
       map->sectors[i].y_off = RvR_rw_read_u16(rw);
+      map->sectors[i].shade_floor = RvR_rw_read_u8(rw);
+      map->sectors[i].shade_ceiling = RvR_rw_read_u8(rw);
    }
 
    return map;

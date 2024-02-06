@@ -776,6 +776,10 @@ static int sector_draw_split()
       map->walls[map->sectors[sector1].wall_first+i].portal_wall = -1;
    }
 
+   //Fix sector windings
+   RvR_port_sector_fix_winding(map,sector0);
+   RvR_port_sector_fix_winding(map,sector1);
+
    //Fix links and portals
    for(int i = 0;i<map->sectors[sector0].wall_count;i++)
    {
@@ -838,10 +842,6 @@ static int sector_draw_split()
    map->sectors[sector0].ceiling  = map->sectors[sd_split_sector].ceiling;
    map->sectors[sector1].floor = map->sectors[sd_split_sector].floor;
    map->sectors[sector1].ceiling  = map->sectors[sd_split_sector].ceiling;
-
-   //Fix sector windings
-   RvR_port_sector_fix_winding(map,sector0);
-   RvR_port_sector_fix_winding(map,sector1);
 
    RvR_port_sector_delete(map,sd_split_sector);
 

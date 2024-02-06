@@ -1092,11 +1092,18 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    if(texture==NULL)
       return;
 
+   int8_t shade_off = 0;
    RvR_fix22 height = 0;
    if(where==0)
+   {
       height = map->sectors[sector].ceiling;
+      shade_off = map->sectors[sector].shade_ceiling;
+   }
    else if(where==1)
+   {
       height = map->sectors[sector].floor;
+      shade_off = map->sectors[sector].shade_floor;
+   }
 
    RvR_fix22 view_sin = RvR_fix22_sin(cam->dir);
    RvR_fix22 view_cos = RvR_fix22_cos(cam->dir);
@@ -1165,7 +1172,7 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    x_and<<=(16-y_log);
 
    uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
-   const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9))));
+   const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9)+shade_off)));
    const uint8_t * restrict tex = texture->data;
 
    for(int x = x0;x<x1;x++)
