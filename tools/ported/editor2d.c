@@ -608,7 +608,8 @@ static void e2d_update_view_scroll(void)
    camera.x += (rx * zoom) / 1;
    camera.y += (ry * zoom) / 1;
    camera.sector = RvR_port_sector_update(map,camera.sector,camera.x,camera.y);
-   camera.z = map->sectors[camera.sector].floor+1024;
+   if(camera.sector>=0&&camera.sector<map->sector_count)
+      camera.z = map->sectors[camera.sector].floor+1024;
 
    if(RvR_key_released(RVR_BUTTON_RIGHT))
    {
@@ -691,7 +692,8 @@ static void e2d_update_sector(void)
 
       camera.x += (rx * zoom) / 1;
       camera.y += (ry * zoom) / 1;
-      camera.z = map->sectors[camera.sector].floor+512;
+      if(camera.sector>=0&&camera.sector<map->sector_count)
+         camera.z = map->sectors[camera.sector].floor+512;
    }
 
    if(RvR_key_released(RVR_BUTTON_RIGHT))

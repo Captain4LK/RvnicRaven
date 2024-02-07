@@ -250,6 +250,7 @@ int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall)
    int16_t sector = map->sector_count;
    map->sector_count++;
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sector grow");
+   map->sectors[sector] = map->sectors[sector_root];
    map->sectors[sector].wall_count = len;
    map->sectors[sector].wall_first = first;
    //-------------------------------------
@@ -304,6 +305,8 @@ void RvR_port_sector_delete(RvR_port_map *map, int16_t sector)
    RvR_error_check(sector<map->sector_count,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
 
    //Remove portals to sector
+   //TODO(Captain4LK): iterate through sector walls instead
+   //and only delete if reference is cyclic
    for(int w = 0;w<map->wall_count;w++)
    {
       RvR_port_wall *wall = map->walls+w;

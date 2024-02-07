@@ -607,12 +607,9 @@ static int sector_draw_split()
    //Create sector from sd_walls
    int16_t sector0 = map->sector_count++;
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
+   map->sectors[sector0] = map->sectors[sd_split_sector];
    map->sectors[sector0].wall_count = RvR_array_length(sd_walls);
    map->sectors[sector0].wall_first = map->wall_count;
-   map->sectors[sector0].floor = 0;
-   map->sectors[sector0].ceiling = 2*1024;
-   map->sectors[sector0].floor_tex = 15;
-   map->sectors[sector0].ceiling_tex = 15;
    map->wall_count+=RvR_array_length(sd_walls);
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
    for(int i = 0;i<RvR_array_length(sd_walls);i++)
@@ -752,12 +749,9 @@ static int sector_draw_split()
    //Add new sector
    int16_t sector1 = map->sector_count++;
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
+   map->sectors[sector1] = map->sectors[sd_split_sector];
    map->sectors[sector1].wall_count = RvR_array_length(sd_walls);
    map->sectors[sector1].wall_first = map->wall_count;
-   map->sectors[sector1].floor = 0;
-   map->sectors[sector1].ceiling = 2*1024;
-   map->sectors[sector1].floor_tex = 15;
-   map->sectors[sector1].ceiling_tex = 15;
    map->wall_count+=RvR_array_length(sd_walls);
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
    for(int i = 0;i<RvR_array_length(sd_walls);i++)
@@ -976,12 +970,9 @@ static int sector_draw_connect()
    //Create new sector
    int16_t sector0 = map->sector_count++;
    map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
+   map->sectors[sector0] = map->sectors[sd_split_sector];
    map->sectors[sector0].wall_count = RvR_array_length(sd_walls);
    map->sectors[sector0].wall_first = map->wall_count;
-   map->sectors[sector0].floor = 0;
-   map->sectors[sector0].ceiling = 2*1024;
-   map->sectors[sector0].floor_tex = 15;
-   map->sectors[sector0].ceiling_tex = 15;
    map->wall_count+=RvR_array_length(sd_walls);
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
    for(int i = 0;i<RvR_array_length(sd_walls);i++)
