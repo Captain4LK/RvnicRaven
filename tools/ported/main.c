@@ -138,23 +138,23 @@ static void main_loop()
 
 static void ui_construct()
 {
-   HLH_gui_window *win = HLH_gui_window_create("Ported",800,600,NULL);
+   HLH_gui_window *win = HLH_gui_window_create("Ported", 800, 600, NULL);
    window_root = win;
 
-   const char *menu0[] = 
+   const char *menu0[] =
    {
       "New",
       "Save",
       "Save As",
       "Load",
    };
-   const char *menu1[] = 
+   const char *menu1[] =
    {
       "Test 1",
       "Test 2",
       "Test 3",
    };
-   const char *menu2[] = 
+   const char *menu2[] =
    {
       "About",
       "Test 2",
@@ -162,23 +162,23 @@ static void ui_construct()
    };
 
    HLH_gui_element *menus[3];
-   menus[0] = (HLH_gui_element *)HLH_gui_menu_create(&win->e,HLH_GUI_STYLE_01|HLH_GUI_NO_PARENT|HLH_GUI_OVERLAY,HLH_GUI_FILL_X|HLH_GUI_STYLE_01,menu0,4,menu_file_msg);
-   menus[1] = (HLH_gui_element *)HLH_gui_menu_create(&win->e,HLH_GUI_STYLE_01|HLH_GUI_NO_PARENT|HLH_GUI_OVERLAY,HLH_GUI_FILL_X|HLH_GUI_STYLE_01,menu1,3,menu_edit_msg);
-   menus[2] = (HLH_gui_element *)HLH_gui_menu_create(&win->e,HLH_GUI_STYLE_01|HLH_GUI_NO_PARENT|HLH_GUI_OVERLAY,HLH_GUI_FILL_X|HLH_GUI_STYLE_01,menu2,3,menu_help_msg);
+   menus[0] = (HLH_gui_element *)HLH_gui_menu_create(&win->e, HLH_GUI_STYLE_01 | HLH_GUI_NO_PARENT | HLH_GUI_OVERLAY, HLH_GUI_FILL_X | HLH_GUI_STYLE_01, menu0, 4, menu_file_msg);
+   menus[1] = (HLH_gui_element *)HLH_gui_menu_create(&win->e, HLH_GUI_STYLE_01 | HLH_GUI_NO_PARENT | HLH_GUI_OVERLAY, HLH_GUI_FILL_X | HLH_GUI_STYLE_01, menu1, 3, menu_edit_msg);
+   menus[2] = (HLH_gui_element *)HLH_gui_menu_create(&win->e, HLH_GUI_STYLE_01 | HLH_GUI_NO_PARENT | HLH_GUI_OVERLAY, HLH_GUI_FILL_X | HLH_GUI_STYLE_01, menu2, 3, menu_help_msg);
 
-   const char *menubar[] = 
+   const char *menubar[] =
    {
       "File",
       "Edit",
       "Help",
    };
 
-   HLH_gui_group *group_root = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
-   HLH_gui_menubar_create(&group_root->e,HLH_GUI_FILL_X,HLH_GUI_PACK_WEST|HLH_GUI_STYLE_01,menubar,menus,3,NULL);
-   HLH_gui_separator_create(&group_root->e,HLH_GUI_FILL_X,0);
+   HLH_gui_group *group_root = HLH_gui_group_create(&win->e, HLH_GUI_EXPAND);
+   HLH_gui_menubar_create(&group_root->e, HLH_GUI_FILL_X, HLH_GUI_PACK_WEST | HLH_GUI_STYLE_01, menubar, menus, 3, NULL);
+   HLH_gui_separator_create(&group_root->e, HLH_GUI_FILL_X, 0);
 
-   HLH_gui_group *group = HLH_gui_group_create(&group_root->e,HLH_GUI_EXPAND);
-   HLH_gui_rvr *rvr = HLH_gui_rvr_create(&group->e,HLH_GUI_EXPAND,main_loop);
+   HLH_gui_group *group = HLH_gui_group_create(&group_root->e, HLH_GUI_EXPAND);
+   HLH_gui_rvr *rvr = HLH_gui_rvr_create(&group->e, HLH_GUI_EXPAND, main_loop);
 }
 
 static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
@@ -235,8 +235,7 @@ static int menu_edit_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
 {
    HLH_gui_menubutton *m = (HLH_gui_menubutton *)e;
    if(msg==HLH_GUI_MSG_CLICK_MENU)
-   {
-   }
+   {}
    return 0;
 }
 
@@ -244,47 +243,46 @@ static int menu_help_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
 {
    HLH_gui_menubutton *m = (HLH_gui_menubutton *)e;
    if(msg==HLH_GUI_MSG_CLICK_MENU)
-   {
-   }
+   {}
    return 0;
 }
 
 static void ui_construct_ask_new()
 {
-   HLH_gui_window *win = HLH_gui_window_create("Create new map",300,100,NULL);
-   HLH_gui_window_block(window_root,win);
-   HLH_gui_group *group = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
+   HLH_gui_window *win = HLH_gui_window_create("Create new map", 300, 100, NULL);
+   HLH_gui_window_block(window_root, win);
+   HLH_gui_group *group = HLH_gui_group_create(&win->e, HLH_GUI_EXPAND);
 
-   HLH_gui_label_create(&group->e,0,"Are you sure you want");
-   HLH_gui_label_create(&group->e,0,"to start a new map?");
-   group = HLH_gui_group_create(&group->e,HLH_GUI_PACK_SOUTH);
-   HLH_gui_button *button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Cancel",NULL);
+   HLH_gui_label_create(&group->e, 0, "Are you sure you want");
+   HLH_gui_label_create(&group->e, 0, "to start a new map?");
+   group = HLH_gui_group_create(&group->e, HLH_GUI_PACK_SOUTH);
+   HLH_gui_button *button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Cancel", NULL);
    button->e.msg_usr = ask_new_msg;
    button->e.usr = 0;
-   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Save",NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Save", NULL);
    button->e.msg_usr = ask_new_msg;
    button->e.usr = 1;
-   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Confirm",NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Confirm", NULL);
    button->e.msg_usr = ask_new_msg;
    button->e.usr = 2;
 }
 
 static void ui_construct_ask_load()
 {
-   HLH_gui_window *win = HLH_gui_window_create("Load a map",300,100,NULL);
-   HLH_gui_window_block(window_root,win);
-   HLH_gui_group *group = HLH_gui_group_create(&win->e,HLH_GUI_EXPAND);
+   HLH_gui_window *win = HLH_gui_window_create("Load a map", 300, 100, NULL);
+   HLH_gui_window_block(window_root, win);
+   HLH_gui_group *group = HLH_gui_group_create(&win->e, HLH_GUI_EXPAND);
 
-   HLH_gui_label_create(&group->e,0,"Are you sure you want");
-   HLH_gui_label_create(&group->e,0,"to load a map?");
-   group = HLH_gui_group_create(&group->e,HLH_GUI_PACK_SOUTH);
-   HLH_gui_button *button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Cancel",NULL);
+   HLH_gui_label_create(&group->e, 0, "Are you sure you want");
+   HLH_gui_label_create(&group->e, 0, "to load a map?");
+   group = HLH_gui_group_create(&group->e, HLH_GUI_PACK_SOUTH);
+   HLH_gui_button *button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Cancel", NULL);
    button->e.msg_usr = ask_load_msg;
    button->e.usr = 0;
-   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Save",NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Save", NULL);
    button->e.msg_usr = ask_load_msg;
    button->e.usr = 1;
-   button = HLH_gui_button_create(&group->e,HLH_GUI_PACK_WEST|HLH_GUI_MAX_X,"Confirm",NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Confirm", NULL);
    button->e.msg_usr = ask_load_msg;
    button->e.usr = 2;
 }

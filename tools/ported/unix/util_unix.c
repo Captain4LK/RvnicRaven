@@ -37,7 +37,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 int util_select_map_path()
 {
    const char *filter_patterns[1] = {"*.map"};
-   const char *file_path = tinyfd_saveFileDialog("Save map",NULL,1,filter_patterns,NULL);
+   const char *file_path = tinyfd_saveFileDialog("Save map", NULL, 1, filter_patterns, NULL);
 
    if(file_path==NULL||strlen(file_path)==0)
       return 1;
@@ -50,7 +50,7 @@ int util_select_map_path()
 int util_load_map()
 {
    const char *filter_patterns[1] = {"*.map"};
-   const char *file_path = tinyfd_openFileDialog("Select a map",NULL,1,filter_patterns,NULL,0);
+   const char *file_path = tinyfd_openFileDialog("Select a map", NULL, 1, filter_patterns, NULL, 0);
 
    if(file_path==NULL||strlen(file_path)==0)
       return 1;

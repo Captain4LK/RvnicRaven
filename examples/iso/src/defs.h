@@ -75,18 +75,18 @@ const GroupDef *defs_get_group(const char *type);
 
 //Body
 //-------------------------------------
-#define DEF_BODY_VITAL           (UINT64_C(1)<<0)
-#define DEF_BODY_SLOT_UPPER      (UINT64_C(1)<<1)
-#define DEF_BODY_SLOT_LOWER      (UINT64_C(1)<<2)
-#define DEF_BODY_SLOT_HEAD       (UINT64_C(1)<<3)
-#define DEF_BODY_SLOT_HAND       (UINT64_C(1)<<4)
-#define DEF_BODY_SLOT_FOOT       (UINT64_C(1)<<5)
-#define DEF_BODY_GRASP           (UINT64_C(1)<<6)
+#define DEF_BODY_VITAL           (UINT64_C(1) << 0)
+#define DEF_BODY_SLOT_UPPER      (UINT64_C(1) << 1)
+#define DEF_BODY_SLOT_LOWER      (UINT64_C(1) << 2)
+#define DEF_BODY_SLOT_HEAD       (UINT64_C(1) << 3)
+#define DEF_BODY_SLOT_HAND       (UINT64_C(1) << 4)
+#define DEF_BODY_SLOT_FOOT       (UINT64_C(1) << 5)
+#define DEF_BODY_GRASP           (UINT64_C(1) << 6)
 //-------------------------------------
 
 //Material
 //-------------------------------------
-#define DEF_MAT_FROM_CREATURE   (UINT64_C(1)<<0)
+#define DEF_MAT_FROM_CREATURE   (UINT64_C(1) << 0)
 //-------------------------------------
 
 #endif

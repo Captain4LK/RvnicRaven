@@ -380,7 +380,7 @@ void RvR_update()
             strcat(rvr_text_input, event.text.text);
          break;
       case SDL_MOUSEWHEEL:
-         rvr_mouse_wheel+=event.wheel.y;
+         rvr_mouse_wheel += event.wheel.y;
          break;
       case SDL_CONTROLLERBUTTONDOWN:
          if(event.cbutton.state==SDL_PRESSED)
@@ -534,7 +534,7 @@ void RvR_mouse_set_pos(int x, int y)
    rvr_mouse_x = (int)((float)x * rvr_pixel_scale);
    rvr_mouse_y = (int)((float)y * rvr_pixel_scale);
 
-   SDL_WarpMouseInWindow(rvr_sdl_window, rvr_mouse_x+rvr_view_x, rvr_mouse_y+rvr_view_y);
+   SDL_WarpMouseInWindow(rvr_sdl_window, rvr_mouse_x + rvr_view_x, rvr_mouse_y + rvr_view_y);
 }
 
 void RvR_text_input_start(char *text, int max_length)

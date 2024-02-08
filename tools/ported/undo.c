@@ -142,10 +142,10 @@ void undo_track_wall_move(int16_t wall, RvR_fix22 px, RvR_fix22 py)
 {
    undo_begin(ED_WALL_MOVE);
    undo_write(wall);
-   undo_write(px&0xffff);
-   undo_write((px>>16)&0xffff);
-   undo_write(py&0xffff);
-   undo_write((py>>16)&0xffff);
+   undo_write(px & 0xffff);
+   undo_write((px >> 16) & 0xffff);
+   undo_write(py & 0xffff);
+   undo_write((py >> 16) & 0xffff);
    undo_end();
 }
 
@@ -233,20 +233,20 @@ static void undo_move_wall(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t y = undo_buffer[pos];  pos = WRAP(pos-1);
-      y = (y<<16)+undo_buffer[pos];    pos = WRAP(pos-1);
-      uint32_t x = undo_buffer[pos];  pos = WRAP(pos-1);
-      x = (x<<16)+undo_buffer[pos];    pos = WRAP(pos-1);
-      int16_t wall = undo_buffer[pos]; pos = WRAP(pos-1);
+      uint32_t y = undo_buffer[pos];  pos = WRAP(pos - 1);
+      y = (y << 16) + undo_buffer[pos];    pos = WRAP(pos - 1);
+      uint32_t x = undo_buffer[pos];  pos = WRAP(pos - 1);
+      x = (x << 16) + undo_buffer[pos];    pos = WRAP(pos - 1);
+      int16_t wall = undo_buffer[pos]; pos = WRAP(pos - 1);
 
-      RvR_port_wall *w = map->walls+wall;
+      RvR_port_wall *w = map->walls + wall;
       redo_write(wall);
-      redo_write(w->x&0xffff);
-      redo_write((w->x>>16)&0xffff);
-      redo_write(w->y&0xffff);
-      redo_write((w->y>>16)&0xffff);
+      redo_write(w->x & 0xffff);
+      redo_write((w->x >> 16) & 0xffff);
+      redo_write(w->y & 0xffff);
+      redo_write((w->y >> 16) & 0xffff);
 
-      RvR_port_wall_move(map,wall,x,y);
+      RvR_port_wall_move(map, wall, x, y);
    }
 }
 
@@ -254,20 +254,20 @@ static void redo_move_wall(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t y = undo_buffer[pos];  pos = WRAP(pos+1);
-      y = (y<<16)+undo_buffer[pos];    pos = WRAP(pos+1);
-      uint32_t x = undo_buffer[pos];  pos = WRAP(pos+1);
-      x = (x<<16)+undo_buffer[pos];    pos = WRAP(pos+1);
-      int16_t wall = undo_buffer[pos]; pos = WRAP(pos+1);
+      uint32_t y = undo_buffer[pos];  pos = WRAP(pos + 1);
+      y = (y << 16) + undo_buffer[pos];    pos = WRAP(pos + 1);
+      uint32_t x = undo_buffer[pos];  pos = WRAP(pos + 1);
+      x = (x << 16) + undo_buffer[pos];    pos = WRAP(pos + 1);
+      int16_t wall = undo_buffer[pos]; pos = WRAP(pos + 1);
 
-      RvR_port_wall *w = map->walls+wall;
+      RvR_port_wall *w = map->walls + wall;
       undo_write(wall);
-      undo_write(w->x&0xffff);
-      undo_write((w->x>>16)&0xffff);
-      undo_write(w->y&0xffff);
-      undo_write((w->y>>16)&0xffff);
+      undo_write(w->x & 0xffff);
+      undo_write((w->x >> 16) & 0xffff);
+      undo_write(w->y & 0xffff);
+      undo_write((w->y >> 16) & 0xffff);
 
-      RvR_port_wall_move(map,wall,x,y);
+      RvR_port_wall_move(map, wall, x, y);
    }
 }
 
@@ -286,14 +286,14 @@ static void undo_sector(int pos, int endpos)
       {
       }*/
 
-      /*RvR_port_wall *w = map->walls+wall;
-      redo_write(wall);
-      redo_write(w->x&0xffff);
-      redo_write((w->x>>16)&0xffff);
-      redo_write(w->y&0xffff);
-      redo_write((w->y>>16)&0xffff);
+   /*RvR_port_wall *w = map->walls+wall;
+   redo_write(wall);
+   redo_write(w->x&0xffff);
+   redo_write((w->x>>16)&0xffff);
+   redo_write(w->y&0xffff);
+   redo_write((w->y>>16)&0xffff);
 
-      RvR_port_wall_move(map,wall,x,y);*/
+   RvR_port_wall_move(map,wall,x,y);*/
    //}
 }
 

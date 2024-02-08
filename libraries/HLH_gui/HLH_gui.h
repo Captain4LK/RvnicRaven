@@ -5,7 +5,7 @@ Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] 
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
 #ifndef _HLH_GUI_H_
@@ -45,7 +45,7 @@ typedef enum
 typedef struct
 {
    int minx, miny;
-   int maxx,maxy;
+   int maxx, maxy;
 }HLH_gui_rect;
 
 typedef struct

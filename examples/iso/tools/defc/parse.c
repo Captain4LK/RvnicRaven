@@ -20,40 +20,40 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define field_string(parser,kind,mkr,max_len,key,value) \
-   do \
-   { \
-   if(strlen(value)>(max_len)-1)   \
-   { \
-      RvR_log("%s:%d: error: %s %s '%s' too long, max %d characters\n",(parser)->ini.path,(parser)->ini.line,(kind),(key),(value),(max_len)); \
-      goto err; \
-   } \
-   RvR_rw_write_u32(&(parser)->rw,mkr); \
-   const char *value_str = (value); \
-   for(int i = 0;i<(max_len);i++) \
-   { \
-      RvR_rw_write_u8(&(parser)->rw,*value_str); \
-      if(*value_str) value_str++; \
-   } \
-   } \
-   while(0)
+#define field_string(parser, kind, mkr, max_len, key, value) \
+        do \
+        { \
+           if(strlen(value)>(max_len) - 1)   \
+           { \
+              RvR_log("%s:%d: error: %s %s '%s' too long, max %d characters\n", (parser)->ini.path, (parser)->ini.line, (kind), (key), (value), (max_len)); \
+              goto err; \
+           } \
+           RvR_rw_write_u32(&(parser)->rw, mkr); \
+           const char *value_str = (value); \
+           for(int i = 0; i<(max_len); i++) \
+           { \
+              RvR_rw_write_u8(&(parser)->rw, *value_str); \
+              if(*value_str) value_str++; \
+           } \
+        } \
+        while(0)
 
-#define field_u32(parser,kind,mkr,key,value) \
-   do \
-   { \
-      RvR_rw_write_u32(&(parser)->rw,mkr); \
-      RvR_rw_write_u32(&(parser)->rw,(uint32_t)strtol((value),NULL,10)); \
-   } \
-   while(0)
+#define field_u32(parser, kind, mkr, key, value) \
+        do \
+        { \
+           RvR_rw_write_u32(&(parser)->rw, mkr); \
+           RvR_rw_write_u32(&(parser)->rw, (uint32_t)strtol((value), NULL, 10)); \
+        } \
+        while(0)
 
-#define field_u16(parser,kind,mkr,key,value) \
-   do \
-   { \
-      RvR_rw_write_u32(&(parser)->rw,mkr); \
-      RvR_rw_write_u16(&(parser)->rw,(uint16_t)strtol((value),NULL,10)); \
-   } \
-   while(0)
-      //RvR_log("%s:%d: error: material name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
+#define field_u16(parser, kind, mkr, key, value) \
+        do \
+        { \
+           RvR_rw_write_u32(&(parser)->rw, mkr); \
+           RvR_rw_write_u16(&(parser)->rw, (uint16_t)strtol((value), NULL, 10)); \
+        } \
+        while(0)
+//RvR_log("%s:%d: error: material name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
 //-------------------------------------
 
 //Typedefs
@@ -76,7 +76,7 @@ static void parse_group(Parser *p, const char *name);
 void parser_init(Parser *p, const char *path_out)
 {
    p->error = 0;
-   RvR_rw_init_path(&p->rw,path_out,"wb");
+   RvR_rw_init_path(&p->rw, path_out, "wb");
 }
 
 void parser_close(Parser *p)
@@ -89,7 +89,7 @@ int parse_file(Parser *p, const char *path)
    if(p->error)
       return 1;
 
-   ini_stream_open(&p->ini,path);
+   ini_stream_open(&p->ini, path);
    char *type = NULL;
    char *name = NULL;
 
@@ -100,40 +100,40 @@ int parse_file(Parser *p, const char *path)
       {
       case INI_TAG:
       case INI_KEY:
-         RvR_log("%s:%d: warning: %s outside of section won't have an effect\n",p->ini.path,p->ini.line-1,next==INI_TAG?"tag":"key");
+         RvR_log("%s:%d: warning: %s outside of section won't have an effect\n", p->ini.path, p->ini.line - 1, next==INI_TAG?"tag":"key");
          break;
       case INI_SECTION:
          //Split into type:name
-         RvR_array_length_set(type,0);
-         RvR_array_length_set(name,0);
+         RvR_array_length_set(type, 0);
+         RvR_array_length_set(name, 0);
          const char *str = ini_stream_value(&p->ini);
-         for(;*str&&*str!=':';str++)
-            RvR_array_push(type,*str);
-         if(*str=='\0'||*(str+1)=='\0')
+         for(; *str&&*str!=':'; str++)
+            RvR_array_push(type, *str);
+         if(*str=='\0'||*(str + 1)=='\0')
          {
-            RvR_log("%s:%d: error: invalid section format, expected type:name\n",p->ini.path,p->ini.line);
+            RvR_log("%s:%d: error: invalid section format, expected type:name\n", p->ini.path, p->ini.line);
             goto err;
          }
          str++;
-         for(;*str;str++)
-            RvR_array_push(name,*str);
+         for(; *str; str++)
+            RvR_array_push(name, *str);
 
-         RvR_array_push(type,'\0');
-         RvR_array_push(name,'\0');
+         RvR_array_push(type, '\0');
+         RvR_array_push(name, '\0');
 
-         if(strcmp("material",type)==0)
-            parse_material(p,name);
-         else if(strcmp("item",type)==0)
-            parse_item(p,name);
-         else if(strcmp("body",type)==0)
-            parse_body(p,name);
-         else if(strcmp("entity",type)==0)
-            parse_entity(p,name);
-         else if(strcmp("group",type)==0)
-            parse_group(p,name);
+         if(strcmp("material", type)==0)
+            parse_material(p, name);
+         else if(strcmp("item", type)==0)
+            parse_item(p, name);
+         else if(strcmp("body", type)==0)
+            parse_body(p, name);
+         else if(strcmp("entity", type)==0)
+            parse_entity(p, name);
+         else if(strcmp("group", type)==0)
+            parse_group(p, name);
          else
          {
-            RvR_log("%s:%d: error: unknow type '%s'\n",p->ini.path,p->ini.line,type);
+            RvR_log("%s:%d: error: unknow type '%s'\n", p->ini.path, p->ini.line, type);
             goto err;
          }
          break;
@@ -163,17 +163,17 @@ err:
 
 static void parse_material(Parser *p, const char *name)
 {
-   RvR_rw_write_u32(&p->rw,MKR_MATERIAL_START);
+   RvR_rw_write_u32(&p->rw, MKR_MATERIAL_START);
    if(strlen(name)>15)
    {
-      RvR_log("%s:%d: error: material name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
+      RvR_log("%s:%d: error: material name '%s' too long, max 15 characters\n", p->ini.path, p->ini.line, name);
       goto err;
    }
 
    const char *nstr = name;
-   for(int i = 0;i<16;i++)
+   for(int i = 0; i<16; i++)
    {
-      RvR_rw_write_u8(&p->rw,*nstr);
+      RvR_rw_write_u8(&p->rw, *nstr);
       if(*nstr)
          nstr++;
    }
@@ -187,29 +187,29 @@ static void parse_material(Parser *p, const char *name)
       {
          const char *key = ini_stream_key(&p->ini);
          const char *value = ini_stream_value(&p->ini);
-         if(strcmp(key,"adjective")==0)
-            field_string(p,"material",MKR_ADJECTIVE,32,key,value);
-         else if(strcmp(key,"density")==0)
-            field_u32(p,"material",MKR_DENSITY,key,value);
+         if(strcmp(key, "adjective")==0)
+            field_string(p, "material", MKR_ADJECTIVE, 32, key, value);
+         else if(strcmp(key, "density")==0)
+            field_u32(p, "material", MKR_DENSITY, key, value);
          else
          {
-            RvR_log("%s:%d: warning: unknown material attribute '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown material attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
          }
       }
       break;
       case INI_TAG:
       {
          const char *key = ini_stream_key(&p->ini);
-         if(strcmp(key,"from_creature")==0)
-            RvR_rw_write_u32(&p->rw,MKR_FROM_CREATURE);
+         if(strcmp(key, "from_creature")==0)
+            RvR_rw_write_u32(&p->rw, MKR_FROM_CREATURE);
          else
-            RvR_log("%s:%d: warning: unknown material tag '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown material tag '%s'\n", p->ini.path, p->ini.line - 1, key);
       }
-         break;
+      break;
       //Next section
       //case INI_SECTION:
-         //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
-         //return INI_SECTION;
+      //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
+      //return INI_SECTION;
       default:
          break;
       }
@@ -217,7 +217,7 @@ static void parse_material(Parser *p, const char *name)
       next = ini_stream_next(&p->ini);
    }
 
-   RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
+   RvR_rw_write_u32(&p->rw, MKR_MATERIAL_END);
 
    return;
 
@@ -227,17 +227,17 @@ err:
 
 static void parse_item(Parser *p, const char *name)
 {
-   RvR_rw_write_u32(&p->rw,MKR_ITEM_START);
+   RvR_rw_write_u32(&p->rw, MKR_ITEM_START);
    if(strlen(name)>15)
    {
-      RvR_log("%s:%d: error: item name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
+      RvR_log("%s:%d: error: item name '%s' too long, max 15 characters\n", p->ini.path, p->ini.line, name);
       goto err;
    }
 
    const char *nstr = name;
-   for(int i = 0;i<16;i++)
+   for(int i = 0; i<16; i++)
    {
-      RvR_rw_write_u8(&p->rw,*nstr);
+      RvR_rw_write_u8(&p->rw, *nstr);
       if(*nstr)
          nstr++;
    }
@@ -251,11 +251,11 @@ static void parse_item(Parser *p, const char *name)
       {
          const char *key = ini_stream_key(&p->ini);
          const char *value = ini_stream_value(&p->ini);
-         if(strcmp(key,"name")==0)
-            field_string(p,"item",MKR_NAME,32,key,value);
+         if(strcmp(key, "name")==0)
+            field_string(p, "item", MKR_NAME, 32, key, value);
          else
          {
-            RvR_log("%s:%d: warning: unknown material attribute '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown material attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
          }
       }
       break;
@@ -263,8 +263,8 @@ static void parse_item(Parser *p, const char *name)
          break;
       //Next section
       //case INI_SECTION:
-         //RvR_rw_write_u32(&p->rw,MKR_ITEM_END);
-         //return INI_SECTION;
+      //RvR_rw_write_u32(&p->rw,MKR_ITEM_END);
+      //return INI_SECTION;
       default:
          break;
       }
@@ -272,7 +272,7 @@ static void parse_item(Parser *p, const char *name)
       next = ini_stream_next(&p->ini);
    }
 
-   RvR_rw_write_u32(&p->rw,MKR_ITEM_END);
+   RvR_rw_write_u32(&p->rw, MKR_ITEM_END);
 
    return;
 
@@ -282,17 +282,17 @@ err:
 
 static void parse_body(Parser *p, const char *name)
 {
-   RvR_rw_write_u32(&p->rw,MKR_BODY_START);
+   RvR_rw_write_u32(&p->rw, MKR_BODY_START);
    if(strlen(name)>15)
    {
-      RvR_log("%s:%d: error: body name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
+      RvR_log("%s:%d: error: body name '%s' too long, max 15 characters\n", p->ini.path, p->ini.line, name);
       goto err;
    }
 
    const char *nstr = name;
-   for(int i = 0;i<16;i++)
+   for(int i = 0; i<16; i++)
    {
-      RvR_rw_write_u8(&p->rw,*nstr);
+      RvR_rw_write_u8(&p->rw, *nstr);
       if(*nstr)
          nstr++;
    }
@@ -307,13 +307,13 @@ static void parse_body(Parser *p, const char *name)
          const char *key = ini_stream_key(&p->ini);
          const char *value = ini_stream_value(&p->ini);
 
-         if(strcmp(key,"sprite_sheet")==0)
-            field_u16(p,"body",MKR_SPRITE_SHEET,key,value);
+         if(strcmp(key, "sprite_sheet")==0)
+            field_u16(p, "body", MKR_SPRITE_SHEET, key, value);
          //else if(strcmp(key,"density")==0)
-            //field_u32(p,"material",MKR_DENSITY,key,value);
+         //field_u32(p,"material",MKR_DENSITY,key,value);
          else
          {
-            RvR_log("%s:%d: warning: unknown body attribute '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown body attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
          }
       }
       break;
@@ -321,17 +321,17 @@ static void parse_body(Parser *p, const char *name)
          break;
       case INI_SECTION:
          const char *value = ini_stream_value(&p->ini);
-         if(strcmp(value,"bodypart")==0)
+         if(strcmp(value, "bodypart")==0)
          {
             parse_bodypart(p);
          }
          else
          {
-            RvR_log("%s:%d: error : unknown body subsection '%s'\n",p->ini.path,p->ini.line-1,value);
+            RvR_log("%s:%d: error : unknown body subsection '%s'\n", p->ini.path, p->ini.line - 1, value);
             goto err;
          }
-         //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
-         //return INI_SECTION;
+      //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
+      //return INI_SECTION;
       default:
          break;
       }
@@ -339,7 +339,7 @@ static void parse_body(Parser *p, const char *name)
       next = ini_stream_next(&p->ini);
    }
 
-   RvR_rw_write_u32(&p->rw,MKR_BODY_END);
+   RvR_rw_write_u32(&p->rw, MKR_BODY_END);
 
    return;
 
@@ -349,7 +349,7 @@ err:
 
 static void parse_bodypart(Parser *p)
 {
-   RvR_rw_write_u32(&p->rw,MKR_BODYPART_START);
+   RvR_rw_write_u32(&p->rw, MKR_BODYPART_START);
 
    ini_type next = ini_stream_next(&p->ini);
    while(next!=INI_END&&next!=INI_ERROR&&next!=INI_SECTION_END)
@@ -360,54 +360,54 @@ static void parse_bodypart(Parser *p)
       {
          const char *key = ini_stream_key(&p->ini);
          const char *value = ini_stream_value(&p->ini);
-         if(strcmp(key,"name")==0)
-            field_string(p,"bodypart",MKR_NAME,32,key,value);
-         else if(strcmp(key,"sprite_index")==0)
-            field_u16(p,"bodypart",MKR_SPRITE_INDEX,key,value);
+         if(strcmp(key, "name")==0)
+            field_string(p, "bodypart", MKR_NAME, 32, key, value);
+         else if(strcmp(key, "sprite_index")==0)
+            field_u16(p, "bodypart", MKR_SPRITE_INDEX, key, value);
          //if(strcmp(key,"adjective")==0)
-            //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
+         //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
          //else if(strcmp(key,"density")==0)
-            //field_u32(p,"material",MKR_DENSITY,key,value);
+         //field_u32(p,"material",MKR_DENSITY,key,value);
          else
          {
-            RvR_log("%s:%d: warning: unknown bodypart attribute '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown bodypart attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
          }
       }
       break;
       case INI_TAG:
       {
          const char *key = ini_stream_key(&p->ini);
-         if(strcmp(key,"vital")==0)
-            RvR_rw_write_u32(&p->rw,MKR_VITAL); 
-         else if(strcmp(key,"slot_upper")==0)
-            RvR_rw_write_u32(&p->rw,MKR_SLOT_UPPER); 
-         else if(strcmp(key,"slot_lower")==0)
-            RvR_rw_write_u32(&p->rw,MKR_SLOT_LOWER); 
-         else if(strcmp(key,"slot_head")==0)
-            RvR_rw_write_u32(&p->rw,MKR_SLOT_HEAD); 
-         else if(strcmp(key,"slot_hand")==0)
-            RvR_rw_write_u32(&p->rw,MKR_SLOT_HAND); 
-         else if(strcmp(key,"slot_foot")==0)
-            RvR_rw_write_u32(&p->rw,MKR_SLOT_FOOT); 
-         else if(strcmp(key,"grasp")==0)
-            RvR_rw_write_u32(&p->rw,MKR_GRASP); 
+         if(strcmp(key, "vital")==0)
+            RvR_rw_write_u32(&p->rw, MKR_VITAL);
+         else if(strcmp(key, "slot_upper")==0)
+            RvR_rw_write_u32(&p->rw, MKR_SLOT_UPPER);
+         else if(strcmp(key, "slot_lower")==0)
+            RvR_rw_write_u32(&p->rw, MKR_SLOT_LOWER);
+         else if(strcmp(key, "slot_head")==0)
+            RvR_rw_write_u32(&p->rw, MKR_SLOT_HEAD);
+         else if(strcmp(key, "slot_hand")==0)
+            RvR_rw_write_u32(&p->rw, MKR_SLOT_HAND);
+         else if(strcmp(key, "slot_foot")==0)
+            RvR_rw_write_u32(&p->rw, MKR_SLOT_FOOT);
+         else if(strcmp(key, "grasp")==0)
+            RvR_rw_write_u32(&p->rw, MKR_GRASP);
          else
-            RvR_log("%s:%d: warning: unknown bodypart tag '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown bodypart tag '%s'\n", p->ini.path, p->ini.line - 1, key);
       }
-         break;
+      break;
       case INI_SECTION:
          const char *value = ini_stream_value(&p->ini);
-         if(strcmp(value,"bodypart")==0)
+         if(strcmp(value, "bodypart")==0)
          {
             parse_bodypart(p);
          }
          else
          {
-            RvR_log("%s:%d: error : unknown material subsection '%s'\n",p->ini.path,p->ini.line-1,value);
+            RvR_log("%s:%d: error : unknown material subsection '%s'\n", p->ini.path, p->ini.line - 1, value);
             goto err;
          }
-         //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
-         //return INI_SECTION;
+      //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
+      //return INI_SECTION;
       default:
          break;
       }
@@ -415,7 +415,7 @@ static void parse_bodypart(Parser *p)
       next = ini_stream_next(&p->ini);
    }
 
-   RvR_rw_write_u32(&p->rw,MKR_BODYPART_END);
+   RvR_rw_write_u32(&p->rw, MKR_BODYPART_END);
 
    return;
 
@@ -425,17 +425,17 @@ err:
 
 static void parse_entity(Parser *p, const char *name)
 {
-   RvR_rw_write_u32(&p->rw,MKR_ENTITY_START);
+   RvR_rw_write_u32(&p->rw, MKR_ENTITY_START);
    if(strlen(name)>15)
    {
-      RvR_log("%s:%d: error: entity name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
+      RvR_log("%s:%d: error: entity name '%s' too long, max 15 characters\n", p->ini.path, p->ini.line, name);
       goto err;
    }
 
    const char *nstr = name;
-   for(int i = 0;i<16;i++)
+   for(int i = 0; i<16; i++)
    {
-      RvR_rw_write_u8(&p->rw,*nstr);
+      RvR_rw_write_u8(&p->rw, *nstr);
       if(*nstr)
          nstr++;
    }
@@ -451,14 +451,14 @@ static void parse_entity(Parser *p, const char *name)
          const char *key = ini_stream_key(&p->ini);
          const char *value = ini_stream_value(&p->ini);
          //if(strcmp(key,"adjective")==0)
-            //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
+         //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
          //else if(strcmp(key,"density")==0)
-            //field_u32(p,"material",MKR_DENSITY,key,value);
-         if(strcmp(key,"body")==0)
-            field_string(p,"entity",MKR_BODY,16,key,value);
+         //field_u32(p,"material",MKR_DENSITY,key,value);
+         if(strcmp(key, "body")==0)
+            field_string(p, "entity", MKR_BODY, 16, key, value);
          else
          {
-            RvR_log("%s:%d: warning: unknown material attribute '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown material attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
          }
       }
       break;
@@ -468,31 +468,31 @@ static void parse_entity(Parser *p, const char *name)
       case INI_SECTION:
       {
          const char *value = ini_stream_value(&p->ini);
-         if(strcmp(value,"male")==0)
+         if(strcmp(value, "male")==0)
          {
-            RvR_rw_write_u32(&p->rw,MKR_MALE_START);
+            RvR_rw_write_u32(&p->rw, MKR_MALE_START);
             current_sex = 0;
          }
-         else if(strcmp(value,"female")==0)
+         else if(strcmp(value, "female")==0)
          {
-            RvR_rw_write_u32(&p->rw,MKR_FEMALE_START);
+            RvR_rw_write_u32(&p->rw, MKR_FEMALE_START);
             current_sex = 1;
          }
          else
          {
-            RvR_log("%s:%d: warning: unknown entity subsection'%s'\n",p->ini.path,p->ini.line-1,value);
+            RvR_log("%s:%d: warning: unknown entity subsection'%s'\n", p->ini.path, p->ini.line - 1, value);
          }
       }
-         break;
+      break;
       case INI_SECTION_END:
          if(current_sex==0)
-            RvR_rw_write_u32(&p->rw,MKR_MALE_END);
+            RvR_rw_write_u32(&p->rw, MKR_MALE_END);
          else if(current_sex==1)
-            RvR_rw_write_u32(&p->rw,MKR_FEMALE_END);
+            RvR_rw_write_u32(&p->rw, MKR_FEMALE_END);
          current_sex = -1;
          break;
-         //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
-         //return INI_SECTION;
+      //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
+      //return INI_SECTION;
       default:
          break;
       }
@@ -500,7 +500,7 @@ static void parse_entity(Parser *p, const char *name)
       next = ini_stream_next(&p->ini);
    }
 
-   RvR_rw_write_u32(&p->rw,MKR_ENTITY_END);
+   RvR_rw_write_u32(&p->rw, MKR_ENTITY_END);
 
    return;
 
@@ -510,17 +510,17 @@ err:
 
 static void parse_group(Parser *p, const char *name)
 {
-   RvR_rw_write_u32(&p->rw,MKR_GROUP_START);
+   RvR_rw_write_u32(&p->rw, MKR_GROUP_START);
    if(strlen(name)>15)
    {
-      RvR_log("%s:%d: error: group name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
+      RvR_log("%s:%d: error: group name '%s' too long, max 15 characters\n", p->ini.path, p->ini.line, name);
       goto err;
    }
 
    const char *nstr = name;
-   for(int i = 0;i<16;i++)
+   for(int i = 0; i<16; i++)
    {
-      RvR_rw_write_u8(&p->rw,*nstr);
+      RvR_rw_write_u8(&p->rw, *nstr);
       if(*nstr)
          nstr++;
    }
@@ -535,12 +535,12 @@ static void parse_group(Parser *p, const char *name)
          const char *key = ini_stream_key(&p->ini);
          const char *value = ini_stream_value(&p->ini);
          //if(strcmp(key,"adjective")==0)
-            //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
+         //field_string(p,"material",MKR_ADJECTIVE,32,key,value);
          //else if(strcmp(key,"density")==0)
-            //field_u32(p,"material",MKR_DENSITY,key,value);
+         //field_u32(p,"material",MKR_DENSITY,key,value);
          //else
          {
-            RvR_log("%s:%d: warning: unknown material attribute '%s'\n",p->ini.path,p->ini.line-1,key);
+            RvR_log("%s:%d: warning: unknown material attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
          }
       }
       break;
@@ -548,8 +548,8 @@ static void parse_group(Parser *p, const char *name)
          break;
       //Next section
       //case INI_SECTION:
-         //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
-         //return INI_SECTION;
+      //RvR_rw_write_u32(&p->rw,MKR_MATERIAL_END);
+      //return INI_SECTION;
       default:
          break;
       }
@@ -557,7 +557,7 @@ static void parse_group(Parser *p, const char *name)
       next = ini_stream_next(&p->ini);
    }
 
-   RvR_rw_write_u32(&p->rw,MKR_GROUP_END);
+   RvR_rw_write_u32(&p->rw, MKR_GROUP_END);
 
    return;
 

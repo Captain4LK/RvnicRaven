@@ -41,16 +41,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void ai_think(World *w, Area *a, Entity *e)
 {
-   FOV_object *objects = fov_entity(a,e);
-   
-   for(int i = 0;i<RvR_array_length(objects);i++)
+   FOV_object *objects = fov_entity(a, e);
+
+   for(int i = 0; i<RvR_array_length(objects); i++)
    {
       if(objects[i].type==FOV_OBJECT_ENTITY&&objects[i].as.e==player.e)
       {
-         if(point_adjacent(e->pos,objects[i].as.e->pos))
-            action_set_attack(e,point_dir(e->pos,objects[i].as.e->pos));
+         if(point_adjacent(e->pos, objects[i].as.e->pos))
+            action_set_attack(e, point_dir(e->pos, objects[i].as.e->pos));
          else
-            action_set_path(a,e,objects[i].as.e->pos,0);
+            action_set_path(a, e, objects[i].as.e->pos, 0);
       }
    }
 }

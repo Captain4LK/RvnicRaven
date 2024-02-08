@@ -399,41 +399,41 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
 
       // checks a single square for collision against the camera
 #define collCheck(dir, s1, s2) \
-   if(compute_height) \
-   { \
-      RvR_fix16 height = RvR_ray_map_floor_height_at(map, s1, s2); \
-      if(height>bottom_limit|| \
-         curr_ceil_height - height< \
-         CAMERA_COLL_HEIGHT_BELOW + CAMERA_COLL_HEIGHT_ABOVE) \
-      dir ## _collides = 1; \
-      else \
-      { \
-         RvR_fix16 height2 = RvR_ray_map_ceiling_height_at(map, s1, s2); \
-         if((height2<top_limit)||((height2 - height)< \
-                                  (CAMERA_COLL_HEIGHT_ABOVE + CAMERA_COLL_HEIGHT_BELOW))) \
-         dir ## _collides = 1; \
-      } \
-   } \
-   else \
-   dir ## _collides = RvR_ray_map_floor_height_at(map, s1, s2)>CAMERA_COLL_STEP_HEIGHT;
+        if(compute_height) \
+        { \
+           RvR_fix16 height = RvR_ray_map_floor_height_at(map, s1, s2); \
+           if(height>bottom_limit|| \
+              curr_ceil_height - height< \
+              CAMERA_COLL_HEIGHT_BELOW + CAMERA_COLL_HEIGHT_ABOVE) \
+           dir ## _collides = 1; \
+           else \
+           { \
+              RvR_fix16 height2 = RvR_ray_map_ceiling_height_at(map, s1, s2); \
+              if((height2<top_limit)||((height2 - height)< \
+                                       (CAMERA_COLL_HEIGHT_ABOVE + CAMERA_COLL_HEIGHT_BELOW))) \
+              dir ## _collides = 1; \
+           } \
+        } \
+        else \
+        dir ## _collides = RvR_ray_map_floor_height_at(map, s1, s2)>CAMERA_COLL_STEP_HEIGHT;
 
       // check collision against non-diagonal square
 #define collCheckOrtho(dir, dir2, s1, s2, x) \
-   if (dir ## _square_new != dir ## _square) \
-   { \
-      collCheck(dir, s1, s2) \
-   } \
-   if(!dir ## _collides) \
-   {    /* now also check for coll on the neighbouring square */ \
-      int16_t dir2 ## _square2 = (corner ## dir2 - dir2 ## _dir * CAMERA_COLL_RADIUS * 2) / 65536; \
-      if(dir2 ## _square2!=dir2 ## _square) \
-      { \
-         if(x) \
-         collCheck(dir, dir ## _square_new, dir2 ## _square2) \
-         else \
-         collCheck(dir, dir2 ## _square2, dir ## _square_new) \
-      } \
-   }
+        if (dir ## _square_new != dir ## _square) \
+        { \
+           collCheck(dir, s1, s2) \
+        } \
+        if(!dir ## _collides) \
+        { /* now also check for coll on the neighbouring square */ \
+           int16_t dir2 ## _square2 = (corner ## dir2 - dir2 ## _dir * CAMERA_COLL_RADIUS * 2) / 65536; \
+           if(dir2 ## _square2!=dir2 ## _square) \
+           { \
+              if(x) \
+              collCheck(dir, dir ## _square_new, dir2 ## _square2) \
+              else \
+              collCheck(dir, dir2 ## _square2, dir ## _square_new) \
+           } \
+        }
       //int16_t dir2##_square2 = RvR_div_round_down(corner.dir2-dir2##_dir *
       //int16_t dir2 ## _square2 = (corner ## dir2 - dir2## _dir * CAMERA_COLL_RADIUS*2)/65536; RvR_div_round_down(corner ## dir2 - dir2 ## _dir *
       //CAMERA_COLL_RADIUS * 2, 1024);
@@ -449,10 +449,10 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
          if(moves_in_plane)
          {
             #define collHandle(dir) \
-   if (dir ## _collides) \
-   corner_new ## dir = (dir ## _square)*65536 + \
-                       65536 / 2 + dir ## _dir * (65536 / 2) - \
-                       dir ## _dir; \
+                    if (dir ## _collides) \
+                    corner_new ## dir = (dir ## _square)*65536 + \
+                                        65536 / 2 + dir ## _dir * (65536 / 2) - \
+                                        dir ## _dir; \
 
             collHandle(x)
             collHandle(y)
@@ -529,12 +529,12 @@ static void move_with_collision(RvR_fix16 offx, RvR_fix16 offy, RvR_fix16 offz, 
       RvR_fix16 height;
 
 #define checkSquares(s1, s2) \
-   { \
-      height = RvR_ray_map_floor_height_at(map, x_square ## s1, y_square ## s2); \
-      bottom_limit = RvR_max(bottom_limit, height); \
-      height = RvR_ray_map_ceiling_height_at(map, x_square ## s1, y_square ## s2); \
-      top_limit = RvR_min(top_limit, height); \
-   }
+        { \
+           height = RvR_ray_map_floor_height_at(map, x_square ## s1, y_square ## s2); \
+           bottom_limit = RvR_max(bottom_limit, height); \
+           height = RvR_ray_map_ceiling_height_at(map, x_square ## s1, y_square ## s2); \
+           top_limit = RvR_min(top_limit, height); \
+        }
 
       if(x_square2!=x_square1)
          checkSquares(2, 1)

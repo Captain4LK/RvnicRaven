@@ -146,8 +146,8 @@ void editor2d_update(void)
    sprite_sel = map_sprites;
    while(sprite_sel!=NULL)
    {
-      int sx = (sprite_sel->x * grid_size) / 1024- scroll_x;
-      int sy = (sprite_sel->y * grid_size) /  1024- scroll_y;
+      int sx = (sprite_sel->x * grid_size) / 1024 - scroll_x;
+      int sy = (sprite_sel->y * grid_size) /  1024 - scroll_y;
       if(mx>sx - grid_size / 4&&mx<sx + grid_size / 4&&my>sy - grid_size / 4&&my<sy + grid_size / 4)
          break;
       sprite_sel = sprite_sel->next;
@@ -178,16 +178,16 @@ void editor2d_update(void)
    {
       //Check for selected wall
       wall_move = -1;
-      for(int i = 0;i<map->wall_count;i++)
-      { 
-         RvR_port_wall *p0 = map->walls+i;
-         int x0 = ((p0->x-camera.x)*grid_size)/1024+RvR_xres()/2;
-         int y0 = ((p0->y-camera.y)*grid_size)/1024+RvR_yres()/2;
+      for(int i = 0; i<map->wall_count; i++)
+      {
+         RvR_port_wall *p0 = map->walls + i;
+         int x0 = ((p0->x - camera.x) * grid_size) / 1024 + RvR_xres() / 2;
+         int y0 = ((p0->y - camera.y) * grid_size) / 1024 + RvR_yres() / 2;
 
-         if(mx>=x0-3&&mx<=x0+3&&my>=y0-3&&my<=y0+3)
+         if(mx>=x0 - 3&&mx<=x0 + 3&&my>=y0 - 3&&my<=y0 + 3)
          {
             wall_move = i;
-            undo_track_wall_move(wall_move,p0->x,p0->y);
+            undo_track_wall_move(wall_move, p0->x, p0->y);
             break;
          }
       }
@@ -241,8 +241,8 @@ void editor2d_update(void)
       map_sprite_add(ms);
    }
 
-   scroll_x = (camera.x * grid_size) / 1024- RvR_xres() / 2;
-   scroll_y = (camera.y * grid_size) / 1024- RvR_yres() / 2;
+   scroll_x = (camera.x * grid_size) / 1024 - RvR_xres() / 2;
+   scroll_y = (camera.y * grid_size) / 1024 - RvR_yres() / 2;
 
 #endif
 }
@@ -313,71 +313,71 @@ static void e2d_draw_base(void)
 
    //Draw grid
    //printf("%d\n",(RvR_xres()*1024)/(grid_size*draw_grid_size));
-   if(draw_grid_sizes[draw_grid]>0&&(RvR_yres()*zoom)/((1<<draw_grid_sizes[draw_grid]))<=RvR_yres()/2)
+   if(draw_grid_sizes[draw_grid]>0&&(RvR_yres() * zoom) / ((1 << draw_grid_sizes[draw_grid]))<=RvR_yres() / 2)
    {
-      int dgrid = 1<<draw_grid_sizes[draw_grid];
-      int start = -((RvR_yres()/2)*zoom)/RvR_non_zero(dgrid);
-      int end = +((RvR_yres()/2)*zoom)/RvR_non_zero(dgrid);
-      for(int y = start;y<=end;y++)
+      int dgrid = 1 << draw_grid_sizes[draw_grid];
+      int start = -((RvR_yres() / 2) * zoom) / RvR_non_zero(dgrid);
+      int end = +((RvR_yres() / 2) * zoom) / RvR_non_zero(dgrid);
+      for(int y = start; y<=end; y++)
       {
-         RvR_fix22 wy = -(camera.y%dgrid)+y*dgrid+(camera.y);
-         RvR_render_horizontal_line(0,RvR_xres(),(wy-camera.y)/RvR_non_zero(zoom)+RvR_yres()/2,color_dark_gray);
+         RvR_fix22 wy = -(camera.y % dgrid) + y * dgrid + (camera.y);
+         RvR_render_horizontal_line(0, RvR_xres(), (wy - camera.y) / RvR_non_zero(zoom) + RvR_yres() / 2, color_dark_gray);
       }
 
-      start = -((RvR_xres()/2)*zoom)/RvR_non_zero(dgrid);
-      end = +((RvR_xres()/2)*zoom)/RvR_non_zero(dgrid);
-      for(int x = start;x<=end;x++)
+      start = -((RvR_xres() / 2) * zoom) / RvR_non_zero(dgrid);
+      end = +((RvR_xres() / 2) * zoom) / RvR_non_zero(dgrid);
+      for(int x = start; x<=end; x++)
       {
-         RvR_fix22 wx = -(camera.x%dgrid)+x*dgrid+(camera.x);
-         RvR_render_vertical_line((wx-camera.x)/RvR_non_zero(zoom)+RvR_xres()/2,0,RvR_yres(),color_dark_gray);
+         RvR_fix22 wx = -(camera.x % dgrid) + x * dgrid + (camera.x);
+         RvR_render_vertical_line((wx - camera.x) / RvR_non_zero(zoom) + RvR_xres() / 2, 0, RvR_yres(), color_dark_gray);
       }
    }
 
    //Draw sectors
-   for(int i = 0;i<map->sector_count;i++)
+   for(int i = 0; i<map->sector_count; i++)
    {
       //if(i==2)
-         //continue;
-      for(int j = 0;j<map->sectors[i].wall_count;j++)
+      //continue;
+      for(int j = 0; j<map->sectors[i].wall_count; j++)
       {
-         RvR_port_wall *p0 = map->walls+map->sectors[i].wall_first+j;
-         RvR_port_wall *p1 = map->walls+p0->p2;
+         RvR_port_wall *p0 = map->walls + map->sectors[i].wall_first + j;
+         RvR_port_wall *p1 = map->walls + p0->p2;
 
          if(p0->p2==-1)
             continue;
 
-         int x0 = ((p0->x-camera.x)*256)/RvR_non_zero(zoom)+RvR_xres()*128+128;
-         int y0 = ((p0->y-camera.y)*256)/RvR_non_zero(zoom)+RvR_yres()*128+128;
-         int x1 = ((p1->x-camera.x)*256)/RvR_non_zero(zoom)+RvR_xres()*128+128;
-         int y1 = ((p1->y-camera.y)*256)/RvR_non_zero(zoom)+RvR_yres()*128+128;
+         int x0 = ((p0->x - camera.x) * 256) / RvR_non_zero(zoom) + RvR_xres() * 128 + 128;
+         int y0 = ((p0->y - camera.y) * 256) / RvR_non_zero(zoom) + RvR_yres() * 128 + 128;
+         int x1 = ((p1->x - camera.x) * 256) / RvR_non_zero(zoom) + RvR_xres() * 128 + 128;
+         int y1 = ((p1->y - camera.y) * 256) / RvR_non_zero(zoom) + RvR_yres() * 128 + 128;
 
-         int blink = j+map->sectors[i].wall_first==hover&&(RvR_frame()/15)%2;
+         int blink = j + map->sectors[i].wall_first==hover&&(RvR_frame() / 15) % 2;
          if(p0->portal>=0)
          {
             //Only draw one wall for portals
             if(p0->portal>i)
             {
-               RvR_render_line(x0,y0,x1,y1,blink?color_light_gray:color_red);
+               RvR_render_line(x0, y0, x1, y1, blink?color_light_gray:color_red);
             }
          }
          else
          {
-            RvR_render_line(x0,y0,x1,y1,blink?color_light_gray:color_white);
+            RvR_render_line(x0, y0, x1, y1, blink?color_light_gray:color_white);
          }
       }
    }
 
    //Draw walls
-   for(int i = 0;i<map->sector_count;i++)
+   for(int i = 0; i<map->sector_count; i++)
    {
-      for(int j = 0;j<map->sectors[i].wall_count;j++)
+      for(int j = 0; j<map->sectors[i].wall_count; j++)
       {
-         RvR_port_wall *p0 = map->walls+map->sectors[i].wall_first+j;
+         RvR_port_wall *p0 = map->walls + map->sectors[i].wall_first + j;
 
-         int x0 = ((p0->x-camera.x))/RvR_non_zero(zoom)+RvR_xres()/2;
-         int y0 = ((p0->y-camera.y))/RvR_non_zero(zoom)+RvR_yres()/2;
+         int x0 = ((p0->x - camera.x)) / RvR_non_zero(zoom) + RvR_xres() / 2;
+         int y0 = ((p0->y - camera.y)) / RvR_non_zero(zoom) + RvR_yres() / 2;
 
-         RvR_render_rectangle(x0-2,y0-2,5,5,color_orange);
+         RvR_render_rectangle(x0 - 2, y0 - 2, 5, 5, color_orange);
       }
    }
 
@@ -428,7 +428,7 @@ static void e2d_update_view(void)
 
    if(RvR_key_pressed(RVR_KEY_O))
    {
-      printf("Check: %d\n",RvR_port_map_check(map));
+      printf("Check: %d\n", RvR_port_map_check(map));
       RvR_port_map_print_walls(map);
    }
 
@@ -436,45 +436,45 @@ static void e2d_update_view(void)
    {
       //Check for selected wall
       wall_move = -1;
-      for(int i = 0;i<map->wall_count;i++)
-      { 
-         RvR_port_wall *p0 = map->walls+i;
-         int x0 = ((p0->x-camera.x))/RvR_non_zero(zoom)+RvR_xres()/2;
-         int y0 = ((p0->y-camera.y))/RvR_non_zero(zoom)+RvR_yres()/2;
+      for(int i = 0; i<map->wall_count; i++)
+      {
+         RvR_port_wall *p0 = map->walls + i;
+         int x0 = ((p0->x - camera.x)) / RvR_non_zero(zoom) + RvR_xres() / 2;
+         int y0 = ((p0->y - camera.y)) / RvR_non_zero(zoom) + RvR_yres() / 2;
 
-         if(mx>=x0-3&&mx<=x0+3&&my>=y0-3&&my<=y0+3)
+         if(mx>=x0 - 3&&mx<=x0 + 3&&my>=y0 - 3&&my<=y0 + 3)
          {
             wall_move = i;
-            undo_track_wall_move(wall_move,p0->x,p0->y);
+            undo_track_wall_move(wall_move, p0->x, p0->y);
             state = STATE2D_WALL_MOVE;
             break;
          }
       }
 
       //if(wall_move==-1&&sprite_sel!=NULL)
-         //sprite_move = sprite_sel;
+      //sprite_move = sprite_sel;
    }
 
    if(RvR_key_pressed(RVR_KEY_L))
-      printf("map check: %d\n",RvR_port_map_check(map));
+      printf("map check: %d\n", RvR_port_map_check(map));
 
    if(RvR_key_pressed(RVR_KEY_G))
-      draw_grid = (draw_grid+1)&7;
+      draw_grid = (draw_grid + 1) & 7;
 
    if(RvR_key_pressed(RVR_KEY_SPACE))
    {
-      RvR_fix22 x = ((mx+scroll_x)*zoom);
-      RvR_fix22 y = ((my+scroll_y)*zoom);
+      RvR_fix22 x = ((mx + scroll_x) * zoom);
+      RvR_fix22 y = ((my + scroll_y) * zoom);
       if(draw_grid_sizes[draw_grid]>0)
       {
-         RvR_fix22 dgrid = 1<<draw_grid_sizes[draw_grid];
-         x+=dgrid/2;
-         y+=dgrid/2;
-         x&=~(x&(dgrid-1));
-         y&=~(y&(dgrid-1));
+         RvR_fix22 dgrid = 1 << draw_grid_sizes[draw_grid];
+         x += dgrid / 2;
+         y += dgrid / 2;
+         x &= ~(x & (dgrid - 1));
+         y &= ~(y & (dgrid - 1));
       }
 
-      sector_draw_start(x,y);
+      sector_draw_start(x, y);
       state = STATE2D_SECTOR;
       /*sector_current = RvR_port_sector_update(map,-1,x,y);
 
@@ -505,46 +505,46 @@ static void e2d_update_view(void)
       state = STATE2D_VIEW_SCROLL;
    }
 
-   scroll_x = (camera.x ) / RvR_non_zero(zoom)- RvR_xres() / 2;
-   scroll_y = (camera.y ) / RvR_non_zero(zoom)- RvR_yres() / 2;
+   scroll_x = (camera.x ) / RvR_non_zero(zoom) - RvR_xres() / 2;
+   scroll_y = (camera.y ) / RvR_non_zero(zoom) - RvR_yres() / 2;
 
    if(RvR_key_pressed(RVR_KEY_NP_ADD)&&zoom>1)
-      zoom-=1;
+      zoom -= 1;
    if(RvR_key_pressed(RVR_KEY_NP_SUB)&&zoom<1024)
-      zoom+=1;
+      zoom += 1;
 
    //Check for wall hover
    hover = -1;
-   RvR_fix22 x = ((mx+scroll_x)*zoom);
-   RvR_fix22 y = ((my+scroll_y)*zoom);
-   for(int i = 0;i<map->wall_count;i++)
+   RvR_fix22 x = ((mx + scroll_x) * zoom);
+   RvR_fix22 y = ((my + scroll_y) * zoom);
+   for(int i = 0; i<map->wall_count; i++)
    {
       int64_t x0 = map->walls[i].x;
       int64_t y0 = map->walls[i].y;
       int64_t x1 = map->walls[map->walls[i].p2].x;
       int64_t y1 = map->walls[map->walls[i].p2].y;
 
-      int64_t t = -(1024*((x0-x)*(x1-x0)+(y0-y)*(y1-y0)))/RvR_non_zero((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));
+      int64_t t = -(1024 * ((x0 - x) * (x1 - x0) + (y0 - y) * (y1 - y0))) / RvR_non_zero((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
       if(t<0||t>1024)
          continue;
-      
-      int64_t dist = (x1-x0)*(y0-y)-(y1-y0)*(x0-x);
-      dist = (dist*dist)/RvR_non_zero((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));
-      if(dist>36*zoom*zoom)
+
+      int64_t dist = (x1 - x0) * (y0 - y) - (y1 - y0) * (x0 - x);
+      dist = (dist * dist) / RvR_non_zero((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+      if(dist>36 * zoom * zoom)
          continue;
 
       hover = i;
 
       if(RvR_key_pressed(RVR_KEY_INS))
       {
-         int16_t nwall = RvR_port_wall_insert(map,i,x,y);
+         int16_t nwall = RvR_port_wall_insert(map, i, x, y);
 
-         RvR_fix22 dgrid = 1<<draw_grid_sizes[draw_grid];
-         int nx = x+dgrid/2;
-         int ny = y+dgrid/2;
-         nx&=~(nx&(dgrid-1));
-         ny&=~(ny&(dgrid-1));
-         RvR_port_wall_move(map,nwall,nx,ny);
+         RvR_fix22 dgrid = 1 << draw_grid_sizes[draw_grid];
+         int nx = x + dgrid / 2;
+         int ny = y + dgrid / 2;
+         nx &= ~(nx & (dgrid - 1));
+         ny &= ~(ny & (dgrid - 1));
+         RvR_port_wall_move(map, nwall, nx, ny);
 
          break;
       }
@@ -552,11 +552,11 @@ static void e2d_update_view(void)
       if(RvR_key_pressed(RVR_KEY_S)&&RvR_key_down(RVR_KEY_LALT))
       {
          //Needs to be inner subsector and not have portal
-         if(RvR_port_wall_subsector(map,RvR_port_wall_sector(map,i),i)==0||map->walls[i].portal>=0)
+         if(RvR_port_wall_subsector(map, RvR_port_wall_sector(map, i), i)==0||map->walls[i].portal>=0)
             break;
 
          //Make inner
-         RvR_port_sector_make_inner(map,i);
+         RvR_port_sector_make_inner(map, i);
 
          break;
       }
@@ -607,9 +607,9 @@ static void e2d_update_view_scroll(void)
 
    camera.x += (rx * zoom) / 1;
    camera.y += (ry * zoom) / 1;
-   camera.sector = RvR_port_sector_update(map,camera.sector,camera.x,camera.y);
+   camera.sector = RvR_port_sector_update(map, camera.sector, camera.x, camera.y);
    if(camera.sector>=0&&camera.sector<map->sector_count)
-      camera.z = map->sectors[camera.sector].floor+1024;
+      camera.z = map->sectors[camera.sector].floor + 1024;
 
    if(RvR_key_released(RVR_BUTTON_RIGHT))
    {
@@ -642,18 +642,18 @@ static void e2d_update_wall_move(void)
 
    if(wall_move>=0)
    {
-      RvR_fix22 x = ((mx+scroll_x)*zoom);
-      RvR_fix22 y = ((my+scroll_y)*zoom);
+      RvR_fix22 x = ((mx + scroll_x) * zoom);
+      RvR_fix22 y = ((my + scroll_y) * zoom);
       if(draw_grid_sizes[draw_grid]>0)
       {
-         RvR_fix22 dgrid = 1<<draw_grid_sizes[draw_grid];
-         x+=dgrid/2;
-         y+=dgrid/2;
-         x&=~(x&(dgrid-1));
-         y&=~(y&(dgrid-1));
+         RvR_fix22 dgrid = 1 << draw_grid_sizes[draw_grid];
+         x += dgrid / 2;
+         y += dgrid / 2;
+         x &= ~(x & (dgrid - 1));
+         y &= ~(y & (dgrid - 1));
       }
 
-      RvR_port_wall_move(map,wall_move,x,y);
+      RvR_port_wall_move(map, wall_move, x, y);
    }
    else
    {
@@ -674,7 +674,7 @@ static void e2d_update_sector(void)
    //Camera
    //-------------------------------------
    if(RvR_key_pressed(RVR_KEY_G))
-      draw_grid = (draw_grid+1)&7;
+      draw_grid = (draw_grid + 1) & 7;
 
    if(RvR_key_pressed(RVR_BUTTON_RIGHT))
    {
@@ -693,7 +693,7 @@ static void e2d_update_sector(void)
       camera.x += (rx * zoom) / 1;
       camera.y += (ry * zoom) / 1;
       if(camera.sector>=0&&camera.sector<map->sector_count)
-         camera.z = map->sectors[camera.sector].floor+512;
+         camera.z = map->sectors[camera.sector].floor + 512;
    }
 
    if(RvR_key_released(RVR_BUTTON_RIGHT))
@@ -703,29 +703,29 @@ static void e2d_update_sector(void)
       RvR_mouse_set_pos(RvR_xres() / 2, RvR_yres() / 2);
    }
 
-   scroll_x = (camera.x ) / RvR_non_zero(zoom)- RvR_xres() / 2;
-   scroll_y = (camera.y ) / RvR_non_zero(zoom)- RvR_yres() / 2;
+   scroll_x = (camera.x ) / RvR_non_zero(zoom) - RvR_xres() / 2;
+   scroll_y = (camera.y ) / RvR_non_zero(zoom) - RvR_yres() / 2;
 
    if(RvR_key_pressed(RVR_KEY_NP_ADD)&&zoom>1)
-      zoom-=1;
+      zoom -= 1;
    if(RvR_key_pressed(RVR_KEY_NP_SUB)&&zoom<1024)
-      zoom+=1;
+      zoom += 1;
    //-------------------------------------
 
-   world_mx = ((mx+scroll_x)*zoom);
-   world_my = ((my+scroll_y)*zoom);
+   world_mx = ((mx + scroll_x) * zoom);
+   world_my = ((my + scroll_y) * zoom);
    if(draw_grid_sizes[draw_grid]>0)
    {
-      RvR_fix22 dgrid = 1<<draw_grid_sizes[draw_grid];
-      world_mx+=dgrid/2;
-      world_my+=dgrid/2;
-      world_mx&=~(world_mx&(dgrid-1));
-      world_my&=~(world_my&(dgrid-1));
+      RvR_fix22 dgrid = 1 << draw_grid_sizes[draw_grid];
+      world_mx += dgrid / 2;
+      world_my += dgrid / 2;
+      world_mx &= ~(world_mx & (dgrid - 1));
+      world_my &= ~(world_my & (dgrid - 1));
    }
 
    if(RvR_key_pressed(RVR_KEY_SPACE))
    {
-      int ret = sector_draw_add(world_mx,world_my);
+      int ret = sector_draw_add(world_mx, world_my);
       if(ret)
          state = STATE2D_VIEW;
    }
@@ -741,6 +741,6 @@ static void e2d_draw_sector(void)
 {
    e2d_draw_base();
 
-   sector_draw_draw(world_mx,world_my,zoom);
+   sector_draw_draw(world_mx, world_my, zoom);
 }
 //-------------------------------------

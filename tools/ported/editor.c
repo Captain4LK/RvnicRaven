@@ -68,7 +68,7 @@ void editor_init(void)
 void editor_update(void)
 {
    //if(RvR_key_pressed(RVR_KEY_NP_ENTER))
-      //editor_mode = !editor_mode;
+   //editor_mode = !editor_mode;
 
    if(RvR_key_down(RVR_KEY_LCTRL)&&RvR_key_pressed(RVR_KEY_S))
       map_save();
@@ -146,7 +146,7 @@ void camera_update()
       }
       else
       {
-         camera.dir -= 8* 8;
+         camera.dir -= 8 * 8;
       }
    }
    else if(RvR_key_down(RVR_KEY_RIGHT))
@@ -158,16 +158,16 @@ void camera_update()
       }
       else
       {
-         camera.dir += 8* 8;
+         camera.dir += 8 * 8;
       }
    }
    camera.dir &= 65535;
 
-   camera.x+=offx;
-   camera.y+=offy;
-   camera.z+=offz;
+   camera.x += offx;
+   camera.y += offy;
+   camera.z += offz;
 
-   camera.sector = RvR_port_sector_update(map,camera.sector,camera.x,camera.y);
+   camera.sector = RvR_port_sector_update(map, camera.sector, camera.x, camera.y);
    //camera.z = RvR_max(map->sectors[camera.sector].floor,RvR_min(map->sectors[camera.sector].ceiling,camera.z));
    //Collision
    //RvR_fix16 floor_height = 0;

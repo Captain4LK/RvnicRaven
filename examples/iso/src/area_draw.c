@@ -166,25 +166,25 @@ void area_draw_end()
             if(sprite_cur<sprite_max)
             {
                Draw_sprite *sp = sprites + sprite_cur;
-               if(point_equal(sp->pos,point(tx,ty,z)))
+               if(point_equal(sp->pos, point(tx, ty, z)))
                {
                   RvR_texture *tex = NULL;
                   if(sp->type==0)
                   {
-                     if(!sprite_valid(sp->as.e->sprite,sp->as.e))
+                     if(!sprite_valid(sp->as.e->sprite, sp->as.e))
                         entity_sprite_create(sp->as.e);
 
                      tex = RvR_texture_get(sprite_texture(sp->as.e->sprite));
                   }
                   else if(sp->type==1)
                   {
-                     if(!sprite_valid(sp->as.i->sprite,sp->as.i))
+                     if(!sprite_valid(sp->as.i->sprite, sp->as.i))
                         item_sprite_create(sp->as.i);
 
                      tex = RvR_texture_get(sprite_texture(sp->as.i->sprite));
                   }
 
-                  draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy-4);
+                  draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy - 4);
                   sprite_cur++;
                }
             }
@@ -299,14 +299,14 @@ static void area_draw_sprite(Draw_sprite *s)
    RvR_texture *t = NULL;
    if(s->type==0)
    {
-      if(!sprite_valid(s->as.e->sprite,s->as.e))
+      if(!sprite_valid(s->as.e->sprite, s->as.e))
          entity_sprite_create(s->as.e);
 
       t = RvR_texture_get(sprite_texture(s->as.e->sprite));
    }
    else if(s->type==1)
    {
-      if(!sprite_valid(s->as.i->sprite,s->as.i))
+      if(!sprite_valid(s->as.i->sprite, s->as.i))
          item_sprite_create(s->as.i);
 
       t = RvR_texture_get(sprite_texture(s->as.i->sprite));
@@ -432,7 +432,7 @@ static int sprite_cmp_r0(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   return pos_cmp_r0(sa->pos,sb->pos);
+   return pos_cmp_r0(sa->pos, sb->pos);
 }
 
 static int sprite_cmp_r1(const void *a, const void *b)
@@ -440,7 +440,7 @@ static int sprite_cmp_r1(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   return pos_cmp_r1(sa->pos,sb->pos);
+   return pos_cmp_r1(sa->pos, sb->pos);
 }
 
 static int sprite_cmp_r2(const void *a, const void *b)
@@ -448,7 +448,7 @@ static int sprite_cmp_r2(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   return pos_cmp_r2(sa->pos,sb->pos);
+   return pos_cmp_r2(sa->pos, sb->pos);
 }
 
 static int sprite_cmp_r3(const void *a, const void *b)
@@ -456,7 +456,7 @@ static int sprite_cmp_r3(const void *a, const void *b)
    const Draw_sprite *sa = a;
    const Draw_sprite *sb = b;
 
-   return pos_cmp_r3(sa->pos,sb->pos);
+   return pos_cmp_r3(sa->pos, sb->pos);
 }
 
 static int pos_cmp_r0(Point p0, Point p1)

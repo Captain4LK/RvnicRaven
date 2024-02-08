@@ -166,8 +166,8 @@ int entity_pos_valid(Area *a, Entity *e, Point pos)
       return 0;
 
    uint32_t block = area_tile(a, pos);
-   uint32_t floor = area_tile(a, point(pos.x,pos.y,pos.z+1));
-   if(area_entity_at(a,pos,e)!=NULL)
+   uint32_t floor = area_tile(a, point(pos.x, pos.y, pos.z + 1));
+   if(area_entity_at(a, pos, e)!=NULL)
       return 0;
    if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
       return 1;
@@ -181,14 +181,14 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
 
    //Leave map
    //Update DocEnt if entity is documented
-   Point n = point_add_dir(e->pos,dir);
+   Point n = point_add_dir(e->pos, dir);
    if(n.x<0||n.y<0||n.x>=a->dimx * 32||n.y>=a->dimy * 32)
    {
       if(entity_is_docent(e))
       {
-         e->pos = point_add_dir(e->pos,dir);
+         e->pos = point_add_dir(e->pos, dir);
          docent_from_entity(w, a, e);
-         e->pos = point_sub_dir(e->pos,dir);
+         e->pos = point_sub_dir(e->pos, dir);
       }
 
       entity_remove(e);
@@ -204,18 +204,18 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
    //Moving up slopes
    if(tile_is_slope(area_tile(a, e->pos))&&
       tile_has_wall(area_tile(a, n))&&
-      entity_pos_valid(a,e,point(n.x,n.y,n.z-1)))
+      entity_pos_valid(a, e, point(n.x, n.y, n.z - 1)))
    {
-      entity_update_pos(a, e, point(n.x,n.y,n.z-1));
+      entity_update_pos(a, e, point(n.x, n.y, n.z - 1));
       return 1;
    }
 
    //Moving down slopes
    if(tile_is_slope(area_tile(a, point(e->pos.x, e->pos.y, e->pos.z + 1)))&&
-      entity_pos_valid(a,e,point(n.x,n.y,n.z+1))&&
+      entity_pos_valid(a, e, point(n.x, n.y, n.z + 1))&&
       !tile_has_wall(area_tile(a, n)))
    {
-      entity_update_pos(a, e, point(n.x,n.y,n.z+1));
+      entity_update_pos(a, e, point(n.x, n.y, n.z + 1));
       return 1;
    }
 
@@ -227,7 +227,7 @@ unsigned entity_try_ascend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1))&&tile_is_slope(area_tile(a,e->pos)))
+   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1))&&tile_is_slope(area_tile(a, e->pos)))
    {
       entity_update_pos(a, e, point(e->pos.x, e->pos.y, e->pos.z - 1));
       return 1;
@@ -241,7 +241,7 @@ unsigned entity_try_descend(Area *a, Entity *e)
    if(e==NULL)
       return 0;
 
-   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1))&&tile_is_slope(area_tile(a,point(e->pos.x,e->pos.y,e->pos.z+1))))
+   if(entity_pos_valid(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1))&&tile_is_slope(area_tile(a, point(e->pos.x, e->pos.y, e->pos.z + 1))))
    {
       entity_update_pos(a, e, point(e->pos.x, e->pos.y, e->pos.z + 1));
       return 1;
@@ -259,7 +259,7 @@ void entity_turn(World *w, Area *a, Entity *e)
 {
    e->fatigue_next--;
    e->hunger_next--;
-   
+
    if(e->fatigue_next<=0)
    {
       e->fatigue++;
@@ -282,29 +282,29 @@ int entity_move_cost(Entity *e)
 void entity_from_def(Entity *e, const EntityDef *def, int female)
 {
    if(female)
-      body_from_def(&e->body,def->female_body);
+      body_from_def(&e->body, def->female_body);
    else
-      body_from_def(&e->body,def->male_body);
+      body_from_def(&e->body, def->male_body);
 }
 
 void entity_sprite_create(Entity *e)
 {
    e->sprite = sprite_new(e);
-   sprite_clear(e->sprite,0);
+   sprite_clear(e->sprite, 0);
 
    if(e->body.def==NULL)
    {
-      sprite_draw_sprite(e->sprite,16384,0,0,0,0,32,32);
+      sprite_draw_sprite(e->sprite, 16384, 0, 0, 0, 0, 32, 32);
       return;
    }
    uint16_t sheet = e->body.def->sprite_sheet;
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       const Bodypart *bp = &e->body.parts[i];
       int16_t index = bp->def->sprite_index;
       if(index<0)
          continue;
-      sprite_draw_sprite(e->sprite,sheet,0,0,index*32,0,32,36);
+      sprite_draw_sprite(e->sprite, sheet, 0, 0, index * 32, 0, 32, 36);
    }
 }
 
@@ -316,15 +316,15 @@ void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part)
    if(body_part==-1)
    {
       int part_count = 0;
-      for(int i = 0;i<e->body.part_count;i++)
+      for(int i = 0; i<e->body.part_count; i++)
          if(e->body.parts[i].hp>0)
             part_count++;
    }
 
    //if(body_part<0)
-      //return;
+   //return;
 
-   e->body.parts[0].hp-=20;
+   e->body.parts[0].hp -= 20;
    puts("DAMAGE");
 }
 

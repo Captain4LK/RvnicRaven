@@ -81,10 +81,10 @@ void game_inventory_draw()
    area_draw_end();
 
    //Item list
-   draw_fill_rectangle(32, 32, RvR_xres()-64,RvR_yres()-64, 1, 1);
-   draw_line_horizontal(31,RvR_xres()-32,31,42,1);
-   draw_line_horizontal(31,RvR_xres()-32,RvR_yres()-32,42,1);
-   draw_line_vertical(31,32,RvR_yres()-33,42,1);
-   draw_line_vertical(RvR_xres()-32,32,RvR_yres()-33,42,1);
+   draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, 31, 42, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, RvR_yres() - 32, 42, 1);
+   draw_line_vertical(31, 32, RvR_yres() - 33, 42, 1);
+   draw_line_vertical(RvR_xres() - 32, 32, RvR_yres() - 33, 42, 1);
 }
 //-------------------------------------

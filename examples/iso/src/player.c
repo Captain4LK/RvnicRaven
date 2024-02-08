@@ -62,21 +62,20 @@ void player_add(World *w, Area *a)
    player.e = entity_from_docent(w, a, player.id);
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
-   entity_from_def(player.e,defs_get_entity("human"),0);
+   entity_from_def(player.e, defs_get_entity("human"), 0);
 
    Entity *e = entity_new(w);
    e->speed = 128;
    e->pos = player.e->pos;
    entity_add(a, e);
    entity_grid_add(a, e);
-   entity_from_def(e,defs_get_entity("human"),1);
+   entity_from_def(e, defs_get_entity("human"), 1);
 }
 
 void player_update()
 {
    if(player.e->action.id!=ACTION_INVALID)
-   {
-   }
+   {}
 
    //Movement
    int8_t dir = -1;
@@ -106,7 +105,7 @@ void player_update()
    if(dir!=-1)
    {
       //Check for attack target
-      if(area_entity_at(area,point_add_dir(player.e->pos,dir),player.e)!=NULL)
+      if(area_entity_at(area, point_add_dir(player.e->pos, dir), player.e)!=NULL)
          action_set_attack(player.e, dir);
       else
          action_set_move(player.e, dir);

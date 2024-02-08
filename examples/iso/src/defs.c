@@ -67,35 +67,35 @@ struct
    MaterialDef **arr;
    int count;
    int size_exp;
-}material_defs;
+} material_defs;
 
 struct
 {
    ItemDef **arr;
    int count;
    int size_exp;
-}item_defs;
+} item_defs;
 
 struct
 {
    BodyDef **arr;
    int count;
    int size_exp;
-}body_defs;
+} body_defs;
 
 struct
 {
    EntityDef **arr;
    int count;
    int size_exp;
-}entity_defs;
+} entity_defs;
 
 struct
 {
    GroupDef **arr;
    int count;
    int size_exp;
-}group_defs;
+} group_defs;
 //-------------------------------------
 
 //Function prototypes
@@ -135,34 +135,34 @@ void defs_init(void)
 {
    material_defs.size_exp = 8;
    material_defs.count = 0;
-   material_defs.arr = RvR_malloc(sizeof(*material_defs.arr)*(1<<material_defs.size_exp),"MaterialDefs hashmap");
-   memset(material_defs.arr,0,sizeof(*material_defs.arr)*(1<<material_defs.size_exp));
+   material_defs.arr = RvR_malloc(sizeof(*material_defs.arr) * (1 << material_defs.size_exp), "MaterialDefs hashmap");
+   memset(material_defs.arr, 0, sizeof(*material_defs.arr) * (1 << material_defs.size_exp));
 
    item_defs.size_exp = 8;
    item_defs.count = 0;
-   item_defs.arr = RvR_malloc(sizeof(*item_defs.arr)*(1<<item_defs.size_exp),"ItemDefs hashmap");
-   memset(item_defs.arr,0,sizeof(*item_defs.arr)*(1<<item_defs.size_exp));
+   item_defs.arr = RvR_malloc(sizeof(*item_defs.arr) * (1 << item_defs.size_exp), "ItemDefs hashmap");
+   memset(item_defs.arr, 0, sizeof(*item_defs.arr) * (1 << item_defs.size_exp));
 
    body_defs.size_exp = 8;
    body_defs.count = 0;
-   body_defs.arr = RvR_malloc(sizeof(*body_defs.arr)*(1<<body_defs.size_exp),"BodyDefs hashmap");
-   memset(body_defs.arr,0,sizeof(*body_defs.arr)*(1<<body_defs.size_exp));
+   body_defs.arr = RvR_malloc(sizeof(*body_defs.arr) * (1 << body_defs.size_exp), "BodyDefs hashmap");
+   memset(body_defs.arr, 0, sizeof(*body_defs.arr) * (1 << body_defs.size_exp));
 
    entity_defs.size_exp = 8;
    entity_defs.count = 0;
-   entity_defs.arr = RvR_malloc(sizeof(*entity_defs.arr)*(1<<entity_defs.size_exp),"EntityDefs hashmap");
-   memset(entity_defs.arr,0,sizeof(*entity_defs.arr)*(1<<entity_defs.size_exp));
+   entity_defs.arr = RvR_malloc(sizeof(*entity_defs.arr) * (1 << entity_defs.size_exp), "EntityDefs hashmap");
+   memset(entity_defs.arr, 0, sizeof(*entity_defs.arr) * (1 << entity_defs.size_exp));
 
    group_defs.size_exp = 8;
    group_defs.count = 0;
-   group_defs.arr = RvR_malloc(sizeof(*group_defs.arr)*(1<<group_defs.size_exp),"GroupDefs hashmap");
-   memset(group_defs.arr,0,sizeof(*group_defs.arr)*(1<<group_defs.size_exp));
+   group_defs.arr = RvR_malloc(sizeof(*group_defs.arr) * (1 << group_defs.size_exp), "GroupDefs hashmap");
+   memset(group_defs.arr, 0, sizeof(*group_defs.arr) * (1 << group_defs.size_exp));
 }
 
 void defs_load(const char *path)
 {
    RvR_rw rw = {0};
-   RvR_rw_init_path(&rw,path,"rb");
+   RvR_rw_init_path(&rw, path, "rb");
 
    uint32_t marker = RvR_rw_read_u32(&rw);
    while(!RvR_rw_eof(&rw))
@@ -170,22 +170,22 @@ void defs_load(const char *path)
       switch(marker)
       {
       case MKR_MATERIAL_START:
-         defs_read_material(&rw,path);
+         defs_read_material(&rw, path);
          break;
       case MKR_ITEM_START:
-         defs_read_item(&rw,path);
+         defs_read_item(&rw, path);
          break;
       case MKR_BODY_START:
-         defs_read_body(&rw,path);
+         defs_read_body(&rw, path);
          break;
       case MKR_ENTITY_START:
-         defs_read_entity(&rw,path);
+         defs_read_entity(&rw, path);
          break;
       case MKR_GROUP_START:
-         defs_read_group(&rw,path);
+         defs_read_group(&rw, path);
          break;
       default:
-         RvR_log_line("defs_load","invalid marker %" PRIu32 " in file '%s'\n",marker,path);
+         RvR_log_line("defs_load", "invalid marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
          break;
       }
@@ -238,11 +238,11 @@ const GroupDef *defs_get_group(const char *type)
 
 static void defs_read_material(RvR_rw *rw, const char *path)
 {
-   MaterialDef *mat = RvR_malloc(sizeof(*mat),"MaterialDef struct");
-   memset(mat,0,sizeof(*mat));
+   MaterialDef *mat = RvR_malloc(sizeof(*mat), "MaterialDef struct");
+   memset(mat, 0, sizeof(*mat));
 
    //Name is always first
-   for(int i = 0;i<16;i++) mat->type[i] = RvR_rw_read_u8(rw);
+   for(int i = 0; i<16; i++)mat->type[i] = RvR_rw_read_u8(rw);
    mat->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
@@ -251,24 +251,24 @@ static void defs_read_material(RvR_rw *rw, const char *path)
       switch(marker)
       {
       case MKR_ADJECTIVE:
-         for(int i = 0;i<32;i++) mat->adjective[i] = RvR_rw_read_u8(rw);
+         for(int i = 0; i<32; i++)mat->adjective[i] = RvR_rw_read_u8(rw);
          mat->adjective[31] = '\0';
          break;
       case MKR_DENSITY:
          mat->density = RvR_rw_read_u32(rw);
          break;
       case MKR_FROM_CREATURE:
-         mat->tags|=DEF_MAT_FROM_CREATURE;
+         mat->tags |= DEF_MAT_FROM_CREATURE;
          break;
       default:
-         RvR_log_line("defs_load","invalid material marker %" PRIu32 " in file '%s'\n",marker,path);
+         RvR_log_line("defs_load", "invalid material marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
          return;
       }
 
       if(RvR_rw_eof(rw))
       {
-         RvR_log_line("defs_load","unterminated material at eof in file '%s'\n",path);
+         RvR_log_line("defs_load", "unterminated material at eof in file '%s'\n", path);
          exit(0);
       }
       marker = RvR_rw_read_u32(rw);
@@ -279,11 +279,11 @@ static void defs_read_material(RvR_rw *rw, const char *path)
 
 static void defs_read_item(RvR_rw *rw, const char *path)
 {
-   ItemDef *item = RvR_malloc(sizeof(*item),"ItemDef struct");
-   memset(item,0,sizeof(*item));
+   ItemDef *item = RvR_malloc(sizeof(*item), "ItemDef struct");
+   memset(item, 0, sizeof(*item));
 
    //Name is always first
-   for(int i = 0;i<16;i++) item->type[i] = RvR_rw_read_u8(rw);
+   for(int i = 0; i<16; i++)item->type[i] = RvR_rw_read_u8(rw);
    item->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
@@ -292,18 +292,18 @@ static void defs_read_item(RvR_rw *rw, const char *path)
       switch(marker)
       {
       case MKR_NAME:
-         for(int i = 0;i<32;i++) item->name[i] = RvR_rw_read_u8(rw);
+         for(int i = 0; i<32; i++)item->name[i] = RvR_rw_read_u8(rw);
          item->name[31] = '\0';
          break;
       default:
-         RvR_log_line("defs_load","invalid item marker %" PRIu32 " in file '%s'\n",marker,path);
+         RvR_log_line("defs_load", "invalid item marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
          return;
       }
 
       if(RvR_rw_eof(rw))
       {
-         RvR_log_line("defs_load","unterminated item at eof in file '%s'\n",path);
+         RvR_log_line("defs_load", "unterminated item at eof in file '%s'\n", path);
          exit(0);
       }
       marker = RvR_rw_read_u32(rw);
@@ -314,11 +314,11 @@ static void defs_read_item(RvR_rw *rw, const char *path)
 
 static void defs_read_body(RvR_rw *rw, const char *path)
 {
-   BodyDef *body = RvR_malloc(sizeof(*body),"BodyDef struct");
-   memset(body,0,sizeof(*body));
+   BodyDef *body = RvR_malloc(sizeof(*body), "BodyDef struct");
+   memset(body, 0, sizeof(*body));
 
    //Name is always first
-   for(int i = 0;i<16;i++) body->type[i] = RvR_rw_read_u8(rw);
+   for(int i = 0; i<16; i++)body->type[i] = RvR_rw_read_u8(rw);
    body->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
@@ -327,22 +327,22 @@ static void defs_read_body(RvR_rw *rw, const char *path)
       switch(marker)
       {
       //case MKR_NAME:
-         //for(int i = 0;i<32;i++) body->name[i] = RvR_rw_read_u8(rw);
-         //body->name[31] = '\0';
-         //break;
+      //for(int i = 0;i<32;i++) body->name[i] = RvR_rw_read_u8(rw);
+      //body->name[31] = '\0';
+      //break;
       case MKR_BODYPART_START:
-         defs_read_bodypart(rw,path,body);
+         defs_read_bodypart(rw, path, body);
          break;
       case MKR_SPRITE_SHEET: body->sprite_sheet = RvR_rw_read_u16(rw); break;
       default:
-         RvR_log_line("defs_load","invalid body marker %" PRIu32 " in file '%s'\n",marker,path);
+         RvR_log_line("defs_load", "invalid body marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
          return;
       }
 
       if(RvR_rw_eof(rw))
       {
-         RvR_log_line("defs_load","unterminated body at eof in file '%s'\n",path);
+         RvR_log_line("defs_load", "unterminated body at eof in file '%s'\n", path);
          exit(0);
       }
       marker = RvR_rw_read_u32(rw);
@@ -354,7 +354,7 @@ static void defs_read_body(RvR_rw *rw, const char *path)
 static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
 {
    int16_t cur = body->bodypart_count++;
-   body->bodyparts = RvR_realloc(body->bodyparts,sizeof(*body->bodyparts)*body->bodypart_count,"Body bodyparts");
+   body->bodyparts = RvR_realloc(body->bodyparts, sizeof(*body->bodyparts) * body->bodypart_count, "Body bodyparts");
    body->bodyparts[cur].child = -1;
    body->bodyparts[cur].next = -1;
 
@@ -365,12 +365,12 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
       switch(marker)
       {
       case MKR_NAME:
-         for(int i = 0;i<32;i++) body->bodyparts[cur].name[i] = RvR_rw_read_u8(rw);
+         for(int i = 0; i<32; i++)body->bodyparts[cur].name[i] = RvR_rw_read_u8(rw);
          body->bodyparts[cur].name[31] = '\0';
          break;
       case MKR_BODYPART_START:
       {
-         int16_t child = defs_read_bodypart(rw,path,body);
+         int16_t child = defs_read_bodypart(rw, path, body);
          if(prev==-1)
          {
             body->bodyparts[cur].child = child;
@@ -381,17 +381,17 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
          }
          prev = child;
       }
-         break;
-      case MKR_VITAL: body->bodyparts[cur].tags|=DEF_BODY_VITAL; break;
-      case MKR_SLOT_UPPER: body->bodyparts[cur].tags|=DEF_BODY_SLOT_UPPER; break;
-      case MKR_SLOT_LOWER: body->bodyparts[cur].tags|=DEF_BODY_SLOT_LOWER; break;
-      case MKR_SLOT_HEAD: body->bodyparts[cur].tags|=DEF_BODY_SLOT_HEAD; break;
-      case MKR_SLOT_HAND: body->bodyparts[cur].tags|=DEF_BODY_SLOT_HAND; break;
-      case MKR_SLOT_FOOT: body->bodyparts[cur].tags|=DEF_BODY_SLOT_FOOT; break;
-      case MKR_GRASP: body->bodyparts[cur].tags|=DEF_BODY_GRASP; break;
+      break;
+      case MKR_VITAL: body->bodyparts[cur].tags |= DEF_BODY_VITAL; break;
+      case MKR_SLOT_UPPER: body->bodyparts[cur].tags |= DEF_BODY_SLOT_UPPER; break;
+      case MKR_SLOT_LOWER: body->bodyparts[cur].tags |= DEF_BODY_SLOT_LOWER; break;
+      case MKR_SLOT_HEAD: body->bodyparts[cur].tags |= DEF_BODY_SLOT_HEAD; break;
+      case MKR_SLOT_HAND: body->bodyparts[cur].tags |= DEF_BODY_SLOT_HAND; break;
+      case MKR_SLOT_FOOT: body->bodyparts[cur].tags |= DEF_BODY_SLOT_FOOT; break;
+      case MKR_GRASP: body->bodyparts[cur].tags |= DEF_BODY_GRASP; break;
       case MKR_SPRITE_INDEX: body->bodyparts[cur].sprite_index = RvR_rw_read_u16(rw); break;
       default:
-         RvR_log_line("defs_load","invalid bodypart marker %" PRIu32 " in file '%s'\n",marker,path);
+         RvR_log_line("defs_load", "invalid bodypart marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
          return -1;
       }
@@ -403,11 +403,11 @@ static int16_t defs_read_bodypart(RvR_rw *rw, const char *path, BodyDef *body)
 
 static void defs_read_entity(RvR_rw *rw, const char *path)
 {
-   EntityDef *entity = RvR_malloc(sizeof(*entity),"EntityDef struct");
-   memset(entity,0,sizeof(*entity));
+   EntityDef *entity = RvR_malloc(sizeof(*entity), "EntityDef struct");
+   memset(entity, 0, sizeof(*entity));
 
    //Name is always first
-   for(int i = 0;i<16;i++) entity->type[i] = RvR_rw_read_u8(rw);
+   for(int i = 0; i<16; i++)entity->type[i] = RvR_rw_read_u8(rw);
    entity->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
@@ -419,7 +419,7 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
       case MKR_BODY:
       {
          char name[16];
-         for(int i = 0;i<16;i++) name[i] = RvR_rw_read_u8(rw);
+         for(int i = 0; i<16; i++)name[i] = RvR_rw_read_u8(rw);
          name[15] = '\0';
 
          if(current_sex==-1)
@@ -429,7 +429,7 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
          else if(current_sex==1)
             entity->female_body = defs_get_body(name);
       }
-         break;
+      break;
       case MKR_MALE_START:
          current_sex = 0;
          break;
@@ -444,14 +444,14 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
          current_sex = -1;
          break;
       default:
-         RvR_log_line("defs_load","invalid entity marker %" PRIu32 " in file '%s'\n",marker,path);
+         RvR_log_line("defs_load", "invalid entity marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
          return;
       }
 
       if(RvR_rw_eof(rw))
       {
-         RvR_log_line("defs_load","unterminated entity at eof in file '%s'\n",path);
+         RvR_log_line("defs_load", "unterminated entity at eof in file '%s'\n", path);
          exit(0);
       }
       marker = RvR_rw_read_u32(rw);
@@ -462,11 +462,11 @@ static void defs_read_entity(RvR_rw *rw, const char *path)
 
 static void defs_read_group(RvR_rw *rw, const char *path)
 {
-   GroupDef *group = RvR_malloc(sizeof(*group),"GroupDef struct");
-   memset(group,0,sizeof(*group));
+   GroupDef *group = RvR_malloc(sizeof(*group), "GroupDef struct");
+   memset(group, 0, sizeof(*group));
 
    //Name is always first
-   for(int i = 0;i<16;i++) group->type[i] = RvR_rw_read_u8(rw);
+   for(int i = 0; i<16; i++)group->type[i] = RvR_rw_read_u8(rw);
    group->type[15] = '\0';
 
    uint32_t marker = RvR_rw_read_u32(rw);
@@ -475,18 +475,18 @@ static void defs_read_group(RvR_rw *rw, const char *path)
       switch(marker)
       {
       //case MKR_NAME:
-         //for(int i = 0;i<32;i++) group->name[i] = RvR_rw_read_u8(rw);
-         //group->name[31] = '\0';
-         //break;
+      //for(int i = 0;i<32;i++) group->name[i] = RvR_rw_read_u8(rw);
+      //group->name[31] = '\0';
+      //break;
       default:
-         RvR_log_line("defs_load","invalid group marker %" PRIu32 " in file '%s'\n",marker,path);
+         RvR_log_line("defs_load", "invalid group marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
          return;
       }
 
       if(RvR_rw_eof(rw))
       {
-         RvR_log_line("defs_load","unterminated group at eof in file '%s'\n",path);
+         RvR_log_line("defs_load", "unterminated group at eof in file '%s'\n", path);
          exit(0);
       }
       marker = RvR_rw_read_u32(rw);
@@ -497,24 +497,24 @@ static void defs_read_group(RvR_rw *rw, const char *path)
 
 static int32_t defs_lookup(uint32_t hash, int exp, uint32_t idx)
 {
-   uint32_t mask = ((uint32_t)1<<exp)-1;
-   uint32_t step = (hash>>(32-exp))|1;
-   return (idx+step)&mask;
+   uint32_t mask = ((uint32_t)1 << exp) - 1;
+   uint32_t step = (hash >> (32 - exp)) | 1;
+   return (idx + step) & mask;
 }
 
 static int defs_material_insert(MaterialDef *mat)
 {
    uint32_t hash = RvR_fnv32a(mat->type);
-   int32_t current = defs_lookup(hash,material_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, material_defs.size_exp, hash);
    while(material_defs.arr[current]!=NULL)
    {
-      current = defs_lookup(hash,material_defs.size_exp,current);
+      current = defs_lookup(hash, material_defs.size_exp, current);
    }
 
    material_defs.arr[current] = mat;
    material_defs.count++;
 
-   if(material_defs.count>(1<<(material_defs.size_exp))/2)
+   if(material_defs.count>(1 << (material_defs.size_exp)) / 2)
       defs_material_grow();
    else
       return current;
@@ -524,14 +524,14 @@ static int defs_material_insert(MaterialDef *mat)
 
 static void defs_material_grow(void)
 {
-   int os = 1<<material_defs.size_exp;
+   int os = 1 << material_defs.size_exp;
    material_defs.size_exp++;
    MaterialDef **old_arr = material_defs.arr;
-   material_defs.arr = RvR_malloc(sizeof(*material_defs.arr)*(1<<material_defs.size_exp),"MaterialDefs hashmap");
-   memset(material_defs.arr,0,sizeof(*material_defs.arr)*(1<<material_defs.size_exp));
+   material_defs.arr = RvR_malloc(sizeof(*material_defs.arr) * (1 << material_defs.size_exp), "MaterialDefs hashmap");
+   memset(material_defs.arr, 0, sizeof(*material_defs.arr) * (1 << material_defs.size_exp));
    material_defs.count = 0;
 
-   for(int i = 0;i<os;i++)
+   for(int i = 0; i<os; i++)
    {
       if(old_arr[i]!=NULL)
          defs_material_insert(old_arr[i]);
@@ -543,12 +543,12 @@ static void defs_material_grow(void)
 static int defs_material_search(const char *type)
 {
    uint32_t hash = RvR_fnv32a(type);
-   int32_t current = defs_lookup(hash,material_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, material_defs.size_exp, hash);
    while(material_defs.arr[current]!=NULL)
    {
-      if(strcmp(material_defs.arr[current]->type,type)==0)
+      if(strcmp(material_defs.arr[current]->type, type)==0)
          return current;
-      current = defs_lookup(hash,material_defs.size_exp,current);
+      current = defs_lookup(hash, material_defs.size_exp, current);
    }
 
    return -1;
@@ -557,16 +557,16 @@ static int defs_material_search(const char *type)
 static int defs_item_insert(ItemDef *item)
 {
    uint32_t hash = RvR_fnv32a(item->type);
-   int32_t current = defs_lookup(hash,item_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, item_defs.size_exp, hash);
    while(item_defs.arr[current]!=NULL)
    {
-      current = defs_lookup(hash,item_defs.size_exp,current);
+      current = defs_lookup(hash, item_defs.size_exp, current);
    }
 
    item_defs.arr[current] = item;
    item_defs.count++;
 
-   if(item_defs.count>(1<<(item_defs.size_exp))/2)
+   if(item_defs.count>(1 << (item_defs.size_exp)) / 2)
       defs_item_grow();
    else
       return current;
@@ -576,14 +576,14 @@ static int defs_item_insert(ItemDef *item)
 
 static void defs_item_grow(void)
 {
-   int os = 1<<item_defs.size_exp;
+   int os = 1 << item_defs.size_exp;
    item_defs.size_exp++;
    ItemDef **old_arr = item_defs.arr;
-   item_defs.arr = RvR_malloc(sizeof(*item_defs.arr)*(1<<item_defs.size_exp),"ItemDefs hashmap");
-   memset(item_defs.arr,0,sizeof(*item_defs.arr)*(1<<item_defs.size_exp));
+   item_defs.arr = RvR_malloc(sizeof(*item_defs.arr) * (1 << item_defs.size_exp), "ItemDefs hashmap");
+   memset(item_defs.arr, 0, sizeof(*item_defs.arr) * (1 << item_defs.size_exp));
    item_defs.count = 0;
 
-   for(int i = 0;i<os;i++)
+   for(int i = 0; i<os; i++)
    {
       if(old_arr[i]!=NULL)
          defs_item_insert(old_arr[i]);
@@ -595,12 +595,12 @@ static void defs_item_grow(void)
 static int defs_item_search(const char *type)
 {
    uint32_t hash = RvR_fnv32a(type);
-   int32_t current = defs_lookup(hash,item_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, item_defs.size_exp, hash);
    while(item_defs.arr[current]!=NULL)
    {
-      if(strcmp(item_defs.arr[current]->type,type)==0)
+      if(strcmp(item_defs.arr[current]->type, type)==0)
          return current;
-      current = defs_lookup(hash,item_defs.size_exp,current);
+      current = defs_lookup(hash, item_defs.size_exp, current);
    }
 
    return -1;
@@ -609,16 +609,16 @@ static int defs_item_search(const char *type)
 static int defs_body_insert(BodyDef *body)
 {
    uint32_t hash = RvR_fnv32a(body->type);
-   int32_t current = defs_lookup(hash,body_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, body_defs.size_exp, hash);
    while(body_defs.arr[current]!=NULL)
    {
-      current = defs_lookup(hash,body_defs.size_exp,current);
+      current = defs_lookup(hash, body_defs.size_exp, current);
    }
 
    body_defs.arr[current] = body;
    body_defs.count++;
 
-   if(body_defs.count>(1<<(body_defs.size_exp))/2)
+   if(body_defs.count>(1 << (body_defs.size_exp)) / 2)
       defs_body_grow();
    else
       return current;
@@ -628,14 +628,14 @@ static int defs_body_insert(BodyDef *body)
 
 static void defs_body_grow(void)
 {
-   int os = 1<<body_defs.size_exp;
+   int os = 1 << body_defs.size_exp;
    body_defs.size_exp++;
    BodyDef **old_arr = body_defs.arr;
-   body_defs.arr = RvR_malloc(sizeof(*body_defs.arr)*(1<<body_defs.size_exp),"BodyDefs hashmap");
-   memset(body_defs.arr,0,sizeof(*body_defs.arr)*(1<<body_defs.size_exp));
+   body_defs.arr = RvR_malloc(sizeof(*body_defs.arr) * (1 << body_defs.size_exp), "BodyDefs hashmap");
+   memset(body_defs.arr, 0, sizeof(*body_defs.arr) * (1 << body_defs.size_exp));
    body_defs.count = 0;
 
-   for(int i = 0;i<os;i++)
+   for(int i = 0; i<os; i++)
    {
       if(old_arr[i]!=NULL)
          defs_body_insert(old_arr[i]);
@@ -647,12 +647,12 @@ static void defs_body_grow(void)
 static int defs_body_search(const char *type)
 {
    uint32_t hash = RvR_fnv32a(type);
-   int32_t current = defs_lookup(hash,body_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, body_defs.size_exp, hash);
    while(body_defs.arr[current]!=NULL)
    {
-      if(strcmp(body_defs.arr[current]->type,type)==0)
+      if(strcmp(body_defs.arr[current]->type, type)==0)
          return current;
-      current = defs_lookup(hash,body_defs.size_exp,current);
+      current = defs_lookup(hash, body_defs.size_exp, current);
    }
 
    return -1;
@@ -661,16 +661,16 @@ static int defs_body_search(const char *type)
 static int defs_entity_insert(EntityDef *ent)
 {
    uint32_t hash = RvR_fnv32a(ent->type);
-   int32_t current = defs_lookup(hash,entity_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, entity_defs.size_exp, hash);
    while(entity_defs.arr[current]!=NULL)
    {
-      current = defs_lookup(hash,entity_defs.size_exp,current);
+      current = defs_lookup(hash, entity_defs.size_exp, current);
    }
 
    entity_defs.arr[current] = ent;
    entity_defs.count++;
 
-   if(entity_defs.count>(1<<(entity_defs.size_exp))/2)
+   if(entity_defs.count>(1 << (entity_defs.size_exp)) / 2)
       defs_entity_grow();
    else
       return current;
@@ -680,14 +680,14 @@ static int defs_entity_insert(EntityDef *ent)
 
 static void defs_entity_grow(void)
 {
-   int os = 1<<entity_defs.size_exp;
+   int os = 1 << entity_defs.size_exp;
    entity_defs.size_exp++;
    EntityDef **old_arr = entity_defs.arr;
-   entity_defs.arr = RvR_malloc(sizeof(*entity_defs.arr)*(1<<entity_defs.size_exp),"EntityDefs hashmap");
-   memset(entity_defs.arr,0,sizeof(*entity_defs.arr)*(1<<entity_defs.size_exp));
+   entity_defs.arr = RvR_malloc(sizeof(*entity_defs.arr) * (1 << entity_defs.size_exp), "EntityDefs hashmap");
+   memset(entity_defs.arr, 0, sizeof(*entity_defs.arr) * (1 << entity_defs.size_exp));
    entity_defs.count = 0;
 
-   for(int i = 0;i<os;i++)
+   for(int i = 0; i<os; i++)
    {
       if(old_arr[i]!=NULL)
          defs_entity_insert(old_arr[i]);
@@ -699,12 +699,12 @@ static void defs_entity_grow(void)
 static int defs_entity_search(const char *type)
 {
    uint32_t hash = RvR_fnv32a(type);
-   int32_t current = defs_lookup(hash,entity_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, entity_defs.size_exp, hash);
    while(entity_defs.arr[current]!=NULL)
    {
-      if(strcmp(entity_defs.arr[current]->type,type)==0)
+      if(strcmp(entity_defs.arr[current]->type, type)==0)
          return current;
-      current = defs_lookup(hash,entity_defs.size_exp,current);
+      current = defs_lookup(hash, entity_defs.size_exp, current);
    }
 
    return -1;
@@ -713,16 +713,16 @@ static int defs_entity_search(const char *type)
 static int defs_group_insert(GroupDef *group)
 {
    uint32_t hash = RvR_fnv32a(group->type);
-   int32_t current = defs_lookup(hash,group_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, group_defs.size_exp, hash);
    while(group_defs.arr[current]!=NULL)
    {
-      current = defs_lookup(hash,group_defs.size_exp,current);
+      current = defs_lookup(hash, group_defs.size_exp, current);
    }
 
    group_defs.arr[current] = group;
    group_defs.count++;
 
-   if(group_defs.count>(1<<(group_defs.size_exp))/2)
+   if(group_defs.count>(1 << (group_defs.size_exp)) / 2)
       defs_group_grow();
    else
       return current;
@@ -732,14 +732,14 @@ static int defs_group_insert(GroupDef *group)
 
 static void defs_group_grow(void)
 {
-   int os = 1<<group_defs.size_exp;
+   int os = 1 << group_defs.size_exp;
    group_defs.size_exp++;
    GroupDef **old_arr = group_defs.arr;
-   group_defs.arr = RvR_malloc(sizeof(*group_defs.arr)*(1<<group_defs.size_exp),"GroupDefs hashmap");
-   memset(group_defs.arr,0,sizeof(*group_defs.arr)*(1<<group_defs.size_exp));
+   group_defs.arr = RvR_malloc(sizeof(*group_defs.arr) * (1 << group_defs.size_exp), "GroupDefs hashmap");
+   memset(group_defs.arr, 0, sizeof(*group_defs.arr) * (1 << group_defs.size_exp));
    group_defs.count = 0;
 
-   for(int i = 0;i<os;i++)
+   for(int i = 0; i<os; i++)
    {
       if(old_arr[i]!=NULL)
          defs_group_insert(old_arr[i]);
@@ -751,12 +751,12 @@ static void defs_group_grow(void)
 static int defs_group_search(const char *type)
 {
    uint32_t hash = RvR_fnv32a(type);
-   int32_t current = defs_lookup(hash,group_defs.size_exp,hash);
+   int32_t current = defs_lookup(hash, group_defs.size_exp, hash);
    while(group_defs.arr[current]!=NULL)
    {
-      if(strcmp(group_defs.arr[current]->type,type)==0)
+      if(strcmp(group_defs.arr[current]->type, type)==0)
          return current;
-      current = defs_lookup(hash,group_defs.size_exp,current);
+      current = defs_lookup(hash, group_defs.size_exp, current);
    }
 
    return -1;

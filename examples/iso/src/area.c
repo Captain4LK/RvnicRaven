@@ -434,17 +434,17 @@ Entity *area_entity_at(Area *a, Point pos, Entity *not)
    if(pos.x<0||pos.y<0||pos.z<0)
       return NULL;
 
-   if(pos.x>=a->dimx*32||pos.y>=a->dimy*32||pos.z>=a->dimz*32)
+   if(pos.x>=a->dimx * 32||pos.y>=a->dimy * 32||pos.z>=a->dimz * 32)
       return NULL;
 
-   int gx = pos.x/8;
-   int gy = pos.y/8;
-   int gz = pos.z/8;
+   int gx = pos.x / 8;
+   int gy = pos.y / 8;
+   int gz = pos.z / 8;
 
-   Entity *cur = a->entity_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx];
-   for(;cur!=NULL;cur = cur->g_next)
+   Entity *cur = a->entity_grid[gz * a->dimy * 4 * a->dimx * 4 + gy * a->dimx * 4 + gx];
+   for(; cur!=NULL; cur = cur->g_next)
    {
-      if(point_equal(cur->pos,pos)&&cur!=not)
+      if(point_equal(cur->pos, pos)&&cur!=not)
          return cur;
    }
 

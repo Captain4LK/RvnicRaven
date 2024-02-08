@@ -34,8 +34,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 int main(int argc, char **argv)
 {
    Parser parser = {0};
-   parser_init(&parser,"out.bdef");
-   parse_file(&parser,"test.ini");
+   parser_init(&parser, "out.bdef");
+   parse_file(&parser, "test.ini");
    parser_close(&parser);
 
    return 0;

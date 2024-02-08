@@ -95,7 +95,7 @@ void fov_player(Area *a, Entity *e, Point old_pos)
    //Set player position as visible
    Point p = e->pos;
    area_set_tile(a, p, tile_set_visible_wall(tile_set_discovered_wall(area_tile(a, p), 1), 1));
-   area_set_tile(a, point(p.x,p.y,p.z+1), tile_set_visible_floor(tile_set_discovered_floor(area_tile(a, point(p.x, p.y, p.z + 1)), 1), 1));
+   area_set_tile(a, point(p.x, p.y, p.z + 1), tile_set_visible_floor(tile_set_discovered_floor(area_tile(a, point(p.x, p.y, p.z + 1)), 1), 1));
 
    //Discover up
    int radius_cur = 0;
@@ -235,13 +235,13 @@ FOV_object *fov_entity(Area *a, Entity *e)
    if(!fov_initialized)
       fov_init();
 
-   RvR_array_length_set(objects,0);
+   RvR_array_length_set(objects, 0);
 
    int radius = 8;
 
    Point p = e->pos;
-   Entity *te = area_entity_at(a,p,e);
-   if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+   Entity *te = area_entity_at(a, p, e);
+   if(te!=NULL) RvR_array_push(objects, ((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
 
    //Discover up
    int radius_cur = 0;
@@ -255,8 +255,8 @@ FOV_object *fov_entity(Area *a, Entity *e)
       if(tile_has_floor(tile0))
          break;
 
-      te = area_entity_at(a,point(p.x,p.y,p.z-z),e);
-      if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+      te = area_entity_at(a, point(p.x, p.y, p.z - z), e);
+      if(te!=NULL) RvR_array_push(objects, ((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
    }
 
    //Discover down
@@ -271,8 +271,8 @@ FOV_object *fov_entity(Area *a, Entity *e)
       if(tile_has_floor(tile1))
          break;
 
-      te = area_entity_at(a,point(p.x,p.y,p.z+z),e);
-      if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+      te = area_entity_at(a, point(p.x, p.y, p.z + z), e);
+      if(te!=NULL) RvR_array_push(objects, ((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
    }
 
    //test sorrounding squares
@@ -307,8 +307,8 @@ FOV_object *fov_entity(Area *a, Entity *e)
 
       if(cx * cx + cy * cy<=radius * radius&&fov_in_arc(cx, cy, 0, 65536))
       {
-         te = area_entity_at(a,point(p.x+cx,p.y+cy,p.z),e);
-         if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+         te = area_entity_at(a, point(p.x + cx, p.y + cy, p.z), e);
+         if(te!=NULL) RvR_array_push(objects, ((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
 
          //Discover up
          radius_cur = cx * cx + cy * cy;
@@ -316,8 +316,8 @@ FOV_object *fov_entity(Area *a, Entity *e)
          {
             uint32_t tile0 = area_tile(a, point(p.x + cx, p.y + cy, p.z - z + 1));
 
-            te = area_entity_at(a,point(p.x+cx,p.y+cy,p.z-z),e);
-            if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+            te = area_entity_at(a, point(p.x + cx, p.y + cy, p.z - z), e);
+            if(te!=NULL) RvR_array_push(objects, ((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
 
             if(tile_has_wall(tile0))
                break;
@@ -338,8 +338,8 @@ FOV_object *fov_entity(Area *a, Entity *e)
             if(tile_has_floor(tile1))
                break;
 
-            te = area_entity_at(a,point(p.x+cx,p.y+cy,p.z+z),e);
-            if(te!=NULL) RvR_array_push(objects,((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
+            te = area_entity_at(a, point(p.x + cx, p.y + cy, p.z + z), e);
+            if(te!=NULL) RvR_array_push(objects, ((FOV_object){.type = FOV_OBJECT_ENTITY, .as.e = te}));
          }
 
          if(fov_transparent(a, e, p.x + cx, p.y + cy, p.z))

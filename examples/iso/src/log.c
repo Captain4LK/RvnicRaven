@@ -41,11 +41,11 @@ int log_buffer_len = 0;
 
 void log_draw(int scroll)
 {
-   draw_fill_rectangle(0, RvR_yres() - 74, RvR_xres(),74, 1, 1);
-   draw_line_horizontal(0,RvR_xres(),RvR_yres()-75,42,1);
-   for(int i = 0;i<RvR_min(log_buffer_len,9);i++)
+   draw_fill_rectangle(0, RvR_yres() - 74, RvR_xres(), 74, 1, 1);
+   draw_line_horizontal(0, RvR_xres(), RvR_yres() - 75, 42, 1);
+   for(int i = 0; i<RvR_min(log_buffer_len, 9); i++)
    {
-      RvR_render_string(RvR_xres()-256+1,RvR_yres()-74+1+(8-i)*8,1,log_buffer[((log_buffer_next-i-1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH],42);
+      RvR_render_string(RvR_xres() - 256 + 1, RvR_yres() - 74 + 1 + (8 - i) * 8, 1, log_buffer[((log_buffer_next - i - 1) % LOG_LENGTH + LOG_LENGTH) % LOG_LENGTH], 42);
    }
 }
 
@@ -62,8 +62,8 @@ void log_push(const char *text)
          if(len_cur + len - 1>=52)
          {
             log_buffer[log_buffer_next][len_cur] = '\0';
-            log_buffer_next = ((log_buffer_next+1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH;
-            log_buffer_len = RvR_min(LOG_LENGTH,log_buffer_len+1);
+            log_buffer_next = ((log_buffer_next + 1) % LOG_LENGTH + LOG_LENGTH) % LOG_LENGTH;
+            log_buffer_len = RvR_min(LOG_LENGTH, log_buffer_len + 1);
             len_cur = 0;
             continue;
          }
@@ -72,8 +72,8 @@ void log_push(const char *text)
       if(text[i]=='\n'||len_cur>=52)
       {
          log_buffer[log_buffer_next][len_cur] = '\0';
-         log_buffer_next = ((log_buffer_next+1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH;
-         log_buffer_len = RvR_min(LOG_LENGTH,log_buffer_len+1);
+         log_buffer_next = ((log_buffer_next + 1) % LOG_LENGTH + LOG_LENGTH) % LOG_LENGTH;
+         log_buffer_len = RvR_min(LOG_LENGTH, log_buffer_len + 1);
          len_cur = 0;
          continue;
       }
@@ -85,8 +85,8 @@ void log_push(const char *text)
    if(len_cur!=0)
    {
       log_buffer[log_buffer_next][len_cur] = '\0';
-      log_buffer_next = ((log_buffer_next+1)%LOG_LENGTH+LOG_LENGTH)%LOG_LENGTH;
-      log_buffer_len = RvR_min(LOG_LENGTH,log_buffer_len+1);
+      log_buffer_next = ((log_buffer_next + 1) % LOG_LENGTH + LOG_LENGTH) % LOG_LENGTH;
+      log_buffer_len = RvR_min(LOG_LENGTH, log_buffer_len + 1);
    }
 }
 

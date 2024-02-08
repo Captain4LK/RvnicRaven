@@ -47,7 +47,7 @@ static int action_path(World *w, Area *a, Entity *e);
 int action_do(World *w, Area *a, Entity *e)
 {
    Action *act = &e->action;
-   e->action_points-=act->cost;
+   e->action_points -= act->cost;
 
    Action_id act_id = act->id;
    act->id = ACTION_INVALID;
@@ -103,7 +103,7 @@ void action_set_wait(Entity *e, uint32_t time)
 {
    if(e==NULL)
       return;
-   
+
    action_free(e);
 
    e->action.id = ACTION_WAIT;
@@ -116,7 +116,7 @@ void action_set_move(Entity *e, uint8_t dir)
 {
    if(e==NULL)
       return;
-   
+
    action_free(e);
 
    e->action.id = ACTION_MOVE;
@@ -130,7 +130,7 @@ void action_set_ascend(Entity *e)
 {
    if(e==NULL)
       return;
-   
+
    action_free(e);
 
    e->action.id = ACTION_ASCEND;
@@ -143,7 +143,7 @@ void action_set_descend(Entity *e)
 {
    if(e==NULL)
       return;
-   
+
    action_free(e);
 
    e->action.id = ACTION_DESCEND;
@@ -156,7 +156,7 @@ void action_set_attack(Entity *e, uint8_t dir)
 {
    if(e==NULL)
       return;
-   
+
    action_free(e);
 
    e->action.id = ACTION_ATTACK;
@@ -170,7 +170,7 @@ void action_set_path(Area *a, Entity *e, Point goal, uint32_t flags)
 {
    if(e==NULL)
       return;
-   
+
    action_free(e);
 
    e->action.id = ACTION_PATH;
@@ -179,7 +179,7 @@ void action_set_path(Area *a, Entity *e, Point goal, uint32_t flags)
    e->action.can_interrupt = 1;
 
    e->action.as.path.goal = goal;
-   e->action.as.path.path = astar_path(a,e,goal,&e->action.as.path.len, flags);
+   e->action.as.path.path = astar_path(a, e, goal, &e->action.as.path.len, flags);
    e->action.as.path.pos = 0;
    e->action.as.path.flags = flags;
 }
@@ -229,12 +229,12 @@ static int action_attack(World *w, Area *a, Entity *e)
    Action *act = &e->action;
    act->status = 0;
 
-   Entity *target = area_entity_at(a,point_add_dir(e->pos,e->action.as.attack.dir),e);
+   Entity *target = area_entity_at(a, point_add_dir(e->pos, e->action.as.attack.dir), e);
 
    if(target==NULL)
       return ACTION_FINISHED;
 
-   entity_hit(target,e,NULL,-1);
+   entity_hit(target, e, NULL, -1);
    //Damage random bodypart
 
    return ACTION_FINISHED;
@@ -252,7 +252,7 @@ static int action_path(World *w, Area *a, Entity *e)
    {
       if(act->as.path.path!=NULL)
          RvR_free(act->as.path.path);
-      act->as.path.path = astar_path(a,e,act->as.path.goal,&act->as.path.len, act->as.path.flags);
+      act->as.path.path = astar_path(a, e, act->as.path.goal, &act->as.path.len, act->as.path.flags);
       act->as.path.pos = 0;
       if(act->as.path.path==NULL)
          return ACTION_FINISHED;
@@ -261,7 +261,7 @@ static int action_path(World *w, Area *a, Entity *e)
          return ACTION_FINISHED;
    }
 
-   if(!act->interrupt&&!point_equal(e->pos,act->as.path.goal)&&act->as.path.pos<act->as.path.len-1)
+   if(!act->interrupt&&!point_equal(e->pos, act->as.path.goal)&&act->as.path.pos<act->as.path.len - 1)
    {
       act->id = ACTION_PATH;
       act->cost = entity_move_cost(e);

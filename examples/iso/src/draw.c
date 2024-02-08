@@ -93,24 +93,24 @@ void draw_line_vertical(int x, int y0, int y1, uint8_t col, int transparent)
    if(y0<0)
       y0 = 0;
    if(y1>=RvR_yres())
-      y1 = RvR_yres()- 1;
+      y1 = RvR_yres() - 1;
 
    uint8_t *buff = RvR_framebuffer();
 
    if(transparent==0)
    {
       for(int y = y0; y<=y1; y++)
-         buff[y * RvR_xres()+ x] = col;
+         buff[y * RvR_xres() + x] = col;
    }
    else if(transparent==1)
    {
       for(int y = y0; y<=y1; y++)
-         buff[y * RvR_xres()+ x] = RvR_blend(col,buff[y*RvR_xres()+x]);
+         buff[y * RvR_xres() + x] = RvR_blend(col, buff[y * RvR_xres() + x]);
    }
    else
    {
       for(int y = y0; y<=y1; y++)
-         buff[y * RvR_xres()+ x] = RvR_blend(buff[y*RvR_xres()+x],col);
+         buff[y * RvR_xres() + x] = RvR_blend(buff[y * RvR_xres() + x], col);
    }
 }
 
@@ -129,9 +129,9 @@ void draw_line_horizontal(int x0, int x1, int y, uint8_t col, int transparent)
    if(x0<0)
       x0 = 0;
    if(x1>=RvR_xres())
-      x1 = RvR_xres()- 1;
+      x1 = RvR_xres() - 1;
 
-   uint8_t *dst = &RvR_framebuffer()[y * RvR_xres()+ x0];
+   uint8_t *dst = &RvR_framebuffer()[y * RvR_xres() + x0];
 
    if(transparent==0)
    {
@@ -141,12 +141,12 @@ void draw_line_horizontal(int x0, int x1, int y, uint8_t col, int transparent)
    else if(transparent==1)
    {
       for(int x = x0; x<=x1; x++, dst++)
-         *dst = RvR_blend(col,*dst);
+         *dst = RvR_blend(col, *dst);
    }
    else
    {
       for(int x = x0; x<=x1; x++, dst++)
-         *dst = RvR_blend(*dst,col);
+         *dst = RvR_blend(*dst, col);
    }
 }
 //-------------------------------------

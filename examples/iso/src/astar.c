@@ -58,7 +58,7 @@ void astar_init(Area *a)
 {
    if(nodes!=NULL)
       RvR_free(nodes);
-   nodes = RvR_malloc(sizeof(*nodes) * a->dimx*32 * a->dimy*32 * a->dimz*32, "A* nodes");
+   nodes = RvR_malloc(sizeof(*nodes) * a->dimx * 32 * a->dimy * 32 * a->dimz * 32, "A* nodes");
 
    if(heap==NULL)
       heap = RvR_malloc(sizeof(*heap) * ASTAR_HEAP_SIZE, "A* heap");
@@ -66,14 +66,14 @@ void astar_init(Area *a)
 
 uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t flags)
 {
-   memset(nodes, 0, sizeof(*nodes) * a->dimx*32 * a->dimy*32 *a->dimz*32);
+   memset(nodes, 0, sizeof(*nodes) * a->dimx * 32 * a->dimy * 32 * a->dimz * 32);
    heap_count = 0;
    Point p = e->pos;
-   unsigned nindex = p.z*a->dimy*32*a->dimx*32+p.y * a->dimx*32+ p.x;
+   unsigned nindex = p.z * a->dimy * 32 * a->dimx * 32 + p.y * a->dimx * 32 + p.x;
    AS_node *n = nodes + nindex;
    n->cost = 0;
    n->visited = 1;
-   as_heap_push(nindex, RvR_max(RvR_abs(p.x-dst.x),RvR_max(RvR_abs(p.y-dst.y),RvR_abs(p.z-dst.z))));
+   as_heap_push(nindex, RvR_max(RvR_abs(p.x - dst.x), RvR_max(RvR_abs(p.y - dst.y), RvR_abs(p.z - dst.z))));
 
    int found = 0;
    while(heap_count != 0)
@@ -82,10 +82,10 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
       n = nodes + nindex;
       as_heap_pop();
 
-      p.z = (int16_t)(nindex/(a->dimx*32*a->dimy*32));
-      p.y = (int16_t)((nindex-p.z*a->dimx*32*a->dimy*32)/(a->dimx*32));
-      p.x = (int16_t)(nindex%(a->dimx*32));
-      if(point_equal(p,dst))
+      p.z = (int16_t)(nindex / (a->dimx * 32 * a->dimy * 32));
+      p.y = (int16_t)((nindex - p.z * a->dimx * 32 * a->dimy * 32) / (a->dimx * 32));
+      p.x = (int16_t)(nindex % (a->dimx * 32));
+      if(point_equal(p, dst))
       {
          found = 1;
          break;
@@ -94,18 +94,18 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
 
       for(uint8_t i = 0; i < 8; i++)
       {
-         Point next = point_add_dir(p,i);
+         Point next = point_add_dir(p, i);
 
-         if(entity_pos_valid(a,e, next)||point_equal(next,dst))
+         if(entity_pos_valid(a, e, next)||point_equal(next, dst))
          {
-            unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
+            unsigned nnext_index = next.z * a->dimx * 32 * a->dimy * 32 + next.y * a->dimx * 32 + next.x;
             AS_node *nnext = nodes + nnext_index;
             uint16_t cost = n->cost + 1;
 
             if(!nnext->visited || cost < nnext->cost)
             {
                nnext->cost = cost;
-               nnext->dir = i&((1<<4)-1);
+               nnext->dir = i & ((1 << 4) - 1);
                nnext->visited = 1;
                if(heap_count == ASTAR_HEAP_SIZE)
                {
@@ -113,25 +113,25 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
                   goto bail;
                }
 
-               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
+               unsigned new_cost = cost + RvR_max(RvR_abs(next.x - dst.x), RvR_max(RvR_abs(next.y - dst.y), RvR_abs(next.z - dst.z)));
                as_heap_push(nnext_index, new_cost);
             }
          }
          //Upslope
          else if((tile_is_slope(area_tile(a, p))&&
-                 tile_has_wall(area_tile(a, point(next.x, next.y, p.z)))&&
-                 entity_pos_valid(a,e,point(next.x,next.y,p.z-1))))
+                  tile_has_wall(area_tile(a, point(next.x, next.y, p.z)))&&
+                  entity_pos_valid(a, e, point(next.x, next.y, p.z - 1))))
          {
             next.z--;
 
-            unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
+            unsigned nnext_index = next.z * a->dimx * 32 * a->dimy * 32 + next.y * a->dimx * 32 + next.x;
             AS_node *nnext = nodes + nnext_index;
             uint16_t cost = n->cost + 1;
 
             if(!nnext->visited || cost < nnext->cost)
             {
                nnext->cost = cost;
-               nnext->dir = i+10;
+               nnext->dir = i + 10;
                nnext->visited = 1;
                if(heap_count == ASTAR_HEAP_SIZE)
                {
@@ -139,25 +139,25 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
                   goto bail;
                }
 
-               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
+               unsigned new_cost = cost + RvR_max(RvR_abs(next.x - dst.x), RvR_max(RvR_abs(next.y - dst.y), RvR_abs(next.z - dst.z)));
                as_heap_push(nnext_index, new_cost);
             }
          }
          //Downslope
          else if(tile_is_slope(area_tile(a, point(p.x, p.y, p.z + 1)))&&
-                 entity_pos_valid(a,e,point(next.x,next.y,p.z+1))&&
+                 entity_pos_valid(a, e, point(next.x, next.y, p.z + 1))&&
                  !tile_has_wall(area_tile(a, point(next.x, next.y, p.z))))
          {
             next.z++;
 
-            unsigned nnext_index = next.z*a->dimx*32*a->dimy*32+next.y*a->dimx*32+next.x;
+            unsigned nnext_index = next.z * a->dimx * 32 * a->dimy * 32 + next.y * a->dimx * 32 + next.x;
             AS_node *nnext = nodes + nnext_index;
             uint16_t cost = n->cost + 1;
 
             if(!nnext->visited || cost < nnext->cost)
             {
                nnext->cost = cost;
-               nnext->dir = i+18;
+               nnext->dir = i + 18;
                nnext->visited = 1;
                if(heap_count == ASTAR_HEAP_SIZE)
                {
@@ -165,7 +165,7 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
                   goto bail;
                }
 
-               unsigned new_cost = cost + RvR_max(RvR_abs(next.x-dst.x),RvR_max(RvR_abs(next.y-dst.y),RvR_abs(next.z-dst.z)));
+               unsigned new_cost = cost + RvR_max(RvR_abs(next.x - dst.x), RvR_max(RvR_abs(next.y - dst.y), RvR_abs(next.z - dst.z)));
                as_heap_push(nnext_index, new_cost);
             }
          }
@@ -179,10 +179,10 @@ bail:
 
       //Count
       *path_len = 0;
-      while(!point_equal(p,e->pos))
+      while(!point_equal(p, e->pos))
       {
-         p = point_sub_dir(p,n->dir);
-         n = nodes + (p.z*a->dimx*32*a->dimy*32+p.y*a->dimx*32+p.x);
+         p = point_sub_dir(p, n->dir);
+         n = nodes + (p.z * a->dimx * 32 * a->dimy * 32 + p.y * a->dimx * 32 + p.x);
          (*path_len)++;
       }
 
@@ -194,16 +194,16 @@ bail:
       n = no;
 
       int index = (*path_len) - 1;
-      while(!point_equal(p,e->pos))
+      while(!point_equal(p, e->pos))
       {
          uint8_t dir_path = n->dir;
          if(dir_path>=18)
-            dir_path-=18;
+            dir_path -= 18;
          else if(dir_path>=10)
-            dir_path-=10;
+            dir_path -= 10;
          path[index--] = dir_path;
-         p = point_sub_dir(p,n->dir);
-         n = nodes + (p.z*a->dimx*32*a->dimy*32+p.y*a->dimx*32+p.x);
+         p = point_sub_dir(p, n->dir);
+         n = nodes + (p.z * a->dimx * 32 * a->dimy * 32 + p.y * a->dimx * 32 + p.x);
       }
 
       return path;

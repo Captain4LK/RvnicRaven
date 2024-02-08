@@ -28,7 +28,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //#defines
 #define READ_ARG(I) \
-   ((++(I))<argc?argv[(I)]:NULL)
+        ((++(I))<argc?argv[(I)]:NULL)
 
 #define MIN(a, b) ((a)<(b)?(a):(b))
 //-------------------------------------

@@ -101,9 +101,9 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 
 HLH_gui_rvr *HLH_gui_rvr_create(HLH_gui_element *parent, uint64_t flags, RvR_gui_main_loop main_loop)
 {
-   HLH_gui_rvr *rvr = (HLH_gui_rvr *) HLH_gui_element_create(sizeof(*rvr),parent,flags,rvr_msg);
+   HLH_gui_rvr *rvr = (HLH_gui_rvr *) HLH_gui_element_create(sizeof(*rvr), parent, flags, rvr_msg);
    rvr->main_loop = main_loop;
-   HLH_gui_element_timer(&rvr->e,1000/RvR_fps());
+   HLH_gui_element_timer(&rvr->e, 1000 / RvR_fps());
 
    //Init RvnicRaven
    //-------------------------------------
@@ -269,30 +269,30 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    else if(msg==HLH_GUI_MSG_DRAW)
    {
       HLH_gui_rect bounds = rvr->e.bounds;
-      int width = bounds.maxx-bounds.minx;
-      int height = bounds.maxy-bounds.miny;
+      int width = bounds.maxx - bounds.minx;
+      int height = bounds.maxy - bounds.miny;
 
-      if(width*RvR_yres()>RvR_xres()*height)
+      if(width * RvR_yres()>RvR_xres() * height)
       {
          rvr_view_height = height;
-         rvr_view_width = (RvR_xres()*height)/RvR_yres();
+         rvr_view_width = (RvR_xres() * height) / RvR_yres();
       }
       else
       {
          rvr_view_width = width;
-         rvr_view_height = (RvR_yres()*width)/RvR_xres();
+         rvr_view_height = (RvR_yres() * width) / RvR_xres();
       }
 
-      rvr_view_x = (width-rvr_view_width)/2+bounds.minx;
-      rvr_view_y = (height-rvr_view_height)/2+bounds.miny;
-      rvr_pixel_scale = (float)rvr_view_height/RvR_yres();
+      rvr_view_x = (width - rvr_view_width) / 2 + bounds.minx;
+      rvr_view_y = (height - rvr_view_height) / 2 + bounds.miny;
+      rvr_pixel_scale = (float)rvr_view_height / RvR_yres();
 
       SDL_Rect dst = {0};
       dst.x = rvr_view_x;
       dst.y = rvr_view_y;
       dst.w = rvr_view_width;
       dst.h = rvr_view_height;
-      SDL_RenderCopy(rvr->e.window->renderer,rvr_layer_texture,NULL,&dst);
+      SDL_RenderCopy(rvr->e.window->renderer, rvr_layer_texture, NULL, &dst);
    }
    else if(msg==HLH_GUI_MSG_GET_CHILD_SPACE)
    {
@@ -302,24 +302,24 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    {
       HLH_gui_mouse *m = dp;
 
-      rvr_mouse_wheel+=m->wheel;
+      rvr_mouse_wheel += m->wheel;
 
-      if(m->button&HLH_GUI_MOUSE_LEFT)
+      if(m->button & HLH_GUI_MOUSE_LEFT)
          rvr_new_key_state[RVR_BUTTON_LEFT] = 1;
       else
          rvr_new_key_state[RVR_BUTTON_LEFT] = 0;
 
-      if(m->button&HLH_GUI_MOUSE_DBLE)
+      if(m->button & HLH_GUI_MOUSE_DBLE)
          rvr_new_key_state[RVR_BUTTON_DBLECLICK] = 1;
       else
          rvr_new_key_state[RVR_BUTTON_DBLECLICK] = 0;
 
-      if(m->button&HLH_GUI_MOUSE_RIGHT)
+      if(m->button & HLH_GUI_MOUSE_RIGHT)
          rvr_new_key_state[RVR_BUTTON_RIGHT] = 1;
       else
          rvr_new_key_state[RVR_BUTTON_RIGHT] = 0;
 
-      if(m->button&HLH_GUI_MOUSE_MIDDLE)
+      if(m->button & HLH_GUI_MOUSE_MIDDLE)
          rvr_new_key_state[RVR_BUTTON_MIDDLE] = 1;
       else
          rvr_new_key_state[RVR_BUTTON_MIDDLE] = 0;
@@ -760,7 +760,7 @@ void RvR_render_present()
    HLH_gui_element_redraw(&gui_element->e);
 
    //if(SDL_RenderCopy(rvr_renderer, rvr_layer_texture, NULL, &dst_rect)!=0)
-      //RvR_log_line("SDL_RenderCopy ", "%s\n", SDL_GetError());
+   //RvR_log_line("SDL_RenderCopy ", "%s\n", SDL_GetError());
 
    //SDL_RenderPresent(rvr_renderer);
 }
@@ -817,7 +817,7 @@ void RvR_mouse_set_pos(int x, int y)
    rvr_mouse_x = (int)((float)x * rvr_pixel_scale);
    rvr_mouse_y = (int)((float)y * rvr_pixel_scale);
 
-   SDL_WarpMouseInWindow(rvr_sdl_window, rvr_mouse_x+rvr_view_x, rvr_mouse_y+rvr_view_y);
+   SDL_WarpMouseInWindow(rvr_sdl_window, rvr_mouse_x + rvr_view_x, rvr_mouse_y + rvr_view_y);
 }
 
 void RvR_text_input_start(char *text, int max_length)

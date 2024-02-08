@@ -143,7 +143,7 @@ void item_grid_remove(Item *i)
 void item_sprite_create(Item *it)
 {
    it->sprite = sprite_new(it);
-   sprite_clear(it->sprite,0);
+   sprite_clear(it->sprite, 0);
 }
 
 void item_from_def(Item *it, const ItemDef *def)

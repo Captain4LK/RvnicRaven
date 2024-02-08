@@ -22,7 +22,7 @@ typedef enum
 
    ACTION_ASCEND = 2,
    ACTION_DESCEND = 3,
-   
+
    ACTION_ATTACK = 4,
 
    ACTION_PATH = 5,

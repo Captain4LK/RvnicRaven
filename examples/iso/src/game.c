@@ -63,9 +63,9 @@ void game_update()
       RvR_malloc_report();
 
    //if(turn_heap_peek_max!=player.e)
-      //turns_do_until(
+   //turns_do_until(
    if(turn_heap_peek_max()!=player.e)
-      RvR_log_line("game_update","warning: player not at start of turn queue\n");
+      RvR_log_line("game_update", "warning: player not at start of turn queue\n");
 
    player_update();
 
@@ -105,9 +105,9 @@ void game_update()
    while(turn_heap_peek_max()!=player.e)
    {
       redraw = 1;
-      turns_do_until(world,area,player.e);
+      turns_do_until(world, area, player.e);
       if(turn_heap_peek_max()==NULL)
-         turn_start(world,area);
+         turn_start(world, area);
    }
 
    if(redraw)
@@ -194,19 +194,19 @@ void game_draw()
 
    //Draw status
    if(player.e->hunger>=2)
-      RvR_render_string(1,1,1,"Hungry",5);
+      RvR_render_string(1, 1, 1, "Hungry", 5);
 
    //Draw vital hp bars
-   int dy = RvR_yres()-74;
-   for(int i = 0;i<player.e->body.part_count;i++)
+   int dy = RvR_yres() - 74;
+   for(int i = 0; i<player.e->body.part_count; i++)
    {
       Bodypart *bp = &player.e->body.parts[i];
-      if(bp->def->tags&DEF_BODY_VITAL)
+      if(bp->def->tags & DEF_BODY_VITAL)
       {
          char tmp[128];
-         snprintf(tmp,128,"%5s: %3d/%3d",bp->def->name,bp->hp,bp->hp_max);
-         RvR_render_string(1,dy,1,tmp,12);
-         dy+=8;
+         snprintf(tmp, 128, "%5s: %3d/%3d", bp->def->name, bp->hp, bp->hp_max);
+         RvR_render_string(1, dy, 1, tmp, 12);
+         dy += 8;
       }
    }
 }
@@ -237,9 +237,9 @@ void game_set()
    redraw = 1;
    while(turn_heap_peek_max()!=player.e)
    {
-      turns_do_until(world,area,player.e);
+      turns_do_until(world, area, player.e);
       if(turn_heap_peek_max()==NULL)
-         turn_start(world,area);
+         turn_start(world, area);
    }
 }
 //-------------------------------------

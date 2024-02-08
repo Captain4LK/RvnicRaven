@@ -37,9 +37,9 @@ uint16_t sprites_next;
 void sprites_init()
 {
    sprites_next = 0;
-   for(int i = 0;i<SPRITE_CACHE_COUNT;i++)
+   for(int i = 0; i<SPRITE_CACHE_COUNT; i++)
    {
-      RvR_texture_create(65536-SPRITE_CACHE_COUNT+i,32,36);
+      RvR_texture_create(65536 - SPRITE_CACHE_COUNT + i, 32, 36);
       sprites[i].owner = NULL;
    }
 }
@@ -56,24 +56,24 @@ uint16_t sprite_new(void *owner)
 {
    sprites[sprites_next].owner = owner;
    uint16_t id = sprites_next;
-   sprites_next = (sprites_next+1)%SPRITE_CACHE_COUNT;
+   sprites_next = (sprites_next + 1) % SPRITE_CACHE_COUNT;
    return id;
 }
 
 uint16_t sprite_texture(uint16_t id)
 {
-   return 65536-SPRITE_CACHE_COUNT+id;
+   return 65536 - SPRITE_CACHE_COUNT + id;
 }
 
 void sprite_clear(uint16_t id, uint8_t color)
 {
-   RvR_texture *tex = RvR_texture_get(65536-SPRITE_CACHE_COUNT+id);
-   memset(tex->data,color,tex->width*tex->height);
+   RvR_texture *tex = RvR_texture_get(65536 - SPRITE_CACHE_COUNT + id);
+   memset(tex->data, color, tex->width * tex->height);
 }
 
 void sprite_draw_sprite(uint16_t id, uint16_t tex, int x, int y, int sx, int sy, int width, int height)
 {
-   RvR_texture *dst = RvR_texture_get(65536-SPRITE_CACHE_COUNT+id);
+   RvR_texture *dst = RvR_texture_get(65536 - SPRITE_CACHE_COUNT + id);
    RvR_texture *src = RvR_texture_get(tex);
 
    int start_x = 0;
@@ -84,22 +84,22 @@ void sprite_draw_sprite(uint16_t id, uint16_t tex, int x, int y, int sx, int sy,
       start_x = -x;
    if(y<0)
       start_y = -y;
-   if(x+end_x>dst->width)
-      end_x = width+(dst->width-x-end_x);
-   if(y+end_y>dst->height)
-      end_y = height+(dst->height-y-end_y);
+   if(x + end_x>dst->width)
+      end_x = width + (dst->width - x - end_x);
+   if(y + end_y>dst->height)
+      end_y = height + (dst->height - y - end_y);
 
    x = x<0?0:x;
    y = y<0?0:y;
 
-   const uint8_t *psrc = &src->data[start_x+sx+(start_y+sy)*src->width];
-   uint8_t *pdst = &dst->data[x+y*dst->width];
-   int src_step = -(end_x-start_x)+src->width;
-   int dst_step = dst->width-(end_x-start_x);
+   const uint8_t *psrc = &src->data[start_x + sx + (start_y + sy) * src->width];
+   uint8_t *pdst = &dst->data[x + y * dst->width];
+   int src_step = -(end_x - start_x) + src->width;
+   int dst_step = dst->width - (end_x - start_x);
 
-   for(int dy = start_y;dy<end_y;dy++,pdst+=dst_step,psrc+=src_step)
+   for(int dy = start_y; dy<end_y; dy++, pdst += dst_step, psrc += src_step)
    {
-      for(int dx = start_x;dx<end_x;dx++,psrc++,pdst++)
+      for(int dx = start_x; dx<end_x; dx++, psrc++, pdst++)
       {
          *pdst = *psrc?*psrc:*pdst;
       }
@@ -126,7 +126,7 @@ void sprite_draw_sprite(uint16_t id, uint16_t tex, int x, int y, int sx, int sy,
    uint8_t *dst = &target_pal->data[x+y*target_pal->width];
    int src_step = -(draw_end_x-draw_start_x)+s->width;
    int dst_step = target_pal->width-(draw_end_x-draw_start_x);
-    
+
    for(int y1 = draw_start_y;y1<draw_end_y;y1++,dst+=dst_step,src+=src_step)
       for(int x1 = draw_start_x;x1<draw_end_x;x1++,src++,dst++)
          *dst = *src?*src:*dst;*/

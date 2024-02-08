@@ -68,14 +68,14 @@ void texture_list_create()
 
 void texture_list_used_create()
 {
-   for(unsigned i = 0; i<map->wall_count;i++)
+   for(unsigned i = 0; i<map->wall_count; i++)
    {
       texture_list_used_add(map->walls[i].tex_lower);
       texture_list_used_add(map->walls[i].tex_upper);
       texture_list_used_add(map->walls[i].tex_mid);
    }
 
-   for(unsigned i = 0; i<map->sector_count;i++)
+   for(unsigned i = 0; i<map->sector_count; i++)
    {
       texture_list_used_add(map->sectors[i].floor_tex);
       texture_list_used_add(map->sectors[i].ceiling_tex);

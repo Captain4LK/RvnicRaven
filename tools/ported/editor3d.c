@@ -158,16 +158,16 @@ void editor3d_update(void)
          if(wlocation==0||wlocation==2)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_floor(wx, wy, 1);
+            //editor_ed_flood_floor(wx, wy, 1);
             //else
-               //editor_ed_floor(wx, wy, 1);
+            //editor_ed_floor(wx, wy, 1);
          }
          if(wlocation==1||wlocation==3)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_ceiling(wx, wy, 1);
+            //editor_ed_flood_ceiling(wx, wy, 1);
             //else
-               //editor_ed_ceiling(wx, wy, 1);
+            //editor_ed_ceiling(wx, wy, 1);
          }
          if(wlocation==4&&sprite_selec!=NULL)
             sprite_selec->z += 64 * 64;
@@ -177,16 +177,16 @@ void editor3d_update(void)
          if(wlocation==0||wlocation==2)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_floor(wx, wy, -1);
+            //editor_ed_flood_floor(wx, wy, -1);
             //else
-               //editor_ed_floor(wx, wy, -1);
+            //editor_ed_floor(wx, wy, -1);
          }
          if(wlocation==1||wlocation==3)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_ceiling(wx, wy, -1);
+            //editor_ed_flood_ceiling(wx, wy, -1);
             //else
-               //editor_ed_ceiling(wx, wy, -1);
+            //editor_ed_ceiling(wx, wy, -1);
          }
          if(wlocation==4&&sprite_selec!=NULL)
             sprite_selec->z -= 64 * 64;
@@ -207,30 +207,30 @@ void editor3d_update(void)
          if(wlocation==0)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_floor_tex(wx, wy, texture_selected);
+            //editor_ed_flood_floor_tex(wx, wy, texture_selected);
             //else
-               //editor_ed_floor_tex(wx, wy, texture_selected);
+            //editor_ed_floor_tex(wx, wy, texture_selected);
          }
          else if(wlocation==1)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_ceiling_tex(wx, wy, texture_selected);
+            //editor_ed_flood_ceiling_tex(wx, wy, texture_selected);
             //else
-               //editor_ed_ceiling_tex(wx, wy, texture_selected);
+            //editor_ed_ceiling_tex(wx, wy, texture_selected);
          }
          else if(wlocation==2)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_floor_wall_tex(wx, wy, texture_selected);
+            //editor_ed_flood_floor_wall_tex(wx, wy, texture_selected);
             //else
-               //editor_ed_floor_wall_tex(wx, wy, texture_selected);
+            //editor_ed_floor_wall_tex(wx, wy, texture_selected);
          }
          else if(wlocation==3)
          {
             //if(RvR_key_down(RVR_KEY_LSHIFT))
-               //editor_ed_flood_ceiling_wall_tex(wx, wy, texture_selected);
+            //editor_ed_flood_ceiling_wall_tex(wx, wy, texture_selected);
             //else
-               //editor_ed_ceiling_wall_tex(wx, wy, texture_selected);
+            //editor_ed_ceiling_wall_tex(wx, wy, texture_selected);
          }
       }
 
@@ -266,13 +266,13 @@ void editor3d_draw(void)
       uint16_t texture_highlight = 0;
 
       //if(wlocation==0)
-         //texture_highlight = RvR_ray_map_floor_tex_at(map, wx, wy);
+      //texture_highlight = RvR_ray_map_floor_tex_at(map, wx, wy);
       //if(wlocation==1)
-         //texture_highlight = RvR_ray_map_ceil_tex_at(map, wx, wy);
+      //texture_highlight = RvR_ray_map_ceil_tex_at(map, wx, wy);
       //if(wlocation==2)
-         //texture_highlight = RvR_ray_map_wall_ftex_at(map, wx, wy);
+      //texture_highlight = RvR_ray_map_wall_ftex_at(map, wx, wy);
       //if(wlocation==3)
-         //texture_highlight = RvR_ray_map_wall_ctex_at(map, wx, wy);
+      //texture_highlight = RvR_ray_map_wall_ctex_at(map, wx, wy);
 
       RvR_texture *texture_high = RvR_texture_get(texture_highlight);
       if(texture_high->width==64&&texture_high->height==64)
@@ -300,13 +300,13 @@ void editor3d_draw(void)
          }
 
          //if(wlocation==0)
-            //RvR_ray_map_floor_tex_set(map, wx, wy, UINT16_MAX - 1);
+         //RvR_ray_map_floor_tex_set(map, wx, wy, UINT16_MAX - 1);
          //if(wlocation==1)
-            //RvR_ray_map_ceil_tex_set(map, wx, wy, UINT16_MAX - 1);
+         //RvR_ray_map_ceil_tex_set(map, wx, wy, UINT16_MAX - 1);
          //if(wlocation==2)
-            //RvR_ray_map_wall_ftex_set(map, wx, wy, UINT16_MAX - 1);
+         //RvR_ray_map_wall_ftex_set(map, wx, wy, UINT16_MAX - 1);
          //if(wlocation==3)
-            //RvR_ray_map_wall_ctex_set(map, wx, wy, UINT16_MAX - 1);
+         //RvR_ray_map_wall_ctex_set(map, wx, wy, UINT16_MAX - 1);
       }
       else if(texture_high->width==64&&texture_high->height==1 << RvR_log2(texture_high->height))
       {
@@ -333,17 +333,17 @@ void editor3d_draw(void)
          }
 
          //if(wlocation==0)
-            //RvR_ray_map_floor_tex_set(map, wx, wy, UINT16_MAX - 2);
+         //RvR_ray_map_floor_tex_set(map, wx, wy, UINT16_MAX - 2);
          //if(wlocation==1)
-            //RvR_ray_map_ceil_tex_set(map, wx, wy, UINT16_MAX - 2);
+         //RvR_ray_map_ceil_tex_set(map, wx, wy, UINT16_MAX - 2);
          //if(wlocation==2)
-            //RvR_ray_map_wall_ftex_set(map, wx, wy, UINT16_MAX - 2);
+         //RvR_ray_map_wall_ftex_set(map, wx, wy, UINT16_MAX - 2);
          //if(wlocation==3)
-            //RvR_ray_map_wall_ctex_set(map, wx, wy, UINT16_MAX - 2);
+         //RvR_ray_map_wall_ctex_set(map, wx, wy, UINT16_MAX - 2);
       }
       //-------------------------------------
 
-      RvR_port_draw_begin(map,&camera);
+      RvR_port_draw_begin(map, &camera);
       /*Map_sprite *s = map_sprites;
       while(s!=NULL)
       {
@@ -357,13 +357,13 @@ void editor3d_draw(void)
 
       texture_highlight_old = texture_highlight;
       //if(wlocation==0)
-         //RvR_ray_map_floor_tex_set(map, wx, wy, texture_highlight);
+      //RvR_ray_map_floor_tex_set(map, wx, wy, texture_highlight);
       //if(wlocation==1)
-         //RvR_ray_map_ceil_tex_set(map, wx, wy, texture_highlight);
+      //RvR_ray_map_ceil_tex_set(map, wx, wy, texture_highlight);
       //if(wlocation==2)
-         //RvR_ray_map_wall_ftex_set(map, wx, wy, texture_highlight);
+      //RvR_ray_map_wall_ftex_set(map, wx, wy, texture_highlight);
       //if(wlocation==3)
-         //RvR_ray_map_wall_ctex_set(map, wx, wy, texture_highlight);
+      //RvR_ray_map_wall_ctex_set(map, wx, wy, texture_highlight);
 
       RvR_render_rectangle(8, RvR_yres() - 74, 66, 66, color_white);
       draw_fit64(9, RvR_yres() - 73, texture_selected);
@@ -413,11 +413,11 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_FLOOR)
       {
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_PARALLAX_FLOOR;
+         map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_PARALLAX_FLOOR;
       }
       else if(world_selection.type==RVR_PORT_CEILING)
       {
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_PARALLAX_CEILING;
+         map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_PARALLAX_CEILING;
       }
    }
 
@@ -455,59 +455,59 @@ static void e3d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_R))
    {
       if(world_selection.type==RVR_PORT_FLOOR)
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_ALIGN_FLOOR;
+         map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_ALIGN_FLOOR;
       else if(world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].flags^=RVR_PORT_SECTOR_ALIGN_CEILING;
+         map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_ALIGN_CEILING;
    }
 
    if(RvR_key_pressed(RVR_KEY_PGUP))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
-         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
          if(map->walls[world_selection.as.wall].portal>=0)
             sector = map->walls[world_selection.as.wall].portal;
-         map->sectors[sector].floor+=128;
+         map->sectors[sector].floor += 128;
       }
       else if(world_selection.type==RVR_PORT_WALL_TOP)
       {
-         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
          if(map->walls[world_selection.as.wall].portal>=0)
             sector = map->walls[world_selection.as.wall].portal;
-         map->sectors[sector].ceiling+=128;
+         map->sectors[sector].ceiling += 128;
       }
       else if(world_selection.type==RVR_PORT_FLOOR)
       {
-         map->sectors[world_selection.as.sector].floor+=128;
+         map->sectors[world_selection.as.sector].floor += 128;
       }
       else if(world_selection.type==RVR_PORT_CEILING)
       {
-         map->sectors[world_selection.as.sector].ceiling+=128;
+         map->sectors[world_selection.as.sector].ceiling += 128;
       }
    }
    else if(RvR_key_pressed(RVR_KEY_PGDN))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
-         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
          if(map->walls[world_selection.as.wall].portal>=0)
             sector = map->walls[world_selection.as.wall].portal;
-         map->sectors[sector].floor-=128;
+         map->sectors[sector].floor -= 128;
       }
       else if(world_selection.type==RVR_PORT_WALL_TOP)
       {
-         int16_t sector = RvR_port_wall_sector(map,world_selection.as.wall);
+         int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
          if(map->walls[world_selection.as.wall].portal>=0)
             sector = map->walls[world_selection.as.wall].portal;
-         map->sectors[sector].ceiling-=128;
+         map->sectors[sector].ceiling -= 128;
       }
       else if(world_selection.type==RVR_PORT_FLOOR)
       {
-         map->sectors[world_selection.as.sector].floor-=128;
+         map->sectors[world_selection.as.sector].floor -= 128;
       }
       else if(world_selection.type==RVR_PORT_CEILING)
       {
-         map->sectors[world_selection.as.sector].ceiling-=128;
+         map->sectors[world_selection.as.sector].ceiling -= 128;
       }
    }
 
@@ -545,7 +545,7 @@ static void e3d_draw_view(void)
    int mx, my;
    RvR_mouse_pos(&mx, &my);
 
-   RvR_port_draw_begin(map,&camera);
+   RvR_port_draw_begin(map, &camera);
    /*Map_sprite *s = map_sprites;
    while(s!=NULL)
    {

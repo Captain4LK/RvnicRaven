@@ -32,32 +32,32 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 Point point_add_dir(Point p, uint8_t dir)
 {
-   const Point dirs[26] = { { 1, 0 ,0}, { 0, 1 ,0}, { -1, 0 ,0}, { 0, -1 ,0}, { -1, 1 ,0}, { -1, -1 ,0}, { 1, -1 ,0}, { 1, 1 ,0}, {0,0,1}, {0,0,-1},
-    { 1, 0 ,-1}, { 0, 1 ,-1}, { -1, 0 ,-1}, { 0, -1 ,-1}, { -1, 1 ,-1}, { -1, -1 ,-1}, { 1, -1 ,-1}, { 1, 1 ,-1},
-    { 1, 0 ,1}, { 0, 1 ,1}, { -1, 0 ,1}, { 0, -1 ,1}, { -1, 1 ,1}, { -1, -1 ,1}, { 1, -1 ,1}, { 1, 1 ,1}};
+   const Point dirs[26] = { { 1, 0, 0}, { 0, 1, 0}, { -1, 0, 0}, { 0, -1, 0}, { -1, 1, 0}, { -1, -1, 0}, { 1, -1, 0}, { 1, 1, 0}, {0, 0, 1}, {0, 0, -1},
+                            { 1, 0, -1}, { 0, 1, -1}, { -1, 0, -1}, { 0, -1, -1}, { -1, 1, -1}, { -1, -1, -1}, { 1, -1, -1}, { 1, 1, -1},
+                            { 1, 0, 1}, { 0, 1, 1}, { -1, 0, 1}, { 0, -1, 1}, { -1, 1, 1}, { -1, -1, 1}, { 1, -1, 1}, { 1, 1, 1}};
 
    if(dir>=26)
       return p;
 
-   p.x+=dirs[dir].x;
-   p.y+=dirs[dir].y;
-   p.z+=dirs[dir].z;
+   p.x += dirs[dir].x;
+   p.y += dirs[dir].y;
+   p.z += dirs[dir].z;
 
    return p;
 }
 
 Point point_sub_dir(Point p, uint8_t dir)
 {
-   const Point dirs[26] = { { 1, 0 ,0}, { 0, 1 ,0}, { -1, 0 ,0}, { 0, -1 ,0}, { -1, 1 ,0}, { -1, -1 ,0}, { 1, -1 ,0}, { 1, 1 ,0}, {0,0,1}, {0,0,-1},
-    { 1, 0 ,-1}, { 0, 1 ,-1}, { -1, 0 ,-1}, { 0, -1 ,-1}, { -1, 1 ,-1}, { -1, -1 ,-1}, { 1, -1 ,-1}, { 1, 1 ,-1},
-    { 1, 0 ,1}, { 0, 1 ,1}, { -1, 0 ,1}, { 0, -1 ,1}, { -1, 1 ,1}, { -1, -1 ,1}, { 1, -1 ,1}, { 1, 1 ,1}};
+   const Point dirs[26] = { { 1, 0, 0}, { 0, 1, 0}, { -1, 0, 0}, { 0, -1, 0}, { -1, 1, 0}, { -1, -1, 0}, { 1, -1, 0}, { 1, 1, 0}, {0, 0, 1}, {0, 0, -1},
+                            { 1, 0, -1}, { 0, 1, -1}, { -1, 0, -1}, { 0, -1, -1}, { -1, 1, -1}, { -1, -1, -1}, { 1, -1, -1}, { 1, 1, -1},
+                            { 1, 0, 1}, { 0, 1, 1}, { -1, 0, 1}, { 0, -1, 1}, { -1, 1, 1}, { -1, -1, 1}, { 1, -1, 1}, { 1, 1, 1}};
 
    if(dir>=26)
       return p;
 
-   p.x-=dirs[dir].x;
-   p.y-=dirs[dir].y;
-   p.z-=dirs[dir].z;
+   p.x -= dirs[dir].x;
+   p.y -= dirs[dir].y;
+   p.z -= dirs[dir].z;
 
    return p;
 }
@@ -70,7 +70,9 @@ int point_equal(Point a, Point b)
 Point point(int x, int y, int z)
 {
    //TODO(Captain4LK): change parameters to int16_t and handle the great flood of warnings
-   return (Point){.x = (int16_t)x, .y = (int16_t)y, .z = (int16_t)z};
+   return (Point){
+             .x = (int16_t)x, .y = (int16_t)y, .z = (int16_t)z
+   };
 }
 
 int point_adjacent(Point a, Point b)
@@ -78,23 +80,23 @@ int point_adjacent(Point a, Point b)
    if(a.z!=b.z)
       return 0;
 
-   return RvR_abs(a.x-b.x)<=1&&RvR_abs(a.y-b.y)<=1;
+   return RvR_abs(a.x - b.x)<=1&&RvR_abs(a.y - b.y)<=1;
 }
 
 uint8_t point_dir(Point from, Point to)
 {
    int index = 0;
    if(to.x<from.x)
-      index+=3;
+      index += 3;
    else if(to.x>from.x)
-      index+=6;
+      index += 6;
 
    if(to.y<from.y)
-      index+=1;
+      index += 1;
    else if(to.y>from.y)
-      index+=2;
+      index += 2;
 
-   uint8_t dirs[9] = {0,3,1,2,5,4,0,6,7};
+   uint8_t dirs[9] = {0, 3, 1, 2, 5, 4, 0, 6, 7};
 
    return dirs[index];
 }

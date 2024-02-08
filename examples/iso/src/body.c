@@ -34,8 +34,8 @@ void body_from_def(Body *body, const BodyDef *def)
 {
    body->def = def;
    body->part_count = def->bodypart_count;
-   body->parts = RvR_malloc(sizeof(*body->parts)*body->part_count,"Body parts array");
-   for(int i = 0;i<body->part_count;i++)
+   body->parts = RvR_malloc(sizeof(*body->parts) * body->part_count, "Body parts array");
+   for(int i = 0; i<body->part_count; i++)
    {
       body->parts[i].def = &def->bodyparts[i];
       body->parts[i].next = def->bodyparts[i].next;
@@ -44,76 +44,76 @@ void body_from_def(Body *body, const BodyDef *def)
       body->parts[i].hp_max = 50;
 
       int slot_count = 0;
-      if(body->parts[i].def->tags&DEF_BODY_SLOT_UPPER) slot_count+=4;
-      if(body->parts[i].def->tags&DEF_BODY_SLOT_LOWER) slot_count+=3;
-      if(body->parts[i].def->tags&DEF_BODY_SLOT_HEAD) slot_count+=3;
-      if(body->parts[i].def->tags&DEF_BODY_SLOT_HAND) slot_count+=3;
-      if(body->parts[i].def->tags&DEF_BODY_SLOT_FOOT) slot_count+=3;
-      if(body->parts[i].def->tags&DEF_BODY_GRASP) slot_count+=1;
+      if(body->parts[i].def->tags & DEF_BODY_SLOT_UPPER)slot_count += 4;
+      if(body->parts[i].def->tags & DEF_BODY_SLOT_LOWER)slot_count += 3;
+      if(body->parts[i].def->tags & DEF_BODY_SLOT_HEAD)slot_count += 3;
+      if(body->parts[i].def->tags & DEF_BODY_SLOT_HAND)slot_count += 3;
+      if(body->parts[i].def->tags & DEF_BODY_SLOT_FOOT)slot_count += 3;
+      if(body->parts[i].def->tags & DEF_BODY_GRASP)slot_count += 1;
 
       if(slot_count>0)
       {
-         body->parts[i].slots = RvR_malloc(sizeof(*body->parts[i].slots)*slot_count,"Body part item slots");
+         body->parts[i].slots = RvR_malloc(sizeof(*body->parts[i].slots) * slot_count, "Body part item slots");
          body->parts[i].slot_count = slot_count;
 
          int cur = 0;
-         if(body->parts[i].def->tags&DEF_BODY_GRASP)
+         if(body->parts[i].def->tags & DEF_BODY_GRASP)
          {
             body->parts[i].slots[cur].type = ITEM_SLOT_GRASP;
             body->parts[i].slots[cur].layer = ITEM_SLOT_ANY;
-            cur+=1;
+            cur += 1;
          }
-         if(body->parts[i].def->tags&DEF_BODY_SLOT_UPPER)
+         if(body->parts[i].def->tags & DEF_BODY_SLOT_UPPER)
          {
             body->parts[i].slots[cur].type = ITEM_SLOT_UPPER;
             body->parts[i].slots[cur].layer = ITEM_SLOT_UNDER;
-            body->parts[i].slots[cur+1].type = ITEM_SLOT_UPPER;
-            body->parts[i].slots[cur+1].layer = ITEM_SLOT_OVER;
-            body->parts[i].slots[cur+2].type = ITEM_SLOT_UPPER;
-            body->parts[i].slots[cur+2].layer = ITEM_SLOT_ARMOR;
-            body->parts[i].slots[cur+3].type = ITEM_SLOT_UPPER;
-            body->parts[i].slots[cur+3].layer = ITEM_SLOT_BACK;
-            cur+=4;
+            body->parts[i].slots[cur + 1].type = ITEM_SLOT_UPPER;
+            body->parts[i].slots[cur + 1].layer = ITEM_SLOT_OVER;
+            body->parts[i].slots[cur + 2].type = ITEM_SLOT_UPPER;
+            body->parts[i].slots[cur + 2].layer = ITEM_SLOT_ARMOR;
+            body->parts[i].slots[cur + 3].type = ITEM_SLOT_UPPER;
+            body->parts[i].slots[cur + 3].layer = ITEM_SLOT_BACK;
+            cur += 4;
          }
-         if(body->parts[i].def->tags&DEF_BODY_SLOT_LOWER)
+         if(body->parts[i].def->tags & DEF_BODY_SLOT_LOWER)
          {
             body->parts[i].slots[cur].type = ITEM_SLOT_LOWER;
             body->parts[i].slots[cur].layer = ITEM_SLOT_UNDER;
-            body->parts[i].slots[cur+1].type = ITEM_SLOT_LOWER;
-            body->parts[i].slots[cur+1].layer = ITEM_SLOT_OVER;
-            body->parts[i].slots[cur+2].type = ITEM_SLOT_LOWER;
-            body->parts[i].slots[cur+2].layer = ITEM_SLOT_ARMOR;
-            cur+=3;
+            body->parts[i].slots[cur + 1].type = ITEM_SLOT_LOWER;
+            body->parts[i].slots[cur + 1].layer = ITEM_SLOT_OVER;
+            body->parts[i].slots[cur + 2].type = ITEM_SLOT_LOWER;
+            body->parts[i].slots[cur + 2].layer = ITEM_SLOT_ARMOR;
+            cur += 3;
          }
-         if(body->parts[i].def->tags&DEF_BODY_SLOT_HEAD)
+         if(body->parts[i].def->tags & DEF_BODY_SLOT_HEAD)
          {
             body->parts[i].slots[cur].type = ITEM_SLOT_HEAD;
             body->parts[i].slots[cur].layer = ITEM_SLOT_UNDER;
-            body->parts[i].slots[cur+1].type = ITEM_SLOT_HEAD;
-            body->parts[i].slots[cur+1].layer = ITEM_SLOT_OVER;
-            body->parts[i].slots[cur+2].type = ITEM_SLOT_HEAD;
-            body->parts[i].slots[cur+2].layer = ITEM_SLOT_ARMOR;
-            cur+=3;
+            body->parts[i].slots[cur + 1].type = ITEM_SLOT_HEAD;
+            body->parts[i].slots[cur + 1].layer = ITEM_SLOT_OVER;
+            body->parts[i].slots[cur + 2].type = ITEM_SLOT_HEAD;
+            body->parts[i].slots[cur + 2].layer = ITEM_SLOT_ARMOR;
+            cur += 3;
          }
-         if(body->parts[i].def->tags&DEF_BODY_SLOT_HAND)
+         if(body->parts[i].def->tags & DEF_BODY_SLOT_HAND)
          {
             body->parts[i].slots[cur].type = ITEM_SLOT_HAND;
             body->parts[i].slots[cur].layer = ITEM_SLOT_UNDER;
-            body->parts[i].slots[cur+1].type = ITEM_SLOT_HAND;
-            body->parts[i].slots[cur+1].layer = ITEM_SLOT_OVER;
-            body->parts[i].slots[cur+2].type = ITEM_SLOT_HAND;
-            body->parts[i].slots[cur+2].layer = ITEM_SLOT_ARMOR;
-            cur+=3;
+            body->parts[i].slots[cur + 1].type = ITEM_SLOT_HAND;
+            body->parts[i].slots[cur + 1].layer = ITEM_SLOT_OVER;
+            body->parts[i].slots[cur + 2].type = ITEM_SLOT_HAND;
+            body->parts[i].slots[cur + 2].layer = ITEM_SLOT_ARMOR;
+            cur += 3;
          }
-         if(body->parts[i].def->tags&DEF_BODY_SLOT_FOOT)
+         if(body->parts[i].def->tags & DEF_BODY_SLOT_FOOT)
          {
             body->parts[i].slots[cur].type = ITEM_SLOT_FOOT;
             body->parts[i].slots[cur].layer = ITEM_SLOT_UNDER;
-            body->parts[i].slots[cur+1].type = ITEM_SLOT_FOOT;
-            body->parts[i].slots[cur+1].layer = ITEM_SLOT_OVER;
-            body->parts[i].slots[cur+2].type = ITEM_SLOT_FOOT;
-            body->parts[i].slots[cur+2].layer = ITEM_SLOT_ARMOR;
-            cur+=3;
+            body->parts[i].slots[cur + 1].type = ITEM_SLOT_FOOT;
+            body->parts[i].slots[cur + 1].layer = ITEM_SLOT_OVER;
+            body->parts[i].slots[cur + 2].type = ITEM_SLOT_FOOT;
+            body->parts[i].slots[cur + 2].layer = ITEM_SLOT_ARMOR;
+            cur += 3;
          }
       }
    }

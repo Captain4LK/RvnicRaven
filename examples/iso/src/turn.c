@@ -68,20 +68,20 @@ void turn_start(World *w, Area *a)
       it = next;
    }*/
 
-   RvR_array_length_set(turn_heap,0);
+   RvR_array_length_set(turn_heap, 0);
 
    //Push player first (to guarantee player is first to act)
-   player.e->action_points+=128;
+   player.e->action_points += 128;
    if(player.e->action_points>0)
       turn_heap_push(player.e);
 
    Entity *cur = a->entities;
-   for(;cur!=NULL;cur = cur->next)
+   for(; cur!=NULL; cur = cur->next)
    {
-      entity_turn(w,a,cur);
+      entity_turn(w, a, cur);
       if(cur==player.e)
          continue;
-      cur->action_points+=128;
+      cur->action_points += 128;
       if(cur->action_points<=0)
          continue;
 
@@ -104,7 +104,7 @@ void turns_do_until(World *w, Area *a, Entity *until)
          continue;
       }
 
-      action_do(w,a,e);
+      action_do(w, a, e);
 
       if(e->action_points>0)
          turn_heap_push(e);
@@ -113,16 +113,16 @@ void turns_do_until(World *w, Area *a, Entity *until)
 
 void turn_heap_push(Entity *e)
 {
-   RvR_array_push(turn_heap,e);
-   size_t index = RvR_array_length(turn_heap)-1;
-   size_t parent = (index-1)/2;
+   RvR_array_push(turn_heap, e);
+   size_t index = RvR_array_length(turn_heap) - 1;
+   size_t parent = (index - 1) / 2;
    while(index!=0&&turn_heap[parent]->action_points<turn_heap[index]->action_points)
    {
       Entity *tmp = turn_heap[parent];
       turn_heap[parent] = turn_heap[index];
       turn_heap[index] = tmp;
       index = parent;
-      parent = (index-1)/2;
+      parent = (index - 1) / 2;
    }
 }
 
@@ -132,9 +132,9 @@ Entity *turn_heap_max(void)
       return NULL;
 
    Entity *max = turn_heap[0];
-   turn_heap[0] = turn_heap[RvR_array_length(turn_heap)-1];
+   turn_heap[0] = turn_heap[RvR_array_length(turn_heap) - 1];
    size_t len = RvR_array_length(turn_heap);
-   RvR_array_length_set(turn_heap,len-1);
+   RvR_array_length_set(turn_heap, len - 1);
    if(RvR_array_length(turn_heap)==0)
       return max;
 
@@ -143,27 +143,27 @@ Entity *turn_heap_max(void)
    {
       int left = -1;
       int right = -1;
-      if(2*index+1<RvR_array_length(turn_heap))
-         left = turn_heap[2*index+1]->action_points;
-      if(2*index+2<RvR_array_length(turn_heap))
-         right = turn_heap[2*index+2]->action_points;
+      if(2 * index + 1<RvR_array_length(turn_heap))
+         left = turn_heap[2 * index + 1]->action_points;
+      if(2 * index + 2<RvR_array_length(turn_heap))
+         right = turn_heap[2 * index + 2]->action_points;
 
       if(turn_heap[index]->action_points>=left&&turn_heap[index]->action_points>=right)
          break;
 
       if(left>right)
       {
-         Entity *tmp = turn_heap[2*index+1];
-         turn_heap[2*index+1] = turn_heap[index];
+         Entity *tmp = turn_heap[2 * index + 1];
+         turn_heap[2 * index + 1] = turn_heap[index];
          turn_heap[index] = tmp;
-         index = 2*index+1;
+         index = 2 * index + 1;
       }
       else
       {
-         Entity *tmp = turn_heap[2*index+2];
-         turn_heap[2*index+2] = turn_heap[index];
+         Entity *tmp = turn_heap[2 * index + 2];
+         turn_heap[2 * index + 2] = turn_heap[index];
          turn_heap[index] = tmp;
-         index = 2*index+2;
+         index = 2 * index + 2;
       }
    }
 
