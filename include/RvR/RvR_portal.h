@@ -16,8 +16,8 @@ typedef struct RvR_port_depth_buffer_entry RvR_port_depth_buffer_entry;
 
 typedef struct
 {
-   int16_t wall_count;
-   int16_t wall_first;
+   uint16_t wall_count;
+   uint16_t wall_first;
    uint32_t flags;
    RvR_fix22 floor;
    RvR_fix22 ceiling;
@@ -30,14 +30,18 @@ typedef struct
    int16_t y_off;
 }RvR_port_sector;
 
+//TODO(Captain4LK): maybe replace x,y position with
+//separate vertex array indices. This would make moving walls trivial
+//(since all connected walls share vertices).
+//But might reduce performance due to worse cache access
 typedef struct
 {
    RvR_fix22 x;
    RvR_fix22 y;
    uint32_t flags;
-   int16_t p2;
-   int16_t portal;
-   int16_t portal_wall;
+   uint16_t p2;
+   uint16_t portal;
+   uint16_t portal_wall;
    uint16_t tex_lower;
    uint16_t tex_upper;
    uint16_t tex_mid;
@@ -50,8 +54,8 @@ typedef struct
 {
    RvR_port_wall *walls;
    RvR_port_sector *sectors;
-   int32_t wall_count;
-   int32_t sector_count;
+   uint16_t wall_count;
+   uint16_t sector_count;
 }RvR_port_map;
 
 typedef struct
@@ -122,45 +126,63 @@ struct RvR_port_depth_buffer_entry
 #define RVR_PORT_WALL_FLIP_Y                     UINT32_C(0x2)
 //-------------------------------------
 
+//Constants
+#define RVR_PORT_WALL_INVALID UINT16_MAX
+#define RVR_PORT_SECTOR_INVALID UINT16_MAX
+//-------------------------------------
+
+//Map
+//-------------------------------------
 RvR_port_map *RvR_port_map_create(void);
-void RvR_port_map_save(const RvR_port_map *map, const char *path);
+void          RvR_port_map_save(const RvR_port_map *map, const char *path);
 RvR_port_map *RvR_port_map_load(uint16_t id);
 RvR_port_map *RvR_port_map_load_path(const char *path);
 RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw);
+int           RvR_port_map_check(const RvR_port_map *map);
+void          RvR_port_map_print_walls(const RvR_port_map *map);
+//-------------------------------------
 
-int RvR_port_sector_inside(const RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y);
-int16_t RvR_port_sector_update(const RvR_port_map *map, int16_t sector_last, RvR_fix22 x, RvR_fix22 y);
-
-int16_t RvR_port_wall_sector(const RvR_port_map *map, int16_t wall);
-void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 y);
-//Finds first wall in polygon
-int16_t RvR_port_wall_first(const RvR_port_map *map, int16_t wall);
-//For adding a point to an UNFINISHED polygon or creating a new polygon
-int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y);
-//For subdividing lines in COMPLETED polygins
-int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y);
-int16_t RvR_port_wall_next(const RvR_port_map *map, int16_t wall);
-int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall);
-int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall);
-int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall);
-int RvR_port_subsector_length(const RvR_port_map *map, int16_t wall);
-int16_t RvR_port_wall_next_onesided(const RvR_port_map *map, int16_t wall);
-int RvR_port_wall_onesided_length(const RvR_port_map *map, int16_t wall);
+//Sector
+//-------------------------------------
+int     RvR_port_sector_inside(const RvR_port_map *map, uint16_t sector, RvR_fix22 x, RvR_fix22 y);
+uint16_t RvR_port_sector_update(const RvR_port_map *map, uint16_t sector_last, RvR_fix22 x, RvR_fix22 y);
 
 //Map manipulation
-int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y);
-void RvR_port_sector_fix_winding(RvR_port_map *map, int16_t sector);
-int16_t RvR_port_sector_make_inner(RvR_port_map *map, int16_t wall);
-void RvR_port_sector_delete(RvR_port_map *map, int16_t sector);
-int RvR_port_map_check(const RvR_port_map *map);
-void RvR_port_map_print_walls(const RvR_port_map *map);
+//TODO(Captain4LK): should we keep these here, or should they be only in the editor?
+void    RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector);
+uint16_t RvR_port_sector_make_inner(RvR_port_map *map, uint16_t wall);
+void    RvR_port_sector_delete(RvR_port_map *map, uint16_t sector);
+//-------------------------------------
 
-void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
-void RvR_port_draw_map(RvR_port_selection *select);
-void RvR_port_draw_end(RvR_port_selection *select);
-void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref);
+//Wall
+//-------------------------------------
+uint16_t RvR_port_wall_sector(const RvR_port_map *map, uint16_t wall);
+void    RvR_port_wall_move(RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22 y);
+uint16_t RvR_port_wall_first(const RvR_port_map *map, uint16_t wall);
+uint16_t RvR_port_wall_next(const RvR_port_map *map, uint16_t wall);
+uint16_t RvR_port_wall_previous(const RvR_port_map *map, uint16_t wall);
+int RvR_port_wall_winding(const RvR_port_map *map, uint16_t wall);
+int     RvR_port_wall_subsector(const RvR_port_map *map, uint16_t sector, uint16_t wall);
+uint16_t RvR_port_subsector_length(const RvR_port_map *map, uint16_t wall);
+//TODO(Captain4LK): find a proper name for this
+uint16_t RvR_port_wall_next_onesided(const RvR_port_map *map, uint16_t wall);
+uint16_t RvR_port_wall_onesided_length(const RvR_port_map *map, uint16_t wall);
+
+//Map manipulation
+//TODO(Captain4LK): should we keep these here, or should they be only in the editor?
+uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_fix22 y);
+//-------------------------------------
+
+//Rendering
+//-------------------------------------
+void  RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
+void  RvR_port_draw_map(RvR_port_selection *select);
+void  RvR_port_draw_end(RvR_port_selection *select);
+void  RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref);
 
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_floor(int x);
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_ceiling(int x);
+//-------------------------------------
+
 
 #endif

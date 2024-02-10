@@ -303,9 +303,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          num_z+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_z),RvR_non_zero(wall->x1-wall->x0));
          num_u+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u),RvR_non_zero(wall->x1-wall->x0));
 
-         port_plane *plane_floor;
-         port_plane *plane_ceiling;
-
          for(int x = x0;x<x1;x++)
          {
             int y0 = (cy+4095)/4096;
@@ -1597,8 +1594,9 @@ static void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprit
          //Check for transparent pixels
          if(tex[(v + step_v * (select->y - ys)) >> 16])
          {
-            //TODO(Captain4LK): type + pointer
+            //TODO(Captain4LK): sprite pointer
             select->depth = depth;
+            select->type = RVR_PORT_SPRITE_BILL;
          }
       }
 
@@ -1742,8 +1740,9 @@ static void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *sel
          //Check for transparent pixels
          if(tex[(texture_coord_scaled + coord_step_scaled * (select->y - wy)) >> 16])
          {
-            //TODO(Captain4LK): type + pointer
+            //TODO(Captain4LK): sprite pointer
             select->depth = depth;
+            select->type = RVR_PORT_SPRITE_WALL;
          }
       }
 
@@ -2021,6 +2020,16 @@ static void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *se
             if(sp->as.floor.wy>clip->depth&&start<clip->limit)
                start = clip->limit;
             clip = clip->next;
+         }
+
+         if(select!=NULL)
+         {
+            if(x==select->x&&select->y>=start&&select->y<=end&&select->depth>sp->as.floor.wy)
+            {
+               //TODO(Captian4LK): sprite pointer
+               select->depth = sp->as.floor.wy;
+               select->type = RVR_PORT_SPRITE_FLOOR;
+            }
          }
 
          RvR_fix22 s0 = prev_start;

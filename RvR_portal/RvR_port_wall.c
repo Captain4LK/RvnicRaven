@@ -33,33 +33,33 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //TODO(Captain4LK): we can do a binary search here
 //--> speed up RvR_port_wall_previous() by using RvR_port_wall_sector()
-int16_t RvR_port_wall_sector(const RvR_port_map *map, int16_t wall)
+uint16_t RvR_port_wall_sector(const RvR_port_map *map, uint16_t wall)
 {
    for(int i = 0;i<map->sector_count;i++)
       if(wall>=map->sectors[i].wall_first&&wall<map->sectors[i].wall_first+map->sectors[i].wall_count)
-         return i;
+         return (uint16_t)i;
 
    return -1;
 }
 
-void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 y)
+void RvR_port_wall_move(RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22 y)
 {
    if(map->walls[wall].x==x&&map->walls[wall].y==y)
       return;
 
-   int16_t old_x = map->walls[wall].x;
-   int16_t old_y = map->walls[wall].y;
+   RvR_fix22 old_x = map->walls[wall].x;
+   RvR_fix22 old_y = map->walls[wall].y;
 
    map->walls[wall].x = x;
    map->walls[wall].y = y;
-   int16_t prev = RvR_port_wall_previous(map,wall);
+   uint16_t prev = RvR_port_wall_previous(map,wall);
 
    //wall adjacent
    //-------------------------------------
-   int16_t next = map->walls[wall].portal_wall;
-   while(next!=-1)
+   uint16_t next = map->walls[wall].portal_wall;
+   while(next!=RVR_PORT_WALL_INVALID)
    {
-      int16_t p2 = RvR_port_wall_next(map,next);
+      uint16_t p2 = RvR_port_wall_next(map,next);
       if(map->walls[p2].x==old_x&&map->walls[p2].y==old_y)
       {
          map->walls[p2].x = x;
@@ -76,7 +76,7 @@ void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 
    //prev adjacent
    //-------------------------------------
    next = map->walls[prev].portal_wall;
-   while(next!=-1)
+   while(next!=RVR_PORT_WALL_INVALID)
    {
       if(map->walls[next].x==old_x&&map->walls[next].y==old_y)
       {
@@ -92,9 +92,9 @@ void RvR_port_wall_move(RvR_port_map *map, int16_t wall, RvR_fix22 x, RvR_fix22 
    //-------------------------------------
 }
 
-int16_t RvR_port_wall_first(const RvR_port_map *map, int16_t wall)
+uint16_t RvR_port_wall_first(const RvR_port_map *map, uint16_t wall)
 {
-   int16_t cur = wall;
+   uint16_t cur = wall;
    for(;;)
    {
       if(cur==0)
@@ -107,6 +107,7 @@ int16_t RvR_port_wall_first(const RvR_port_map *map, int16_t wall)
    }
 }
 
+#if 0
 int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y)
 {
    int16_t first = -1;
@@ -162,22 +163,23 @@ int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR
 
    return insert;
 }
+#endif
 
-int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix22 y)
+uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_fix22 y)
 {
-   int16_t w1 = map->walls[w0].p2;
-   int16_t w2 = map->walls[w0].portal_wall;
-   int16_t w3 = -1;
-   int16_t sector = RvR_port_wall_sector(map,w0);
+   uint16_t w1 = map->walls[w0].p2;
+   uint16_t w2 = map->walls[w0].portal_wall;
+   uint16_t w3 = RVR_PORT_WALL_INVALID;
+   uint16_t sector = RvR_port_wall_sector(map,w0);
 
    //Add wall to org sector
    //-------------------------------------
    map->wall_count++;
    map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
-   int16_t insert = w0+1;
+   uint16_t insert = w0+1;
 
    //Move existing walls to right
-   for(int16_t w = map->wall_count-1;w>insert;w--)
+   for(int w = map->wall_count-1;w>insert;w--)
       map->walls[w] = map->walls[w-1];
 
    //Update indices
@@ -186,7 +188,7 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
       RvR_port_wall *wall = map->walls+i;
       if(wall->p2>=insert)
          wall->p2++;
-      if(wall->portal_wall>=insert)
+      if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
          wall->portal_wall++;
    }
    //Update sector first_wall
@@ -216,16 +218,16 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
 
    //Add wall to adjacent sector
    //-------------------------------------
-   if(w2>=0)
+   if(w2!=RVR_PORT_WALL_INVALID)
    {
       map->wall_count++;
       map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
       w3 = map->walls[w2].p2;
-      int16_t insert1 = w2+1;
+      uint16_t insert1 = w2+1;
       sector = RvR_port_wall_sector(map,w2);
 
       //Move existing walls to right
-      for(int16_t w = map->wall_count-1;w>insert1;w--)
+      for(int w = map->wall_count-1;w>insert1;w--)
          map->walls[w] = map->walls[w-1];
 
       //Update indices
@@ -269,24 +271,24 @@ int16_t RvR_port_wall_insert(RvR_port_map *map, int16_t w0, RvR_fix22 x, RvR_fix
    return insert;
 }
 
-int16_t RvR_port_wall_next(const RvR_port_map *map, int16_t wall)
+uint16_t RvR_port_wall_next(const RvR_port_map *map, uint16_t wall)
 {
    return map->walls[wall].p2;
 }
 
-int16_t RvR_port_wall_previous(const RvR_port_map *map, int16_t wall)
+uint16_t RvR_port_wall_previous(const RvR_port_map *map, uint16_t wall)
 {
    if(wall>0&&map->walls[wall-1].p2==wall)
       return wall-1;
 
    for(int i = 0;i<map->wall_count;i++)
       if(map->walls[i].p2==wall)
-         return i;
+         return (uint16_t)i;
 
-   return -1;
+   return RVR_PORT_WALL_INVALID;
 }
 
-int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall)
+int RvR_port_wall_winding(const RvR_port_map *map, uint16_t wall)
 {
    int64_t sum = 0;
    int cur = wall;
@@ -304,7 +306,7 @@ int16_t RvR_port_wall_winding(const RvR_port_map *map, int16_t wall)
    return sum>0;
 }
 
-int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wall)
+int RvR_port_wall_subsector(const RvR_port_map *map, uint16_t sector, uint16_t wall)
 {
    int subsector = 0;
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
@@ -320,10 +322,10 @@ int RvR_port_wall_subsector(const RvR_port_map *map, int16_t sector, int16_t wal
    return subsector;
 }
 
-int RvR_port_subsector_length(const RvR_port_map *map, int16_t wall)
+uint16_t RvR_port_subsector_length(const RvR_port_map *map, uint16_t wall)
 {
-   int len = 1;
-   int16_t cur = map->walls[wall].p2;
+   uint16_t len = 1;
+   uint16_t cur = map->walls[wall].p2;
    while(cur!=wall)
    {
       cur = map->walls[cur].p2;
@@ -333,27 +335,27 @@ int RvR_port_subsector_length(const RvR_port_map *map, int16_t wall)
    return len;
 }
 
-int16_t RvR_port_wall_next_onesided(const RvR_port_map *map, int16_t wall)
+uint16_t RvR_port_wall_next_onesided(const RvR_port_map *map, uint16_t wall)
 {
-   int16_t p2 = map->walls[wall].p2;
-   if(map->walls[p2].portal==-1)
+   uint16_t p2 = map->walls[wall].p2;
+   if(map->walls[p2].portal==RVR_PORT_SECTOR_INVALID)
       return p2;
 
-   int16_t pw = map->walls[p2].portal_wall;
+   uint16_t pw = map->walls[p2].portal_wall;
    for(;;)
    {
-      int16_t pw2 = map->walls[pw].p2;
-      if(map->walls[pw2].portal==-1)
+      uint16_t pw2 = map->walls[pw].p2;
+      if(map->walls[pw2].portal==RVR_PORT_SECTOR_INVALID)
          return pw2;
 
       pw = map->walls[pw2].portal_wall;
    }
 }
 
-int RvR_port_wall_onesided_length(const RvR_port_map *map, int16_t wall)
+uint16_t RvR_port_wall_onesided_length(const RvR_port_map *map, uint16_t wall)
 {
-   int len = 1;
-   int16_t cur = RvR_port_wall_next_onesided(map,wall);
+   uint16_t len = 1;
+   uint16_t cur = RvR_port_wall_next_onesided(map,wall);
    while(cur!=wall)
    {
       cur = RvR_port_wall_next_onesided(map,cur);

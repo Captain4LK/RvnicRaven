@@ -41,10 +41,10 @@ RvR_port_map *RvR_port_map_create(void)
 void RvR_port_map_save(const RvR_port_map *map, const char *path)
 {
    //Calculate needed memory
-   int size = 0;
+   size_t size = 0;
    size += 2; //version
-   size += 4; //map->wall_count
-   size += 4; //map->sector_count
+   size += 2; //map->wall_count
+   size += 2; //map->sector_count
    size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1+2+2); //Walls
    size+=map->sector_count*(2+2+4+4+2+2+4+2+2+1+1); //Sectors
 
@@ -56,10 +56,10 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
    RvR_rw_write_u16(&rw,0);
 
    //wall count
-   RvR_rw_write_u32(&rw,map->wall_count);
+   RvR_rw_write_u16(&rw,map->wall_count);
 
    //sector count
-   RvR_rw_write_u32(&rw,map->sector_count);
+   RvR_rw_write_u16(&rw,map->sector_count);
 
    //Walls
    for(int i = 0;i<map->wall_count;i++)
@@ -168,8 +168,8 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
    RvR_port_map *map = RvR_port_map_create();
 
    //wall and sector count
-   map->wall_count = RvR_rw_read_u32(rw);
-   map->sector_count = RvR_rw_read_u32(rw);
+   map->wall_count = RvR_rw_read_u16(rw);
+   map->sector_count = RvR_rw_read_u16(rw);
    map->walls = RvR_malloc(sizeof(*map->walls)*map->wall_count,"RvR_port map walls");
    map->sectors = RvR_malloc(sizeof(*map->sectors)*map->sector_count,"RvR_port map sectors");
 
@@ -216,8 +216,8 @@ int RvR_port_map_check(const RvR_port_map *map)
 {
    //Check if walls sorted, sectors don't overlap, no gaps between sectors
    {
-      int16_t next_first = 0;
-      int16_t last_first = -1;
+      int32_t next_first = 0;
+      int32_t last_first = -1;
       for(int i = 0;i<map->sector_count;i++)
       {
          RvR_error_check(next_first>last_first,"RvR_port_map_check","walls of sector %d not sorted in relation to sector %d\n",i-1,i);
@@ -231,7 +231,7 @@ int RvR_port_map_check(const RvR_port_map *map)
    //Check sectors
    for(int i = 0;i<map->sector_count;i++)
    {
-      RvR_error_check(map->sectors[i].wall_first>=0&&map->sectors[i].wall_first<map->wall_count,"RvR_port_map_check","wall_first %d for sector %d out of bounds\n",map->sectors[i].wall_first,i);
+      RvR_error_check(map->sectors[i].wall_first!=RVR_PORT_WALL_INVALID&&map->sectors[i].wall_first<map->wall_count,"RvR_port_map_check","wall_first %d for sector %d out of bounds\n",map->sectors[i].wall_first,i);
       RvR_error_check(map->sectors[i].wall_count>0,"RvR_port_map_check","wall_count %d for sector %d invalid\n",map->sectors[i].wall_count,i);
       RvR_error_check(map->sectors[i].wall_first+map->sectors[i].wall_count<=map->wall_count,"RvR_port_map_check","wall range (%d, %d) of sector %d out of bounds\n",map->sectors[i].wall_first,map->sectors[i].wall_first+map->sectors[i].wall_count-1,i);
    }
@@ -243,22 +243,22 @@ int RvR_port_map_check(const RvR_port_map *map)
    //Check portals
    for(int i = 0;i<map->wall_count;i++)
    {
-      if(map->walls[i].portal!=-1)
+      if(map->walls[i].portal!=RVR_PORT_SECTOR_INVALID)
       {
-         RvR_error_check(map->walls[i].portal>=0,"RvR_port_map_check","invalid portal value %d for wall %d\n",map->walls[i].portal,i);
+         //RvR_error_check(map->walls[i].portal>=0,"RvR_port_map_check","invalid portal value %d for wall %d\n",map->walls[i].portal,i);
          RvR_error_check(map->walls[i].portal<map->sector_count,"RvR_port_map_check","portal value %d of wall %d out of bounds\n",map->walls[i].portal,i);
-         RvR_error_check(map->walls[i].portal_wall!=-1,"RvR_port_map_check","portal of wall %d is %d, but portal_wall not set\n",i,map->walls[i].portal);
+         RvR_error_check(map->walls[i].portal_wall!=RVR_PORT_WALL_INVALID,"RvR_port_map_check","portal of wall %d is %d, but portal_wall not set\n",i,map->walls[i].portal);
       }
 
-      if(map->walls[i].portal_wall==-1)
+      if(map->walls[i].portal_wall==RVR_PORT_WALL_INVALID)
          continue;
 
       int16_t pwall = map->walls[i].portal_wall;
 
-      RvR_error_check(map->walls[i].portal_wall>=0,"RvR_port_map_check","invalid portal_wall value %d for wall %d\n",map->walls[i].portal_wall,i);
+      //RvR_error_check(map->walls[i].portal_wall>=0,"RvR_port_map_check","invalid portal_wall value %d for wall %d\n",map->walls[i].portal_wall,i);
       RvR_error_check(map->walls[i].portal_wall<map->wall_count,"RvR_port_map_check","portal_wall value %d of wall %d out of bounds\n",map->walls[i].portal_wall,i);
       RvR_error_check(map->walls[pwall].portal_wall==i,"RvR_port_map_check","portal wall of wall %d not referencing wall %d\n",pwall,i);
-      RvR_error_check(map->walls[i].portal!=-1,"RvR_port_map_check","portal_wall of wall %d is %d, but portal not set\n",i,pwall);
+      RvR_error_check(map->walls[i].portal!=RVR_PORT_SECTOR_INVALID,"RvR_port_map_check","portal_wall of wall %d is %d, but portal not set\n",i,pwall);
 
       RvR_fix22 x00 = map->walls[i].x;
       RvR_fix22 y00 = map->walls[i].y;
