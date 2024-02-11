@@ -187,6 +187,8 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector)
       if((first==0&&sum>0)||(first!=0&&sum<0))
       {
          printf("Reverse %d, %d to %d\n",sector,first,wall-1);
+
+#if 0
          //Reverse walls
          for(int j = 0;j<(wall-first)/2;j++)
          {
@@ -204,7 +206,73 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector)
             map->walls[s->wall_first+first+j].portal_wall = pw0;
             map->walls[s->wall_first+wall-j-1].portal_wall = pw1;
          }
+#endif
+#if 1
+         //Rotate positions
+         for(int j = 0;j<(wall-first)/2-1;j++)
+         {
+            RvR_fix22 tmp = map->walls[s->wall_first+first+1+j].x;
+            map->walls[s->wall_first+first+1+j].x = map->walls[s->wall_first+wall-j-1].x;
+            map->walls[s->wall_first+wall-j-1].x = tmp;
 
+            tmp = map->walls[s->wall_first+first+1+j].y;
+            map->walls[s->wall_first+first+1+j].y = map->walls[s->wall_first+wall-j-1].y;
+            map->walls[s->wall_first+wall-j-1].y = tmp;
+         }
+         
+         //Reverse everything else
+         for(int j = 0;j<(wall-first)/2;j++)
+         {
+            RvR_port_wall tmp = map->walls[s->wall_first+first+j];
+            uint16_t pt20 = tmp.p2;
+            uint16_t pt21 = map->walls[s->wall_first+wall-j-1].p2;
+            RvR_fix22 x0 = tmp.x;
+            RvR_fix22 x1 = map->walls[s->wall_first+wall-j-1].x;
+            RvR_fix22 y0 = tmp.y;
+            RvR_fix22 y1 = map->walls[s->wall_first+wall-j-1].y;
+            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
+            map->walls[s->wall_first+wall-j-1] = tmp;
+            map->walls[s->wall_first+first+j].p2 = pt20;
+            map->walls[s->wall_first+wall-j-1].p2 = pt21;
+            map->walls[s->wall_first+first+j].x = x0;
+            map->walls[s->wall_first+wall-j-1].x = x1;
+            map->walls[s->wall_first+first+j].y = y0;
+            map->walls[s->wall_first+wall-j-1].y = y1;
+         }
+
+         //Reverse walls
+         /*for(int j = 0;j<(wall-first)/2-1;j++)
+         {
+            RvR_port_wall tmp = map->walls[s->wall_first+first+1+j];
+            uint16_t pt20 = tmp.p2;
+            uint16_t pt21 = map->walls[s->wall_first+wall-j-1].p2;
+            //uint16_t pw0 = tmp.portal_wall;
+            //uint16_t pw1 = map->walls[s->wall_first+wall-j-1].portal_wall;
+
+            map->walls[s->wall_first+first+1+j] = map->walls[s->wall_first+wall-j-1];
+            map->walls[s->wall_first+wall-j-1] = tmp;
+
+            map->walls[s->wall_first+first+1+j].p2 = pt20;
+            map->walls[s->wall_first+wall-j-1].p2 = pt21;
+            //map->walls[s->wall_first+first+1+j].portal_wall = pw0;
+            //map->walls[s->wall_first+wall-j-1].portal_wall = pw1;
+         }*/
+         /*for(int j = 0;j<(wall-first)/2;j++)
+         {
+            RvR_port_wall tmp = map->walls[s->wall_first+first+j];
+            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
+            map->walls[s->wall_first+wall-j-1] = tmp;
+         }
+
+         for(int j = 0;j<(wall-first)/2-1;j++)
+         {
+            RvR_port_wall tmp = map->walls[s->wall_first+first+1+j];
+            map->walls[s->wall_first+first+1+j] = map->walls[s->wall_first+wall-j-1];
+            map->walls[s->wall_first+wall-j-1] = tmp;
+         }*/
+#endif
+
+#if 0
          //Reverse all wall attributes except last
          for(int j = 0;j<(wall-first-1)/2;j++)
          {
@@ -226,6 +294,7 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector)
             map->walls[pw0].portal_wall = map->walls[pw1].portal_wall;
             map->walls[pw1].portal_wall = tmp;
          }
+#endif
       }
    }
 
@@ -291,8 +360,10 @@ uint16_t RvR_port_sector_make_inner(RvR_port_map *map, uint16_t wall)
    //-------------------------------------
 
    printf("Check: %d\n",RvR_port_map_check(map));
+   RvR_port_map_print_walls(map);
    RvR_port_sector_fix_winding(map,sector);
    printf("Check: %d\n",RvR_port_map_check(map));
+   RvR_port_map_print_walls(map);
 
    return sector;
 
@@ -307,16 +378,17 @@ void RvR_port_sector_delete(RvR_port_map *map, uint16_t sector)
    RvR_error_check(sector<map->sector_count,"RvR_port_sector_delete","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
 
    //Remove portals to sector
-   //TODO(Captain4LK): iterate through sector walls instead
-   //and only delete if reference is cyclic
-   for(int w = 0;w<map->wall_count;w++)
+   for(int i = 0;i<map->sectors[sector].wall_count;i++)
    {
-      RvR_port_wall *wall = map->walls+w;
-      if(wall->portal==sector)
+      RvR_port_wall *wall = map->walls+map->sectors[sector].wall_first+i;
+      if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&
+         map->walls[wall->portal_wall].portal_wall==map->sectors[sector].wall_first+(uint16_t)i)
       {
-         wall->portal = RVR_PORT_SECTOR_INVALID;
-         wall->portal_wall = RVR_PORT_WALL_INVALID;
+         map->walls[wall->portal_wall].portal_wall = RVR_PORT_WALL_INVALID;
+         map->walls[wall->portal_wall].portal = RVR_PORT_SECTOR_INVALID;
       }
+      wall->portal_wall = RVR_PORT_WALL_INVALID;
+      wall->portal = RVR_PORT_SECTOR_INVALID;
    }
 
    //Move walls after deleted sector to left

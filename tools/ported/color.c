@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -61,7 +61,7 @@ void colors_find()
 static uint8_t find_closest(RvR_color *pal, RvR_color color)
 {
    int dist_min = INT_MAX;
-   int index_min = 0;
+   uint8_t index_min = 0;
 
    for(int i = 0; i<256; i++)
    {
@@ -72,7 +72,7 @@ static uint8_t find_closest(RvR_color *pal, RvR_color color)
       if(dist<dist_min)
       {
          dist_min = dist;
-         index_min = i;
+         index_min = (uint8_t)i;
       }
    }
 

@@ -54,8 +54,8 @@ static char menu_input[512] = {0};
 
 static Map_sprite *sprite_sel = NULL;
 
-static int16_t wall_move = -1;
-static int16_t hover = -1;
+static uint16_t wall_move = RVR_PORT_WALL_INVALID;
+static uint16_t hover = RVR_PORT_WALL_INVALID;
 
 static State2D state = STATE2D_VIEW;
 
@@ -343,7 +343,7 @@ static void e2d_draw_base(void)
          RvR_port_wall *p0 = map->walls + map->sectors[i].wall_first + j;
          RvR_port_wall *p1 = map->walls + p0->p2;
 
-         if(p0->p2==-1)
+         if(p0->p2==RVR_PORT_WALL_INVALID)
             continue;
 
          int x0 = ((p0->x - camera.x) * 256) / RvR_non_zero(zoom) + RvR_xres() * 128 + 128;
@@ -352,7 +352,7 @@ static void e2d_draw_base(void)
          int y1 = ((p1->y - camera.y) * 256) / RvR_non_zero(zoom) + RvR_yres() * 128 + 128;
 
          int blink = j + map->sectors[i].wall_first==hover&&(RvR_frame() / 15) % 2;
-         if(p0->portal>=0)
+         if(p0->portal!=RVR_PORT_SECTOR_INVALID)
          {
             //Only draw one wall for portals
             if(p0->portal>i)
@@ -444,7 +444,7 @@ static void e2d_update_view(void)
 
          if(mx>=x0 - 3&&mx<=x0 + 3&&my>=y0 - 3&&my<=y0 + 3)
          {
-            wall_move = i;
+            wall_move = (uint16_t)i;
             undo_track_wall_move(wall_move, p0->x, p0->y);
             state = STATE2D_WALL_MOVE;
             break;
@@ -533,11 +533,11 @@ static void e2d_update_view(void)
       if(dist>36 * zoom * zoom)
          continue;
 
-      hover = i;
+      hover = (uint16_t)i;
 
       if(RvR_key_pressed(RVR_KEY_INS))
       {
-         int16_t nwall = RvR_port_wall_insert(map, i, x, y);
+         int16_t nwall = RvR_port_wall_insert(map, (uint16_t)i, x, y);
 
          RvR_fix22 dgrid = 1 << draw_grid_sizes[draw_grid];
          int nx = x + dgrid / 2;
@@ -552,11 +552,11 @@ static void e2d_update_view(void)
       if(RvR_key_pressed(RVR_KEY_S)&&RvR_key_down(RVR_KEY_LALT))
       {
          //Needs to be inner subsector and not have portal
-         if(RvR_port_wall_subsector(map, RvR_port_wall_sector(map, i), i)==0||map->walls[i].portal>=0)
+         if(RvR_port_wall_subsector(map, RvR_port_wall_sector(map, (uint16_t)i), (uint16_t)i)==0||map->walls[i].portal!=RVR_PORT_SECTOR_INVALID)
             break;
 
          //Make inner
-         RvR_port_sector_make_inner(map, i);
+         RvR_port_sector_make_inner(map, (uint16_t)i);
 
          break;
       }
@@ -636,11 +636,11 @@ static void e2d_update_wall_move(void)
 
    if(RvR_key_released(RVR_BUTTON_LEFT))
    {
-      wall_move = -1;
+      wall_move = RVR_PORT_WALL_INVALID;
       state = STATE2D_VIEW;
    }
 
-   if(wall_move>=0)
+   if(wall_move!=RVR_PORT_WALL_INVALID)
    {
       RvR_fix22 x = ((mx + scroll_x) * zoom);
       RvR_fix22 y = ((my + scroll_y) * zoom);

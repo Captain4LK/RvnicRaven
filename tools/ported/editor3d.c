@@ -465,14 +465,14 @@ static void e3d_update_view(void)
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
          int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
-         if(map->walls[world_selection.as.wall].portal>=0)
+         if(map->walls[world_selection.as.wall].portal!=RVR_PORT_SECTOR_INVALID)
             sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].floor += 128;
       }
       else if(world_selection.type==RVR_PORT_WALL_TOP)
       {
          int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
-         if(map->walls[world_selection.as.wall].portal>=0)
+         if(map->walls[world_selection.as.wall].portal!=RVR_PORT_SECTOR_INVALID)
             sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].ceiling += 128;
       }
@@ -490,14 +490,14 @@ static void e3d_update_view(void)
       if(world_selection.type==RVR_PORT_WALL_BOT)
       {
          int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
-         if(map->walls[world_selection.as.wall].portal>=0)
+         if(map->walls[world_selection.as.wall].portal!=RVR_PORT_SECTOR_INVALID)
             sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].floor -= 128;
       }
       else if(world_selection.type==RVR_PORT_WALL_TOP)
       {
          int16_t sector = RvR_port_wall_sector(map, world_selection.as.wall);
-         if(map->walls[world_selection.as.wall].portal>=0)
+         if(map->walls[world_selection.as.wall].portal!=RVR_PORT_SECTOR_INVALID)
             sector = map->walls[world_selection.as.wall].portal;
          map->sectors[sector].ceiling -= 128;
       }
@@ -658,7 +658,7 @@ static void e3d_update_tex_recent(void)
    {
       if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
       {
-         int index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
+         index = texture_list_used_wrap(texture_list_used.data_last - (mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64));
          texture_selected = texture_list_used.data[index];
          texture_list_used_add(texture_selected);
          state = STATE3D_VIEW;
@@ -685,7 +685,7 @@ static void e3d_draw_tex_recent(void)
          RvR_render_font_set(0xF001);
          char tmp_font[16];
          snprintf(tmp_font, 16, "%d", texture_list_used.data[index]);
-         RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+         RvR_render_rectangle_fill(x * 64, y * 64, (int)strlen(tmp_font) * 4 + 1, 7, color_black);
          RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
          RvR_render_font_set(0xF000);
       }
@@ -711,7 +711,7 @@ static void e3d_update_tex_recent_go(void)
       RvR_text_input_end();
       state = STATE3D_TEX_ALL;
 
-      int selection = strtol(menu_input, NULL, 10);
+      int selection = (int)strtol(menu_input, NULL, 10);
       //TODO: What we should do: binary search
       //What I did: slow crap
       for(int i = 0; i<texture_list.data_used; i++)
@@ -747,7 +747,7 @@ static void e3d_draw_tex_recent_go(void)
          RvR_render_font_set(0xF001);
          char tmp_font[16];
          snprintf(tmp_font, 16, "%d", texture_list_used.data[index]);
-         RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+         RvR_render_rectangle_fill(x * 64, y * 64, (int)strlen(tmp_font) * 4 + 1, 7, color_black);
          RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
          RvR_render_font_set(0xF000);
       }
@@ -850,21 +850,11 @@ static void e3d_update_tex_all(void)
    {
       if(RvR_key_pressed(RVR_BUTTON_LEFT)||RvR_key_pressed(RVR_KEY_ENTER))
       {
-         unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
+         index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
          if(index<texture_list.data_used)
          {
             texture_selected = texture_list.data[index];
             texture_list_used_add(texture_selected);
-            state = STATE3D_VIEW;
-            brush = 0;
-         }
-      }
-      if(RvR_key_pressed(RVR_KEY_S))
-      {
-         unsigned index = mx / 64 + (texture_selection_scroll + my / 64) * RvR_xres() / 64;
-         if(index<texture_list.data_used)
-         {
-            //map_sky_tex_set(texture_list.data[index]);
             state = STATE3D_VIEW;
             brush = 0;
          }
@@ -891,7 +881,7 @@ static void e3d_draw_tex_all(void)
             RvR_render_font_set(0xF001);
             char tmp_font[16];
             snprintf(tmp_font, 16, "%d", texture_list.data[index]);
-            RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+            RvR_render_rectangle_fill(x * 64, y * 64, (int)strlen(tmp_font) * 4 + 1, 7, color_black);
             RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
             RvR_render_font_set(0xF000);
          }
@@ -918,7 +908,7 @@ static void e3d_update_tex_all_go(void)
       RvR_text_input_end();
       state = STATE3D_TEX_ALL;
 
-      int selection = strtol(menu_input, NULL, 10);
+      int selection = (int)strtol(menu_input, NULL, 10);
       //TODO: What we should do: binary search
       //What I did: slow crap
       for(int i = 0; i<texture_list.data_used; i++)
@@ -955,7 +945,7 @@ static void e3d_draw_tex_all_go(void)
             RvR_render_font_set(0xF001);
             char tmp_font[16];
             snprintf(tmp_font, 16, "%d", texture_list.data[index]);
-            RvR_render_rectangle_fill(x * 64, y * 64, strlen(tmp_font) * 4 + 1, 7, color_black);
+            RvR_render_rectangle_fill(x * 64, y * 64, (int)strlen(tmp_font) * 4 + 1, 7, color_black);
             RvR_render_string(x * 64 + 1, y * 64 + 1, 1, tmp_font, color_yellow);
             RvR_render_font_set(0xF000);
          }

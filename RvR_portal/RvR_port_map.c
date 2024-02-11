@@ -340,7 +340,7 @@ void RvR_port_map_print_walls(const RvR_port_map *map)
 {
    for(int i = 0;i<map->wall_count;i++)
    {
-      printf("Wall %d: (%d %d) portal = %d, portal_wall = %d, p2 = %d\n",i,map->walls[i].x,map->walls[i].y,map->walls[i].portal,map->walls[i].portal_wall,map->walls[i].p2);
+      printf("Wall %5d: (%d %d), portal = %d, portal_wall = %d, sector = %d, p2 = %d\n",i,map->walls[i].x,map->walls[i].y,map->walls[i].portal,map->walls[i].portal_wall,RvR_port_wall_sector(map,(uint16_t)i),map->walls[i].p2);
    }
 }
 //-------------------------------------
