@@ -38,8 +38,8 @@ typedef struct
    RvR_fix22 u0;
    RvR_fix22 u1;
 
-   int16_t wall;
-   int16_t sector;
+   uint16_t wall;
+   uint16_t sector;
 }RvR_port_dwall;
 
 typedef struct port_plane port_plane;
@@ -47,7 +47,7 @@ struct port_plane
 {
    int32_t min;
    int32_t max;
-   int16_t sector;
+   uint16_t sector;
    uint8_t where; //0 --> ceiling; 1 --> floor
    uint16_t start[RVR_XRES_MAX+2];
    uint16_t end[RVR_XRES_MAX+2];
@@ -224,7 +224,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
    port_collect_walls(port_cam->sector);
    while(RvR_array_length(dwalls)>0)
    {
-      int len = RvR_array_length(dwalls);
+      int len = (int)RvR_array_length(dwalls);
       //for(int i = 0;i<len;i++)
       {
          int swaps = 0;
@@ -292,7 +292,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 u0 = wall->u0-(wall->u0&(~(1024*texture->width-1)));
          RvR_fix22 u1 = wall->u1-(wall->u0&(~(1024*texture->width-1)));
          int64_t num_step_u = RvR_fix22_mul(wall->z0,u1)-RvR_fix22_mul(wall->z1,u0);
-         int64_t num_u = RvR_fix22_mul(u0,wall->z1);
+         int64_t num_u = ((int64_t)u0*wall->z1)/1024;
+         //int64_t num_u = RvR_fix22_mul(u0,wall->z1);
 
          //Adjust for fractional part
          int x0 = (wall->x0+1023)/1024;
@@ -301,7 +302,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
          cy+=RvR_fix22_mul(xfrac,step_cy);
          fy+=RvR_fix22_mul(xfrac,step_fy);
          num_z+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_z),RvR_non_zero(wall->x1-wall->x0));
-         num_u+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u),RvR_non_zero(wall->x1-wall->x0));
+         num_u+=(xfrac*num_step_u)/RvR_non_zero(wall->x1-wall->x0);
+         //num_u+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u),RvR_non_zero(wall->x1-wall->x0));
 
          for(int x = x0;x<x1;x++)
          {
@@ -310,7 +312,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             int64_t nu = num_u+((num_step_u*(x-x0))*1024)/RvR_non_zero(wall->x1-wall->x0);
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
-            RvR_fix22 u = (4*nu)/RvR_non_zero(nz);
+            RvR_fix22 u = (RvR_fix22)((4*nu)/RvR_non_zero(nz));
 
             int top = port_ytop[x]+1;
             y0 = RvR_max(y0,top);
@@ -363,7 +365,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 texture_coord_scaled = height*4096+(y0-RvR_yres()/2)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
                RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
-               const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9)+port_map->walls[wall->wall].shade_offset)));
+               const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>9)+port_map->walls[wall->wall].shade_offset)));
                uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
                for(int y = y0;y<=y1;y++)
                {
@@ -395,7 +397,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
       //Portal
       else
       {
-         //deph values go much lower here (since you can be on the border between sectors)
+         //depth values go much lower here (since you can be on the border between sectors)
          //so we use i64 here
          int64_t cy0 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
          int64_t cy1 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
@@ -443,7 +445,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
          //Adjust for fractional part
          int x0 = (wall->x0+1023)/1024;
          int x1 = (wall->x1+1023)/1024;
-         int64_t xfrac = x0*1024-wall->x0;
+         RvR_fix22 xfrac = x0*1024-wall->x0;
          cy+=(xfrac*step_cy)/1024;
          cph+=(xfrac*step_cph)/1024;
          fy+=(xfrac*step_fy)/1024;
@@ -454,8 +456,9 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
          for(int x = x0;x<x1;x++)
          {
-            int y0 = (cy+1023)/1024;
-            int y1 = fy/1024;
+            //TODO(Captain4LK): maybe don't cast, but keep i64?
+            int y0 = (int)((cy+1023)/1024);
+            int y1 = (int)(fy/1024);
 
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 nu_lower = num_u_lower+RvR_fix22_div(num_step_u_lower*(x-x0),RvR_non_zero(wall->x1-wall->x0));
@@ -499,8 +502,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
                port_plane_add(wall->sector,1,x,top,bottom);
             }
 
-            const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9)+port_map->walls[wall->wall].shade_offset)));
-            int mid = cph/1024;
+            const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>9)+port_map->walls[wall->wall].shade_offset)));
+            int mid = (int)(cph/1024);
             if(mid>=port_ybot[x])
                mid = port_ybot[x]-1;
             if(mid>=y0)
@@ -536,7 +539,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                port_ytop[x] = y0-1;
             }
 
-            mid = (fph+1023)/1024;
+            mid = (int)((fph+1023)/1024);
             if(mid<=port_ytop[x])
                mid = port_ytop[x]+1;
 
@@ -728,7 +731,7 @@ void RvR_port_draw_end(RvR_port_selection *select)
    //This is essentially Newells Algorithm,
    //If you know a faster way to do this, please
    //tell me.
-   int len = RvR_array_length(port_sprites);
+   int len = (int)RvR_array_length(port_sprites);
    for(int i = 0; i<len; i++)
    {
       //swaps is used to mark which sprites have been swapped before
@@ -779,7 +782,7 @@ void RvR_port_draw_end(RvR_port_selection *select)
    }
 }
 
-void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, int16_t sector, uint16_t sprite, uint32_t flags, void *ref)
+void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, uint16_t sector, uint16_t sprite, uint32_t flags, void *ref)
 {
    //flagged as invisible
    if(flags & 1)
@@ -1114,8 +1117,8 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    RvR_fix22 depth = RvR_fix22_div((RvR_yres()/2)*span_height,RvR_non_zero(RvR_fix22_mul(fovy,fdy)));
    depth = RvR_abs(depth);
 
-   RvR_fix22 step_x = ((int64_t)view_sin*slope)/(1<<18);
-   RvR_fix22 step_y = ((int64_t)view_cos*slope)/(1<<18);
+   RvR_fix22 step_x = (RvR_fix22)(((int64_t)view_sin*slope)/(1<<18));
+   RvR_fix22 step_y = (RvR_fix22)(((int64_t)view_cos*slope)/(1<<18));
    RvR_fix22 tx,ty;
 
    if((where==1&&map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
@@ -1169,7 +1172,7 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    x_and<<=(16-y_log);
 
    uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
-   const uint8_t * restrict col = RvR_shade_table(RvR_max(0,RvR_min(63,(depth>>9)+shade_off)));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>9)+shade_off)));
    const uint8_t * restrict tex = texture->data;
 
    for(int x = x0;x<x1;x++)
@@ -1211,12 +1214,12 @@ static void port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1)
          //Concat planes vertically
          if(pl->start[x]-1==y1)
          {
-            pl->start[x] = y0;
+            pl->start[x] = (uint16_t)y0;
             return;
          }
          if(pl->end[x]+1==y0)
          {
-            pl->end[x] = y1;
+            pl->end[x] = (uint16_t)y1;
             return;
          }
 
@@ -1248,8 +1251,8 @@ next:
    if(x>pl->max)
       pl->max = x;
 
-   pl->end[x] = y1;
-   pl->start[x] = y0;
+   pl->end[x] = (uint16_t)y1;
+   pl->start[x] = (uint16_t)y0;
 }
 
 static port_plane *port_plane_new()
@@ -1552,7 +1555,7 @@ static void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprit
       step_v = -step_v;
 
    //Draw
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63, depth >> 15));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_min(63, depth >> 15));
    uint8_t * restrict dst = NULL;
    const uint8_t * restrict tex = NULL;
    for(int x = x0; x<x1; x++)
@@ -1730,7 +1733,7 @@ static void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *sel
          texture_coord_scaled = texture->height * 16- height + (wy - middle_row + 1) * coord_step_scaled;
       }
       const uint8_t * restrict tex = &texture->data[(((uint32_t)u) % texture->width) * texture->height];
-      const uint8_t * restrict col = RvR_shade_table(RvR_max(0, RvR_min(63, (depth >> 15))));
+      const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 15))));
 
 
       y_to = RvR_min(y1, ybot);
@@ -2113,7 +2116,7 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
    ty += texture->height * 8192;
 
    uint8_t * restrict pix = RvR_framebuffer() + y * RvR_xres() + x0;
-   const uint8_t * restrict col = RvR_shade_table(RvR_max(0, RvR_min(63, (depth >> 15))));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 15))));
    const uint8_t * restrict tex = texture->data;
 
    if(sp->flags & 32)
@@ -2295,7 +2298,7 @@ static void port_collect_walls(int16_t start)
          if(dw.z0<=0||dw.z1<1)
             continue;
 
-         dw.wall = port_map->sectors[sector].wall_first+i;
+         dw.wall = port_map->sectors[sector].wall_first+(uint16_t)i;
          dw.sector = sector;
          RvR_array_push(dwalls,dw);
       }

@@ -33,7 +33,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 int RvR_port_sector_inside(const RvR_port_map *map, uint16_t sector, RvR_fix22 x, RvR_fix22 y)
 {
    RvR_error_check(map!=NULL,"RvR_port_sector_inside","argument 'map' must be non-NULL\n");
-   RvR_error_check(sector!=RVR_PORT_SECTOR_INVALID,"RvR_port_sector_inside","sector %d invalid\n",sector,map->sector_count);
+   RvR_error_check(sector!=RVR_PORT_SECTOR_INVALID,"RvR_port_sector_inside","invalid sector\n");
    RvR_error_check(sector<map->sector_count,"RvR_port_sector_inside","sector %d out of bounds (%d sectors total)\n",sector,map->sector_count);
 
    const RvR_port_sector *sec = &map->sectors[sector];
@@ -134,32 +134,6 @@ RvR_err:
    return RVR_PORT_SECTOR_INVALID;
 }
 
-#if 0
-//TODO(Captain4LK): remove this function, the editor doesn't need it
-//so we can remove it once its done
-int16_t RvR_port_sector_new(RvR_port_map *map, RvR_fix22 x, RvR_fix22 y)
-{
-   RvR_error_check(map!=NULL,"RvR_port_sector_new","argument 'map' must be non-NULL\n");
-
-   int16_t sector = map->sector_count++;
-   map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
-   map->sectors[sector].wall_count = 1;
-   map->sectors[sector].wall_first = map->wall_count;
-   map->wall_count++;
-   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
-   map->walls[map->sectors[sector].wall_first].x = x;
-   map->walls[map->sectors[sector].wall_first].y = y;
-   map->walls[map->sectors[sector].wall_first].p2 = -1;
-   map->walls[map->sectors[sector].wall_first].portal = -1;
-   map->walls[map->sectors[sector].wall_first].portal_wall = -1;
-
-   return sector;
-
-RvR_err:
-   return -1;
-}
-#endif 
-
 void RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector)
 {
    RvR_error_check(map!=NULL,"RvR_port_sector_fix_winding","argument 'map' must be non-NULL\n");
@@ -188,28 +162,8 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector)
       {
          printf("Reverse %d, %d to %d\n",sector,first,wall-1);
 
-#if 0
-         //Reverse walls
-         for(int j = 0;j<(wall-first)/2;j++)
-         {
-            RvR_port_wall tmp = map->walls[s->wall_first+first+j];
-            uint16_t pt20 = tmp.p2;
-            uint16_t pt21 = map->walls[s->wall_first+wall-j-1].p2;
-            uint16_t pw0 = tmp.portal_wall;
-            uint16_t pw1 = map->walls[s->wall_first+wall-j-1].portal_wall;
-
-            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
-            map->walls[s->wall_first+wall-j-1] = tmp;
-
-            map->walls[s->wall_first+first+j].p2 = pt20;
-            map->walls[s->wall_first+wall-j-1].p2 = pt21;
-            map->walls[s->wall_first+first+j].portal_wall = pw0;
-            map->walls[s->wall_first+wall-j-1].portal_wall = pw1;
-         }
-#endif
-#if 1
          //Rotate positions
-         for(int j = 0;j<(wall-first)/2-1;j++)
+         for(int j = 0;j<(wall-first-1)/2;j++)
          {
             RvR_fix22 tmp = map->walls[s->wall_first+first+1+j].x;
             map->walls[s->wall_first+first+1+j].x = map->walls[s->wall_first+wall-j-1].x;
@@ -223,78 +177,30 @@ void RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector)
          //Reverse everything else
          for(int j = 0;j<(wall-first)/2;j++)
          {
-            RvR_port_wall tmp = map->walls[s->wall_first+first+j];
+            uint16_t w0 = (uint16_t)(s->wall_first+first+j);
+            uint16_t w1 = (uint16_t)(s->wall_first+wall-j-1);
+            RvR_port_wall tmp = map->walls[w0];
             uint16_t pt20 = tmp.p2;
-            uint16_t pt21 = map->walls[s->wall_first+wall-j-1].p2;
+            uint16_t pt21 = map->walls[w1].p2;
             RvR_fix22 x0 = tmp.x;
-            RvR_fix22 x1 = map->walls[s->wall_first+wall-j-1].x;
+            RvR_fix22 x1 = map->walls[w1].x;
             RvR_fix22 y0 = tmp.y;
-            RvR_fix22 y1 = map->walls[s->wall_first+wall-j-1].y;
-            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
-            map->walls[s->wall_first+wall-j-1] = tmp;
-            map->walls[s->wall_first+first+j].p2 = pt20;
-            map->walls[s->wall_first+wall-j-1].p2 = pt21;
-            map->walls[s->wall_first+first+j].x = x0;
-            map->walls[s->wall_first+wall-j-1].x = x1;
-            map->walls[s->wall_first+first+j].y = y0;
-            map->walls[s->wall_first+wall-j-1].y = y1;
+            RvR_fix22 y1 = map->walls[w1].y;
+            map->walls[w0] = map->walls[s->wall_first+wall-j-1];
+            map->walls[w1] = tmp;
+            map->walls[w0].p2 = pt20;
+            map->walls[w1].p2 = pt21;
+            map->walls[w0].x = x0;
+            map->walls[w1].x = x1;
+            map->walls[w0].y = y0;
+            map->walls[w1].y = y1;
+
+            //Update linked walls
+            if(map->walls[w0].portal_wall!=RVR_PORT_WALL_INVALID)
+               map->walls[map->walls[w0].portal_wall].portal_wall = w0;
+            if(map->walls[w1].portal_wall!=RVR_PORT_WALL_INVALID)
+               map->walls[map->walls[w1].portal_wall].portal_wall = w1;
          }
-
-         //Reverse walls
-         /*for(int j = 0;j<(wall-first)/2-1;j++)
-         {
-            RvR_port_wall tmp = map->walls[s->wall_first+first+1+j];
-            uint16_t pt20 = tmp.p2;
-            uint16_t pt21 = map->walls[s->wall_first+wall-j-1].p2;
-            //uint16_t pw0 = tmp.portal_wall;
-            //uint16_t pw1 = map->walls[s->wall_first+wall-j-1].portal_wall;
-
-            map->walls[s->wall_first+first+1+j] = map->walls[s->wall_first+wall-j-1];
-            map->walls[s->wall_first+wall-j-1] = tmp;
-
-            map->walls[s->wall_first+first+1+j].p2 = pt20;
-            map->walls[s->wall_first+wall-j-1].p2 = pt21;
-            //map->walls[s->wall_first+first+1+j].portal_wall = pw0;
-            //map->walls[s->wall_first+wall-j-1].portal_wall = pw1;
-         }*/
-         /*for(int j = 0;j<(wall-first)/2;j++)
-         {
-            RvR_port_wall tmp = map->walls[s->wall_first+first+j];
-            map->walls[s->wall_first+first+j] = map->walls[s->wall_first+wall-j-1];
-            map->walls[s->wall_first+wall-j-1] = tmp;
-         }
-
-         for(int j = 0;j<(wall-first)/2-1;j++)
-         {
-            RvR_port_wall tmp = map->walls[s->wall_first+first+1+j];
-            map->walls[s->wall_first+first+1+j] = map->walls[s->wall_first+wall-j-1];
-            map->walls[s->wall_first+wall-j-1] = tmp;
-         }*/
-#endif
-
-#if 0
-         //Reverse all wall attributes except last
-         for(int j = 0;j<(wall-first-1)/2;j++)
-         {
-            uint16_t tmp = map->walls[s->wall_first+wall-j-2].portal;
-            map->walls[s->wall_first+wall-j-2].portal = map->walls[s->wall_first+first+j].portal;
-            map->walls[s->wall_first+first+j].portal = tmp;
-         }
-
-         for(int j = 0;j<(wall-first-1)/2;j++)
-         {
-            uint16_t pw0 = map->walls[s->wall_first+wall-j-2].portal_wall;
-            uint16_t pw1 = map->walls[s->wall_first+first+j].portal_wall;
-
-            uint16_t tmp = map->walls[s->wall_first+wall-j-2].portal_wall;
-            map->walls[s->wall_first+wall-j-2].portal_wall = map->walls[s->wall_first+first+j].portal_wall;
-            map->walls[s->wall_first+first+j].portal_wall = tmp;
-
-            tmp = map->walls[pw0].portal_wall;
-            map->walls[pw0].portal_wall = map->walls[pw1].portal_wall;
-            map->walls[pw1].portal_wall = tmp;
-         }
-#endif
       }
    }
 

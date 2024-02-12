@@ -39,7 +39,7 @@ uint16_t RvR_port_wall_sector(const RvR_port_map *map, uint16_t wall)
       if(wall>=map->sectors[i].wall_first&&wall<map->sectors[i].wall_first+map->sectors[i].wall_count)
          return (uint16_t)i;
 
-   return -1;
+   return RVR_PORT_SECTOR_INVALID;
 }
 
 void RvR_port_wall_move(RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22 y)
@@ -107,64 +107,6 @@ uint16_t RvR_port_wall_first(const RvR_port_map *map, uint16_t wall)
    }
 }
 
-#if 0
-int16_t RvR_port_wall_append(RvR_port_map *map, int16_t sector, RvR_fix22 x, RvR_fix22 y)
-{
-   int16_t first = -1;
-   if(map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2==-1)
-      first = RvR_port_wall_first(map,map->sectors[sector].wall_first+map->sectors[sector].wall_count-1);
-
-   //Check if point overlaps with first point of polygon
-   if(first>=0&&map->walls[first].x==x&&map->walls[first].y==y)
-   {
-      map->walls[map->sectors[sector].wall_first+map->sectors[sector].wall_count-1].p2 = first;
-      RvR_port_sector_fix_winding(map,sector);
-      return first;
-   }
-
-   //Add wall
-   //-------------------------------------
-   map->wall_count++;
-   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map wall grow");
-   int16_t insert = map->sectors[sector].wall_first+map->sectors[sector].wall_count;
-
-   //Move existing walls to right
-   for(int16_t w = map->wall_count-1;w>insert;w--)
-      map->walls[w] = map->walls[w-1];
-
-   //Update indices
-   for(int i = 0;i<map->wall_count;i++)
-   {
-      RvR_port_wall *wall = map->walls+i;
-      if(wall->p2>=insert)
-         wall->p2++;
-      if(wall->portal_wall>=insert)
-         wall->portal_wall++;
-   }
-   //Update sector first_wall
-   for(int i = 0;i<map->sector_count;i++)
-   {
-      RvR_port_sector *sect = map->sectors+i;
-      if(sect->wall_first>=insert)
-         sect->wall_first++;
-   }
-
-   //Insert new wall
-   map->walls[insert].x = x;
-   map->walls[insert].y = y;
-   map->walls[insert].p2 = -1;
-   if(first>=0)
-      map->walls[insert-1].p2 = insert;
-   map->walls[insert].portal = -1;
-   map->walls[insert].portal_wall = -1;
-   map->walls[insert].flags = 0;
-   map->sectors[sector].wall_count++;
-   //-------------------------------------
-
-   return insert;
-}
-#endif
-
 uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_fix22 y)
 {
    uint16_t w1 = map->walls[w0].p2;
@@ -200,9 +142,9 @@ uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_f
       if(sect->wall_first>=insert)
          sect->wall_first++;
    }
-   if(w2>=insert)
+   if(w2!=RVR_PORT_WALL_INVALID&&w2>=insert)
       w2++;
-   if(w1>=insert)
+   if(w1!=RVR_PORT_WALL_INVALID&&w1>=insert)
       w1++;
 
    //Insert new wall
@@ -210,7 +152,7 @@ uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_f
    map->walls[insert].y = y;
    map->walls[insert].p2 = w1;
    map->walls[insert].portal = map->walls[w0].portal;
-   map->walls[insert].portal_wall = -1;
+   map->walls[insert].portal_wall = RVR_PORT_WALL_INVALID;
    map->walls[insert].flags = 0;
    map->walls[w0].p2 = insert;
    map->sectors[sector].wall_count++;
@@ -236,7 +178,7 @@ uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_f
          RvR_port_wall *wall = map->walls+i;
          if(wall->p2>=insert1)
             wall->p2++;
-         if(wall->portal_wall>=insert1)
+         if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert1)
             wall->portal_wall++;
       }
       //Update sector first_wall
@@ -250,7 +192,7 @@ uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_f
       }
       if(insert>=insert1)
          insert++;
-      if(w3>=insert1)
+      if(w3!=RVR_PORT_WALL_INVALID&&w3>=insert1)
          w3++;
 
       //Insert new wall
