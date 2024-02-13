@@ -171,7 +171,7 @@ void RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map, RvR_ray_se
    //This is essentially Newells Algorithm,
    //If you know a faster way to do this, please
    //tell me.
-   int len = RvR_array_length(ray_sprites);
+   int len = (int)RvR_array_length(ray_sprites);
    for(int i = 0; i<len; i++)
    {
       //swaps is used to mark which sprites have been swapped before
@@ -301,8 +301,8 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
 
       RvR_fix16 current_posx = r.x;
       RvR_fix16 current_posy = r.y;
-      RvR_fix16 current_squarex = r.x / 65536;
-      RvR_fix16 current_squarey = r.y / 65536;
+      int16_t current_squarex = (int16_t)(r.x / 65536);
+      int16_t current_squarey = (int16_t)(r.y / 65536);
 
       RvR_fix16 old_floor = INT32_MIN;
       RvR_fix16 old_ceiling = INT32_MIN;
@@ -321,8 +321,8 @@ void RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map)
       if(RvR_abs(r.diry)<=2) deltay = INT32_MAX; //Edge cases, would overflow otherwise
       else deltay = RvR_abs(RvR_fix16_div(65536, r.diry));
 
-      RvR_fix16 stepx;
-      RvR_fix16 stepy;
+      int16_t stepx;
+      int16_t stepy;
       RvR_fix16 side_distx;
       RvR_fix16 side_disty;
       int side = 0;
@@ -829,8 +829,8 @@ static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres() * fovx * 2, RvR_xres() << 16);
 
    //world coordinates (relative to camera height though)
-   RvR_fix16 f_z1_world = RvR_ray_map_floor_height_at(map, cam->x / 65536, cam->y / 65536) - cam->z;
-   RvR_fix16 c_z1_world = RvR_ray_map_ceiling_height_at(map, cam->x / 65536, cam->y / 65536) - cam->z;
+   RvR_fix16 f_z1_world = RvR_ray_map_floor_height_at(map, (int16_t)(cam->x / 65536), (int16_t)(cam->y / 65536)) - cam->z;
+   RvR_fix16 c_z1_world = RvR_ray_map_ceiling_height_at(map, (int16_t)(cam->x / 65536), (int16_t)(cam->y / 65536)) - cam->z;
 
    RvR_ray_pixel_info p = {0};
    RvR_ray_hit_result h = {0};
@@ -968,7 +968,7 @@ static void ray_draw_column(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_
 
 static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR_fix16 y_current, RvR_fix16 y_from, RvR_fix16 y_to, RvR_fix16 limit0, RvR_fix16 limit1, RvR_fix16 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit)
 {
-   int16_t limit = RvR_clamp(y_to, limit0, limit1);
+   int16_t limit = (int16_t)RvR_clamp(y_to, limit0, limit1);
    int start = 0;
    int end = 0;
    RvR_fix16 middle_row = RvR_yres() / 2 + cam->shear;
@@ -1013,7 +1013,7 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
       texture = RvR_texture_get(hit->wall_ctex);
 
    uint8_t * restrict pix = &RvR_framebuffer()[start * RvR_xres() + pixel_info->x];
-   const uint8_t * restrict col = RvR_shade_table(RvR_max(0, RvR_min(63, (hit->direction & 1) * 10 + (pixel_info->depth >> 15))));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (hit->direction & 1) * 10 + (pixel_info->depth >> 15))));
    const uint8_t * restrict tex = &texture->data[(hit->texture_coord >> 10) * texture->height];
    RvR_fix16 y_and = (1 << RvR_log2(texture->height)) - 1;
 
@@ -1078,7 +1078,7 @@ static void ray_span_draw_tex(const RvR_ray_cam *cam, int x0, int x1, int y, RvR
    RvR_fix16 y_and = (1 << y_log) - 1;
 
    uint8_t * restrict pix = RvR_framebuffer() + y * RvR_xres() + x0;
-   const uint8_t * restrict col = RvR_shade_table(RvR_max(0, RvR_min(63, (depth >> 15))));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 15))));
    const uint8_t * restrict tex = texture->data;
 
    for(int x = x0; x<x1; x++)
@@ -1112,14 +1112,14 @@ static void ray_plane_add(RvR_fix16 height, uint16_t tex, int x, int y0, int y1)
       {
          //... or directly adjacent to each other vertically, in that case
          //Concat planes vertically
-         if(pl->start[x] - 1==y1)
+         if(pl->start[x] - 1==(uint16_t)y1)
          {
-            pl->start[x] = y0;
+            pl->start[x] = (uint16_t)y0;
             return;
          }
-         if(pl->end[x] + 1==y0)
+         if(pl->end[x] + 1==(uint16_t)y0)
          {
-            pl->end[x] = y1;
+            pl->end[x] = (uint16_t)y1;
             return;
          }
 
@@ -1151,8 +1151,8 @@ next:
    if(x>pl->max)
       pl->max = x;
 
-   pl->end[x] = y1;
-   pl->start[x] = y0;
+   pl->end[x] = (uint16_t)y1;
+   pl->start[x] = (uint16_t)y0;
 }
 
 static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new()
@@ -1227,8 +1227,6 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
    RvR_fix16 sin = RvR_fix16_sin(cam->dir);
    RvR_fix16 fovx = RvR_fix16_tan(cam->fov / 2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres() * fovx * 2, RvR_xres() << 16);
-   RvR_fix16 sin_fov = RvR_fix16_mul(sin, fovx);
-   RvR_fix16 cos_fov = RvR_fix16_mul(cos, fovx);
    RvR_fix16 middle_row = (RvR_yres() / 2) + cam->shear;
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
@@ -1252,11 +1250,11 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
    int x1 = (right - 1) / 65536;
 
    //Floor and ceiling clip
-   RvR_fix16 cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_floor_height_at(map, sp->x / 65536, sp->y / 65536) - cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
+   RvR_fix16 cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_floor_height_at(map, (int16_t)(sp->x / 65536), (int16_t)(sp->y / 65536)) - cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
    int clip_bottom = RvR_min(cy / 65536, RvR_yres());
    y1 = RvR_min(y1, clip_bottom);
 
-   cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_ceiling_height_at(map, sp->x / 65536, sp->y / 65536) - cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
+   cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_ceiling_height_at(map, (int16_t)(sp->x / 65536), (int16_t)(sp->y / 65536)) - cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
    int clip_top = RvR_max(cy / 65536, 0);
    y0 = RvR_max(y0, clip_top);
 
@@ -1281,7 +1279,7 @@ static void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map 
       step_v = -step_v;
 
    //Draw
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63, depth >> 15));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_min(63, depth >> 15));
    uint8_t * restrict dst = NULL;
    const uint8_t * restrict tex = NULL;
    for(int x = x0; x<x1; x++)
@@ -1467,7 +1465,7 @@ static void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map,
          texture_coord_scaled = texture->height * 1024 - height + (wy - middle_row + 1) * coord_step_scaled;
       }
       const uint8_t * restrict tex = &texture->data[(((uint32_t)u) % texture->width) * texture->height];
-      const uint8_t * restrict col = RvR_shade_table(RvR_max(0, RvR_min(63, (depth >> 15))));
+      const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 15))));
 
 
       y_to = RvR_min(y1, ybot);
@@ -1760,6 +1758,17 @@ static void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map
             clip = clip->next;
          }
 
+         if(select!=NULL&&x==select->x&&select->y>=start&&select->y<=end&&select->depth>sp->as.floor.wy)
+         {
+            //Check for transparent pixels
+            //TODO(Captain4LK): move to ray_floor_span_draw?
+            /*if(tex[(v + step_v * (select->y - ys)) >> 10])
+            {
+               select->depth = depth;
+               select->ref = sp->ref;
+            }*/
+         }
+
          RvR_fix16 s0 = prev_start;
          RvR_fix16 s1 = start;
          RvR_fix16 e0 = prev_end;
@@ -1841,7 +1850,7 @@ static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, in
    ty += texture->height * 512;
 
    uint8_t * restrict pix = RvR_framebuffer() + y * RvR_xres() + x0;
-   const uint8_t * restrict col = RvR_shade_table(RvR_max(0, RvR_min(63, (depth >> 15))));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 15))));
    const uint8_t * restrict tex = texture->data;
 
    if(sp->flags & 32)

@@ -216,7 +216,8 @@ void RvR_ray_map_save(const RvR_ray_map *map, const char *path)
    size += map->width * map->height * 2; //map->ceil_tex
    size += map->width * map->height * 2; //map->wall_ftex
    size += map->width * map->height * 2; //map->wall_ctex
-   size += map->sprite_count * sizeof(*map->sprites);
+   size += map->sprite_count * (4+4+4+4+2+4+4+4+4);
+   //size += map->sprite_count * sizeof(*map->sprites);
 
    uint8_t *mem = RvR_malloc(size, "RvR_ray map save buffer");
    RvR_rw rw = {0};

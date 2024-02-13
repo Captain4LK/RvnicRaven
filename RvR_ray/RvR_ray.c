@@ -39,14 +39,14 @@ void RvR_ray_cast_multi_hit(const RvR_ray_map *map, RvR_ray r, RvR_ray_hit_resul
 
    RvR_fix16 current_posx = r.x;
    RvR_fix16 current_posy = r.y;
-   RvR_fix16 current_squarex = r.x / 65536;
-   RvR_fix16 current_squarey = r.y / 65536;
+   int16_t current_squarex = (int16_t)(r.x / 65536);
+   int16_t current_squarey = (int16_t)(r.y / 65536);
 
    RvR_fix16 deltax = RvR_abs(RvR_fix16_div(65536, RvR_non_zero(r.dirx)));
    RvR_fix16 deltay = RvR_abs(RvR_fix16_div(65536, RvR_non_zero(r.diry)));
 
-   RvR_fix16 stepx;
-   RvR_fix16 stepy;
+   int16_t stepx;
+   int16_t stepy;
    RvR_fix16 side_distx;
    RvR_fix16 side_disty;
    int side = 0;

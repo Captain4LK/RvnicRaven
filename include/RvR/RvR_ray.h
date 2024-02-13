@@ -66,8 +66,8 @@ typedef struct
    RvR_fix16 posx;
    RvR_fix16 posy;
    RvR_fix16 posz;
-   RvR_fix16 squarex;
-   RvR_fix16 squarey;
+   int16_t squarex;
+   int16_t squarey;
    RvR_fix16 distance;
    uint8_t direction;
    uint16_t wall_ftex;
