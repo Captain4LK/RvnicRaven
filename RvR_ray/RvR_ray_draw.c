@@ -1,7 +1,7 @@
 /*
 RvnicRaven - raycast drawing
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -1004,8 +1004,8 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
 
    RvR_texture *texture = NULL;
    //printf("wall %d\n",pixel_info->depth);
-   RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy, pixel_info->depth) / RvR_yres();
-   RvR_fix16 texture_coord_scaled = height + (start - middle_row + 1) * coord_step_scaled;
+   RvR_fix16 coord_step_scaled = RvR_fix16_mul(64*fovy, pixel_info->depth) / RvR_yres();
+   RvR_fix16 texture_coord_scaled = 64*height + (start - middle_row + 1) * coord_step_scaled;
 
    if(increment==-1)
       texture = RvR_texture_get(hit->wall_ftex);
@@ -1024,14 +1024,14 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
    switch(count % 8)
    {
    case 0: do {
-         *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
-         case 7: *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
-         case 6: *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
-         case 5: *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
-         case 4: *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
-         case 3: *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
-         case 2: *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
-         case 1: *pix = col[tex[(texture_coord_scaled >> 10) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         case 7: *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         case 6: *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         case 5: *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         case 4: *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         case 3: *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         case 2: *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
+         case 1: *pix = col[tex[(texture_coord_scaled >> 16) & y_and]]; texture_coord_scaled += coord_step_scaled; pix += RvR_xres(); //fallthrough
    }while(--n>0);
    }
 
@@ -1039,7 +1039,7 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
 
    for(int i = start; i<=end; i++)
    {
-      *pix = col[tex[(texture_coord_scaled >> 10) & y_and]];
+      *pix = col[tex[(texture_coord_scaled >> 16) & y_and]];
       texture_coord_scaled += coord_step_scaled;
       pix += RvR_xres();
    }
