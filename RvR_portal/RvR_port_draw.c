@@ -220,11 +220,15 @@ void RvR_port_draw_map(RvR_port_selection *select)
       port_ybot[i] = RvR_yres();
    }
 
+   int max_len = 0;
+
    //Start with sector of camera
+   //TODO(Captain4LK): stop rendering once all port_ybot<port_ytop (?), use count_remaining for rough estimation
    port_collect_walls(port_cam->sector);
    while(RvR_array_length(dwalls)>0)
    {
       int len = (int)RvR_array_length(dwalls);
+      max_len = RvR_max(max_len,len);
       //for(int i = 0;i<len;i++)
       {
          int swaps = 0;
@@ -241,7 +245,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                //Here we would split the wall, 
                //but since intersecting walls aren't supported we just pretend nothing happended
                j++;
-               puts("skip");
+               //puts("skip");
             }
             else
             {
@@ -603,6 +607,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
             port_collect_walls(port_map->walls[wall->wall].portal);
       }
    }
+
+   //printf("Max length: %d\n",max_len);
 
    //Render floor planes
    for(int i = 0;i<128;i++)
@@ -1131,8 +1137,8 @@ static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int
    }
    else
    {
-      tx = -(cam->x&1023)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
-      ty = (cam->y&1023)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+      tx = -(cam->x&4095)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
+      ty = (cam->y&4095)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
    }
 
    //Offset textures

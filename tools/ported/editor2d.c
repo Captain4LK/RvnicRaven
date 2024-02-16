@@ -65,6 +65,8 @@ static RvR_fix22 world_my;
 static RvR_fix22 zoom = 32;
 static int draw_grid = 0;
 static const RvR_fix22 draw_grid_sizes[8] = { 10, 9, 8, 7, 6, 5, 4, 0, };
+
+static uint16_t sector_join = RVR_PORT_SECTOR_INVALID;
 //-------------------------------------
 
 //Function prototypes
@@ -566,6 +568,25 @@ static void e2d_update_view(void)
       //int64_t d0 = (int64_t)(x1-x)*(x1-x)+(int64_t)(y1-y)*(y1-y);
       //int64_t d1 = (int64_t)(x0-x)*(x0-x)+(int64_t)(y0-y)*(y0-y);
       //printf("%d %ld %ld\n",i,d0,d1);
+   }
+
+   if(RvR_key_pressed(RVR_KEY_J))
+   {
+      x = ((mx + scroll_x) * zoom);
+      y = ((my + scroll_y) * zoom);
+      uint16_t sector = RvR_port_sector_update(map,RVR_PORT_SECTOR_INVALID,x,y);
+      if(sector!=RVR_PORT_SECTOR_INVALID)
+      {
+         if(sector_join==RVR_PORT_SECTOR_INVALID)
+         {
+            sector_join = sector;
+         }
+         else
+         {
+            RvR_port_sector_join(map,sector_join,sector);
+            sector_join = RVR_PORT_SECTOR_INVALID;
+         }
+      }
    }
 
    /*if(RvR_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)

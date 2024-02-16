@@ -149,9 +149,10 @@ uint16_t RvR_port_sector_update(const RvR_port_map *map, uint16_t sector_last, R
 
 //Map manipulation
 //TODO(Captain4LK): should we keep these here, or should they be only in the editor?
-void    RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector);
+void     RvR_port_sector_fix_winding(RvR_port_map *map, uint16_t sector);
 uint16_t RvR_port_sector_make_inner(RvR_port_map *map, uint16_t wall);
-void    RvR_port_sector_delete(RvR_port_map *map, uint16_t sector);
+void     RvR_port_sector_delete(RvR_port_map *map, uint16_t sector);
+uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sector1);
 //-------------------------------------
 
 //Wall
@@ -162,6 +163,7 @@ uint16_t RvR_port_wall_first(const RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_wall_next(const RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_wall_previous(const RvR_port_map *map, uint16_t wall);
 int RvR_port_wall_winding(const RvR_port_map *map, uint16_t wall);
+int RvR_port_wall_inside(const RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22 y);
 int     RvR_port_wall_subsector(const RvR_port_map *map, uint16_t sector, uint16_t wall);
 uint16_t RvR_port_subsector_length(const RvR_port_map *map, uint16_t wall);
 //TODO(Captain4LK): find a proper name for this

@@ -9,6 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <string.h>
 #include "RvR/RvR.h"
 //-------------------------------------
 
@@ -93,7 +94,7 @@ int RvR_port_sector_inside(const RvR_port_map *map, uint16_t sector, RvR_fix22 x
       }
    }
 
-   //If we've corrsed an odd number of walls
+   //If we've crossed an odd number of walls
    //on one of the counting rules, we are
    //inside the sector
    return crossed0&1||crossed1&1;
@@ -345,5 +346,223 @@ void RvR_port_sector_delete(RvR_port_map *map, uint16_t sector)
 
 RvR_err:
    return;
+}
+
+uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sector1)
+{
+   //Count shared walls
+   uint16_t shared = 0;
+   for(int i = 0;i<map->sectors[sector0].wall_count;i++)
+   {
+      RvR_port_wall *wall = map->walls+map->sectors[sector0].wall_first+i;
+      if(wall->portal==sector1)
+         shared++;
+   }
+
+   if(shared==0)
+      return RVR_PORT_SECTOR_INVALID;
+
+   //Allocate walls for new sector
+   uint16_t new = map->sector_count++;
+   map->sectors = RvR_realloc(map->sectors,sizeof(*map->sectors)*map->sector_count,"Map sectors grow");
+   map->sectors[new] = map->sectors[sector0];
+   map->sectors[new].wall_count = 0;
+   map->sectors[new].wall_first = map->wall_count;
+   uint16_t next_wall = map->wall_count;
+   map->wall_count+=(uint16_t)(map->sectors[sector0].wall_count+map->sectors[sector1].wall_count-2*shared);
+   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
+
+   uint16_t sectors[2] = {sector0,sector1};
+   uint8_t *collected[2] = {0};
+   collected[0] = RvR_malloc(sizeof(*collected)*map->sectors[sector0].wall_count,"Sector_join collected");
+   collected[1] = RvR_malloc(sizeof(*collected)*map->sectors[sector1].wall_count,"Sector_join collected");
+   memset(collected[0],0,sizeof(*collected)*map->sectors[sector0].wall_count);
+   memset(collected[1],0,sizeof(*collected)*map->sectors[sector1].wall_count);
+
+   //Sector0
+   for(int i = 0;i<map->sectors[sector0].wall_count;i++)
+   {
+      RvR_port_wall *wall = map->walls+map->sectors[sector0].wall_first+i;
+
+      if(collected[0][i])
+         continue;
+
+      if(wall->portal==sector1)
+      {
+         collected[0][i] = 1;
+         continue;
+      }
+
+      //Copy loop
+      uint16_t first_wall = next_wall;
+      int cur_sector = 0;
+      uint16_t cur = map->sectors[sectors[cur_sector]].wall_first+(uint16_t)i;
+      do
+      {
+         map->walls[next_wall] = map->walls[cur];
+         map->walls[next_wall].p2 = next_wall+1;
+         map->sectors[new].wall_count++;
+         next_wall++;
+
+         collected[cur_sector][cur-map->sectors[sectors[cur_sector]].wall_first] = 1;
+
+         cur = map->walls[cur].p2;
+         if(map->walls[cur].portal==sectors[!cur_sector])
+         {
+            cur = map->walls[map->walls[cur].portal_wall].p2;
+            cur_sector = !cur_sector;
+         }
+      }while(!collected[cur_sector][cur-map->sectors[sectors[cur_sector]].wall_first]&&map->walls[cur].portal!=sectors[!cur_sector]);
+
+      map->walls[next_wall-1].p2 = first_wall;
+   }
+
+   //Sector1
+   for(int i = 0;i<map->sectors[sector1].wall_count;i++)
+   {
+      RvR_port_wall *wall = map->walls+map->sectors[sector1].wall_first+i;
+
+      if(collected[1][i])
+         continue;
+
+      if(wall->portal==sector0)
+      {
+         collected[1][i] = 1;
+         continue;
+      }
+
+      //Copy loop
+      uint16_t first_wall = next_wall;
+      int cur_sector = 1;
+      uint16_t cur = map->sectors[sectors[cur_sector]].wall_first+(uint16_t)i;
+      do
+      {
+         map->walls[next_wall] = map->walls[cur];
+         map->walls[next_wall].p2 = next_wall+1;
+         map->sectors[new].wall_count++;
+         next_wall++;
+
+         collected[cur_sector][cur-map->sectors[sectors[cur_sector]].wall_first] = 1;
+
+         cur = map->walls[cur].p2;
+         if(map->walls[cur].portal==sectors[!cur_sector])
+         {
+            cur = map->walls[map->walls[cur].portal_wall].p2;
+            cur_sector = !cur_sector;
+         }
+      }while(!collected[cur_sector][cur-map->sectors[sectors[cur_sector]].wall_first]&&map->walls[cur].portal!=sectors[!cur_sector]);
+
+      map->walls[next_wall-1].p2 = first_wall;
+   }
+
+   //Fix subsector ordering
+   //Outer subsector might not be first anymore
+   int subsector = 0;
+   int last = -1;
+   for(int i = 0;i<map->sectors[new].wall_count;i++)
+   {
+      uint16_t wall = map->sectors[new].wall_first+(uint16_t)i;
+      int all_in = 1;
+
+      if(last!=subsector)
+      {
+         last = subsector;
+
+         int winding = RvR_port_wall_winding(map,wall);
+         int inner = 0;
+         int inner_last = -1;
+         for(int j = 0;j<map->sectors[new].wall_count;j++)
+         {
+            uint16_t wall_inner = map->sectors[new].wall_first+(uint16_t)j;
+
+            if(inner_last!=inner&&inner!=subsector)
+            {
+               inner_last = inner;
+
+               int inside = RvR_port_wall_inside(map,wall,map->walls[wall_inner].x,map->walls[wall_inner].y);
+
+               if(winding!=0||!inside)
+               {
+                  all_in = 0;
+                  break;
+               }
+            }
+
+            if(map->walls[map->sectors[new].wall_first+(uint16_t)j].p2<map->sectors[new].wall_first+(uint16_t)j)
+               inner++;
+         }
+
+         if(all_in)
+         {
+            //Rotate to be first
+            uint16_t first = map->sectors[new].wall_first;
+            uint16_t count = map->sectors[new].wall_count;
+            int rot_amount = count-(wall-first);
+            int rot_start = map->sectors[new].wall_count-rot_amount;
+
+            //Reverse all
+            for(int j = 0;j<map->sectors[new].wall_count/2;j++)
+            {
+               RvR_port_wall tmp = map->walls[first+j];
+               map->walls[first+j] = map->walls[first+count-j-1];
+               map->walls[first+count-j-1] = tmp;
+            }
+
+            //Reverse last rot_start
+            for(int j = 0;j<rot_start/2;j++)
+            {
+               RvR_port_wall tmp = map->walls[first+rot_amount+j];
+               map->walls[first+rot_amount+j] = map->walls[first+count-j-1];
+               map->walls[first+count-j-1] = tmp;
+            }
+
+            //Reverse until rot_amount
+            for(int j = 0;j<rot_amount/2;j++)
+            {
+               RvR_port_wall tmp = map->walls[first+j];
+               map->walls[first+j] = map->walls[first+rot_amount-j-1];
+               map->walls[first+rot_amount-j-1] = tmp;
+            }
+
+            //Fix indices
+            for(int j = 0;j<map->sectors[new].wall_count;j++)
+               map->walls[first+j].p2 = (uint16_t)((map->walls[first+j].p2-first+rot_amount)%map->sectors[new].wall_count+first);
+
+            break;
+         }
+      }
+
+      if(map->walls[map->sectors[new].wall_first+(uint16_t)i].p2<map->sectors[new].wall_first+(uint16_t)i)
+         subsector++;
+   }
+
+   //Fix portals
+   for(int i = 0;i<map->sectors[new].wall_count;i++)
+   {
+      RvR_port_wall *wall = map->walls+map->sectors[new].wall_first+i;
+      if(wall->portal_wall!=RVR_PORT_WALL_INVALID)
+      {
+         map->walls[wall->portal_wall].portal_wall = map->sectors[new].wall_first+(uint16_t)i;
+         map->walls[wall->portal_wall].portal = new;
+      }
+   }
+
+   //Delete old sectors
+   if(sector0>sector1)
+   {
+      RvR_port_sector_delete(map,sector0);
+      RvR_port_sector_delete(map,sector1);
+   }
+   else
+   {
+      RvR_port_sector_delete(map,sector1);
+      RvR_port_sector_delete(map,sector0);
+   }
+   RvR_free(collected[0]);
+   RvR_free(collected[1]);
+
+   RvR_port_sector_fix_winding(map,map->sector_count-1);
+
+   return map->sector_count-1;
 }
 //-------------------------------------

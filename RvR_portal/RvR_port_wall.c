@@ -248,6 +248,80 @@ int RvR_port_wall_winding(const RvR_port_map *map, uint16_t wall)
    return sum>0;
 }
 
+int RvR_port_wall_inside(const RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22 y)
+{
+   RvR_error_check(map!=NULL,"RvR_port_wall_inside","argument 'map' must be non-NULL\n");
+   RvR_error_check(wall!=RVR_PORT_SECTOR_INVALID,"RvR_port_wall_inside","invalid wall\n");
+   RvR_error_check(wall<map->wall_count,"RvR_port_sector_inside","wall %d out of bounds (%d walls total)\n",wall,map->wall_count);
+
+   //Even-odd rule for checking if inside
+   int64_t crossed0 = 0;
+   int64_t crossed1 = 0;
+   uint16_t cur = wall;
+   do
+   {
+      //Translate, so that (x,y) is at (0,0)
+      //--> easier comparisons later
+      RvR_port_wall *w0 = map->walls+cur;
+      RvR_port_wall *w1 = map->walls+w0->p2;
+      int64_t x0 = w0->x-x;
+      int64_t y0 = w0->y-y;
+      int64_t x1 = w1->x-x;
+      int64_t y1 = w1->y-y;
+
+      //We count the amount of walls on the line y = 0, incrementing
+      //for every wall left of x = 0
+
+      //Exactly on wall
+      if((x0==0&&y0==0)||(x1==0&&y1==0))
+         return 1;
+
+      //If signs are not equal, then one of the points
+      //is above (x,y), the other below
+      if(!RvR_sign_equal(y0,y1))
+      {
+         //If both on one side
+         if(RvR_sign_equal(x0,x1))
+            //If both to the left --> increment
+            crossed0+=x0<0;
+         else
+            //One of the x coordinates on the right of line, the other on the left
+            //--> more complicated check
+            //we use the 2d cross product/perp doct product
+            //to compute on which side of the line we are
+            //the result is dependant on the sign of y1 (or y0)
+            //because we don't know, which of the two coordinates is the upper one
+            crossed0+=!RvR_sign_equal(x0*y1-x1*y0,y1);
+      }
+
+      //Same thing again, but with
+      //half-open interval
+      x0--;
+      y0--;
+      x1--;
+      y1--;
+      if(!RvR_sign_equal(y0,y1))
+      {
+
+         if(RvR_sign_equal(x0,x1))
+            crossed1+=x0<0;
+         else
+            crossed1+=!RvR_sign_equal(x0*y1-x1*y0,y1);
+      }
+
+      cur = map->walls[cur].p2;
+   }
+   while(cur!=wall);
+
+   //If we've crossed an odd number of walls
+   //on one of the counting rules, we are
+   //inside the sector
+   return crossed0&1||crossed1&1;
+
+RvR_err:
+   return 0;
+}
+
 int RvR_port_wall_subsector(const RvR_port_map *map, uint16_t sector, uint16_t wall)
 {
    int subsector = 0;
