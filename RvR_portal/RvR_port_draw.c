@@ -224,9 +224,13 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
    //Start with sector of camera
    //TODO(Captain4LK): stop rendering once all port_ybot<port_ytop (?), use count_remaining for rough estimation
+   int columns_left = RvR_xres();
    port_collect_walls(port_cam->sector);
    while(RvR_array_length(dwalls)>0)
    {
+      if(columns_left==0)
+         break;
+
       int len = (int)RvR_array_length(dwalls);
       max_len = RvR_max(max_len,len);
       //for(int i = 0;i<len;i++)
@@ -313,6 +317,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             int y0 = (cy+4095)/4096;
             int y1 = fy/4096;
+            int can_write = !(port_ytop[x]>port_ybot[x]);
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             int64_t nu = num_u+((num_step_u*(x-x0))*1024)/RvR_non_zero(wall->x1-wall->x0);
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
@@ -394,8 +399,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
             entry->next = port_depth_buffer.floor[x];
             port_depth_buffer.floor[x] = entry;
 
-            if(RvR_key_pressed(RVR_KEY_SPACE))
-               RvR_render_present();
+            if(can_write&&port_ytop[x]>port_ybot[x])
+               columns_left--;
          }
       }
       //Portal
@@ -458,11 +463,14 @@ void RvR_port_draw_map(RvR_port_selection *select)
          num_u_lower+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u_lower),RvR_non_zero(wall->x1-wall->x0));
          num_u_upper+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u_upper),RvR_non_zero(wall->x1-wall->x0));
 
+         int any_portal = 0;
+
          for(int x = x0;x<x1;x++)
          {
             //TODO(Captain4LK): maybe don't cast, but keep i64?
             int y0 = (int)((cy+1023)/1024);
             int y1 = (int)(fy/1024);
+            int can_write = !(port_ytop[x]>port_ybot[x]);
 
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 nu_lower = num_u_lower+RvR_fix22_div(num_step_u_lower*(x-x0),RvR_non_zero(wall->x1-wall->x0));
@@ -543,9 +551,17 @@ void RvR_port_draw_map(RvR_port_selection *select)
                port_ytop[x] = y0-1;
             }
 
+            int mid_prev = mid;
+
             mid = (int)((fph+1023)/1024);
             if(mid<=port_ytop[x])
                mid = port_ytop[x]+1;
+            
+            //if(can_write&&port_ytop[x]>port_ybot[x])
+            if(port_ytop[x]<=port_ybot[x]&&mid-mid_prev>0)
+               any_portal = 1;
+
+            //printf("%d %d\n",mid,mid_prev);
 
             if(mid<=y1)
             {
@@ -594,8 +610,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
             entry->next = port_depth_buffer.floor[x];
             port_depth_buffer.floor[x] = entry;
 
-            if(RvR_key_pressed(RVR_KEY_SPACE))
-               RvR_render_present();
+            if(can_write&&port_ytop[x]>port_ybot[x])
+               columns_left--;
 
             cy+=step_cy;
             cph+=step_cph;
@@ -603,12 +619,12 @@ void RvR_port_draw_map(RvR_port_selection *select)
             fph+=step_fph;
          }
 
-         if(!port_map->sectors[port_map->walls[wall->wall].portal].visited)
+         if(any_portal&&!port_map->sectors[port_map->walls[wall->wall].portal].visited)
             port_collect_walls(port_map->walls[wall->wall].portal);
       }
    }
 
-   //printf("Max length: %d\n",max_len);
+   //printf("Max length: %d, left: %d\n",max_len,columns_left);
 
    //Render floor planes
    for(int i = 0;i<128;i++)
