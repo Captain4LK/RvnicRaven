@@ -102,6 +102,14 @@ struct RvR_port_depth_buffer_entry
    RvR_port_depth_buffer_entry *next;
 };
 
+//Render report
+typedef struct
+{
+   int stack_max;
+   int sort_swaps;
+   int sort_skips;
+}RvR_port_report;
+
 //Sector flags
 //-------------------------------------
 #define RVR_PORT_SECTOR_PARALLAX_FLOOR           UINT32_C(0x1)
@@ -181,6 +189,7 @@ void  RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
 void  RvR_port_draw_map(RvR_port_selection *select);
 void  RvR_port_draw_end(RvR_port_selection *select);
 void  RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, uint16_t sector, uint16_t sprite, uint32_t flags, void *ref);
+void  RvR_port_draw_report(RvR_port_report *report);
 
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_floor(int x);
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_ceiling(int x);

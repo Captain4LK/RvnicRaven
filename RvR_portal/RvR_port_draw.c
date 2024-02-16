@@ -139,6 +139,8 @@ struct
    RvR_port_depth_buffer_entry *floor[RVR_XRES_MAX];
    RvR_port_depth_buffer_entry *ceiling[RVR_XRES_MAX];
 } port_depth_buffer;
+
+static RvR_port_report port_report = {0};
 //-------------------------------------
 
 //Function prototypes
@@ -194,6 +196,11 @@ void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam)
    //Clear sprites
    RvR_array_length_set(port_sprites, 0);
 
+   //Clear report
+   port_report.stack_max = 0;
+   port_report.sort_swaps = 0;
+   port_report.sort_skips = 0;
+
    port_cam = cam;
    port_map = map;
 
@@ -201,6 +208,14 @@ void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam)
    if(RvR_key_pressed(RVR_PORT_PIXELKEY))
       RvR_render_clear(0);
 #endif
+}
+
+void RvR_port_draw_report(RvR_port_report *report)
+{
+   if(report==NULL)
+      return;
+
+   *report = port_report;
 }
 
 void RvR_port_draw_map(RvR_port_selection *select)
@@ -220,10 +235,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
       port_ybot[i] = RvR_yres();
    }
 
-   int max_len = 0;
-
    //Start with sector of camera
-   //TODO(Captain4LK): stop rendering once all port_ybot<port_ytop (?), use count_remaining for rough estimation
    int columns_left = RvR_xres();
    port_collect_walls(port_cam->sector);
    while(RvR_array_length(dwalls)>0)
@@ -232,7 +244,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
          break;
 
       int len = (int)RvR_array_length(dwalls);
-      max_len = RvR_max(max_len,len);
+      port_report.stack_max = RvR_max(port_report.stack_max,len);
       //for(int i = 0;i<len;i++)
       {
          int swaps = 0;
@@ -249,7 +261,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                //Here we would split the wall, 
                //but since intersecting walls aren't supported we just pretend nothing happended
                j++;
-               //puts("skip");
+               port_report.sort_skips++;
             }
             else
             {
@@ -259,6 +271,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                dwalls[0] = tmp;
                j = 0+1;
                swaps++;
+               port_report.sort_swaps++;
             }
          }
       }
@@ -446,10 +459,10 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 u1_lower = wall->u1-(wall->u0&(~(1024*texture_lower->width-1)));
          RvR_fix22 u0_upper = wall->u0-(wall->u0&(~(1024*texture_upper->width-1)));
          RvR_fix22 u1_upper = wall->u1-(wall->u0&(~(1024*texture_upper->width-1)));
-         RvR_fix22 num_step_u_lower = RvR_fix22_mul(wall->z0,u1_lower)-RvR_fix22_mul(wall->z1,u0_lower);
-         RvR_fix22 num_u_lower = RvR_fix22_mul(u0_lower,wall->z1);
-         RvR_fix22 num_step_u_upper = RvR_fix22_mul(wall->z0,u1_upper)-RvR_fix22_mul(wall->z1,u0_upper);
-         RvR_fix22 num_u_upper = RvR_fix22_mul(u0_upper,wall->z1);
+         int64_t num_step_u_lower = RvR_fix22_mul(wall->z0,u1_lower)-RvR_fix22_mul(wall->z1,u0_lower);
+         int64_t num_u_lower = ((int64_t)u0_lower*wall->z1)/1024;
+         int64_t num_step_u_upper = RvR_fix22_mul(wall->z0,u1_upper)-RvR_fix22_mul(wall->z1,u0_upper);
+         int64_t num_u_upper = ((int64_t)u0_upper*wall->z1)/1024;
 
          //Adjust for fractional part
          int x0 = (wall->x0+1023)/1024;
@@ -460,8 +473,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
          fy+=(xfrac*step_fy)/1024;
          fph+=(xfrac*step_fph)/1024;
          num_z+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_z),RvR_non_zero(wall->x1-wall->x0));
-         num_u_lower+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u_lower),RvR_non_zero(wall->x1-wall->x0));
-         num_u_upper+=RvR_fix22_div(RvR_fix22_mul(xfrac,num_step_u_upper),RvR_non_zero(wall->x1-wall->x0));
+         num_u_lower+=(xfrac*num_step_u_lower)/RvR_non_zero(wall->x1-wall->x0);
+         num_u_upper+=(xfrac*num_step_u_upper)/RvR_non_zero(wall->x1-wall->x0);
 
          int any_portal = 0;
 
@@ -473,11 +486,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
             int can_write = !(port_ytop[x]>port_ybot[x]);
 
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
-            RvR_fix22 nu_lower = num_u_lower+RvR_fix22_div(num_step_u_lower*(x-x0),RvR_non_zero(wall->x1-wall->x0));
-            RvR_fix22 nu_upper = num_u_upper+RvR_fix22_div(num_step_u_upper*(x-x0),RvR_non_zero(wall->x1-wall->x0));
+            int64_t nu_lower = num_u_lower+((num_step_u_lower*(x-x0))*1024/RvR_non_zero(wall->x1-wall->x0));
+            int64_t nu_upper = num_u_upper+((num_step_u_upper*(x-x0))*1024/RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
-            RvR_fix22 u_lower = (4*nu_lower)/RvR_non_zero(nz);
-            RvR_fix22 u_upper = (4*nu_upper)/RvR_non_zero(nz);
+            RvR_fix22 u_lower = (RvR_fix22)((4*nu_lower)/RvR_non_zero(nz));
+            RvR_fix22 u_upper = (RvR_fix22)((4*nu_upper)/RvR_non_zero(nz));
 
             int top = port_ytop[x]+1;
             int bottom = port_ybot[x];
@@ -623,8 +636,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
             port_collect_walls(port_map->walls[wall->wall].portal);
       }
    }
-
-   //printf("Max length: %d, left: %d\n",max_len,columns_left);
 
    //Render floor planes
    for(int i = 0;i<128;i++)

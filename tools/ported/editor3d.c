@@ -559,6 +559,10 @@ static void e3d_draw_view(void)
    RvR_port_draw_map(&world_selection);
    RvR_port_draw_end(NULL);
 
+   RvR_port_report report;
+   RvR_port_draw_report(&report);
+   printf("Report: swaps: %d; stack_max: %d\n",report.sort_swaps,report.stack_max);
+
    RvR_render_rectangle(8, RvR_yres() - 74, 66, 66, color_white);
    draw_fit64(9, RvR_yres() - 73, texture_selected);
 
