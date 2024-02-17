@@ -167,6 +167,7 @@ uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sect
 //-------------------------------------
 uint16_t RvR_port_wall_sector(const RvR_port_map *map, uint16_t wall);
 void    RvR_port_wall_move(RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22 y);
+uint16_t RvR_port_wall_make_first(RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_wall_first(const RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_wall_next(const RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_wall_previous(const RvR_port_map *map, uint16_t wall);
@@ -174,6 +175,7 @@ int RvR_port_wall_winding(const RvR_port_map *map, uint16_t wall);
 int RvR_port_wall_inside(const RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22 y);
 int     RvR_port_wall_subsector(const RvR_port_map *map, uint16_t sector, uint16_t wall);
 uint16_t RvR_port_subsector_length(const RvR_port_map *map, uint16_t wall);
+uint16_t RvR_port_subsector_first(const RvR_port_map *map, uint16_t wall);
 //TODO(Captain4LK): find a proper name for this
 uint16_t RvR_port_wall_next_onesided(const RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_wall_onesided_length(const RvR_port_map *map, uint16_t wall);
