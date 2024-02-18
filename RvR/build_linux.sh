@@ -42,7 +42,6 @@ add_to_obj 'palette'
 add_to_obj 'render'
 add_to_obj 'texture'
 echo "obj =$obj"
-echo "all_obj=$all_obj"
 
 #Add target for every source in app/
 for src in $(find ./app/ -name "*.c"); do
@@ -51,6 +50,8 @@ for src in $(find ./app/ -name "*.c"); do
    all_obj="$all_obj ${src%%.c}.o"
    printf "$target: \$(obj) ${src%%.c}.o \n\tar crs lib$target.a $^\n"
 done
+
+echo "all_obj=$all_obj"
 
 printf "clean:\n\trm -f \$(all_obj) *.a\n"
 

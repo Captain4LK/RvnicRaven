@@ -47,7 +47,7 @@ uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
    if(str==NULL)
       return hval;
 
-   unsigned char *s = (unsigned char *)str;
+   const unsigned char *s = (const unsigned char *)str;
    while(*s)
    {
       hval ^= (uint64_t)*s++;
@@ -62,8 +62,8 @@ uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
    if(buf==NULL)
       return hval;
 
-   unsigned char *bs = (unsigned char *)buf;
-   unsigned char *be = bs + len;
+   const unsigned char *bs = (const unsigned char *)buf;
+   const unsigned char *be = bs + len;
    while(bs<be)
    {
       hval ^= (uint64_t)*bs++;
@@ -86,7 +86,7 @@ uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
    if(str==NULL)
       return hval;
 
-   unsigned char *s = (unsigned char *)str;
+   const unsigned char *s = (const unsigned char *)str;
    while(*s)
    {
       hval ^= (uint32_t)*s++;
@@ -101,8 +101,8 @@ uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
    if(buf==NULL)
       return hval;
 
-   unsigned char *bs = (unsigned char *)buf;
-   unsigned char *be = bs + len;
+   const unsigned char *bs = (const unsigned char *)buf;
+   const unsigned char *be = bs + len;
    while(bs<be)
    {
       hval ^= (uint32_t)*bs++;
