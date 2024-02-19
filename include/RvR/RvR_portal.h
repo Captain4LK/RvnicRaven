@@ -26,6 +26,8 @@ typedef struct
    uint8_t visited;
    int8_t shade_floor;
    int8_t shade_ceiling;
+   RvR_fix22 slope_floor;
+   RvR_fix22 slope_ceiling;
    int16_t x_off;
    int16_t y_off;
 }RvR_port_sector;
@@ -110,6 +112,14 @@ typedef struct
    int sort_skips;
 }RvR_port_report;
 
+typedef struct
+{
+   RvR_fix22 x;
+   RvR_fix22 y;
+   RvR_fix22 z;
+   RvR_fix22 d;
+}RvR_port_slope;
+
 //Sector flags
 //-------------------------------------
 #define RVR_PORT_SECTOR_PARALLAX_FLOOR           UINT32_C(0x1)
@@ -183,6 +193,14 @@ uint16_t RvR_port_wall_onesided_length(const RvR_port_map *map, uint16_t wall);
 //Map manipulation
 //TODO(Captain4LK): should we keep these here, or should they be only in the editor?
 uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_fix22 y);
+//-------------------------------------
+
+//Slopes
+//-------------------------------------
+void RvR_port_slope_from_floor(const RvR_port_map *map, uint16_t sector, RvR_port_slope *slope);
+void RvR_port_slope_from_floor_vs(const RvR_port_map *map, const RvR_port_cam *cam, uint16_t sector, RvR_port_slope *slope);
+void RvR_port_slope_from_ceiling(const RvR_port_map *map, uint16_t sector, RvR_port_slope *slope);
+RvR_fix22 RvR_port_slope_height_at(const RvR_port_slope *slope, RvR_fix22 x, RvR_fix22 y);
 //-------------------------------------
 
 //Rendering

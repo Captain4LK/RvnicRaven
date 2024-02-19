@@ -1,5 +1,5 @@
 /*
-RvnicRaven - portal walls 
+RvnicRaven-portal
 
 Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
@@ -94,6 +94,55 @@ void RvR_port_wall_move(RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22
 
 uint16_t RvR_port_wall_make_first(RvR_port_map *map, uint16_t wall)
 {
+   uint16_t first = RvR_port_subsector_first(map,wall);
+   uint16_t len = RvR_port_subsector_length(map,wall);
+   uint16_t sector = RvR_port_wall_sector(map,wall);
+
+   //Rotate
+   //-------------------------------------
+   int rot_amount = len-(wall-first);
+   int rot_start = len-rot_amount;
+
+   //Reverse all
+   for(int i = 0;i<len/2;i++)
+   {
+      RvR_port_wall tmp = map->walls[first+i];
+      map->walls[first+i] = map->walls[first+len-i-1];
+      map->walls[first+len-i-1] = tmp;
+   }
+
+   //Reverse last rot_start
+   for(int i = 0;i<rot_start/2;i++)
+   {
+      RvR_port_wall tmp = map->walls[first+rot_amount+i];
+      map->walls[first+rot_amount+i] = map->walls[first+len-i-1];
+      map->walls[first+len-i-1] = tmp;
+   }
+
+   //Reverse until rot_amount
+   for(int i = 0;i<rot_amount/2;i++)
+   {
+      RvR_port_wall tmp = map->walls[first+i];
+      map->walls[first+i] = map->walls[first+rot_amount-i-1];
+      map->walls[first+rot_amount-i-1] = tmp;
+   }
+
+   //Fix indices
+   for(int i = 0;i<len;i++)
+      map->walls[first+i].p2 = (uint16_t)((map->walls[first+i].p2-first+rot_amount)%len+first);
+   //-------------------------------------
+
+   //Fix portals
+   for(int i = 0;i<len;i++)
+   {
+      RvR_port_wall *w = map->walls+first+i;
+      if(w->portal_wall!=RVR_PORT_WALL_INVALID)
+      {
+         map->walls[w->portal_wall].portal_wall = first+(uint16_t)i;
+         map->walls[w->portal_wall].portal = sector;
+      }
+   }
+
    return wall;
 }
 
@@ -358,6 +407,18 @@ uint16_t RvR_port_subsector_length(const RvR_port_map *map, uint16_t wall)
 
 uint16_t RvR_port_subsector_first(const RvR_port_map *map, uint16_t wall)
 {
+   if(map->walls[wall].p2<wall)
+      return map->walls[wall].p2;
+
+   uint16_t cur = map->walls[wall].p2;
+   while(cur!=wall)
+   {
+      if(map->walls[cur].p2<cur)
+         return map->walls[cur].p2;
+      cur = map->walls[cur].p2;
+   }
+
+   return wall;
 }
 
 uint16_t RvR_port_wall_next_onesided(const RvR_port_map *map, uint16_t wall)

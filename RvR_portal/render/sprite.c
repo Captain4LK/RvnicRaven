@@ -1,0 +1,519 @@
+/*
+RvnicRaven-portal
+
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+
+To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+*/
+
+//External includes
+#include <stdlib.h>
+#include <string.h>
+#include "RvR/RvR.h"
+//-------------------------------------
+
+//Internal includes
+#include "RvR_port_config.h"
+#include "RvR/RvR_portal.h"
+#include "RvR_port_render.h"
+//-------------------------------------
+
+//#defines
+//-------------------------------------
+
+//Typedefs
+//-------------------------------------
+
+//Variables
+//-------------------------------------
+
+//Function prototypes
+static int port_sprite_comp(const void *a, const void *b);
+static int port_sprite_can_back(const port_sprite *a, const port_sprite *b);
+static int port_wsprite_can_back(const port_sprite * restrict a, const port_sprite * restrict b);
+//-------------------------------------
+
+//Function implementations
+
+void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, uint16_t sector, uint16_t sprite, uint32_t flags, void *ref)
+{
+   //flagged as invisible
+   if(flags & 1)
+      return;
+
+   //sector not visited
+   if(!port_map->sectors[sector].visited)
+      return;
+
+   port_sprite sp = {0};
+   sp.flags = flags;
+   sp.texture = sprite;
+   sp.x = x;
+   sp.y = y;
+   sp.z = z;
+   sp.dir = dir;
+   sp.ref = ref;
+
+   RvR_texture *tex = RvR_texture_get(sprite);
+   RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
+   RvR_fix22 cos = RvR_fix22_cos(port_cam->dir);
+   RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov / 2);
+   RvR_fix22 fovy = RvR_fix22_div(RvR_yres() * fovx, RvR_xres()*1024);
+   RvR_fix22 sin_fov = RvR_fix22_mul(sin, fovx);
+   RvR_fix22 cos_fov = RvR_fix22_mul(cos, fovx);
+   RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
+
+   //Wall aligned
+   if(flags & 8)
+   {
+      //Translate sprite to world space
+      RvR_fix22 dirx = RvR_fix22_cos(dir);
+      RvR_fix22 diry = RvR_fix22_sin(dir);
+      RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
+      RvR_fix22 p0x = RvR_fix22_mul(-diry, half_width) + x;
+      RvR_fix22 p0y = RvR_fix22_mul(dirx, half_width) + y;
+      RvR_fix22 p1x = RvR_fix22_mul(diry, half_width) + x;
+      RvR_fix22 p1y = RvR_fix22_mul(-dirx, half_width) + y;
+      sp.x = x;
+      sp.y = y;
+      sp.z = z;
+      sp.as.wall.u0 = 0;
+      sp.as.wall.u1 = 1024 * tex->width - 1;
+
+      //Translate to camera space
+      RvR_fix22 x0 = p0x - port_cam->x;
+      RvR_fix22 y0 = p0y - port_cam->y;
+      RvR_fix22 x1 = p1x - port_cam->x;
+      RvR_fix22 y1 = p1y - port_cam->y;
+      RvR_fix22 tp0x = RvR_fix22_mul(-x0, sin) + RvR_fix22_mul(y0, cos);
+      RvR_fix22 tp0y = RvR_fix22_mul(x0, cos_fov) + RvR_fix22_mul(y0, sin_fov);
+      RvR_fix22 tp1x = RvR_fix22_mul(-x1, sin) + RvR_fix22_mul(y1, cos);
+      RvR_fix22 tp1y = RvR_fix22_mul(x1, cos_fov) + RvR_fix22_mul(y1, sin_fov);
+
+      //Behind camera
+      if(tp0y<-128&&tp1y<-128)
+         return;
+
+      //Sprite not facing camera
+      //--> swap p0 and p1 and toggle y-axis mirror flag
+      if(RvR_fix22_mul(tp0x, tp1y) - RvR_fix22_mul(tp1x, tp0y)>0)
+      {
+         //One sided sprite
+         if(sp.flags & 128)
+            return;
+
+         RvR_fix22 tmp = tp0x;
+         tp0x = tp1x;
+         tp1x = tmp;
+
+         tmp = tp0y;
+         tp0y = tp1y;
+         tp1y = tmp;
+         sp.flags ^= 2;
+      }
+
+      sp.as.wall.wx0 = tp0x;
+      sp.as.wall.wy0 = tp0y;
+      sp.as.wall.wx1 = tp1x;
+      sp.as.wall.wy1 = tp1y;
+
+      //Here we can treat everything as if we have a 90 degree
+      //fov, since the rotation to camera space transforms it to
+      //that
+      //Check if in fov
+      //Left point in fov
+      if(tp0x>=-tp0y)
+      {
+         //Sprite completely out of sight
+         if(tp0x>tp0y)
+            return;
+
+         sp.as.wall.x0 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(tp0x * (RvR_xres() / 2), tp0y), RvR_xres() * 1024);
+         sp.as.wall.z0 = tp0y;
+      }
+      //Left point to the left of fov
+      else
+      {
+         //Sprite completely out of sight
+         if(tp1x<-tp1y)
+            return;
+
+         sp.as.wall.x0 = 0;
+         RvR_fix22 dx0 = tp1x - tp0x;
+         RvR_fix22 dx1 = tp0x + tp0y;
+         sp.as.wall.z0 = RvR_fix22_div(RvR_fix22_mul(dx0, dx1), tp1y - tp0y + tp1x - tp0x) - tp0x;
+         sp.as.wall.u0 = sp.as.wall.u0 + RvR_fix22_div(RvR_fix22_mul(-tp0x - tp0y, sp.as.wall.u1 - sp.as.wall.u0), RvR_non_zero(tp1x - tp0x + tp1y - tp0y));
+      }
+
+      //Right point in fov
+      if(tp1x<=tp1y)
+      {
+         //sprite completely out of sight
+         if(tp1x<-tp1y)
+            return;
+
+         sp.as.wall.x1 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(tp1x * (RvR_xres() / 2), tp1y), RvR_xres() * 1024);
+         sp.as.wall.z1 = tp1y;
+      }
+      //Right point to the right of fov
+      else
+      {
+         //sprite completely out of sight
+         if(tp0x>tp0y)
+            return;
+
+         RvR_fix22 dx0 = tp1x - tp0x;
+         RvR_fix22 dx1 = tp0y - tp0x;
+         sp.as.wall.x1 = RvR_xres() * 1024;
+         sp.as.wall.z1 = tp0x - RvR_fix22_div(RvR_fix22_mul(dx0, dx1), tp1y - tp0y - tp1x + tp0x);
+         sp.as.wall.u1 = RvR_fix22_div(RvR_fix22_mul(dx1, sp.as.wall.u1), RvR_non_zero(-tp1y + tp0y + tp1x - tp0x));
+      }
+
+      //Near clip sprite
+      if(sp.as.wall.z0<128||sp.as.wall.z1<128)
+         return;
+
+      //Far clip sprite
+      //TODO(Captain4LK): far clip once really far away (only a few/one pixels big)?
+      //if(sp.as.wall.z0>RVR_RAY_MAX_STEPS * 65536&&sp.as.wall.z1>RVR_RAY_MAX_STEPS * 65536)
+         //return;
+
+      if(sp.as.wall.x0>sp.as.wall.x1)
+         return;
+
+      sp.z_min = RvR_min(sp.as.wall.z0, sp.as.wall.z1);
+      sp.z_max = RvR_max(sp.as.wall.z0, sp.as.wall.z1);
+
+      RvR_array_push(port_sprites, sp);
+
+      return;
+   }
+
+   //Floor alligned
+   if(flags & 16)
+   {
+      //World space coordinates, origin at camera
+      RvR_fix22 scos = RvR_fix22_cos(dir);
+      RvR_fix22 ssin = RvR_fix22_sin(dir);
+      RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
+      RvR_fix22 half_height = (tex->height * 1024) / (64 * 2);
+      RvR_fix22 x0 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + x - port_cam->x;
+      RvR_fix22 y0 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(-half_height, ssin) + y - port_cam->y;
+      RvR_fix22 x1 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + x - port_cam->x;
+      RvR_fix22 y1 = RvR_fix22_mul(+half_width, scos) + RvR_fix22_mul(-half_height, ssin) + y - port_cam->y;
+      RvR_fix22 x2 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(+half_height, scos) + x - port_cam->x;
+      RvR_fix22 y2 = RvR_fix22_mul(+half_width, scos) + RvR_fix22_mul(+half_height, ssin) + y - port_cam->y;
+      RvR_fix22 x3 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(+half_height, scos) + x - port_cam->x;
+      RvR_fix22 y3 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(+half_height, ssin) + y - port_cam->y;
+
+      //Move to camera space
+      sp.as.floor.x0 = RvR_fix22_mul(-x0, sin) + RvR_fix22_mul(y0, cos);
+      sp.as.floor.z0 = RvR_fix22_mul(x0, cos_fov) + RvR_fix22_mul(y0, sin_fov);
+      sp.as.floor.x1 = RvR_fix22_mul(-x1, sin) + RvR_fix22_mul(y1, cos);
+      sp.as.floor.z1 = RvR_fix22_mul(x1, cos_fov) + RvR_fix22_mul(y1, sin_fov);
+      sp.as.floor.x2 = RvR_fix22_mul(-x2, sin) + RvR_fix22_mul(y2, cos);
+      sp.as.floor.z2 = RvR_fix22_mul(x2, cos_fov) + RvR_fix22_mul(y2, sin_fov);
+      sp.as.floor.x3 = RvR_fix22_mul(-x3, sin) + RvR_fix22_mul(y3, cos);
+      sp.as.floor.z3 = RvR_fix22_mul(x3, cos_fov) + RvR_fix22_mul(y3, sin_fov);
+
+      sp.as.floor.wx = RvR_fix22_mul(-(x - port_cam->x), sin) + RvR_fix22_mul(y - port_cam->y, cos);
+      sp.as.floor.wy = RvR_fix22_mul(x - port_cam->x, cos_fov) + RvR_fix22_mul(y - port_cam->y, sin_fov);
+
+      RvR_fix22 depth_min = RvR_min(sp.as.floor.z0, RvR_min(sp.as.floor.z1, RvR_min(sp.as.floor.z2, sp.as.floor.z3)));
+      RvR_fix22 depth_max = RvR_max(sp.as.floor.z0, RvR_max(sp.as.floor.z1, RvR_max(sp.as.floor.z2, sp.as.floor.z3)));
+
+      //Near clip
+      if(depth_max<128)
+         return;
+
+      //Far clip
+      //TODO(Captain4LK): far clip once really far away (only a few/one pixels big)?
+      //if(depth_min>RVR_RAY_MAX_STEPS * 65536)
+         //return;
+
+      sp.z_min = depth_min;
+      sp.z_max = depth_max;
+
+      RvR_array_push(port_sprites, sp);
+
+      return;
+   }
+
+   //Billboard
+   sp.as.bill.wx = RvR_fix22_mul(-(x - port_cam->x), sin) + RvR_fix22_mul(y - port_cam->y, cos);
+   sp.as.bill.wy = RvR_fix22_mul(x - port_cam->x, cos_fov) + RvR_fix22_mul(y - port_cam->y, sin_fov);
+   sp.z_min = sp.z_max = sp.as.bill.wy;
+   RvR_fix22 depth = RvR_fix22_mul(x - port_cam->x, cos) + RvR_fix22_mul(y - port_cam->y, sin); //Separate depth, so that the near/far clip is not dependent on fov
+
+   //Near clip
+   if(depth<128)
+      return;
+
+   //Far clip
+   //TODO(Captain4LK): far clip once really far away (only a few/one pixels big)?
+   //if(depth>RVR_RAY_MAX_STEPS * 65536)
+      //return;
+
+   //Left of screen
+   if(-sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
+      return;
+
+   //Right of screen
+   if(sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
+      return;
+
+   //Above screen
+   if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (z - port_cam->z))
+      return;
+
+   //Below screen
+   if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (z - port_cam->z + tex->height * 16))
+      return;
+
+   RvR_array_push(port_sprites, sp);
+}
+
+void sprites_render(RvR_port_selection *select)
+{
+   //Sprites get sorted from back to front
+
+   //First sprites get sorted by depth.
+   //This is not accurate for wall sprites
+   qsort(port_sprites, RvR_array_length(port_sprites), sizeof(*port_sprites), port_sprite_comp);
+
+   //This is essentially Newells Algorithm,
+   //If you know a faster way to do this, please
+   //tell me.
+   int len = (int)RvR_array_length(port_sprites);
+   for(int i = 0; i<len; i++)
+   {
+      //swaps is used to mark which sprites have been swapped before
+      //and thus for detecting double swaps
+      int swaps = 0;
+      int j = i + 1;
+      while(j<len)
+      {
+         //ray_sprite_can_back calculates wether sprite i
+         //can be drawn behind sprite j
+         //and thus if they are ordered correctly.
+         if(port_sprite_can_back(port_sprites + i, port_sprites + j))
+         {
+            j++;
+         }
+         else if(i + swaps>j)
+         {
+            //This case usually happens when walls intersect
+            //Here we would split the wall,
+            //but since intersecting walls aren't supported we just pretend nothing happended
+            j++;
+         }
+         else
+         {
+            //Place sprite j in front of sprite i,
+            //shifting everything else to the right.
+            port_sprite tmp = port_sprites[j];
+            for(int w = j; w>i; w--)
+               port_sprites[w] = port_sprites[w - 1];
+            port_sprites[i] = tmp;
+            j = i + 1;
+            swaps++;
+         }
+      }
+   }
+
+
+   //Render sprites
+   for(int i = 0; i<RvR_array_length(port_sprites); i++)
+   {
+      port_sprite *sp = port_sprites + i;
+      if(sp->flags & 8)
+         port_sprite_draw_wall(sp, select);
+      else if(sp->flags & 16)
+         port_sprite_draw_floor(sp, select);
+      else
+         port_sprite_draw_billboard(port_map, sp, select);
+   }
+}
+
+static int port_sprite_comp(const void *a, const void *b)
+{
+   const port_sprite *sa = a;
+   const port_sprite *sb = b;
+
+   return sb->z_max - sa->z_max;
+}
+
+static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
+{
+   //Separate cases:
+   //wall - wall : full check
+   //sprite - sprite: nothing, only depth compare?
+   //wall - sprite: partial check, only perp dot
+
+   //Wall - Wall check is put in
+   //a separate function
+   if(a->flags & 8&&b->flags & 8)
+      return port_wsprite_can_back(a, b);
+
+   //Sprite - Sprite check
+   //is a lot simpler
+   if(!(a->flags & 8)&&!(b->flags & 8))
+   {
+      //If one is floor sprite, check height
+      if(a->flags & 16||b->flags & 16)
+      {
+         //a completely behind b
+         //We only want to sort them by height if
+         //they overlap on the z-axis
+         if(a->z_min>b->z_max)
+            return 1;
+
+         //If one of the sprites is above the camera, the higher
+         //ones needs to be drawn first
+         if(a->z>port_cam->z||b->z>port_cam->z)
+            return (a->z)>=(b->z);
+         //Otherwise, the lower one get's drawn first
+         return (a->z)<=(b->z);
+      }
+
+      //Due to the z sorting before, the sprites
+      //are already sorted by z.
+      return 1;
+   }
+
+   int64_t x00 = 0;
+   int64_t z00 = 0;
+   int64_t x01 = 0;
+   int64_t z01 = 0;
+   int64_t x10 = 0;
+   int64_t z10 = 0;
+   int64_t x11 = 0;
+   int64_t z11 = 0;
+   if(a->flags & 8)
+   {
+      x00 = a->as.wall.wx0;
+      x01 = a->as.wall.wx1;
+      z00 = a->as.wall.wy0;
+      z01 = a->as.wall.wy1;
+   }
+   else if(a->flags & 16)
+   {
+      x00 = a->as.floor.wx;
+      x01 = a->as.floor.wx;
+      z00 = a->as.floor.wy;
+      z01 = a->as.floor.wy;
+   }
+   else
+   {
+      x00 = a->as.bill.wx;
+      x01 = a->as.bill.wx;
+      z00 = a->as.bill.wy;
+      z01 = a->as.bill.wy;
+   }
+
+   if(b->flags & 8)
+   {
+      x10 = b->as.wall.wx0;
+      x11 = b->as.wall.wx1;
+      z10 = b->as.wall.wy0;
+      z11 = b->as.wall.wy1;
+   }
+   else if(b->flags & 16)
+   {
+      x10 = b->as.floor.wx;
+      x11 = b->as.floor.wx;
+      z10 = b->as.floor.wy;
+      z11 = b->as.floor.wy;
+   }
+   else
+   {
+      x10 = b->as.bill.wx;
+      x11 = b->as.bill.wx;
+      z10 = b->as.bill.wy;
+      z11 = b->as.bill.wy;
+   }
+
+   //a completely behind b
+   if(a->z_min>b->z_max)
+      return 1;
+
+   //can't check x overlap, since we don't
+   //store/calculate the screen x coordinates.
+
+   //One of the two is a wall
+   //we check the ordering of
+   //the wall and the sprite
+   if(a->flags & 8)
+   {
+      int64_t dx0 = x01 - x00;
+      int64_t dz0 = z01 - z00;
+      int64_t cross00 = dx0 * (z10 - z00) - dz0 * (x10 - x00);
+
+      //sprite b in front wall a
+      if(cross00<=0)
+         return 1;
+   }
+   else
+   {
+      int64_t dx1 = x11 - x10;
+      int64_t dz1 = z11 - z10;
+      int64_t cross10 = dx1 * (z00 - z10) - dz1 * (x00 - x10);
+
+      //sprite a behind wall b
+      if(cross10>=0)
+         return 1;
+   }
+
+   //Need swapping
+   return 0;
+}
+
+static int port_wsprite_can_back(const port_sprite * restrict a, const port_sprite * restrict b)
+{
+   //NOTE(Captain4LK): We use 64 bit precision here,
+   //you could do it without, but I haven't
+   //really checked how well that works,
+   //especially with very long wall sprites
+   int64_t x00 = a->as.wall.wx0;
+   int64_t x01 = a->as.wall.wx1;
+   int64_t z00 = a->as.wall.wy0;
+   int64_t z01 = a->as.wall.wy1;
+
+   int64_t x10 = b->as.wall.wx0;
+   int64_t x11 = b->as.wall.wx1;
+   int64_t z10 = b->as.wall.wy0;
+   int64_t z11 = b->as.wall.wy1;
+
+   //a completely behind b
+   if(a->z_min>b->z_max)
+      return 1;
+
+   //No screen x overlap
+   if(a->as.wall.x0>=b->as.wall.x1||a->as.wall.x1<=b->as.wall.x0)
+      return 1;
+
+   int64_t dx0 = x01 - x00;
+   int64_t dz0 = z01 - z00;
+   int64_t dx1 = x11 - x10;
+   int64_t dz1 = z11 - z10;
+
+   //2d cross product/perp dot product
+   int64_t cross00 = dx0 * (z10 - z00) - dz0 * (x10 - x00);
+   int64_t cross01 = dx0 * (z11 - z00) - dz0 * (x11 - x00);
+   int64_t cross10 = dx1 * (z00 - z10) - dz1 * (x00 - x10);
+   int64_t cross11 = dx1 * (z01 - z10) - dz1 * (x01 - x10);
+
+   //All points of b in front of a
+   if(cross00<=0&&cross01<=0)
+      return 1;
+
+   //All points of a behind b
+   if(cross10>=0&&cross11>=0)
+      return 1;
+
+   //Need swapping
+   return 0;
+}
+//-------------------------------------
