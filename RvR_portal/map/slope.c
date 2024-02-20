@@ -65,7 +65,7 @@ void RvR_port_slope_from_floor(const RvR_port_map *map, uint16_t sector, RvR_por
    slope->y = ny;
    slope->z = nz;
    slope->d = -(RvR_fix22_mul(nx,x0)+RvR_fix22_mul(ny,y0)+RvR_fix22_mul(nz,map->sectors[sector].floor));
-   //printf("%d %d %d %d; %d\n",slope->x,slope->y,slope->z,slope->d,map->sectors[sector].slope_floor);
+   printf("%d %d %d %d; %d\n",slope->x,slope->y,slope->z,slope->d,map->sectors[sector].slope_floor);
 
    /*len = RvR_fix22_sqrt(RvR_fix22_mul(nx,nx)+RvR_fix22_mul(ny,ny)+RvR_fix22_mul(nz,nz));
    nx = RvR_fix22_div(nx,RvR_non_zero(len));

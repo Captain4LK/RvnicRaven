@@ -151,8 +151,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
             RvR_port_slope_from_floor(port_map,sector,&slope);
             uint16_t w0 = wall->wall;
             uint16_t w1 = port_map->walls[wall->wall].p2;
-            //fz0 = RvR_port_slope_height_at(&slope,port_map->walls[w0].x,port_map->walls[w0].y);
-            //fz1 = RvR_port_slope_height_at(&slope,port_map->walls[w1].x,port_map->walls[w1].y);
             fz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
             fz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
          }
@@ -300,31 +298,85 @@ void RvR_port_draw_map(RvR_port_selection *select)
       //Portal
       else
       {
+         RvR_fix22 cz0 = port_map->sectors[sector].ceiling;
+         RvR_fix22 cz1 = port_map->sectors[sector].ceiling;
+         RvR_fix22 cpz0 = port_map->sectors[portal].ceiling;
+         RvR_fix22 cpz1 = port_map->sectors[portal].ceiling;
+         RvR_fix22 fz0 = port_map->sectors[sector].floor;
+         RvR_fix22 fz1 = port_map->sectors[sector].floor;
+         RvR_fix22 fpz0 = port_map->sectors[portal].floor;
+         RvR_fix22 fpz1 = port_map->sectors[portal].floor;
+
+         //Slopes
+         //-------------------------------------
+         if(port_map->sectors[sector].slope_floor!=0)
+         {
+            RvR_port_slope slope;
+            RvR_port_slope_from_floor(port_map,sector,&slope);
+            uint16_t w0 = wall->wall;
+            uint16_t w1 = port_map->walls[wall->wall].p2;
+            fz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
+            fz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
+         }
+
+         if(port_map->sectors[sector].slope_ceiling!=0)
+         {
+            RvR_port_slope slope;
+            RvR_port_slope_from_ceiling(port_map,sector,&slope);
+            uint16_t w0 = wall->wall;
+            uint16_t w1 = port_map->walls[wall->wall].p2;
+            cz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
+            cz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
+         }
+
+         if(port_map->sectors[portal].slope_floor!=0)
+         {
+            RvR_port_slope slope;
+            RvR_port_slope_from_floor(port_map,portal,&slope);
+            uint16_t w0 = wall->wall;
+            uint16_t w1 = port_map->walls[wall->wall].p2;
+            fpz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
+            fpz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
+         }
+
+         if(port_map->sectors[portal].slope_ceiling!=0)
+         {
+            RvR_port_slope slope;
+            RvR_port_slope_from_ceiling(port_map,portal,&slope);
+            uint16_t w0 = wall->wall;
+            uint16_t w1 = port_map->walls[wall->wall].p2;
+            cpz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
+            cpz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
+         }
+         //-------------------------------------
+
          //depth values go much lower here (since you can be on the border between sectors)
          //so we use i64 here
-         int64_t cy0 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
-         int64_t cy1 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
+         int64_t cy0 = ((int64_t)512*RvR_yres()*(cz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
+         int64_t cy1 = ((int64_t)512*RvR_yres()*(cz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
+         //int64_t cy0 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
+         //int64_t cy1 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
          cy0 = RvR_yres()*512-cy0;
          cy1 = RvR_yres()*512-cy1;
          int64_t step_cy = ((cy1-cy0)*1024)/RvR_non_zero(wall->x1-wall->x0);
          int64_t cy = cy0;
 
-         int64_t cph0 = ((int64_t)512*RvR_yres()*(port_map->sectors[portal].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
-         int64_t cph1 = ((int64_t)512*RvR_yres()*(port_map->sectors[portal].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
+         int64_t cph0 = ((int64_t)512*RvR_yres()*(cpz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
+         int64_t cph1 = ((int64_t)512*RvR_yres()*(cpz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
          cph0 = RvR_yres()*512-cph0;
          cph1 = RvR_yres()*512-cph1;
          int64_t step_cph = ((cph1-cph0)*1024)/RvR_non_zero(wall->x1-wall->x0);
          int64_t cph = cph0;
 
-         int64_t fy0 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].floor-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
-         int64_t fy1 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].floor-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
+         int64_t fy0 = ((int64_t)512*RvR_yres()*(fz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
+         int64_t fy1 = ((int64_t)512*RvR_yres()*(fz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
          fy0 = RvR_yres()*512-fy0;
          fy1 = RvR_yres()*512-fy1;
          int64_t step_fy = ((fy1-fy0)*1024)/RvR_non_zero(wall->x1-wall->x0);
          int64_t fy = fy0;
 
-         int64_t fph0 = ((int64_t)512*RvR_yres()*(port_map->sectors[portal].floor-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
-         int64_t fph1 = ((int64_t)512*RvR_yres()*(port_map->sectors[portal].floor-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
+         int64_t fph0 = ((int64_t)512*RvR_yres()*(fpz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
+         int64_t fph1 = ((int64_t)512*RvR_yres()*(fpz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
          fph0 = RvR_yres()*512-fph0;
          fph1 = RvR_yres()*512-fph1;
          int64_t step_fph = ((fph1-fph0)*1024)/RvR_non_zero(wall->x1-wall->x0);
