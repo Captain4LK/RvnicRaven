@@ -22,7 +22,7 @@ LDLIBS  =
 
 all=""
 for src in $(find ./app/ -name "*.c"); do
-   all="$all `basename $src .c`"
+   all="$all RvR_`basename $src .c`"
 done
 echo "all: $all"
 
@@ -46,7 +46,7 @@ echo "obj =$obj"
 #Add target for every source in app/
 for src in $(find ./app/ -name "*.c"); do
    gcc -MM -MT "${src%%.c}.o" "$src" $CFLAGS
-   target=`basename $src .c`
+   target=RvR_`basename $src .c`
    all_obj="$all_obj ${src%%.c}.o"
    printf "$target: \$(obj) ${src%%.c}.o \n\tar crs lib$target.a $^\n"
 done

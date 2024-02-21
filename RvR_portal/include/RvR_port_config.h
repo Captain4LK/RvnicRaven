@@ -18,4 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RVR_PORT_PIXELBYPIXEL 1
 #define RVR_PORT_PIXELKEY RVR_KEY_M
 
+//Span length for sub-affine slope rendering
+#define RVR_PORT_SPAN 8
+
 #endif

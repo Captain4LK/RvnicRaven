@@ -26,8 +26,8 @@ typedef struct
    uint8_t visited;
    int8_t shade_floor;
    int8_t shade_ceiling;
-   RvR_fix22 slope_floor;
-   RvR_fix22 slope_ceiling;
+   int16_t slope_floor;
+   int16_t slope_ceiling;
    int16_t x_off;
    int16_t y_off;
 }RvR_port_sector;
@@ -117,7 +117,10 @@ typedef struct
    RvR_fix22 x;
    RvR_fix22 y;
    RvR_fix22 z;
-   RvR_fix22 d;
+   RvR_fix22 ox;
+   RvR_fix22 oy;
+   RvR_fix22 oz;
+   //RvR_fix22 d;
 }RvR_port_slope;
 
 //Sector flags
@@ -198,7 +201,6 @@ uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_f
 //Slopes
 //-------------------------------------
 void RvR_port_slope_from_floor(const RvR_port_map *map, uint16_t sector, RvR_port_slope *slope);
-void RvR_port_slope_from_floor_vs(const RvR_port_map *map, const RvR_port_cam *cam, uint16_t sector, RvR_port_slope *slope);
 void RvR_port_slope_from_ceiling(const RvR_port_map *map, uint16_t sector, RvR_port_slope *slope);
 RvR_fix22 RvR_port_slope_height_at(const RvR_port_slope *slope, RvR_fix22 x, RvR_fix22 y);
 //-------------------------------------

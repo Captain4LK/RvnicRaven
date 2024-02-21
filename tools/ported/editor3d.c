@@ -460,6 +460,22 @@ static void e3d_update_view(void)
          map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_ALIGN_CEILING;
    }
 
+   //Slope
+   if(RvR_key_pressed(RVR_KEY_8))
+   {
+      if(world_selection.type==RVR_PORT_FLOOR)
+         map->sectors[world_selection.as.sector].slope_floor-=16;
+      else if(world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].slope_ceiling-=16;
+   }
+   if(RvR_key_pressed(RVR_KEY_9))
+   {
+      if(world_selection.type==RVR_PORT_FLOOR)
+         map->sectors[world_selection.as.sector].slope_floor+=16;
+      else if(world_selection.type==RVR_PORT_CEILING)
+         map->sectors[world_selection.as.sector].slope_ceiling+=16;
+   }
+
    if(RvR_key_pressed(RVR_KEY_PGUP))
    {
       if(world_selection.type==RVR_PORT_WALL_BOT)
@@ -561,7 +577,7 @@ static void e3d_draw_view(void)
 
    RvR_port_report report;
    RvR_port_draw_report(&report);
-   printf("Report: swaps: %d; stack_max: %d\n",report.sort_swaps,report.stack_max);
+   //printf("Report: swaps: %d; stack_max: %d\n",report.sort_swaps,report.stack_max);
 
    RvR_render_rectangle(8, RvR_yres() - 74, 66, 66, color_white);
    draw_fit64(9, RvR_yres() - 73, texture_selected);

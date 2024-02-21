@@ -309,26 +309,21 @@ static void port_plane_slope(port_plane *pl)
    uint16_t wall_org = port_map->sectors[pl->sector].wall_first;
    RvR_fix22 x0 = port_map->walls[wall_org].x;
    RvR_fix22 y0 = port_map->walls[wall_org].y;
-   x0&=~((1<<22)-1);
-   y0&=~((1<<22)-1);
-   //-x0
-   //y0
+   x0 = (x0-(x0&((1<<6)-1)));
+   y0 = (y0-(y0&((1<<6)-1)));
 
    RvR_fix22 height = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y);
 
    RvR_fix22 px = -RvR_fix22_mul(port_cam->x-x0,RvR_fix22_cos(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_sin(3072-port_cam->dir));
    RvR_fix22 pz = RvR_fix22_mul(port_cam->x-x0,RvR_fix22_sin(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_cos(3072-port_cam->dir));
    RvR_fix22 py = RvR_port_slope_height_at(&slope,x0,y0)-port_cam->z;
-   //RvR_fix22 px = 0;
-   //RvR_fix22 py = 0;
-   //RvR_fix22 pz = RvR_port_slope_height_at(&slope,px-x0,py-y0);
 
-   RvR_fix22 mx = RvR_fix22_cos(2048+port_cam->dir);
-   RvR_fix22 mz = RvR_fix22_sin(2048+port_cam->dir);
+   RvR_fix22 mx = -RvR_fix22_cos(2048-port_cam->dir);
+   RvR_fix22 mz = RvR_fix22_sin(2048-port_cam->dir);
    RvR_fix22 my = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y+1024)-height;
 
-   RvR_fix22 nx = RvR_fix22_sin(2048+port_cam->dir);
-   RvR_fix22 nz = -RvR_fix22_cos(2048+port_cam->dir);
+   RvR_fix22 nx = -RvR_fix22_sin(2048-port_cam->dir);
+   RvR_fix22 nz = -RvR_fix22_cos(2048-port_cam->dir);
    RvR_fix22 ny = RvR_port_slope_height_at(&slope,port_cam->x+1024,port_cam->y)-height;
 
    RvR_fix22 u0 = RvR_fix22_mul(py,mz)-RvR_fix22_mul(pz,my);
@@ -342,7 +337,6 @@ static void port_plane_slope(port_plane *pl)
    RvR_fix22 z0 = RvR_fix22_mul(my,nz)-RvR_fix22_mul(mz,ny);
    RvR_fix22 z1 = RvR_fix22_mul(mz,nx)-RvR_fix22_mul(mx,nz);
    RvR_fix22 z2 = RvR_fix22_mul(mx,ny)-RvR_fix22_mul(my,nx);
-   printf("%d %d %d\n",my,ny,py);
    
    port_plane_ctx ctx;
    ctx.u0 = u0;
@@ -354,21 +348,6 @@ static void port_plane_slope(port_plane *pl)
    ctx.z0 = z0;
    ctx.z1 = z1;
    ctx.z2 = z2*(RvR_xres()/2);
-   printf("(%d %d %d) (%d %d %d) (%d %d %d)\n",u0,u1,u2,v0,v1,v2, z0, z1,z2);
-   //printf("%d %d %d %d %d %d %d\n",slope.x, slope.y,slope.z,slope.d, z0, z1,z2);
-
-   //printf("%d\n",RvR_port_slope_height_at(&slope,0,0));
-   //printf("%d %d %d %d\n",slope.x, slope.y,slope.z,slope.d);
-   
-   //uint16_t wall_org = port_map->sectors[pl->sector].wall_first;
-
-   //RvR_fix22 x_off = map->sectors[sector].x_off;
-   //RvR_fix22 y_off = map->sectors[sector].y_off;
-
-   //RvR_fix22 sorgx = RvR_fix22_mul(port_cam->x,RvR_fix22_cos(3072-port_cam->dir))-RvR_fix22_mul(port_cam->y,RvR_fix22_sin(3072-port_cam->dir));
-   //RvR_fix22 sorgy = RvR_fix22_mul(port_cam->x,RvR_fix22_sin(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y,RvR_fix22_cos(3072-port_cam->dir));
-   //RvR_fix22 sorgz = RvR_port_slope_height_at(&slope,port_map->walls[wall_org].x,port_map->walls[wall_org].y)-port_cam->z;
-   //RvR_fix22 
 
    for(int x = pl->min;x<pl->max+2;x++)
    {
@@ -535,27 +514,26 @@ static void port_span_slope(int16_t sector, uint8_t where, int x0, int x1, int y
 
    RvR_fix22 z = ctx.z2+ctx.z1*(RvR_yres()/2-y)+ctx.z0*(x0-RvR_xres()/2);
    RvR_fix22 step_z = ctx.z0;
-   //tx = RvR_fix22_div(tx,RvR_non_zero(z));
-   //ty = RvR_fix22_div(ty,RvR_non_zero(z));
-   //printf("%d %d %d %d\n",ty,step_y, z,step_z);
-   //printf("%d\n",z);
 
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);
    RvR_fix22 x_and = (1<<x_log)-1;
    RvR_fix22 y_and = (1<<y_log)-1;
-   y_log = RvR_max(0,14-y_log);
-   x_and<<=(14-y_log);
+   y_log = RvR_max(0,10-y_log);
+   x_and<<=(10-y_log);
 
    uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
    const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(0>>12)+0)));
    const uint8_t * restrict tex = texture->data;
 
+#if RVR_PORT_SPAN==1
+
+   //TODO(Captain4LK): sub-affine mapping
    for(int x = x0;x<x1;x++)
    {
-      RvR_fix22 u = RvR_fix22_div(tx*1024,RvR_non_zero(z));
-      RvR_fix22 v = RvR_fix22_div(ty*1024,RvR_non_zero(z));
-      uint8_t c = tex[((u>>y_log)&x_and)+((v>>14)&y_and)];
+      RvR_fix22 u = RvR_fix22_div(tx*64,RvR_non_zero(z));
+      RvR_fix22 v = RvR_fix22_div(ty*64,RvR_non_zero(z));
+      uint8_t c = tex[((u>>y_log)&x_and)+((v>>10)&y_and)];
       *pix = col[c];
       tx+=step_x;
       ty+=step_y;
@@ -567,5 +545,70 @@ static void port_span_slope(int16_t sector, uint8_t where, int x0, int x1, int y
          RvR_render_present();
 #endif
    }
+
+#else
+
+   RvR_fix22 u0 = RvR_fix22_div(tx*64,RvR_non_zero(z));
+   RvR_fix22 v0 = RvR_fix22_div(ty*64,RvR_non_zero(z));
+
+   int len = x1-x0;
+   while(len>=RVR_PORT_SPAN)
+   {
+      tx+=step_x*RVR_PORT_SPAN;
+      ty+=step_y*RVR_PORT_SPAN;
+      z+=step_z*RVR_PORT_SPAN;
+
+      RvR_fix22 u1 = RvR_fix22_div(tx*64,RvR_non_zero(z));
+      RvR_fix22 v1 = RvR_fix22_div(ty*64,RvR_non_zero(z));
+
+      RvR_fix22 step_u = (u1-u0)/RVR_PORT_SPAN;
+      RvR_fix22 step_v = (v1-v0)/RVR_PORT_SPAN;
+      for(int i = 0;i<RVR_PORT_SPAN;i++)
+      {
+         uint8_t c = tex[((u0>>y_log)&x_and)+((v0>>10)&y_and)];
+         *pix = col[c];
+         pix++;
+         u0+=step_u;
+         v0+=step_v;
+
+#if RVR_PORT_PIXELBYPIXEL
+         if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+            RvR_render_present();
+#endif
+      }
+
+      u0 = u1;
+      v0 = v1;
+      len-=RVR_PORT_SPAN;
+   }
+
+   if(len>0)
+   {
+      tx+=step_x*len;
+      ty+=step_y*len;
+      z+=step_z*len;
+
+      RvR_fix22 u1 = RvR_fix22_div(tx*64,RvR_non_zero(z));
+      RvR_fix22 v1 = RvR_fix22_div(ty*64,RvR_non_zero(z));
+
+      RvR_fix22 step_u = (u1-u0)/len;
+      RvR_fix22 step_v = (v1-v0)/len;
+      for(int i = 0;i<len;i++)
+      {
+         uint8_t c = tex[((u0>>y_log)&x_and)+((v0>>10)&y_and)];
+         *pix = col[c];
+         pix++;
+         u0+=step_u;
+         v0+=step_v;
+
+#if RVR_PORT_PIXELBYPIXEL
+         if(RvR_key_pressed(RVR_PORT_PIXELKEY))
+            RvR_render_present();
+#endif
+      }
+   }
+
+#endif
+
 }
 //-------------------------------------

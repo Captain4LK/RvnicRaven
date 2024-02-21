@@ -196,6 +196,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             map->sectors[sector].x_off = 0;
             map->sectors[sector].y_off = 0;
             map->sectors[sector].flags = 0;
+            map->sectors[sector].slope_floor = 0;
+            map->sectors[sector].slope_ceiling = 0;
             map->wall_count += (uint16_t)RvR_array_length(sd_walls);
             map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
             for(int i = 0; i<RvR_array_length(sd_walls); i++)
@@ -289,6 +291,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          map->sectors[sector].ceiling = 2 * 1024;
          map->sectors[sector].floor_tex = 15;
          map->sectors[sector].ceiling_tex = 15;
+         map->sectors[sector].slope_floor = 0;
+         map->sectors[sector].slope_ceiling = 0;
          map->wall_count += (uint16_t)RvR_array_length(sd_walls);
          map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
          for(int i = 0; i<RvR_array_length(sd_walls); i++)

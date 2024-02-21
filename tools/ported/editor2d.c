@@ -551,23 +551,30 @@ static void e2d_update_view(void)
          break;
       }
 
-      if(RvR_key_pressed(RVR_KEY_S)&&RvR_key_down(RVR_KEY_LALT))
+      if(RvR_key_down(RVR_KEY_LALT))
       {
-         //Needs to be inner subsector and not have portal
-         if(RvR_port_wall_subsector(map, RvR_port_wall_sector(map, (uint16_t)i), (uint16_t)i)==0||map->walls[i].portal!=RVR_PORT_SECTOR_INVALID)
+         if(RvR_key_pressed(RVR_KEY_S))
+         {
+            //Needs to be inner subsector and not have portal
+            if(RvR_port_wall_subsector(map, RvR_port_wall_sector(map, (uint16_t)i), (uint16_t)i)==0||map->walls[i].portal!=RVR_PORT_SECTOR_INVALID)
+               break;
+
+            //Make inner
+            RvR_port_sector_make_inner(map, (uint16_t)i);
+
             break;
-
-         //Make inner
-         RvR_port_sector_make_inner(map, (uint16_t)i);
-
-         break;
+         }
+         else if(RvR_key_pressed(RVR_KEY_F))
+         {
+            if(map->walls[i].portal_wall==RVR_PORT_WALL_INVALID||RvR_port_wall_subsector(map,RvR_port_wall_sector(map,(uint16_t)i),(uint16_t)i)==0)
+               RvR_port_wall_make_first(map,(uint16_t)i);
+            else
+               RvR_port_wall_make_first(map,map->walls[i].portal_wall);
+            break;
+         }
       }
 
       break;
-      //printf("%d %ld\n",i,dist<36*zoom*zoom);
-      //int64_t d0 = (int64_t)(x1-x)*(x1-x)+(int64_t)(y1-y)*(y1-y);
-      //int64_t d1 = (int64_t)(x0-x)*(x0-x)+(int64_t)(y0-y)*(y0-y);
-      //printf("%d %ld %ld\n",i,d0,d1);
    }
 
    if(RvR_key_pressed(RVR_KEY_J))
@@ -577,6 +584,10 @@ static void e2d_update_view(void)
       uint16_t sector = RvR_port_sector_update(map,RVR_PORT_SECTOR_INVALID,x,y);
       if(sector!=RVR_PORT_SECTOR_INVALID)
       {
+         RvR_port_slope slope;
+         RvR_port_slope_from_floor(map,sector,&slope);
+         printf("%d\n",RvR_port_slope_height_at(&slope,x,y));
+
          if(sector_join==RVR_PORT_SECTOR_INVALID)
          {
             sector_join = sector;

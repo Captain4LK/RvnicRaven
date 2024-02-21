@@ -149,8 +149,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             RvR_port_slope slope;
             RvR_port_slope_from_floor(port_map,sector,&slope);
-            uint16_t w0 = wall->wall;
-            uint16_t w1 = port_map->walls[wall->wall].p2;
             fz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
             fz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
          }
@@ -159,8 +157,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             RvR_port_slope slope;
             RvR_port_slope_from_ceiling(port_map,sector,&slope);
-            uint16_t w0 = wall->wall;
-            uint16_t w1 = port_map->walls[wall->wall].p2;
             cz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
             cz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
          }
@@ -313,8 +309,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             RvR_port_slope slope;
             RvR_port_slope_from_floor(port_map,sector,&slope);
-            uint16_t w0 = wall->wall;
-            uint16_t w1 = port_map->walls[wall->wall].p2;
             fz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
             fz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
          }
@@ -323,8 +317,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             RvR_port_slope slope;
             RvR_port_slope_from_ceiling(port_map,sector,&slope);
-            uint16_t w0 = wall->wall;
-            uint16_t w1 = port_map->walls[wall->wall].p2;
             cz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
             cz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
          }
@@ -333,8 +325,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             RvR_port_slope slope;
             RvR_port_slope_from_floor(port_map,portal,&slope);
-            uint16_t w0 = wall->wall;
-            uint16_t w1 = port_map->walls[wall->wall].p2;
             fpz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
             fpz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
          }
@@ -343,8 +333,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
          {
             RvR_port_slope slope;
             RvR_port_slope_from_ceiling(port_map,portal,&slope);
-            uint16_t w0 = wall->wall;
-            uint16_t w1 = port_map->walls[wall->wall].p2;
             cpz0 = RvR_port_slope_height_at(&slope,wall->p0x,wall->p0y);
             cpz1 = RvR_port_slope_height_at(&slope,wall->p1x,wall->p1y);
          }
