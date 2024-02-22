@@ -836,12 +836,6 @@ static int sector_draw_split()
       }
    }
 
-   //Copy sector attributes
-   map->sectors[sector0].floor = map->sectors[sd_split_sector].floor;
-   map->sectors[sector0].ceiling  = map->sectors[sd_split_sector].ceiling;
-   map->sectors[sector1].floor = map->sectors[sd_split_sector].floor;
-   map->sectors[sector1].ceiling  = map->sectors[sd_split_sector].ceiling;
-
    RvR_port_sector_delete(map, sd_split_sector);
 
    /*for(int i = 0;i<map->wall_count;i++)
@@ -1032,11 +1026,6 @@ static int sector_draw_connect()
    RvR_port_sector_fix_winding(map, sector0);
 
    RvR_port_sector_delete(map, sd_split_sector);
-
-   /*for(int i = 0;i<map->wall_count;i++)
-   {
-      printf("%5d: (%5d %5d) %2d %2d %2d\n",i,map->walls[i].x/1024,map->walls[i].y/1024,map->walls[i].p2,map->walls[i].portal,RvR_port_wall_sector(map,i));
-   }*/
 
    return 1;
 }

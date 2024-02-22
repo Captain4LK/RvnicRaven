@@ -21,4 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Span length for sub-affine slope rendering
 #define RVR_PORT_SPAN 8
 
+//(1<<Number) of slots in plane hashtable
+#define RVR_PORT_PLANE_SLOTS 8
+
 #endif

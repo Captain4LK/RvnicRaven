@@ -34,47 +34,45 @@ typedef struct
 //-------------------------------------
 
 //Variables
-static port_plane *port_plane_pool = NULL;
+static rvr_port_plane *port_plane_pool = NULL;
 static RvR_fix22 port_span_start[RVR_YRES_MAX];
-static port_plane *port_planes[128];
+static rvr_port_plane *port_planes[(1<<RVR_PORT_PLANE_SLOTS)];
 //-------------------------------------
 
 //Function prototypes
-static port_plane *port_plane_new();
-//static void port_span_draw(const RvR_port_map *map, const RvR_port_cam *cam, int16_t sector, uint8_t where, int x0, int x1, int y);
+static rvr_port_plane *port_plane_new(void);
+static void port_plane_free(rvr_port_plane *pl);
 
-static void port_plane_sky(port_plane *pl);
-static void port_plane_flat(port_plane *pl);
-static void port_plane_slope(port_plane *pl);
-static void port_span_flat(int16_t sector, uint8_t where, int x0, int x1, int y);
-static void port_span_slope(int16_t sector, uint8_t where, int x0, int x1, int y, port_plane_ctx ctx);
+static void port_plane_sky(rvr_port_plane *pl);
+static void port_plane_flat(rvr_port_plane *pl);
+static void port_plane_slope(rvr_port_plane *pl);
+static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y);
+static void port_span_slope(uint16_t sector, uint8_t where, int x0, int x1, int y, port_plane_ctx ctx);
 //-------------------------------------
 
 //Function implementations
 
-void port_planes_begin()
+void rvr_port_planes_begin(void)
 {
    //Clear planes
-   for(int i = 0; i<128; i++)
+   for(int i = 0; i<(1<<RVR_PORT_PLANE_SLOTS); i++)
    {
       port_plane_free(port_planes[i]);
       port_planes[i] = NULL;
    }
 }
 
-void port_planes_draw()
+void rvr_port_planes_draw(void)
 {
    //Render planes
-   for(int i = 0;i<128;i++)
+   for(int i = 0;i<(1<<RVR_PORT_PLANE_SLOTS);i++)
    {
-      port_plane *pl = port_planes[i];
-      while(pl!=NULL)
+      rvr_port_plane *pl = port_planes[i];
+      for(;pl!=NULL;pl = pl->next)
       {
+         //Invalid range
          if(pl->min>pl->max)
-         {
-            pl = pl->next;
             continue;
-         }
 
          //Parallax
          if((port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_PARALLAX_FLOOR&&pl->where==1)||
@@ -82,7 +80,6 @@ void port_planes_draw()
          {
             port_plane_sky(pl);
 
-            pl = pl->next;
             continue;
          }
 
@@ -92,35 +89,33 @@ void port_planes_draw()
          {
             port_plane_slope(pl);
 
-            pl = pl->next;
             continue;
          }
 
          //Flat
          port_plane_flat(pl);
-
-         pl = pl->next;
       }
    
    }
 }
 
-void port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1)
+void rvr_port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1)
 {
    x+=1;
 
-   //TODO: check how this hash actually performs (probably poorly...)
-   int hash = (sector*7+where*3)&127;
+   //TODO(Captain4LK): check how this hash actually performs (probably poorly...)
+   int hash = (sector*7+where*3)&((1<<RVR_PORT_PLANE_SLOTS)-1);
 
-   port_plane *pl = port_planes[hash];
-   while(pl!=NULL)
+   rvr_port_plane *pl = port_planes[hash];
+   for(;pl!=NULL;pl = pl->next)
    {
       //port_planes need to be in the same sector..
       if(sector!=pl->sector)
-         goto next;
+         continue;
+
       //... and the same texture to be valid for concatination
       if(where!=pl->where)
-         goto next;
+         continue;
 
       //Additionally the spans collumn needs to be either empty...
       if(pl->start[x]!=UINT16_MAX)
@@ -138,12 +133,10 @@ void port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1)
             return;
          }
 
-         goto next;
+         continue;
       }
 
       break;
-next:
-      pl = pl->next;
    }
 
    if(pl==NULL)
@@ -170,11 +163,12 @@ next:
    pl->start[x] = (uint16_t)y0;
 }
 
-static port_plane *port_plane_new()
+static rvr_port_plane *port_plane_new(void)
 {
    if(port_plane_pool==NULL)
    {
-      port_plane *p = RvR_malloc(sizeof(*p)*8,"RvR_port plane pool");
+      //TODO(Captain4LK): how many planes should we allocate at once?
+      rvr_port_plane *p = RvR_malloc(sizeof(*p)*8,"RvR_port plane pool");
       memset(p,0,sizeof(*p)*8);
 
       for(int i = 0;i<7;i++)
@@ -182,20 +176,20 @@ static port_plane *port_plane_new()
       port_plane_pool = p;
    }
 
-   port_plane *p = port_plane_pool;
+   rvr_port_plane *p = port_plane_pool;
    port_plane_pool = p->next;
    p->next = NULL;
 
    return p;
 }
 
-void port_plane_free(port_plane *pl)
+static void port_plane_free(rvr_port_plane *pl)
 {
    if(pl==NULL)
       return;
 
    //Find last
-   port_plane *last = pl;
+   rvr_port_plane *last = pl;
    while(last->next!=NULL)
       last = last->next;
 
@@ -203,7 +197,7 @@ void port_plane_free(port_plane *pl)
    port_plane_pool = pl;
 }
 
-static void port_plane_sky(port_plane *pl)
+static void port_plane_sky(rvr_port_plane *pl)
 {
    RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
    RvR_texture *texture = NULL;
@@ -272,7 +266,7 @@ static void port_plane_sky(port_plane *pl)
    }
 }
 
-static void port_plane_flat(port_plane *pl)
+static void port_plane_flat(rvr_port_plane *pl)
 {
    for(int x = pl->min;x<pl->max+2;x++)
    {
@@ -299,18 +293,19 @@ static void port_plane_flat(port_plane *pl)
    }
 }
 
-static void port_plane_slope(port_plane *pl)
+static void port_plane_slope(rvr_port_plane *pl)
 {
    RvR_port_slope slope;
    if(pl->where==0)
       RvR_port_slope_from_ceiling(port_map,pl->sector,&slope);
    else
       RvR_port_slope_from_floor(port_map,pl->sector,&slope);
+
    uint16_t wall_org = port_map->sectors[pl->sector].wall_first;
    RvR_fix22 x0 = port_map->walls[wall_org].x;
    RvR_fix22 y0 = port_map->walls[wall_org].y;
-   x0 = (x0-(x0&((1<<6)-1)));
-   y0 = (y0-(y0&((1<<6)-1)));
+   x0 = (x0-(x0&((1<<12)-1)));
+   y0 = (y0-(y0&((1<<12)-1)));
 
    RvR_fix22 height = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y);
 
@@ -318,13 +313,51 @@ static void port_plane_slope(port_plane *pl)
    RvR_fix22 pz = RvR_fix22_mul(port_cam->x-x0,RvR_fix22_sin(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_cos(3072-port_cam->dir));
    RvR_fix22 py = RvR_port_slope_height_at(&slope,x0,y0)-port_cam->z;
 
-   RvR_fix22 mx = -RvR_fix22_cos(2048-port_cam->dir);
-   RvR_fix22 mz = RvR_fix22_sin(2048-port_cam->dir);
-   RvR_fix22 my = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y+1024)-height;
+   RvR_fix22 mx,my,mz;
+   RvR_fix22 nx,ny,nz;
 
-   RvR_fix22 nx = -RvR_fix22_sin(2048-port_cam->dir);
-   RvR_fix22 nz = -RvR_fix22_cos(2048-port_cam->dir);
-   RvR_fix22 ny = RvR_port_slope_height_at(&slope,port_cam->x+1024,port_cam->y)-height;
+   if((pl->where==1&&port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
+      (pl->where==0&&port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_ALIGN_CEILING))
+   {
+      RvR_fix22 wx0 = port_map->walls[port_map->sectors[pl->sector].wall_first].x;
+      RvR_fix22 wy0 = port_map->walls[port_map->sectors[pl->sector].wall_first].y;
+      RvR_fix22 wx1 = port_map->walls[port_map->walls[port_map->sectors[pl->sector].wall_first].p2].x;
+      RvR_fix22 wy1 = port_map->walls[port_map->walls[port_map->sectors[pl->sector].wall_first].p2].y;
+      RvR_fix22 len = RvR_non_zero(RvR_fix22_sqrt(RvR_fix22_mul(wx1-wx0,wx1-wx0)+RvR_fix22_mul(wy1-wy0,wy1-wy0)));
+
+      RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
+      RvR_fix22 sp_sin = RvR_fix22_div(wy1-wy0,len);
+      //RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
+      //RvR_fix22 sp_sin = RvR_fix22_div(wy1-wy0,len);
+
+      RvR_fix22 cam_cos = RvR_fix22_cos(2048-port_cam->dir);
+      RvR_fix22 cam_sin = RvR_fix22_sin(2048-port_cam->dir);
+
+      RvR_fix22 pcos = RvR_fix22_mul(sp_cos,cam_cos)+RvR_fix22_mul(sp_sin,cam_sin);
+      RvR_fix22 psin = RvR_fix22_mul(-sp_sin,cam_cos)+RvR_fix22_mul(sp_cos,cam_sin);
+      //RvR_fix22 pcos = RvR_fix22_mul(cam_cos,sp_cos)+RvR_fix22_mul(sp_sin,cam_sin);
+      //RvR_fix22 psin = RvR_fix22_mul(cam_sin,sp_cos)-RvR_fix22_mul(sp_sin,cam_cos);
+      //RvR_fix22 pcos = RvR_fix22_mul(cam_cos,sp_cos)+RvR_fix22_mul(sp_sin,cam_sin);
+
+      mx = -pcos;
+      mz = psin;
+      my = RvR_port_slope_height_at(&slope,port_cam->x+sp_sin,port_cam->y+sp_cos)-height;
+
+      nx = -psin;
+      nz = -pcos;
+      ny = RvR_port_slope_height_at(&slope,port_cam->x+sp_cos,port_cam->y-sp_sin)-height;
+   }
+   else
+   {
+      mx = -RvR_fix22_cos(2048-port_cam->dir);
+      mz = RvR_fix22_sin(2048-port_cam->dir);
+      my = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y+1024)-height;
+
+      nx = -RvR_fix22_sin(2048-port_cam->dir);
+      nz = -RvR_fix22_cos(2048-port_cam->dir);
+      ny = RvR_port_slope_height_at(&slope,port_cam->x+1024,port_cam->y)-height;
+   }
+
 
    RvR_fix22 u0 = RvR_fix22_mul(py,mz)-RvR_fix22_mul(pz,my);
    RvR_fix22 u1 = RvR_fix22_mul(pz,mx)-RvR_fix22_mul(px,mz);
@@ -338,13 +371,14 @@ static void port_plane_slope(port_plane *pl)
    RvR_fix22 z1 = RvR_fix22_mul(mz,nx)-RvR_fix22_mul(mx,nz);
    RvR_fix22 z2 = RvR_fix22_mul(mx,ny)-RvR_fix22_mul(my,nx);
    
+   //All negated to match up with flat floor rendering
    port_plane_ctx ctx;
    ctx.u0 = u0;
    ctx.u1 = u1;
    ctx.u2 = u2*(RvR_xres()/2);
-   ctx.v0 = v0;
-   ctx.v1 = v1;
-   ctx.v2 = v2*(RvR_xres()/2);
+   ctx.v0 = -v0;
+   ctx.v1 = -v1;
+   ctx.v2 = -v2*(RvR_xres()/2);
    ctx.z0 = z0;
    ctx.z1 = z1;
    ctx.z2 = z2*(RvR_xres()/2);
@@ -374,7 +408,7 @@ static void port_plane_slope(port_plane *pl)
    }
 }
 
-static void port_span_flat(int16_t sector, uint8_t where, int x0, int x1, int y)
+static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y)
 {
    //Shouldn't happen
    if(x0>=x1)
@@ -437,6 +471,9 @@ static void port_span_flat(int16_t sector, uint8_t where, int x0, int x1, int y)
       ty = (port_cam->y&4095)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
    }
 
+   tx*=-1;
+   step_x*=-1;
+
    //Offset textures
    tx+=((int32_t)port_map->sectors[sector].x_off)*65536;
    ty+=((int32_t)port_map->sectors[sector].y_off)*65536;
@@ -451,13 +488,13 @@ static void port_span_flat(int16_t sector, uint8_t where, int x0, int x1, int y)
       RvR_fix22 wy1 = port_map->walls[port_map->walls[port_map->sectors[sector].wall_first].p2].y;
       RvR_fix22 len = RvR_non_zero(RvR_fix22_sqrt(RvR_fix22_mul(wx0-wx1,wx0-wx1)+RvR_fix22_mul(wy0-wy1,wy0-wy1)));
       RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
-      RvR_fix22 sp_sin = -RvR_fix22_div(wy1-wy0,len);
+      RvR_fix22 sp_sin = RvR_fix22_div(wy1-wy0,len);
       RvR_fix22 tmp = tx;
-      tx = RvR_fix22_mul(-sp_sin, tx) + RvR_fix22_mul(sp_cos, ty);
-      ty = RvR_fix22_mul(sp_cos, tmp) + RvR_fix22_mul(sp_sin, ty);
+      tx = RvR_fix22_mul(sp_cos, tx) + RvR_fix22_mul(sp_sin, ty);
+      ty = RvR_fix22_mul(-sp_sin, tmp) + RvR_fix22_mul(sp_cos, ty);
       tmp = step_x;
-      step_x = RvR_fix22_mul(-sp_sin, step_x) + RvR_fix22_mul(sp_cos, step_y);
-      step_y = RvR_fix22_mul(sp_cos, tmp) + RvR_fix22_mul(sp_sin, step_y);
+      step_x = RvR_fix22_mul(sp_cos, step_x) + RvR_fix22_mul(sp_sin, step_y);
+      step_y = RvR_fix22_mul(-sp_sin, tmp) + RvR_fix22_mul(sp_cos, step_y);
    }
 
    //Rotate 90 degrees
@@ -492,7 +529,7 @@ static void port_span_flat(int16_t sector, uint8_t where, int x0, int x1, int y)
    }
 }
 
-static void port_span_slope(int16_t sector, uint8_t where, int x0, int x1, int y, port_plane_ctx ctx)
+static void port_span_slope(uint16_t sector, uint8_t where, int x0, int x1, int y, port_plane_ctx ctx)
 {
    //Shouldn't happen
    if(x0>=x1)
@@ -503,6 +540,12 @@ static void port_span_slope(int16_t sector, uint8_t where, int x0, int x1, int y
       texture = RvR_texture_get(port_map->sectors[sector].ceiling_tex);
    else if(where==1)
       texture = RvR_texture_get(port_map->sectors[sector].floor_tex);
+
+   int8_t shade_off = 0;
+   if(where==0)
+      shade_off = port_map->sectors[sector].shade_ceiling;
+   else if(where==1)
+      shade_off = port_map->sectors[sector].shade_floor;
 
    if(texture==NULL)
       return;
@@ -523,12 +566,11 @@ static void port_span_slope(int16_t sector, uint8_t where, int x0, int x1, int y
    x_and<<=(10-y_log);
 
    uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
-   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(0>>12)+0)));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(0>>12)+shade_off)));
    const uint8_t * restrict tex = texture->data;
 
 #if RVR_PORT_SPAN==1
 
-   //TODO(Captain4LK): sub-affine mapping
    for(int x = x0;x<x1;x++)
    {
       RvR_fix22 u = RvR_fix22_div(tx*64,RvR_non_zero(z));

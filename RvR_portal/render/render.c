@@ -56,7 +56,7 @@ void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam)
       port_depth_buffer.ceiling[i] = NULL;
    }
 
-   port_planes_begin();
+   rvr_port_planes_begin();
 
    //Clear sector visited flags
    for(int i = 0;i<map->sector_count;i++)

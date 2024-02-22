@@ -226,7 +226,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   select->depth = depth;
                }
 
-               port_plane_add(wall->sector,0,x,top,bottom);
+               rvr_port_plane_add(wall->sector,0,x,top,bottom);
             }
 
             bottom = port_ybot[x]-1;
@@ -242,7 +242,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   select->depth = depth;
                }
 
-               port_plane_add(wall->sector,1,x,top,bottom);
+               rvr_port_plane_add(wall->sector,1,x,top,bottom);
             }
 
             port_ytop[x] = RvR_yres();
@@ -439,7 +439,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                      select->as.sector = wall->sector;
                      select->depth = depth;
                   }
-                  port_plane_add(wall->sector,0,x,top,RvR_max(mid,bottom));
+                  rvr_port_plane_add(wall->sector,0,x,top,RvR_max(mid,bottom));
                }
                if(mid>=y0)
                {
@@ -466,7 +466,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                      select->as.sector = wall->sector;
                      select->depth = depth;
                   }
-                  port_plane_add(wall->sector,0,x,top,bottom);
+                  rvr_port_plane_add(wall->sector,0,x,top,bottom);
                }
 
                const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
@@ -527,7 +527,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                      select->depth = depth;
                   }
 
-                  port_plane_add(wall->sector,1,x,RvR_min(mid,top),bottom);
+                  rvr_port_plane_add(wall->sector,1,x,RvR_min(mid,top),bottom);
                }
 
                if(mid<=y1)
@@ -556,7 +556,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                      select->depth = depth;
                   }
 
-                  port_plane_add(wall->sector,1,x,top,bottom);
+                  rvr_port_plane_add(wall->sector,1,x,top,bottom);
                }
 
                const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
@@ -622,7 +622,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
       }
    }
 
-   port_planes_draw();
+   rvr_port_planes_draw();
 }
 //Calculates wether wa can be drawn in front of wb
 static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)

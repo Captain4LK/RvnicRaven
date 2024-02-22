@@ -12,8 +12,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVR_PORT_PLANE_H_
 
-typedef struct port_plane port_plane;
-struct port_plane
+typedef struct rvr_port_plane rvr_port_plane;
+struct rvr_port_plane
 {
    int32_t min;
    int32_t max;
@@ -22,12 +22,11 @@ struct port_plane
    uint16_t start[RVR_XRES_MAX+2];
    uint16_t end[RVR_XRES_MAX+2];
 
-   port_plane *next;
+   rvr_port_plane *next;
 };
 
-void port_planes_draw();
-void port_planes_begin();
-void port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1);
-void port_plane_free(port_plane *pl);
+void rvr_port_planes_draw(void);
+void rvr_port_planes_begin(void);
+void rvr_port_plane_add(int16_t sector, uint8_t where, int x, int y0, int y1);
 
 #endif
