@@ -700,17 +700,30 @@ static void port_collect_walls(uint16_t start)
          RvR_fix22 y1 = w1->y-port_cam->y;
 
          //Rotate to camera space
-         //tp0y and tp1y are depth afterwards
-         //Could cache here, but I don't think it's worth it
-         //TODO(Captain4LK): reuse x0,y0,x1,y1 once the render has been checked properly
-         RvR_fix22 tp0x = RvR_fix22_mul(-x0,sin)+RvR_fix22_mul(y0,cos);
-         RvR_fix22 tp0y = RvR_fix22_mul(x0,cos_fov)+RvR_fix22_mul(y0,sin_fov);
-         RvR_fix22 tp1x = RvR_fix22_mul(-x1,sin)+RvR_fix22_mul(y1,cos);
-         RvR_fix22 tp1y = RvR_fix22_mul(x1,cos_fov)+RvR_fix22_mul(y1,sin_fov);
-         dw.xw0 = tp0x;
-         dw.xw1 = tp1x;
-         dw.zw0 = tp0y;
-         dw.zw1 = tp1y;
+         //y0 and y1 are depth afterwards
+         RvR_fix22 tmp = x0;
+         x0 = RvR_fix22_mul(-x0,sin)+RvR_fix22_mul(y0,cos);
+         y0 = RvR_fix22_mul(tmp,cos_fov)+RvR_fix22_mul(y0,sin_fov);
+         tmp = x1;
+         x1 = RvR_fix22_mul(-x1,sin)+RvR_fix22_mul(y1,cos);
+         y1 = RvR_fix22_mul(tmp,cos_fov)+RvR_fix22_mul(y1,sin_fov);
+         dw.xw0 = x0;
+         dw.xw1 = x1;
+         dw.zw0 = y0;
+         dw.zw1 = y1;
+
+         //Not facing camera --> winding
+         //if 2d cross product is less than zero, p0 is to the left of p1
+         if(RvR_fix22_mul(x0,y1)-RvR_fix22_mul(x1,y0)>0)
+            continue;
+
+         //left point right of fov --> completely out of sight
+         if((x0>=-y0||x1>y1)&&x0>y0)
+            continue;
+
+         //right point left of fov --> completely out of sight
+         if((x0<-y0||x1<=y1)&&x1<-y1)
+            continue;
 
          //Add portals if wall is very slim
          //The 2d cross product is used to check how close the angles of the two lines
@@ -718,16 +731,14 @@ static void port_collect_walls(uint16_t start)
          //After the z-division these lines end up very thin, so they might not be
          //rendered at all. The compare with the length of the lines is
          //basically just arbitrary, short lines are less likely to produce rendering artifacts
-         //TODO(Captain4LK): recheck this
-         //TODO(Captain4LK): maybe don't consider lines outside of view frustum?
-         int16_t portal = w0->portal;
-         if(portal>=0&&!port_map->sectors[portal].visited)
+         uint16_t portal = w0->portal;
+         if(portal!=RVR_PORT_SECTOR_INVALID&&!port_map->sectors[portal].visited)
          {
-            int64_t cross = (int64_t)tp0x*tp1y-(int64_t)tp1x*tp0y;
-            int64_t len = ((int64_t)tp1x-tp0x)*((int64_t)tp1x-tp0x);
-            len+=((int64_t)tp1y-tp0y)*((int64_t)tp1y-tp0y);
+            int64_t cross = (int64_t)x0*y1-(int64_t)x1*y0;
+            int64_t len = ((int64_t)x1-x0)*((int64_t)x1-x0);
+            len+=((int64_t)y1-y0)*((int64_t)y1-y0);
 
-            if((cross*cross)/256<=len)
+            if((cross*cross)/256<len)
             {
                RvR_array_push(sector_stack,portal);
                port_map->sectors[portal].visited = 1;
@@ -735,12 +746,8 @@ static void port_collect_walls(uint16_t start)
          }
 
          //Behind camera
-         if(tp0y<=0&&tp1y<=0)
-            continue;
-
-         //Not facing camera --> winding
-         //if 2d cross product is less than zero, p0 is to the left of p1
-         if(RvR_fix22_mul(tp0x,tp1y)-RvR_fix22_mul(tp1x,tp0y)>0)
+         //Can't be done before slim wall check
+         if(y0<1&&y1<1)
             continue;
 
          //Calculate texture coordinates based on line length
@@ -751,67 +758,49 @@ static void port_collect_walls(uint16_t start)
          RvR_fix22 p1x = w1->x;
          RvR_fix22 p1y = w1->y;
 
-         //Clipping
-         //Left point in fov
-         if(tp0x>=-tp0y)
-         {
-            //Completely out of sight
-            if(tp0x>tp0y)
-               continue;
+         //p0
+         //-------------------------------------
+         dw.x0 = RvR_min(RvR_xres()*512+RvR_fix22_div(x0*(RvR_xres()/2),RvR_non_zero(y0)),RvR_xres()*1024-1);
+         dw.z0 = y0;
+         dw.p0x = p0x;
+         dw.p0y = p0y;
 
-            //Simply divide by z 
-            dw.x0 = RvR_min(RvR_xres()*512+RvR_fix22_div(tp0x*(RvR_xres()/2),RvR_non_zero(tp0y)),RvR_xres()*1024-1);
-            dw.z0 = tp0y;
-            dw.p0x = p0x;
-            dw.p0y = p0y;
-         }
-         //Left point to the left of fov
-         else
+         //Left point left of fov --> needs clipping
+         if(x0<-y0)
          {
-            //Completely out of sight
-            if(tp1x<-tp1y)
-               continue;
-
             //Calculate intersection of line with frustum
             //and adjust texture and depth acordingly
             dw.x0 = 0;
-            RvR_fix22 dx0 = tp1x-tp0x;
-            RvR_fix22 dx1 = tp0x+tp0y;
-            dw.u0 = dw.u0 + RvR_fix22_div(RvR_fix22_mul(-tp0x-tp0y,dw.u1-dw.u0),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
-            dw.z0 = RvR_fix22_div(RvR_fix22_mul(dx0,dx1),RvR_non_zero(tp1y-tp0y+tp1x-tp0x))-tp0x;
-            dw.p0x = p0x + RvR_fix22_div(RvR_fix22_mul(-tp0x-tp0y,p1x-p0x),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
-            dw.p0y = p0y + RvR_fix22_div(RvR_fix22_mul(-tp0x-tp0y,p1y-p0y),RvR_non_zero(tp1x-tp0x+tp1y-tp0y));
+            RvR_fix22 dx0 = x1-x0;
+            RvR_fix22 dx1 = x0+y0;
+            dw.u0 = dw.u0 + RvR_fix22_div(RvR_fix22_mul(-x0-y0,dw.u1-dw.u0),RvR_non_zero(x1-x0+y1-y0));
+            dw.z0 = RvR_fix22_div(RvR_fix22_mul(dx0,dx1),RvR_non_zero(y1-y0+x1-x0))-x0;
+            dw.p0x = p0x + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1x-p0x),RvR_non_zero(x1-x0+y1-y0));
+            dw.p0y = p0y + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1y-p0y),RvR_non_zero(x1-x0+y1-y0));
          }
+         //-------------------------------------
 
-         //Right point in fov
-         if(tp1x<=tp1y)
+         //p1
+         //-------------------------------------
+         dw.x1 = RvR_min(RvR_xres()*512+RvR_fix22_div(x1*(RvR_xres()/2),RvR_non_zero(y1)),RvR_xres()*1024);
+         dw.z1 = y1;
+         dw.p1x = p1x;
+         dw.p1y = p1y;
+
+         //Right point right of fov --> needs clipping
+         if(x1>y1)
          {
-            //Completely out of sight
-            if(tp1x<-tp1y)
-               continue;
-
-            //Simply divide by z 
-            dw.x1 = RvR_min(RvR_xres()*512+RvR_fix22_div(tp1x*(RvR_xres()/2),RvR_non_zero(tp1y)),RvR_xres()*1024);
-            dw.z1 = tp1y;
-            dw.p1x = p1x;
-            dw.p1y = p1y;
-         }
-         else
-         {
-            //Completely out of sight
-            if(tp0x>tp0y)
-               continue;
-
             //Calculate intersection of line with frustum
             //and adjust texture and depth acordingly
-            RvR_fix22 dx0 = tp1x-tp0x;
-            RvR_fix22 dx1 = tp0y-tp0x;
+            RvR_fix22 dx0 = x1-x0;
+            RvR_fix22 dx1 = y0-x0;
             dw.x1 = RvR_xres()*1024;
-            dw.z1 = tp0x-RvR_fix22_div(RvR_fix22_mul(dx0,dx1),RvR_non_zero(tp1y-tp0y-tp1x+tp0x));
-            dw.u1 = RvR_fix22_div(RvR_fix22_mul(dx1,dw.u1),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
-            dw.p1x = p0x + RvR_fix22_div(RvR_fix22_mul(dx1,p1x-p0x),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
-            dw.p1y = p0y + RvR_fix22_div(RvR_fix22_mul(dx1,p1y-p0y),RvR_non_zero(-tp1y+tp0y+tp1x-tp0x));
+            dw.z1 = x0-RvR_fix22_div(RvR_fix22_mul(dx0,dx1),RvR_non_zero(y1-y0-x1+x0));
+            dw.u1 = RvR_fix22_div(RvR_fix22_mul(dx1,dw.u1),RvR_non_zero(-y1+y0+x1-x0));
+            dw.p1x = p0x + RvR_fix22_div(RvR_fix22_mul(dx1,p1x-p0x),RvR_non_zero(-y1+y0+x1-x0));
+            dw.p1y = p0y + RvR_fix22_div(RvR_fix22_mul(dx1,p1y-p0y),RvR_non_zero(-y1+y0+x1-x0));
          }
+         //-------------------------------------
 
          //If the wall somehow ends up having a
          //negativ width, skip it
@@ -819,7 +808,7 @@ static void port_collect_walls(uint16_t start)
             continue;
 
          //Near clip
-         if(dw.z0<=0||dw.z1<1)
+         if(dw.z0<1||dw.z1<1)
             continue;
 
          dw.wall = port_map->sectors[sector].wall_first+(uint16_t)i;

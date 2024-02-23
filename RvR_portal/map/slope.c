@@ -44,6 +44,10 @@ void RvR_port_slope_from_floor(const RvR_port_map *map, uint16_t sector, RvR_por
    RvR_fix22 px = x1-x0;
    RvR_fix22 py = y1-y0;
    RvR_fix22 pz = 0;
+
+   RvR_fix22 dirx = RvR_fix22_cos(sl);
+   RvR_fix22 diry = -RvR_fix22_sin(sl);
+   
    RvR_fix22 qx = -(y1-y0);
    RvR_fix22 qy = x1-x0;
    //TODO(Captain4LK): can we somehow get rid of the sqrt here?

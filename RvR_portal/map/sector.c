@@ -27,6 +27,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
+static int port_point_on_line(RvR_fix22 x, RvR_fix22 y, RvR_fix22 x0, RvR_fix22 y0, RvR_fix22 x1, RvR_fix22 y1);
 //-------------------------------------
 
 //Function implementations
@@ -39,65 +40,55 @@ int RvR_port_sector_inside(const RvR_port_map *map, uint16_t sector, RvR_fix22 x
 
    const RvR_port_sector *sec = &map->sectors[sector];
 
-   //Even-odd rule for checking if inside
-   int64_t crossed0 = 0;
-   int64_t crossed1 = 0;
+   int crossed = 0;
    for(int i = 0;i<sec->wall_count;i++)
    {
-      //Translate, so that (x,y) is at (0,0)
-      //--> easier comparisons later
       RvR_port_wall *w0 = map->walls+sec->wall_first+i;
       RvR_port_wall *w1 = map->walls+w0->p2;
-      int64_t x0 = w0->x-x;
-      int64_t y0 = w0->y-y;
-      int64_t x1 = w1->x-x;
-      int64_t y1 = w1->y-y;
+      int64_t x0 = w0->x;
+      int64_t y0 = w0->y;
+      int64_t x1 = w1->x;
+      int64_t y1 = w1->y;
 
-      //We count the amount of walls on the line y = 0, incrementing
-      //for every wall left of x = 0
-
-      //Exactly on wall
-      if((x0==0&&y0==0)||(x1==0&&y1==0))
+      if(port_point_on_line(x,y,w0->x,w0->y,w1->x,w1->y))
          return 1;
 
-      //If signs are not equal, then one of the points
-      //is above (x,y), the other below
-      if(!RvR_sign_equal(y0,y1))
+      //Below point
+      if(RvR_min(y0,y1)>=y)
+         continue;
+
+      //Above point
+      if(RvR_max(y0,y1)<y)
+         continue;
+
+      //Left of point
+      if(RvR_max(x0,x1)<x)
+         continue;
+
+      //Horizontal line
+      if(y0==y1)
+         continue;
+
+      //Vertical line
+      if(x0==x1)
       {
-         //If both on one side
-         if(RvR_sign_equal(x0,x1))
-            //If both to the left --> increment
-            crossed0+=x0<0;
-         else
-            //One of the x coordinates on the right of line, the other on the left
-            //--> more complicated check
-            //we use the 2d cross product/perp doct product
-            //to compute on which side of the line we are
-            //the result is dependant on the sign of y1 (or y0)
-            //because we don't know, which of the two coordinates is the upper one
-            crossed0+=!RvR_sign_equal(x0*y1-x1*y0,y1);
+         crossed++;
+         continue;
       }
-
-      //Same thing again, but with
-      //half-open interval
-      x0--;
-      y0--;
-      x1--;
-      y1--;
-      if(!RvR_sign_equal(y0,y1))
+      
+      if(y1-y0>0)
       {
-
-         if(RvR_sign_equal(x0,x1))
-            crossed1+=x0<0;
-         else
-            crossed1+=!RvR_sign_equal(x0*y1-x1*y0,y1);
+         if(x*(y1-y0)<=(y-y0)*(x1-x0)+x0*(y1-y0))
+            crossed++;
+      }
+      else
+      {
+         if(x*(y1-y0)>=(y-y0)*(x1-x0)+x0*(y1-y0))
+            crossed++;
       }
    }
 
-   //If we've crossed an odd number of walls
-   //on one of the counting rules, we are
-   //inside the sector
-   return crossed0&1||crossed1&1;
+   return crossed&1;
 
 RvR_err:
    return 0;
@@ -564,5 +555,27 @@ uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sect
    RvR_port_sector_fix_winding(map,map->sector_count-1);
 
    return map->sector_count-1;
+}
+
+static int port_point_on_line(RvR_fix22 x, RvR_fix22 y, RvR_fix22 x0, RvR_fix22 y0, RvR_fix22 x1, RvR_fix22 y1)
+{
+   //If 2d cross product is zero, point is on line
+   int64_t cross = (int64_t)(x-x0)*(y1-y0)-(int64_t)(y-y0)*(x1-x0);
+   if(cross!=0)
+      return 0;
+
+   //Point on line, but may not be inbetween p0 and p1
+   if(RvR_abs(x1-x0)>=RvR_abs(y1-y0))
+   {
+      if(x1-x0>0)
+         return x0<=x&&x<=x1;
+      return x1<=x&&x<=x0;
+   }
+   else
+   {
+      if(y1-y0>0)
+         return y0<=y&&y<=y1;
+      return y1<=y&&y<=y0;
+   }
 }
 //-------------------------------------

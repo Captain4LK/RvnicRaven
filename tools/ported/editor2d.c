@@ -383,6 +383,16 @@ static void e2d_draw_base(void)
       }
    }
 
+   /*if(map->sector_count>0)
+   for(int y = 0;y<RvR_yres();y++)
+   {
+      for(int x = 0;x<RvR_xres();x++)
+      {
+         if(RvR_port_sector_inside(map,0,(x+scroll_x)*zoom,(y+scroll_y)*zoom))
+            RvR_framebuffer()[y*RvR_xres()+x]^=255;
+      }
+   }*/
+
    //Draw camera
    //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(camera.direction);
    RvR_fix22 dirx = RvR_fix22_cos(camera.dir);

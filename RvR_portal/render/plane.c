@@ -326,7 +326,7 @@ static void port_plane_slope(rvr_port_plane *pl)
       RvR_fix22 len = RvR_non_zero(RvR_fix22_sqrt(RvR_fix22_mul(wx1-wx0,wx1-wx0)+RvR_fix22_mul(wy1-wy0,wy1-wy0)));
 
       RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
-      RvR_fix22 sp_sin = RvR_fix22_div(wy1-wy0,len);
+      RvR_fix22 sp_sin = -RvR_fix22_div(wy1-wy0,len);
       //RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
       //RvR_fix22 sp_sin = RvR_fix22_div(wy1-wy0,len);
 
@@ -371,7 +371,7 @@ static void port_plane_slope(rvr_port_plane *pl)
    RvR_fix22 z1 = RvR_fix22_mul(mz,nx)-RvR_fix22_mul(mx,nz);
    RvR_fix22 z2 = RvR_fix22_mul(mx,ny)-RvR_fix22_mul(my,nx);
    
-   //All negated to match up with flat floor rendering
+   //v negated to match up with flat floor rendering
    port_plane_ctx ctx;
    ctx.u0 = u0;
    ctx.u1 = u1;
