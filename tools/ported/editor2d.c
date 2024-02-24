@@ -561,6 +561,15 @@ static void e2d_update_view(void)
          break;
       }
 
+      if(RvR_key_down(RVR_KEY_LCTRL))
+      {
+         if(RvR_key_pressed(RVR_KEY_DEL))
+         {
+            RvR_port_sector_delete(map,RvR_port_wall_sector(map,i));
+            break;
+         }
+      }
+
       if(RvR_key_down(RVR_KEY_LALT))
       {
          if(RvR_key_pressed(RVR_KEY_S))
@@ -678,6 +687,7 @@ static void e2d_update_wall_move(void)
 
    if(RvR_key_released(RVR_BUTTON_LEFT))
    {
+      //TODO(Captain4LK): delete walls if adjacent ones overlap after moving
       wall_move = RVR_PORT_WALL_INVALID;
       state = STATE2D_VIEW;
    }

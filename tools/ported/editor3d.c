@@ -463,17 +463,19 @@ static void e3d_update_view(void)
    //Slope
    if(RvR_key_pressed(RVR_KEY_8))
    {
+      int count = RvR_key_down(RVR_KEY_LSHIFT)?1:16;
       if(world_selection.type==RVR_PORT_FLOOR)
-         map->sectors[world_selection.as.sector].slope_floor-=16;
+         map->sectors[world_selection.as.sector].slope_floor-=count;
       else if(world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].slope_ceiling-=16;
+         map->sectors[world_selection.as.sector].slope_ceiling-=count;
    }
    if(RvR_key_pressed(RVR_KEY_9))
    {
+      int count = RvR_key_down(RVR_KEY_LSHIFT)?1:16;
       if(world_selection.type==RVR_PORT_FLOOR)
-         map->sectors[world_selection.as.sector].slope_floor+=16;
+         map->sectors[world_selection.as.sector].slope_floor+=count;
       else if(world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].slope_ceiling+=16;
+         map->sectors[world_selection.as.sector].slope_ceiling+=count;
    }
 
    if(RvR_key_pressed(RVR_KEY_PGUP))

@@ -47,11 +47,10 @@ void RvR_port_slope_from_floor(const RvR_port_map *map, uint16_t sector, RvR_por
 
    RvR_fix22 dirx = RvR_fix22_cos(sl);
    RvR_fix22 diry = -RvR_fix22_sin(sl);
-   
-   RvR_fix22 qx = -(y1-y0);
-   RvR_fix22 qy = x1-x0;
+   RvR_fix22 qx = RvR_fix22_mul(dirx,-(y1-y0));
+   RvR_fix22 qy = RvR_fix22_mul(dirx,x1-x0);
    //TODO(Captain4LK): can we somehow get rid of the sqrt here?
-   RvR_fix22 qz = RvR_fix22_mul(-RvR_fix22_sin(sl),RvR_fix22_sqrt(RvR_fix22_mul(px,px)+RvR_fix22_mul(py,py)));
+   RvR_fix22 qz = RvR_fix22_mul(-diry,RvR_fix22_sqrt(RvR_fix22_mul(px,px)+RvR_fix22_mul(py,py)));
 
    RvR_fix22 nx = RvR_fix22_mul(py,qz)-RvR_fix22_mul(pz,qy);
    RvR_fix22 ny = RvR_fix22_mul(pz,qx)-RvR_fix22_mul(px,qz);
@@ -80,9 +79,12 @@ void RvR_port_slope_from_ceiling(const RvR_port_map *map, uint16_t sector, RvR_p
    RvR_fix22 px = x1-x0;
    RvR_fix22 py = y1-y0;
    RvR_fix22 pz = 0;
-   RvR_fix22 qx = -(y1-y0);
-   RvR_fix22 qy = x1-x0;
-   RvR_fix22 qz = RvR_fix22_mul(-RvR_fix22_sin(sl),RvR_fix22_sqrt(RvR_fix22_mul(px,px)+RvR_fix22_mul(py,py)));
+
+   RvR_fix22 dirx = RvR_fix22_cos(sl);
+   RvR_fix22 diry = -RvR_fix22_sin(sl);
+   RvR_fix22 qx = RvR_fix22_mul(dirx,-(y1-y0));
+   RvR_fix22 qy = RvR_fix22_mul(dirx,x1-x0);
+   RvR_fix22 qz = RvR_fix22_mul(-diry,RvR_fix22_sqrt(RvR_fix22_mul(px,px)+RvR_fix22_mul(py,py)));
 
    RvR_fix22 nx = RvR_fix22_mul(py,qz)-RvR_fix22_mul(pz,qy);
    RvR_fix22 ny = RvR_fix22_mul(pz,qx)-RvR_fix22_mul(px,qz);

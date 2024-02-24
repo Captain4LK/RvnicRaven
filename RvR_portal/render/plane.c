@@ -304,14 +304,17 @@ static void port_plane_slope(rvr_port_plane *pl)
    uint16_t wall_org = port_map->sectors[pl->sector].wall_first;
    RvR_fix22 x0 = port_map->walls[wall_org].x;
    RvR_fix22 y0 = port_map->walls[wall_org].y;
-   x0 = (x0-(x0&((1<<12)-1)));
-   y0 = (y0-(y0&((1<<12)-1)));
 
+   if(!((pl->where==1&&port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
+      (pl->where==0&&port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_ALIGN_CEILING)))
+   {
+      x0 = (x0-(x0&((1<<12)-1)));
+      y0 = (y0-(y0&((1<<12)-1)));
+   }
+
+   RvR_fix22 x_off = -port_map->sectors[pl->sector].x_off*16;
+   RvR_fix22 y_off = port_map->sectors[pl->sector].y_off*16;
    RvR_fix22 height = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y);
-
-   RvR_fix22 px = -RvR_fix22_mul(port_cam->x-x0,RvR_fix22_cos(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_sin(3072-port_cam->dir));
-   RvR_fix22 pz = RvR_fix22_mul(port_cam->x-x0,RvR_fix22_sin(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_cos(3072-port_cam->dir));
-   RvR_fix22 py = RvR_port_slope_height_at(&slope,x0,y0)-port_cam->z;
 
    RvR_fix22 mx,my,mz;
    RvR_fix22 nx,ny,nz;
@@ -327,17 +330,12 @@ static void port_plane_slope(rvr_port_plane *pl)
 
       RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
       RvR_fix22 sp_sin = -RvR_fix22_div(wy1-wy0,len);
-      //RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
-      //RvR_fix22 sp_sin = RvR_fix22_div(wy1-wy0,len);
 
       RvR_fix22 cam_cos = RvR_fix22_cos(2048-port_cam->dir);
       RvR_fix22 cam_sin = RvR_fix22_sin(2048-port_cam->dir);
 
       RvR_fix22 pcos = RvR_fix22_mul(sp_cos,cam_cos)+RvR_fix22_mul(sp_sin,cam_sin);
       RvR_fix22 psin = RvR_fix22_mul(-sp_sin,cam_cos)+RvR_fix22_mul(sp_cos,cam_sin);
-      //RvR_fix22 pcos = RvR_fix22_mul(cam_cos,sp_cos)+RvR_fix22_mul(sp_sin,cam_sin);
-      //RvR_fix22 psin = RvR_fix22_mul(cam_sin,sp_cos)-RvR_fix22_mul(sp_sin,cam_cos);
-      //RvR_fix22 pcos = RvR_fix22_mul(cam_cos,sp_cos)+RvR_fix22_mul(sp_sin,cam_sin);
 
       mx = -pcos;
       mz = psin;
@@ -346,6 +344,10 @@ static void port_plane_slope(rvr_port_plane *pl)
       nx = -psin;
       nz = -pcos;
       ny = RvR_port_slope_height_at(&slope,port_cam->x+sp_cos,port_cam->y-sp_sin)-height;
+
+      RvR_fix22 tmp = x_off;
+      x_off = RvR_fix22_mul(sp_cos,x_off)+RvR_fix22_mul(sp_sin,y_off);
+      y_off = RvR_fix22_mul(-sp_sin,tmp)+RvR_fix22_mul(sp_cos,y_off);
    }
    else
    {
@@ -358,6 +360,11 @@ static void port_plane_slope(rvr_port_plane *pl)
       ny = RvR_port_slope_height_at(&slope,port_cam->x+1024,port_cam->y)-height;
    }
 
+   x0+=x_off;
+   y0+=y_off;
+   RvR_fix22 px = -RvR_fix22_mul(port_cam->x-x0,RvR_fix22_cos(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_sin(3072-port_cam->dir));
+   RvR_fix22 pz = RvR_fix22_mul(port_cam->x-x0,RvR_fix22_sin(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_cos(3072-port_cam->dir));
+   RvR_fix22 py = RvR_port_slope_height_at(&slope,x0,y0)-port_cam->z;
 
    RvR_fix22 u0 = RvR_fix22_mul(py,mz)-RvR_fix22_mul(pz,my);
    RvR_fix22 u1 = RvR_fix22_mul(pz,mx)-RvR_fix22_mul(px,mz);
@@ -370,7 +377,7 @@ static void port_plane_slope(rvr_port_plane *pl)
    RvR_fix22 z0 = RvR_fix22_mul(my,nz)-RvR_fix22_mul(mz,ny);
    RvR_fix22 z1 = RvR_fix22_mul(mz,nx)-RvR_fix22_mul(mx,nz);
    RvR_fix22 z2 = RvR_fix22_mul(mx,ny)-RvR_fix22_mul(my,nx);
-   
+
    //v negated to match up with flat floor rendering
    port_plane_ctx ctx;
    ctx.u0 = u0;
@@ -474,10 +481,6 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    tx*=-1;
    step_x*=-1;
 
-   //Offset textures
-   tx+=((int32_t)port_map->sectors[sector].x_off)*65536;
-   ty+=((int32_t)port_map->sectors[sector].y_off)*65536;
-
    //Rotate textures
    if((where==1&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
       (where==0&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_CEILING))
@@ -496,6 +499,10 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
       step_x = RvR_fix22_mul(sp_cos, step_x) + RvR_fix22_mul(sp_sin, step_y);
       step_y = RvR_fix22_mul(-sp_sin, tmp) + RvR_fix22_mul(sp_cos, step_y);
    }
+
+   //Offset textures
+   tx+=((int32_t)port_map->sectors[sector].x_off)*65536;
+   ty-=((int32_t)port_map->sectors[sector].y_off)*65536;
 
    //Rotate 90 degrees
    if((where==1&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_ROT_FLOOR)||
