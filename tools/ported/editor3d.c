@@ -424,31 +424,71 @@ static void e3d_update_view(void)
    //Texture coordinates
    if(RvR_key_pressed(RVR_KEY_NP4))
    {
-      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
-         map->walls[world_selection.as.wall].x_off++;
-      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].x_off++;
+      if(RvR_key_down(RVR_KEY_LSHIFT))
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].x_units--;
+         //else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            //map->sectors[world_selection.as.sector].x_units--;
+      }
+      else
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].x_off++;
+         else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            map->sectors[world_selection.as.sector].x_off++;
+      }
    }
    if(RvR_key_pressed(RVR_KEY_NP6))
    {
-      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
-         map->walls[world_selection.as.wall].x_off--;
-      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].x_off--;
+      if(RvR_key_down(RVR_KEY_LSHIFT))
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].x_units++;
+         //else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            //map->sectors[world_selection.as.sector].x_units++;
+      }
+      else
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].x_off--;
+         else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            map->sectors[world_selection.as.sector].x_off--;
+      }
    }
    if(RvR_key_pressed(RVR_KEY_NP8))
    {
-      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
-         map->walls[world_selection.as.wall].y_off++;
-      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].y_off--;
+      if(RvR_key_down(RVR_KEY_LSHIFT))
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].y_units++;
+         //else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            //map->sectors[world_selection.as.sector].y_off--;
+      }
+      else
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].y_off++;
+         else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            map->sectors[world_selection.as.sector].y_off--;
+      }
    }
    if(RvR_key_pressed(RVR_KEY_NP2))
    {
-      if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
-         map->walls[world_selection.as.wall].y_off--;
-      else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
-         map->sectors[world_selection.as.sector].y_off++;
+      if(RvR_key_down(RVR_KEY_LSHIFT))
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].y_units--;
+         //else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            //map->sectors[world_selection.as.sector].y_off++;
+      }
+      else
+      {
+         if(world_selection.type==RVR_PORT_WALL_BOT||world_selection.type==RVR_PORT_WALL_TOP)
+            map->walls[world_selection.as.wall].y_off--;
+         else if(world_selection.type==RVR_PORT_FLOOR||world_selection.type==RVR_PORT_CEILING)
+            map->sectors[world_selection.as.sector].y_off++;
+      }
    }
 
    //Floor/Ceiling align
@@ -575,6 +615,10 @@ static void e3d_draw_view(void)
    world_selection.x = mx;
    world_selection.y = my;
    RvR_port_draw_map(&world_selection);
+
+   for(int i = 0;i<map->sprite_count;i++)
+      RvR_port_draw_sprite(map->sprites+i,NULL);
+
    RvR_port_draw_end(NULL);
 
    RvR_port_report report;

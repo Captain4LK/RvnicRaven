@@ -203,6 +203,7 @@ uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_f
       w1++;
 
    //Insert new wall
+   map->walls[insert] = map->walls[insert-1];
    map->walls[insert].x = x;
    map->walls[insert].y = y;
    map->walls[insert].p2 = w1;
@@ -251,6 +252,7 @@ uint16_t RvR_port_wall_insert(RvR_port_map *map, uint16_t w0, RvR_fix22 x, RvR_f
          w3++;
 
       //Insert new wall
+      map->walls[insert1] = map->walls[insert1-1];
       map->walls[insert1].x = x;
       map->walls[insert1].y = y;
       map->walls[insert1].p2 = w3;

@@ -111,6 +111,15 @@ void map_new()
    camera.y = 0;
    camera.z = 1024;
 
+   map->sprite_count = 1;
+   map->sprites = RvR_malloc(sizeof(*map->sprites)*map->sprite_count,"Map sprites");
+   memset(map->sprites,0,sizeof(*map->sprites)*map->sprite_count);
+   map->sprites[0].x = 0;
+   map->sprites[0].y = 0;
+   map->sprites[0].z = 0;
+   map->sprites[0].sector = 0;
+   map->sprites[0].tex = 0;
+
    undo_reset();
 
    /*int16_t sector = RvR_port_sector_new(map, 0, 0);

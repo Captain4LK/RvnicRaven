@@ -585,10 +585,19 @@ static void e2d_update_view(void)
          }
          else if(RvR_key_pressed(RVR_KEY_F))
          {
-            if(map->walls[i].portal_wall==RVR_PORT_WALL_INVALID||RvR_port_wall_subsector(map,RvR_port_wall_sector(map,(uint16_t)i),(uint16_t)i)==0)
+            if(map->walls[i].portal!=RVR_PORT_WALL_INVALID)
+            {
                RvR_port_wall_make_first(map,(uint16_t)i);
-            else
                RvR_port_wall_make_first(map,map->walls[i].portal_wall);
+            }
+            else
+            {
+               RvR_port_wall_make_first(map,(uint16_t)i);
+            }
+            //if(map->walls[i].portal_wall==RVR_PORT_WALL_INVALID||RvR_port_wall_subsector(map,RvR_port_wall_sector(map,(uint16_t)i),(uint16_t)i)==0)
+               //RvR_port_wall_make_first(map,(uint16_t)i);
+            //else
+               //RvR_port_wall_make_first(map,map->walls[i].portal_wall);
             break;
          }
       }

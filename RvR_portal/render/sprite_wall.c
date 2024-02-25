@@ -120,13 +120,13 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
       //Inverting the texture coordinates directly didn't work properly,
       //so we just invert u here.
       //TODO: investigate this
-      if(sp->flags & 2)
+      if(sp->flags & RVR_PORT_SPRITE_XFLIP)
          u = texture->width - u - 1;
       RvR_fix22 height = sp->z + scale_vertical - port_cam->z;
       RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
       RvR_fix22 texture_coord_scaled = height*4096+(wy-RvR_yres()/2+1)*coord_step_scaled;
       //Vertical flip
-      if(sp->flags & 4)
+      if(sp->flags & RVR_PORT_SPRITE_YFLIP)
       {
          coord_step_scaled = -coord_step_scaled;
          texture_coord_scaled = texture->height * 16- height + (wy - middle_row + 1) * coord_step_scaled;
@@ -148,7 +148,7 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
          }
       }
 
-      if(sp->flags & 32)
+      if(sp->flags & RVR_PORT_SPRITE_TRANS0)
       {
          for(; wy<y_to; wy++)
          {
@@ -158,7 +158,7 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
             texture_coord_scaled += coord_step_scaled;
          }
       }
-      else if(sp->flags & 64)
+      else if(sp->flags & RVR_PORT_SPRITE_TRANS1)
       {
          for(; wy<y_to; wy++)
          {

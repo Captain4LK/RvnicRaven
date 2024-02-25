@@ -37,26 +37,27 @@ static int port_wsprite_can_back(const port_sprite * restrict a, const port_spri
 
 //Function implementations
 
-void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, uint16_t sector, uint16_t sprite, uint32_t flags, void *ref)
+void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref)
 {
    //flagged as invisible
-   if(flags & 1)
+   if(s->flags & RVR_PORT_SPRITE_INVISIBLE)
       return;
 
    //sector not visited
-   if(!port_map->sectors[sector].visited)
+   if(!port_map->sectors[s->sector].visited)
       return;
 
    port_sprite sp = {0};
-   sp.flags = flags;
-   sp.texture = sprite;
-   sp.x = x;
-   sp.y = y;
-   sp.z = z;
-   sp.dir = dir;
+   sp.flags = s->flags;
+   sp.texture = s->tex;
+   sp.x = s->x;
+   sp.y = s->y;
+   sp.z = s->z;
+   sp.sector = s->sector;
+   sp.dir = s->dir;
    sp.ref = ref;
 
-   RvR_texture *tex = RvR_texture_get(sprite);
+   RvR_texture *tex = RvR_texture_get(s->tex);
    RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
    RvR_fix22 cos = RvR_fix22_cos(port_cam->dir);
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov / 2);
@@ -66,19 +67,19 @@ void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, 
    RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
 
    //Wall aligned
-   if(flags & 8)
+   if(s->flags & RVR_PORT_SPRITE_WALL)
    {
       //Translate sprite to world space
-      RvR_fix22 dirx = RvR_fix22_cos(dir);
-      RvR_fix22 diry = RvR_fix22_sin(dir);
+      RvR_fix22 dirx = RvR_fix22_cos(s->dir);
+      RvR_fix22 diry = RvR_fix22_sin(s->dir);
       RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
-      RvR_fix22 p0x = RvR_fix22_mul(-diry, half_width) + x;
-      RvR_fix22 p0y = RvR_fix22_mul(dirx, half_width) + y;
-      RvR_fix22 p1x = RvR_fix22_mul(diry, half_width) + x;
-      RvR_fix22 p1y = RvR_fix22_mul(-dirx, half_width) + y;
-      sp.x = x;
-      sp.y = y;
-      sp.z = z;
+      RvR_fix22 p0x = RvR_fix22_mul(-diry, half_width) + s->x;
+      RvR_fix22 p0y = RvR_fix22_mul(dirx, half_width) + s->y;
+      RvR_fix22 p1x = RvR_fix22_mul(diry, half_width) + s->x;
+      RvR_fix22 p1y = RvR_fix22_mul(-dirx, half_width) + s->y;
+      sp.x = s->x;
+      sp.y = s->y;
+      sp.z = s->z;
       sp.as.wall.u0 = 0;
       sp.as.wall.u1 = 1024 * tex->width - 1;
 
@@ -101,7 +102,7 @@ void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, 
       if(RvR_fix22_mul(tp0x, tp1y) - RvR_fix22_mul(tp1x, tp0y)>0)
       {
          //One sided sprite
-         if(sp.flags & 128)
+         if(sp.flags & RVR_PORT_SPRITE_ONESIDED)
             return;
 
          RvR_fix22 tmp = tp0x;
@@ -111,7 +112,7 @@ void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, 
          tmp = tp0y;
          tp0y = tp1y;
          tp1y = tmp;
-         sp.flags ^= 2;
+         sp.flags ^= RVR_PORT_SPRITE_XFLIP;
       }
 
       sp.as.wall.wx0 = tp0x;
@@ -192,21 +193,21 @@ void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, 
    }
 
    //Floor alligned
-   if(flags & 16)
+   if(s->flags & RVR_PORT_SPRITE_FLOOR)
    {
       //World space coordinates, origin at camera
-      RvR_fix22 scos = RvR_fix22_cos(dir);
-      RvR_fix22 ssin = RvR_fix22_sin(dir);
+      RvR_fix22 scos = RvR_fix22_cos(s->dir);
+      RvR_fix22 ssin = RvR_fix22_sin(s->dir);
       RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
       RvR_fix22 half_height = (tex->height * 1024) / (64 * 2);
-      RvR_fix22 x0 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + x - port_cam->x;
-      RvR_fix22 y0 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(-half_height, ssin) + y - port_cam->y;
-      RvR_fix22 x1 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + x - port_cam->x;
-      RvR_fix22 y1 = RvR_fix22_mul(+half_width, scos) + RvR_fix22_mul(-half_height, ssin) + y - port_cam->y;
-      RvR_fix22 x2 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(+half_height, scos) + x - port_cam->x;
-      RvR_fix22 y2 = RvR_fix22_mul(+half_width, scos) + RvR_fix22_mul(+half_height, ssin) + y - port_cam->y;
-      RvR_fix22 x3 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(+half_height, scos) + x - port_cam->x;
-      RvR_fix22 y3 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(+half_height, ssin) + y - port_cam->y;
+      RvR_fix22 x0 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + s->x - port_cam->x;
+      RvR_fix22 y0 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(-half_height, ssin) + s->y - port_cam->y;
+      RvR_fix22 x1 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + s->x - port_cam->x;
+      RvR_fix22 y1 = RvR_fix22_mul(+half_width, scos) + RvR_fix22_mul(-half_height, ssin) + s->y - port_cam->y;
+      RvR_fix22 x2 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(+half_height, scos) + s->x - port_cam->x;
+      RvR_fix22 y2 = RvR_fix22_mul(+half_width, scos) + RvR_fix22_mul(+half_height, ssin) + s->y - port_cam->y;
+      RvR_fix22 x3 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(+half_height, scos) + s->x - port_cam->x;
+      RvR_fix22 y3 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(+half_height, ssin) + s->y - port_cam->y;
 
       //Move to camera space
       sp.as.floor.x0 = RvR_fix22_mul(-x0, sin) + RvR_fix22_mul(y0, cos);
@@ -218,8 +219,8 @@ void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, 
       sp.as.floor.x3 = RvR_fix22_mul(-x3, sin) + RvR_fix22_mul(y3, cos);
       sp.as.floor.z3 = RvR_fix22_mul(x3, cos_fov) + RvR_fix22_mul(y3, sin_fov);
 
-      sp.as.floor.wx = RvR_fix22_mul(-(x - port_cam->x), sin) + RvR_fix22_mul(y - port_cam->y, cos);
-      sp.as.floor.wy = RvR_fix22_mul(x - port_cam->x, cos_fov) + RvR_fix22_mul(y - port_cam->y, sin_fov);
+      sp.as.floor.wx = RvR_fix22_mul(-(s->x - port_cam->x), sin) + RvR_fix22_mul(s->y - port_cam->y, cos);
+      sp.as.floor.wy = RvR_fix22_mul(s->x - port_cam->x, cos_fov) + RvR_fix22_mul(s->y - port_cam->y, sin_fov);
 
       RvR_fix22 depth_min = RvR_min(sp.as.floor.z0, RvR_min(sp.as.floor.z1, RvR_min(sp.as.floor.z2, sp.as.floor.z3)));
       RvR_fix22 depth_max = RvR_max(sp.as.floor.z0, RvR_max(sp.as.floor.z1, RvR_max(sp.as.floor.z2, sp.as.floor.z3)));
@@ -242,10 +243,10 @@ void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, 
    }
 
    //Billboard
-   sp.as.bill.wx = RvR_fix22_mul(-(x - port_cam->x), sin) + RvR_fix22_mul(y - port_cam->y, cos);
-   sp.as.bill.wy = RvR_fix22_mul(x - port_cam->x, cos_fov) + RvR_fix22_mul(y - port_cam->y, sin_fov);
+   sp.as.bill.wx = RvR_fix22_mul(-(s->x - port_cam->x), sin) + RvR_fix22_mul(s->y - port_cam->y, cos);
+   sp.as.bill.wy = RvR_fix22_mul(s->x - port_cam->x, cos_fov) + RvR_fix22_mul(s->y - port_cam->y, sin_fov);
    sp.z_min = sp.z_max = sp.as.bill.wy;
-   RvR_fix22 depth = RvR_fix22_mul(x - port_cam->x, cos) + RvR_fix22_mul(y - port_cam->y, sin); //Separate depth, so that the near/far clip is not dependent on fov
+   RvR_fix22 depth = RvR_fix22_mul(s->x - port_cam->x, cos) + RvR_fix22_mul(s->y - port_cam->y, sin); //Separate depth, so that the near/far clip is not dependent on fov
 
    //Near clip
    if(depth<128)
@@ -264,13 +265,26 @@ void RvR_port_draw_sprite(RvR_fix22 x, RvR_fix22 y, RvR_fix22 z, RvR_fix22 dir, 
    if(sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
       return;
 
-   //Above screen
-   if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (z - port_cam->z))
-      return;
+   if(s->flags&RVR_PORT_SPRITE_CENTER)
+   {
+      //Above screen
+      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z+tex->height*8))
+         return;
 
-   //Below screen
-   if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (z - port_cam->z + tex->height * 16))
-      return;
+      //Below screen
+      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 8))
+         return;
+   }
+   else
+   {
+      //Above screen
+      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z))
+         return;
+
+      //Below screen
+      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 16))
+         return;
+   }
 
    RvR_array_push(port_sprites, sp);
 }
@@ -328,9 +342,9 @@ void sprites_render(RvR_port_selection *select)
    for(int i = 0; i<RvR_array_length(port_sprites); i++)
    {
       port_sprite *sp = port_sprites + i;
-      if(sp->flags & 8)
+      if(sp->flags & RVR_PORT_SPRITE_WALL)
          port_sprite_draw_wall(sp, select);
-      else if(sp->flags & 16)
+      else if(sp->flags & RVR_PORT_SPRITE_FLOOR)
          port_sprite_draw_floor(sp, select);
       else
          port_sprite_draw_billboard(port_map, sp, select);
@@ -354,15 +368,15 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
 
    //Wall - Wall check is put in
    //a separate function
-   if(a->flags & 8&&b->flags & 8)
+   if(a->flags & RVR_PORT_SPRITE_WALL&&b->flags & RVR_PORT_SPRITE_WALL)
       return port_wsprite_can_back(a, b);
 
    //Sprite - Sprite check
    //is a lot simpler
-   if(!(a->flags & 8)&&!(b->flags & 8))
+   if(!(a->flags & RVR_PORT_SPRITE_WALL)&&!(b->flags & RVR_PORT_SPRITE_WALL))
    {
       //If one is floor sprite, check height
-      if(a->flags & 16||b->flags & 16)
+      if(a->flags & RVR_PORT_SPRITE_FLOOR||b->flags & RVR_PORT_SPRITE_FLOOR)
       {
          //a completely behind b
          //We only want to sort them by height if
@@ -391,14 +405,14 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
    int64_t z10 = 0;
    int64_t x11 = 0;
    int64_t z11 = 0;
-   if(a->flags & 8)
+   if(a->flags & RVR_PORT_SPRITE_WALL)
    {
       x00 = a->as.wall.wx0;
       x01 = a->as.wall.wx1;
       z00 = a->as.wall.wy0;
       z01 = a->as.wall.wy1;
    }
-   else if(a->flags & 16)
+   else if(a->flags & RVR_PORT_SPRITE_FLOOR)
    {
       x00 = a->as.floor.wx;
       x01 = a->as.floor.wx;
@@ -413,14 +427,14 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
       z01 = a->as.bill.wy;
    }
 
-   if(b->flags & 8)
+   if(b->flags & RVR_PORT_SPRITE_WALL)
    {
       x10 = b->as.wall.wx0;
       x11 = b->as.wall.wx1;
       z10 = b->as.wall.wy0;
       z11 = b->as.wall.wy1;
    }
-   else if(b->flags & 16)
+   else if(b->flags & RVR_PORT_SPRITE_FLOOR)
    {
       x10 = b->as.floor.wx;
       x11 = b->as.floor.wx;
@@ -445,7 +459,7 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
    //One of the two is a wall
    //we check the ordering of
    //the wall and the sprite
-   if(a->flags & 8)
+   if(a->flags & RVR_PORT_SPRITE_WALL)
    {
       int64_t dx0 = x01 - x00;
       int64_t dz0 = z01 - z00;

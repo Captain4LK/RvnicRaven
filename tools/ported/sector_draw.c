@@ -63,6 +63,8 @@ void sector_draw_start(RvR_fix22 x, RvR_fix22 y)
    w.x = x;
    w.y = y;
    w.p2 = 1;
+   w.x_units = 16;
+   w.y_units = 16;
    w.portal = RVR_PORT_SECTOR_INVALID;
    w.portal_wall = RVR_PORT_WALL_INVALID;
    RvR_array_push(sd_walls, w);
@@ -140,6 +142,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          RvR_port_wall w = {0};
          w.x = x;
          w.y = y;
+         w.x_units = 16;
+         w.y_units = 16;
          w.p2 = (uint16_t)(RvR_array_length(sd_walls) + 1);
          w.portal = RVR_PORT_SECTOR_INVALID;
          w.portal_wall = RVR_PORT_WALL_INVALID;
@@ -187,31 +191,19 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             //Add new sector
             uint16_t sector = map->sector_count++;
             map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+            memset(map->sectors+sector,0,sizeof(*map->sectors));
             map->sectors[sector].wall_count = (uint16_t)RvR_array_length(sd_walls);
             map->sectors[sector].wall_first = map->wall_count;
             map->sectors[sector].floor = 0;
             map->sectors[sector].ceiling = 2 * 1024;
             map->sectors[sector].floor_tex = 15;
             map->sectors[sector].ceiling_tex = 15;
-            map->sectors[sector].x_off = 0;
-            map->sectors[sector].y_off = 0;
-            map->sectors[sector].flags = 0;
-            map->sectors[sector].slope_floor = 0;
-            map->sectors[sector].slope_ceiling = 0;
             map->wall_count += (uint16_t)RvR_array_length(sd_walls);
             map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
             for(int i = 0; i<RvR_array_length(sd_walls); i++)
             {
-               map->walls[map->sectors[sector].wall_first + i].x = sd_walls[i].x;
-               map->walls[map->sectors[sector].wall_first + i].y = sd_walls[i].y;
+               map->walls[map->sectors[sector].wall_first + i] = sd_walls[i];
                map->walls[map->sectors[sector].wall_first + i].p2 = sd_walls[i].p2 + map->sectors[sector].wall_first;
-               map->walls[map->sectors[sector].wall_first + i].flags = sd_walls[i].flags;
-               map->walls[map->sectors[sector].wall_first + i].shade_offset = sd_walls[i].shade_offset;
-               map->walls[map->sectors[sector].wall_first + i].x_off = sd_walls[i].x_off;
-               map->walls[map->sectors[sector].wall_first + i].y_off = sd_walls[i].y_off;
-               map->walls[map->sectors[sector].wall_first + i].tex_lower = sd_walls[i].tex_lower;
-               map->walls[map->sectors[sector].wall_first + i].tex_upper = sd_walls[i].tex_upper;
-               map->walls[map->sectors[sector].wall_first + i].tex_mid = sd_walls[i].tex_mid;
                map->walls[map->sectors[sector].wall_first + i].portal = RVR_PORT_SECTOR_INVALID;
                map->walls[map->sectors[sector].wall_first + i].portal_wall = RVR_PORT_WALL_INVALID;
                if(i==RvR_array_length(sd_walls) - 1)
@@ -258,16 +250,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             for(int i = 0; i<RvR_array_length(sd_walls); i++)
             {
                RvR_port_wall *wall = map->walls + (map->sectors[sector_inside].wall_count + map->sectors[sector_inside].wall_first + i);
-               wall->x = sd_walls[i].x;
-               wall->y = sd_walls[i].y;
+               *wall = sd_walls[i];
                wall->p2 = (uint16_t)(sd_walls[i].p2 + map->sectors[sector_inside].wall_first + map->sectors[sector_inside].wall_count);
-               wall->flags = sd_walls[i].flags;
-               wall->shade_offset = sd_walls[i].shade_offset;
-               wall->x_off = sd_walls[i].x_off;
-               wall->y_off = sd_walls[i].y_off;
-               wall->tex_lower = sd_walls[i].tex_lower;
-               wall->tex_upper = sd_walls[i].tex_upper;
-               wall->tex_mid = sd_walls[i].tex_mid;
                wall->portal = RVR_PORT_SECTOR_INVALID;
                wall->portal_wall = RVR_PORT_WALL_INVALID;
                if(i==RvR_array_length(sd_walls) - 1)
@@ -285,28 +269,19 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          //Add new sector
          uint16_t sector = map->sector_count++;
          map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+         memset(map->sectors+sector,0,sizeof(*map->sectors));
          map->sectors[sector].wall_count = (uint16_t)RvR_array_length(sd_walls);
          map->sectors[sector].wall_first = map->wall_count;
          map->sectors[sector].floor = 0;
          map->sectors[sector].ceiling = 2 * 1024;
          map->sectors[sector].floor_tex = 15;
          map->sectors[sector].ceiling_tex = 15;
-         map->sectors[sector].slope_floor = 0;
-         map->sectors[sector].slope_ceiling = 0;
          map->wall_count += (uint16_t)RvR_array_length(sd_walls);
          map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
          for(int i = 0; i<RvR_array_length(sd_walls); i++)
          {
-            map->walls[map->sectors[sector].wall_first + i].x = sd_walls[i].x;
-            map->walls[map->sectors[sector].wall_first + i].y = sd_walls[i].y;
+            map->walls[map->sectors[sector].wall_first + i] = sd_walls[i];
             map->walls[map->sectors[sector].wall_first + i].p2 = sd_walls[i].p2 + map->sectors[sector].wall_first;
-            map->walls[map->sectors[sector].wall_first + i].flags = sd_walls[i].flags;
-            map->walls[map->sectors[sector].wall_first + i].shade_offset = sd_walls[i].shade_offset;
-            map->walls[map->sectors[sector].wall_first + i].x_off = sd_walls[i].x_off;
-            map->walls[map->sectors[sector].wall_first + i].y_off = sd_walls[i].y_off;
-            map->walls[map->sectors[sector].wall_first + i].tex_lower = sd_walls[i].tex_lower;
-            map->walls[map->sectors[sector].wall_first + i].tex_upper = sd_walls[i].tex_upper;
-            map->walls[map->sectors[sector].wall_first + i].tex_mid = sd_walls[i].tex_mid;
             map->walls[map->sectors[sector].wall_first + i].portal = RVR_PORT_SECTOR_INVALID;
             map->walls[map->sectors[sector].wall_first + i].portal_wall = RVR_PORT_WALL_INVALID;
             if(i==RvR_array_length(sd_walls) - 1)
@@ -619,17 +594,8 @@ static int sector_draw_split()
    for(int i = 0; i<RvR_array_length(sd_walls); i++)
    {
       uint16_t wall = map->sectors[sector0].wall_first+(uint16_t)i;
-      map->walls[wall].x = sd_walls[i].x;
-      map->walls[wall].y = sd_walls[i].y;
+      map->walls[wall] = sd_walls[i];
       map->walls[wall].p2 = sd_walls[i].p2 + map->sectors[sector0].wall_first;
-      map->walls[wall].flags = sd_walls[i].flags;
-      map->walls[wall].shade_offset = sd_walls[i].shade_offset;
-      map->walls[wall].x_off = sd_walls[i].x_off;
-      map->walls[wall].y_off = sd_walls[i].y_off;
-      map->walls[wall].tex_lower = sd_walls[i].tex_lower;
-      map->walls[wall].tex_upper = sd_walls[i].tex_upper;
-      map->walls[wall].tex_mid = sd_walls[i].tex_mid;
-      map->walls[wall].portal = sd_walls[i].portal;
       map->walls[wall].portal_wall = RVR_PORT_WALL_INVALID;
    }
 
@@ -761,17 +727,8 @@ static int sector_draw_split()
    map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
    for(int i = 0; i<RvR_array_length(sd_walls); i++)
    {
-      map->walls[map->sectors[sector1].wall_first + i].x = sd_walls[i].x;
-      map->walls[map->sectors[sector1].wall_first + i].y = sd_walls[i].y;
+      map->walls[map->sectors[sector1].wall_first + i] = sd_walls[i];
       map->walls[map->sectors[sector1].wall_first + i].p2 = sd_walls[i].p2 + map->sectors[sector1].wall_first;
-      map->walls[map->sectors[sector1].wall_first + i].flags = sd_walls[i].flags;
-      map->walls[map->sectors[sector1].wall_first + i].shade_offset = sd_walls[i].shade_offset;
-      map->walls[map->sectors[sector1].wall_first + i].x_off = sd_walls[i].x_off;
-      map->walls[map->sectors[sector1].wall_first + i].y_off = sd_walls[i].y_off;
-      map->walls[map->sectors[sector1].wall_first + i].tex_lower = sd_walls[i].tex_lower;
-      map->walls[map->sectors[sector1].wall_first + i].tex_upper = sd_walls[i].tex_upper;
-      map->walls[map->sectors[sector1].wall_first + i].tex_mid = sd_walls[i].tex_mid;
-      map->walls[map->sectors[sector1].wall_first + i].portal = sd_walls[i].portal;
       map->walls[map->sectors[sector1].wall_first + i].portal_wall = RVR_PORT_WALL_INVALID;
    }
 
@@ -976,17 +933,8 @@ static int sector_draw_connect()
    map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
    for(int i = 0; i<RvR_array_length(sd_walls); i++)
    {
-      map->walls[map->sectors[sector0].wall_first + i].x = sd_walls[i].x;
-      map->walls[map->sectors[sector0].wall_first + i].y = sd_walls[i].y;
+      map->walls[map->sectors[sector0].wall_first + i] = sd_walls[i];
       map->walls[map->sectors[sector0].wall_first + i].p2 = sd_walls[i].p2 + map->sectors[sector0].wall_first;
-      map->walls[map->sectors[sector0].wall_first + i].flags = sd_walls[i].flags;
-      map->walls[map->sectors[sector0].wall_first + i].shade_offset = sd_walls[i].shade_offset;
-      map->walls[map->sectors[sector0].wall_first + i].x_off = sd_walls[i].x_off;
-      map->walls[map->sectors[sector0].wall_first + i].y_off = sd_walls[i].y_off;
-      map->walls[map->sectors[sector0].wall_first + i].tex_lower = sd_walls[i].tex_lower;
-      map->walls[map->sectors[sector0].wall_first + i].tex_upper = sd_walls[i].tex_upper;
-      map->walls[map->sectors[sector0].wall_first + i].tex_mid = sd_walls[i].tex_mid;
-      map->walls[map->sectors[sector0].wall_first + i].portal = sd_walls[i].portal;
       map->walls[map->sectors[sector0].wall_first + i].portal_wall = RVR_PORT_WALL_INVALID;
    }
 

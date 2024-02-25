@@ -370,7 +370,7 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
    const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 12))));
    const uint8_t * restrict tex = texture->data;
 
-   if(sp->flags & 32)
+   if(sp->flags & RVR_PORT_SPRITE_TRANS0)
    {
       for(int x = x0; x<x1; x++)
       {
@@ -381,7 +381,7 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
          pix++;
       }
    }
-   else if(sp->flags & 64)
+   else if(sp->flags & RVR_PORT_SPRITE_TRANS1)
    {
       for(int x = x0; x<x1; x++)
       {
