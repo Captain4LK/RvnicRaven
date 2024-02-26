@@ -88,104 +88,99 @@ void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref)
       RvR_fix22 y0 = p0y - port_cam->y;
       RvR_fix22 x1 = p1x - port_cam->x;
       RvR_fix22 y1 = p1y - port_cam->y;
-      RvR_fix22 tp0x = RvR_fix22_mul(-x0, sin) + RvR_fix22_mul(y0, cos);
-      RvR_fix22 tp0y = RvR_fix22_mul(x0, cos_fov) + RvR_fix22_mul(y0, sin_fov);
-      RvR_fix22 tp1x = RvR_fix22_mul(-x1, sin) + RvR_fix22_mul(y1, cos);
-      RvR_fix22 tp1y = RvR_fix22_mul(x1, cos_fov) + RvR_fix22_mul(y1, sin_fov);
+      RvR_fix22 tmp = x0;
+      x0 = RvR_fix22_mul(-x0, sin) + RvR_fix22_mul(y0, cos);
+      y0 = RvR_fix22_mul(tmp, cos_fov) + RvR_fix22_mul(y0, sin_fov);
+      tmp = x1;
+      x1 = RvR_fix22_mul(-x1, sin) + RvR_fix22_mul(y1, cos);
+      y1 = RvR_fix22_mul(tmp, cos_fov) + RvR_fix22_mul(y1, sin_fov);
 
       //Behind camera
-      if(tp0y<-128&&tp1y<-128)
+      if(y0<1&&y1<1)
          return;
 
       //Sprite not facing camera
       //--> swap p0 and p1 and toggle y-axis mirror flag
-      if(RvR_fix22_mul(tp0x, tp1y) - RvR_fix22_mul(tp1x, tp0y)>0)
+      if(RvR_fix22_mul(x0, y1) - RvR_fix22_mul(x1, y0)>0)
       {
          //One sided sprite
          if(sp.flags & RVR_PORT_SPRITE_ONESIDED)
             return;
 
-         RvR_fix22 tmp = tp0x;
-         tp0x = tp1x;
-         tp1x = tmp;
+         tmp = x0;
+         x0 = x1;
+         x1 = tmp;
 
-         tmp = tp0y;
-         tp0y = tp1y;
-         tp1y = tmp;
+         tmp = y0;
+         y0 = y1;
+         y1 = tmp;
          sp.flags ^= RVR_PORT_SPRITE_XFLIP;
       }
 
-      sp.as.wall.wx0 = tp0x;
-      sp.as.wall.wy0 = tp0y;
-      sp.as.wall.wx1 = tp1x;
-      sp.as.wall.wy1 = tp1y;
+      sp.as.wall.xw0 = x0;
+      sp.as.wall.zw0 = y0;
+      sp.as.wall.xw1 = x1;
+      sp.as.wall.zw1 = y1;
 
-      //Here we can treat everything as if we have a 90 degree
-      //fov, since the rotation to camera space transforms it to
-      //that
-      //Check if in fov
-      //Left point in fov
-      if(tp0x>=-tp0y)
-      {
-         //Sprite completely out of sight
-         if(tp0x>tp0y)
-            return;
-
-         sp.as.wall.x0 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(tp0x * (RvR_xres() / 2), tp0y), RvR_xres() * 1024);
-         sp.as.wall.z0 = tp0y;
-      }
-      //Left point to the left of fov
-      else
-      {
-         //Sprite completely out of sight
-         if(tp1x<-tp1y)
-            return;
-
-         sp.as.wall.x0 = 0;
-         RvR_fix22 dx0 = tp1x - tp0x;
-         RvR_fix22 dx1 = tp0x + tp0y;
-         sp.as.wall.z0 = RvR_fix22_div(RvR_fix22_mul(dx0, dx1), tp1y - tp0y + tp1x - tp0x) - tp0x;
-         sp.as.wall.u0 = sp.as.wall.u0 + RvR_fix22_div(RvR_fix22_mul(-tp0x - tp0y, sp.as.wall.u1 - sp.as.wall.u0), RvR_non_zero(tp1x - tp0x + tp1y - tp0y));
-      }
-
-      //Right point in fov
-      if(tp1x<=tp1y)
-      {
-         //sprite completely out of sight
-         if(tp1x<-tp1y)
-            return;
-
-         sp.as.wall.x1 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(tp1x * (RvR_xres() / 2), tp1y), RvR_xres() * 1024);
-         sp.as.wall.z1 = tp1y;
-      }
-      //Right point to the right of fov
-      else
-      {
-         //sprite completely out of sight
-         if(tp0x>tp0y)
-            return;
-
-         RvR_fix22 dx0 = tp1x - tp0x;
-         RvR_fix22 dx1 = tp0y - tp0x;
-         sp.as.wall.x1 = RvR_xres() * 1024;
-         sp.as.wall.z1 = tp0x - RvR_fix22_div(RvR_fix22_mul(dx0, dx1), tp1y - tp0y - tp1x + tp0x);
-         sp.as.wall.u1 = RvR_fix22_div(RvR_fix22_mul(dx1, sp.as.wall.u1), RvR_non_zero(-tp1y + tp0y + tp1x - tp0x));
-      }
-
-      //Near clip sprite
-      if(sp.as.wall.z0<128||sp.as.wall.z1<128)
+      //left point right of fov --> completely out of sight
+      if((x0>=-y0||x1>y1)&&x0>y0)
          return;
 
-      //Far clip sprite
-      //TODO(Captain4LK): far clip once really far away (only a few/one pixels big)?
-      //if(sp.as.wall.z0>RVR_RAY_MAX_STEPS * 65536&&sp.as.wall.z1>RVR_RAY_MAX_STEPS * 65536)
-         //return;
+      //right point left of fov --> completely out of sight
+      if((x0<-y0||x1<=y1)&&x1<-y1)
+         return;
 
+      //p0
+      //-------------------------------------
+      sp.as.wall.x0 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(x0* (RvR_xres() / 2), RvR_non_zero(y0)), RvR_xres() * 1024);
+      sp.as.wall.z0 = y0;
+      sp.as.wall.p0x = p0x;
+      sp.as.wall.p0y = p0y;
+
+      //Left point left of fov --> needs clipping
+      if(x0<-y0)
+      {
+         sp.as.wall.x0 = 0;
+         RvR_fix22 dx0 = x1 - x0;
+         RvR_fix22 dx1 = x0 + y0;
+         sp.as.wall.z0 = RvR_fix22_div(RvR_fix22_mul(dx0, dx1), y1 - y0+ x1 - x0) - x0;
+         sp.as.wall.u0 = sp.as.wall.u0 + RvR_fix22_div(RvR_fix22_mul(-x0- y0, sp.as.wall.u1 - sp.as.wall.u0), RvR_non_zero(x1- x0+ y1- y0));
+         sp.as.wall.p0x = p0x + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1x-p0x),RvR_non_zero(x1-x0+y1-y0));
+         sp.as.wall.p0y = p0y + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1y-p0y),RvR_non_zero(x1-x0+y1-y0));
+      }
+      //-------------------------------------
+
+      //p1
+      //-------------------------------------
+      sp.as.wall.x1 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(x1* (RvR_xres() / 2), RvR_non_zero(y1)), RvR_xres() * 1024);
+      sp.as.wall.z1 = y1;
+      sp.as.wall.p1x = p1x;
+      sp.as.wall.p1y = p1y;
+
+      //Right point right of fov --> needs clipping
+      if(x1>y1)
+      {
+         RvR_fix22 dx0 = x1 - x0;
+         RvR_fix22 dx1 = y0- x0;
+         sp.as.wall.x1 = RvR_xres() * 1024;
+         sp.as.wall.z1 = x0- RvR_fix22_div(RvR_fix22_mul(dx0, dx1), y1- y0- x1+ x0);
+         sp.as.wall.u1 = RvR_fix22_div(RvR_fix22_mul(dx1, sp.as.wall.u1), RvR_non_zero(-y1+ y0+ x1- x0));
+         sp.as.wall.p1x = p0x + RvR_fix22_div(RvR_fix22_mul(dx1,p1x-p0x),RvR_non_zero(-y1+y0+x1-x0));
+         sp.as.wall.p1y = p0y + RvR_fix22_div(RvR_fix22_mul(dx1,p1y-p0y),RvR_non_zero(-y1+y0+x1-x0));
+      }
+      //-------------------------------------
+
+      //If the wall somehow ends up having a
+      //negativ width, skip it
       if(sp.as.wall.x0>sp.as.wall.x1)
          return;
 
-      sp.z_min = RvR_min(sp.as.wall.z0, sp.as.wall.z1);
-      sp.z_max = RvR_max(sp.as.wall.z0, sp.as.wall.z1);
+      //Near clip
+      if(sp.as.wall.z0<1||sp.as.wall.z1<1)
+         return;
+
+      sp.z_min = RvR_min(sp.as.wall.zw0, sp.as.wall.zw1);
+      sp.z_max = RvR_max(sp.as.wall.zw0, sp.as.wall.zw1);
 
       RvR_array_push(port_sprites, sp);
 
@@ -268,7 +263,7 @@ void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref)
    if(s->flags&RVR_PORT_SPRITE_CENTER)
    {
       //Above screen
-      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z+tex->height*8))
+      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-tex->height*8))
          return;
 
       //Below screen
@@ -407,10 +402,10 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
    int64_t z11 = 0;
    if(a->flags & RVR_PORT_SPRITE_WALL)
    {
-      x00 = a->as.wall.wx0;
-      x01 = a->as.wall.wx1;
-      z00 = a->as.wall.wy0;
-      z01 = a->as.wall.wy1;
+      x00 = a->as.wall.xw0;
+      x01 = a->as.wall.xw1;
+      z00 = a->as.wall.zw0;
+      z01 = a->as.wall.zw1;
    }
    else if(a->flags & RVR_PORT_SPRITE_FLOOR)
    {
@@ -429,10 +424,10 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
 
    if(b->flags & RVR_PORT_SPRITE_WALL)
    {
-      x10 = b->as.wall.wx0;
-      x11 = b->as.wall.wx1;
-      z10 = b->as.wall.wy0;
-      z11 = b->as.wall.wy1;
+      x10 = b->as.wall.xw0;
+      x11 = b->as.wall.xw1;
+      z10 = b->as.wall.zw0;
+      z11 = b->as.wall.zw1;
    }
    else if(b->flags & RVR_PORT_SPRITE_FLOOR)
    {
@@ -486,47 +481,41 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
 
 static int port_wsprite_can_back(const port_sprite * restrict a, const port_sprite * restrict b)
 {
-   //NOTE(Captain4LK): We use 64 bit precision here,
-   //you could do it without, but I haven't
-   //really checked how well that works,
-   //especially with very long wall sprites
-   int64_t x00 = a->as.wall.wx0;
-   int64_t x01 = a->as.wall.wx1;
-   int64_t z00 = a->as.wall.wy0;
-   int64_t z01 = a->as.wall.wy1;
+   int64_t x00 = a->as.wall.xw0;
+   int64_t z00 = a->as.wall.zw0;
+   int64_t x01 = a->as.wall.xw1;
+   int64_t z01 = a->as.wall.zw1;
+   int64_t x10 = b->as.wall.xw0;
+   int64_t z10 = b->as.wall.zw0;
+   int64_t x11 = b->as.wall.xw1;
+   int64_t z11 = b->as.wall.zw1;
 
-   int64_t x10 = b->as.wall.wx0;
-   int64_t x11 = b->as.wall.wx1;
-   int64_t z10 = b->as.wall.wy0;
-   int64_t z11 = b->as.wall.wy1;
+   int64_t dx0 = x01-x00;
+   int64_t dz0 = z01-z00;
+   int64_t dx1 = x11-x10;
+   int64_t dz1 = z11-z10;
 
-   //a completely behind b
-   if(a->z_min>b->z_max)
+   int64_t cross00 = dx0*(z10-z00)-dz0*(x10-x00);
+   int64_t cross01 = dx0*(z11-z00)-dz0*(x11-x00);
+   int64_t cross10 = dx1*(z00-z10)-dz1*(x00-x10);
+   int64_t cross11 = dx1*(z01-z10)-dz1*(x01-x10);
+
+   //wa completely behind wb
+   if(RvR_min(z00,z01)>RvR_max(z10,z11))
       return 1;
 
-   //No screen x overlap
+   //no overlap on screen
    if(a->as.wall.x0>=b->as.wall.x1||a->as.wall.x1<=b->as.wall.x0)
       return 1;
 
-   int64_t dx0 = x01 - x00;
-   int64_t dz0 = z01 - z00;
-   int64_t dx1 = x11 - x10;
-   int64_t dz1 = z11 - z10;
-
-   //2d cross product/perp dot product
-   int64_t cross00 = dx0 * (z10 - z00) - dz0 * (x10 - x00);
-   int64_t cross01 = dx0 * (z11 - z00) - dz0 * (x11 - x00);
-   int64_t cross10 = dx1 * (z00 - z10) - dz1 * (x00 - x10);
-   int64_t cross11 = dx1 * (z01 - z10) - dz1 * (x01 - x10);
-
-   //All points of b in front of a
+   //p0 and p1 of wb in front of wa
    if(cross00<=0&&cross01<=0)
       return 1;
 
-   //All points of a behind b
+   //p0 and p1 of wa behind wb
    if(cross10>=0&&cross11>=0)
       return 1;
-
+   
    //Need swapping
    return 0;
 }

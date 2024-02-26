@@ -285,33 +285,6 @@ static void e2d_draw_base(void)
 {
    RvR_render_clear(color_black);
 
-   /*//Draw sprites
-   Map_sprite *sp = map_sprites;
-   while(sp!=NULL)
-   {
-      int x = (sp->x * grid_size) / 65536 - scroll_x;
-      int y = (sp->y * grid_size) / 65536 - scroll_y;
-      if(x>-grid_size * 2&&x<RvR_xres() + grid_size * 2&&y>-grid_size * 2&&y<RvR_yres() + grid_size * 2)
-      {
-         RvR_render_circle(x, y, grid_size / 4, color_white);
-         RvR_fix16 dirx = RvR_fix16_cos(sp->direction);
-         RvR_fix16 diry = RvR_fix16_sin(sp->direction);
-         //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(sp->direction);
-         RvR_render_line(x * 256, y * 256, x * 256 + (dirx * (grid_size / 2)) / 256, y * 256 + (diry * (grid_size / 2)) / 256, color_white);
-
-         if(sp->flags & 8)
-         {
-            int half_width = (RvR_texture_get(sp->texture)->width * grid_size * 2) / 256;
-            RvR_fix16 p0x = x * 256 + (diry * half_width) / 256;
-            RvR_fix16 p0y = y * 256 + (-dirx * half_width) / 256;
-            RvR_fix16 p1x = x * 256 + (-diry * half_width) / 256;
-            RvR_fix16 p1y = y * 256 + (dirx * half_width) / 256;
-            RvR_render_line(p0x, p0y, p1x, p1y, color_white);
-         }
-      }
-
-      sp = sp->next;
-   }*/
 
    //Draw grid
    //printf("%d\n",(RvR_xres()*1024)/(grid_size*draw_grid_size));
@@ -382,6 +355,57 @@ static void e2d_draw_base(void)
          RvR_render_rectangle(x0 - 2, y0 - 2, 5, 5, color_orange);
       }
    }
+
+   for(int i = 0;i<map->sprite_count;i++)
+   {
+      RvR_port_sprite *sp = map->sprites+i;
+      int x = ((sp->x-camera.x))/RvR_non_zero(zoom)+RvR_xres()/2;
+      int y = ((sp->y-camera.y))/RvR_non_zero(zoom)+RvR_yres()/2;
+      int rad = 128/RvR_non_zero(zoom);
+      if(x>-rad&&x<RvR_xres()+rad&&y>-rad&&y<RvR_yres()+rad)
+      {
+         RvR_render_circle(x, y, rad, color_aqua);
+         RvR_fix22 dirx = RvR_fix22_cos(sp->dir);
+         RvR_fix22 diry = RvR_fix22_sin(sp->dir);
+         RvR_render_line(x * 256, y * 256, x * 256 + (dirx * (rad/ 2)), y * 256 + (diry * (rad/ 2)), color_aqua);
+
+         if(sp->flags&RVR_PORT_SPRITE_WALL)
+         {
+            
+         }
+         else if(sp->flags&RVR_PORT_SPRITE_FLOOR)
+         {
+            //TODO(Captain4LK): render as rotated rectangle
+         }
+      }
+   }
+   /*//Draw sprites
+   Map_sprite *sp = map_sprites;
+   while(sp!=NULL)
+   {
+      int x = (sp->x * grid_size) / 65536 - scroll_x;
+      int y = (sp->y * grid_size) / 65536 - scroll_y;
+      if(x>-grid_size * 2&&x<RvR_xres() + grid_size * 2&&y>-grid_size * 2&&y<RvR_yres() + grid_size * 2)
+      {
+         RvR_render_circle(x, y, grid_size / 4, color_white);
+         RvR_fix16 dirx = RvR_fix16_cos(sp->direction);
+         RvR_fix16 diry = RvR_fix16_sin(sp->direction);
+         //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(sp->direction);
+         RvR_render_line(x * 256, y * 256, x * 256 + (dirx * (grid_size / 2)) / 256, y * 256 + (diry * (grid_size / 2)) / 256, color_white);
+
+         if(sp->flags & 8)
+         {
+            int half_width = (RvR_texture_get(sp->texture)->width * grid_size * 2) / 256;
+            RvR_fix16 p0x = x * 256 + (diry * half_width) / 256;
+            RvR_fix16 p0y = y * 256 + (-dirx * half_width) / 256;
+            RvR_fix16 p1x = x * 256 + (-diry * half_width) / 256;
+            RvR_fix16 p1y = y * 256 + (dirx * half_width) / 256;
+            RvR_render_line(p0x, p0y, p1x, p1y, color_white);
+         }
+      }
+
+      sp = sp->next;
+   }*/
 
    /*if(map->sector_count>0)
    for(int y = 0;y<RvR_yres();y++)

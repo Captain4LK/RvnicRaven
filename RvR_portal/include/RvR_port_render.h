@@ -38,7 +38,24 @@ typedef struct
       }bill;
       struct
       {
+         RvR_fix22 x0;
+         RvR_fix22 xw0;
+         RvR_fix22 z0;
+         RvR_fix22 zw0;
+         RvR_fix22 x1;
+         RvR_fix22 xw1;
+         RvR_fix22 z1;
+         RvR_fix22 zw1;
+         RvR_fix22 zfront;
+
          RvR_fix22 u0;
+         RvR_fix22 u1;
+
+         RvR_fix22 p0x;
+         RvR_fix22 p0y;
+         RvR_fix22 p1x;
+         RvR_fix22 p1y;
+         /*RvR_fix22 u0;
          RvR_fix22 u1;
 
          RvR_fix22 x0;
@@ -51,7 +68,7 @@ typedef struct
          RvR_fix22 wx0;
          RvR_fix22 wy0;
          RvR_fix22 wx1;
-         RvR_fix22 wy1;
+         RvR_fix22 wy1;*/
       }wall;
       struct
       {

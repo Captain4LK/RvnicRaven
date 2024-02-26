@@ -42,15 +42,35 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres() * fovx, RvR_xres()*1024);
    RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
 
-   RvR_fix22 cy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
-   RvR_fix22 cy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+   RvR_fix22 cy0;
+   RvR_fix22 cy1;
+   if(sp->flags&RVR_PORT_SPRITE_CENTER)
+   {
+      cy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical/2 - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
+      cy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical/2 - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+   }
+   else
+   {
+      cy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
+      cy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+   }
    cy0 = middle_row * 1024- cy0;
    cy1 = middle_row * 1024- cy1;
    RvR_fix22 step_cy = RvR_fix22_div(cy1 - cy0, RvR_non_zero(sp->as.wall.x1 - sp->as.wall.x0));
    RvR_fix22 cy = cy0;
 
-   RvR_fix22 fy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
-   RvR_fix22 fy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+   RvR_fix22 fy0;
+   RvR_fix22 fy1;
+   if(sp->flags&RVR_PORT_SPRITE_CENTER)
+   {
+      fy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z-scale_vertical/2), RvR_fix22_mul(sp->as.wall.z0, fovy));
+      fy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z-scale_vertical/2), RvR_fix22_mul(sp->as.wall.z1, fovy));
+   }
+   else
+   {
+      fy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
+      fy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+   }
    fy0 = middle_row * 1024- fy0;
    fy1 = middle_row * 1024- fy1;
    RvR_fix22 step_fy = RvR_fix22_div(fy1 - fy0, RvR_non_zero(sp->as.wall.x1 - sp->as.wall.x0));
@@ -122,7 +142,11 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
       //TODO: investigate this
       if(sp->flags & RVR_PORT_SPRITE_XFLIP)
          u = texture->width - u - 1;
-      RvR_fix22 height = sp->z + scale_vertical - port_cam->z;
+      RvR_fix22 height;
+      if(sp->flags&RVR_PORT_SPRITE_CENTER)
+         height = sp->z + scale_vertical/2 - port_cam->z;
+      else
+         height = sp->z + scale_vertical - port_cam->z;
       RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
       RvR_fix22 texture_coord_scaled = height*4096+(wy-RvR_yres()/2+1)*coord_step_scaled;
       //Vertical flip

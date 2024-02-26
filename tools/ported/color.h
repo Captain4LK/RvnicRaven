@@ -20,6 +20,7 @@ extern uint8_t color_magenta;
 extern uint8_t color_yellow;
 extern uint8_t color_red;
 extern uint8_t color_orange;
+extern uint8_t color_aqua;
 
 void colors_find();
 

@@ -36,6 +36,7 @@ uint8_t color_magenta = 0;
 uint8_t color_yellow = 0;
 uint8_t color_red = 0;
 uint8_t color_orange = 0;
+uint8_t color_aqua = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -56,6 +57,7 @@ void colors_find()
    color_yellow = find_closest(pal, (RvR_color){.r = 255, .g = 255, .b = 100});
    color_red = find_closest(pal, (RvR_color){.r = 255, .g = 0, .b = 0});
    color_orange = find_closest(pal, (RvR_color){.r = 255, .g = 128, .b = 0});
+   color_aqua = find_closest(pal, (RvR_color){.r = 0, .g = 255, .b = 255});
 }
 
 static uint8_t find_closest(RvR_color *pal, RvR_color color)
