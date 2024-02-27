@@ -134,8 +134,6 @@ void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref)
       //-------------------------------------
       sp.as.wall.x0 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(x0* (RvR_xres() / 2), RvR_non_zero(y0)), RvR_xres() * 1024);
       sp.as.wall.z0 = y0;
-      sp.as.wall.p0x = p0x;
-      sp.as.wall.p0y = p0y;
 
       //Left point left of fov --> needs clipping
       if(x0<-y0)
@@ -145,8 +143,6 @@ void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref)
          RvR_fix22 dx1 = x0 + y0;
          sp.as.wall.z0 = RvR_fix22_div(RvR_fix22_mul(dx0, dx1), y1 - y0+ x1 - x0) - x0;
          sp.as.wall.u0 = sp.as.wall.u0 + RvR_fix22_div(RvR_fix22_mul(-x0- y0, sp.as.wall.u1 - sp.as.wall.u0), RvR_non_zero(x1- x0+ y1- y0));
-         sp.as.wall.p0x = p0x + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1x-p0x),RvR_non_zero(x1-x0+y1-y0));
-         sp.as.wall.p0y = p0y + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1y-p0y),RvR_non_zero(x1-x0+y1-y0));
       }
       //-------------------------------------
 
@@ -154,8 +150,6 @@ void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref)
       //-------------------------------------
       sp.as.wall.x1 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(x1* (RvR_xres() / 2), RvR_non_zero(y1)), RvR_xres() * 1024);
       sp.as.wall.z1 = y1;
-      sp.as.wall.p1x = p1x;
-      sp.as.wall.p1y = p1y;
 
       //Right point right of fov --> needs clipping
       if(x1>y1)
@@ -165,8 +159,6 @@ void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref)
          sp.as.wall.x1 = RvR_xres() * 1024;
          sp.as.wall.z1 = x0- RvR_fix22_div(RvR_fix22_mul(dx0, dx1), y1- y0- x1+ x0);
          sp.as.wall.u1 = RvR_fix22_div(RvR_fix22_mul(dx1, sp.as.wall.u1), RvR_non_zero(-y1+ y0+ x1- x0));
-         sp.as.wall.p1x = p0x + RvR_fix22_div(RvR_fix22_mul(dx1,p1x-p0x),RvR_non_zero(-y1+y0+x1-x0));
-         sp.as.wall.p1y = p0y + RvR_fix22_div(RvR_fix22_mul(dx1,p1y-p0y),RvR_non_zero(-y1+y0+x1-x0));
       }
       //-------------------------------------
 
@@ -387,9 +379,10 @@ static int port_sprite_can_back(const port_sprite *a, const port_sprite *b)
          return (a->z)<=(b->z);
       }
 
-      //Due to the z sorting before, the sprites
-      //are already sorted by z.
-      return 1;
+      if(a->z_min>b->z_max)
+         return 1;
+
+      return 0;
    }
 
    int64_t x00 = 0;

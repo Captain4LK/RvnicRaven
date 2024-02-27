@@ -287,7 +287,6 @@ static void e2d_draw_base(void)
 
 
    //Draw grid
-   //printf("%d\n",(RvR_xres()*1024)/(grid_size*draw_grid_size));
    if(draw_grid_sizes[draw_grid]>0&&(RvR_yres() * zoom) / ((1 << draw_grid_sizes[draw_grid]))<=RvR_yres() / 2)
    {
       int dgrid = 1 << draw_grid_sizes[draw_grid];
@@ -311,8 +310,6 @@ static void e2d_draw_base(void)
    //Draw sectors
    for(int i = 0; i<map->sector_count; i++)
    {
-      //if(i==2)
-      //continue;
       for(int j = 0; j<map->sectors[i].wall_count; j++)
       {
          RvR_port_wall *p0 = map->walls + map->sectors[i].wall_first + j;
@@ -371,54 +368,35 @@ static void e2d_draw_base(void)
 
          if(sp->flags&RVR_PORT_SPRITE_WALL)
          {
-            
+            int width = RvR_texture_get(sp->tex)->width;
+            RvR_fix22 p0x = x * 256 + (diry * 2*width)/RvR_non_zero(zoom);
+            RvR_fix22 p0y = y * 256 + (-dirx * 2*width)/RvR_non_zero(zoom);
+            RvR_fix22 p1x = x * 256 + (-diry * 2*width)/RvR_non_zero(zoom);
+            RvR_fix22 p1y = y * 256 + (dirx * 2*width)/RvR_non_zero(zoom);
+            RvR_render_line(p0x, p0y, p1x, p1y, color_aqua);
          }
          else if(sp->flags&RVR_PORT_SPRITE_FLOOR)
          {
-            //TODO(Captain4LK): render as rotated rectangle
+            int width = RvR_texture_get(sp->tex)->width;
+            int height = RvR_texture_get(sp->tex)->height;
+            int half_width = (RvR_texture_get(sp->tex)->width * rad);
+            RvR_fix22 p0x = x * 256 + (diry * 2*width+dirx*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p0y = y * 256 + (-dirx * 2*width+diry*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p1x = x * 256 + (diry * 2*width-dirx*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p1y = y * 256 + (-dirx * 2*width-diry*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p2x = x * 256 + (-diry * 2*width-dirx*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p2y = y * 256 + (dirx * 2*width-diry*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p3x = x * 256 + (-diry * 2*width+dirx*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p3y = y * 256 + (dirx * 2*width+diry*2*height)/RvR_non_zero(zoom);
+            RvR_render_line(p0x, p0y, p1x, p1y, color_aqua);
+            RvR_render_line(p1x, p1y, p2x, p2y, color_aqua);
+            RvR_render_line(p2x, p2y, p3x, p3y, color_aqua);
+            RvR_render_line(p3x, p3y, p0x, p0y, color_aqua);
          }
       }
    }
-   /*//Draw sprites
-   Map_sprite *sp = map_sprites;
-   while(sp!=NULL)
-   {
-      int x = (sp->x * grid_size) / 65536 - scroll_x;
-      int y = (sp->y * grid_size) / 65536 - scroll_y;
-      if(x>-grid_size * 2&&x<RvR_xres() + grid_size * 2&&y>-grid_size * 2&&y<RvR_yres() + grid_size * 2)
-      {
-         RvR_render_circle(x, y, grid_size / 4, color_white);
-         RvR_fix16 dirx = RvR_fix16_cos(sp->direction);
-         RvR_fix16 diry = RvR_fix16_sin(sp->direction);
-         //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(sp->direction);
-         RvR_render_line(x * 256, y * 256, x * 256 + (dirx * (grid_size / 2)) / 256, y * 256 + (diry * (grid_size / 2)) / 256, color_white);
-
-         if(sp->flags & 8)
-         {
-            int half_width = (RvR_texture_get(sp->texture)->width * grid_size * 2) / 256;
-            RvR_fix16 p0x = x * 256 + (diry * half_width) / 256;
-            RvR_fix16 p0y = y * 256 + (-dirx * half_width) / 256;
-            RvR_fix16 p1x = x * 256 + (-diry * half_width) / 256;
-            RvR_fix16 p1y = y * 256 + (dirx * half_width) / 256;
-            RvR_render_line(p0x, p0y, p1x, p1y, color_white);
-         }
-      }
-
-      sp = sp->next;
-   }*/
-
-   /*if(map->sector_count>0)
-   for(int y = 0;y<RvR_yres();y++)
-   {
-      for(int x = 0;x<RvR_xres();x++)
-      {
-         if(RvR_port_sector_inside(map,0,(x+scroll_x)*zoom,(y+scroll_y)*zoom))
-            RvR_framebuffer()[y*RvR_xres()+x]^=255;
-      }
-   }*/
 
    //Draw camera
-   //RvR_fix22_vec2 direction = RvR_fix22_vec2_rot(camera.direction);
    RvR_fix22 dirx = RvR_fix22_cos(camera.dir);
    RvR_fix22 diry = RvR_fix22_sin(camera.dir);
    int dsx = (dirx * 256) / RvR_non_zero(zoom);

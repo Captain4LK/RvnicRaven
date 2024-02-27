@@ -712,11 +712,6 @@ static void port_collect_walls(uint16_t start)
          dw.zw0 = y0;
          dw.zw1 = y1;
 
-         //Not facing camera --> winding
-         //if 2d cross product is less than zero, p0 is to the left of p1
-         if(RvR_fix22_mul(x0,y1)-RvR_fix22_mul(x1,y0)>0)
-            continue;
-
          //left point right of fov --> completely out of sight
          if((x0>=-y0||x1>y1)&&x0>y0)
             continue;
@@ -744,6 +739,11 @@ static void port_collect_walls(uint16_t start)
                port_map->sectors[portal].visited = 1;
             }
          }
+
+         //Not facing camera --> winding
+         //if 2d cross product is less than zero, p0 is to the left of p1
+         if(RvR_fix22_mul(x0,y1)-RvR_fix22_mul(x1,y0)>0)
+            continue;
 
          //Behind camera
          //Can't be done before slim wall check

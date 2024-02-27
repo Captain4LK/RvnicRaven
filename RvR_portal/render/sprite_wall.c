@@ -46,13 +46,15 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
    RvR_fix22 cy1;
    if(sp->flags&RVR_PORT_SPRITE_CENTER)
    {
-      cy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical/2 - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
-      cy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical/2 - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+      RvR_fix22 topz = RvR_min(sp->z+scale_vertical/2,port_map->sectors[sp->sector].ceiling);
+      cy0 = RvR_fix22_div((RvR_yres()/2) * (topz - port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z0, fovy)));
+      cy1 = RvR_fix22_div((RvR_yres()/2) * (topz - port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z1, fovy)));
    }
    else
    {
-      cy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
-      cy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z + scale_vertical - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+      RvR_fix22 topz = RvR_min(sp->z+scale_vertical,port_map->sectors[sp->sector].ceiling);
+      cy0 = RvR_fix22_div((RvR_yres()/2) * (topz - port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z0, fovy)));
+      cy1 = RvR_fix22_div((RvR_yres()/2) * (topz - port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z1, fovy)));
    }
    cy0 = middle_row * 1024- cy0;
    cy1 = middle_row * 1024- cy1;
@@ -63,13 +65,15 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
    RvR_fix22 fy1;
    if(sp->flags&RVR_PORT_SPRITE_CENTER)
    {
-      fy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z-scale_vertical/2), RvR_fix22_mul(sp->as.wall.z0, fovy));
-      fy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z-scale_vertical/2), RvR_fix22_mul(sp->as.wall.z1, fovy));
+      RvR_fix22 botz = RvR_max(sp->z-scale_vertical/2,port_map->sectors[sp->sector].floor);
+      fy0 = RvR_fix22_div((RvR_yres()/2) * (botz- port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z0, fovy)));
+      fy1 = RvR_fix22_div((RvR_yres()/2) * (botz - port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z1, fovy)));
    }
    else
    {
-      fy0 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z), RvR_fix22_mul(sp->as.wall.z0, fovy));
-      fy1 = RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z), RvR_fix22_mul(sp->as.wall.z1, fovy));
+      RvR_fix22 botz = RvR_max(sp->z,port_map->sectors[sp->sector].floor);
+      fy0 = RvR_fix22_div((RvR_yres()/2) * (botz - port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z0, fovy)));
+      fy1 = RvR_fix22_div((RvR_yres()/2) * (botz - port_cam->z), RvR_non_zero(RvR_fix22_mul(sp->as.wall.z1, fovy)));
    }
    fy0 = middle_row * 1024- fy0;
    fy1 = middle_row * 1024- fy1;
