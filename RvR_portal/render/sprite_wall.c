@@ -170,9 +170,9 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
          //Check for transparent pixels
          if(tex[(texture_coord_scaled + coord_step_scaled * (select->y - wy)) >> 16])
          {
-            //TODO(Captain4LK): sprite pointer
+            select->as.sprite = sp->sprite;
             select->depth = depth;
-            select->type = RVR_PORT_SPRITE_WALL;
+            select->type = RVR_PORT_SSPRITE_WALL;
          }
       }
 

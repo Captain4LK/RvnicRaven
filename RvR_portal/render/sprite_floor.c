@@ -280,9 +280,9 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
          {
             if(x==select->x&&select->y>=start&&select->y<=end&&select->depth>sp->as.floor.wy)
             {
-               //TODO(Captian4LK): sprite pointer
+               select->as.sprite = sp->sprite;
                select->depth = sp->as.floor.wy;
-               select->type = RVR_PORT_SPRITE_FLOOR;
+               select->type = RVR_PORT_SSPRITE_FLOOR;
             }
          }
 

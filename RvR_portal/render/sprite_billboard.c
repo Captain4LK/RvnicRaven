@@ -143,9 +143,9 @@ void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprite *sp, 
          //Check for transparent pixels
          if(tex[(v + step_v * (select->y - ys)) >> 16])
          {
-            //TODO(Captain4LK): sprite pointer
+            select->as.sprite = sp->sprite;
             select->depth = depth;
-            select->type = RVR_PORT_SPRITE_BILL;
+            select->type = RVR_PORT_SSPRITE_BILL;
          }
       }
 

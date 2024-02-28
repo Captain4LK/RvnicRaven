@@ -88,14 +88,14 @@ typedef struct
 
 typedef enum
 {
-   RVR_PORT_NONE,
-   RVR_PORT_WALL_TOP,
-   RVR_PORT_WALL_BOT,
-   RVR_PORT_FLOOR,
-   RVR_PORT_CEILING,
-   RVR_PORT_SPRITE_BILL,
-   RVR_PORT_SPRITE_WALL,
-   RVR_PORT_SPRITE_FLOOR,
+   RVR_PORT_SNONE,
+   RVR_PORT_SWALL_TOP,
+   RVR_PORT_SWALL_BOT,
+   RVR_PORT_SFLOOR,
+   RVR_PORT_SCEILING,
+   RVR_PORT_SSPRITE_BILL,
+   RVR_PORT_SSPRITE_WALL,
+   RVR_PORT_SSPRITE_FLOOR,
 }RvR_port_select;
 
 typedef struct
@@ -108,6 +108,7 @@ typedef struct
    {
       int16_t wall;
       int16_t sector;
+      int16_t sprite;
    }as;
 }RvR_port_selection;
 
@@ -178,6 +179,7 @@ typedef struct
 //Constants
 #define RVR_PORT_WALL_INVALID UINT16_MAX
 #define RVR_PORT_SECTOR_INVALID UINT16_MAX
+#define RVR_PORT_SPRITE_INVALID UINT16_MAX
 //-------------------------------------
 
 //Map
@@ -238,7 +240,7 @@ RvR_fix22 RvR_port_slope_height_at(const RvR_port_slope *slope, RvR_fix22 x, RvR
 void  RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
 void  RvR_port_draw_map(RvR_port_selection *select);
 void  RvR_port_draw_end(RvR_port_selection *select);
-void  RvR_port_draw_sprite(RvR_port_sprite *s, void *ref);
+void  RvR_port_draw_sprite(uint16_t spritTg, void *ref);
 void  RvR_port_draw_report(RvR_port_report *report);
 
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_floor(int x);

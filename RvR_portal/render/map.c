@@ -71,7 +71,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
    if(select!=NULL)
    {
       select->depth = INT32_MAX;
-      select->type = RVR_PORT_NONE;
+      select->type = RVR_PORT_SNONE;
    }
 
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov/2);
@@ -221,7 +221,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
             {
                if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
                {
-                  select->type = RVR_PORT_CEILING;
+                  select->type = RVR_PORT_SCEILING;
                   select->as.sector = wall->sector;
                   select->depth = depth;
                }
@@ -237,7 +237,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
             {
                if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
                {
-                  select->type = RVR_PORT_FLOOR;
+                  select->type = RVR_PORT_SFLOOR;
                   select->as.sector = wall->sector;
                   select->depth = depth;
                }
@@ -252,7 +252,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
             {
                if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=y1&&select->depth>depth)
                {
-                  select->type = RVR_PORT_WALL_BOT;
+                  select->type = RVR_PORT_SWALL_BOT;
                   select->as.wall = wall->wall;
                   select->depth = depth;
                }
@@ -435,7 +435,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_CEILING;
+                     select->type = RVR_PORT_SCEILING;
                      select->as.sector = wall->sector;
                      select->depth = depth;
                   }
@@ -445,7 +445,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=mid&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_WALL_TOP;
+                     select->type = RVR_PORT_SWALL_TOP;
                      select->as.wall = wall->wall;
                      select->depth = depth;
                   }
@@ -462,7 +462,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_CEILING;
+                     select->type = RVR_PORT_SCEILING;
                      select->as.sector = wall->sector;
                      select->depth = depth;
                   }
@@ -474,7 +474,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=mid&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_WALL_TOP;
+                     select->type = RVR_PORT_SWALL_TOP;
                      select->as.wall = wall->wall;
                      select->depth = depth;
                   }
@@ -522,7 +522,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_FLOOR;
+                     select->type = RVR_PORT_SFLOOR;
                      select->as.sector = wall->sector;
                      select->depth = depth;
                   }
@@ -534,7 +534,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=mid&&select->y<=y1&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_WALL_BOT;
+                     select->type = RVR_PORT_SWALL_BOT;
                      select->as.wall = wall->wall;
                      select->depth = depth;
                   }
@@ -551,7 +551,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=top&&select->y<=bottom&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_FLOOR;
+                     select->type = RVR_PORT_SFLOOR;
                      select->as.sector = wall->sector;
                      select->depth = depth;
                   }
@@ -564,7 +564,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                {
                   if(select!=NULL&&select->x==x&&select->y>=mid&&select->y<=y1&&select->depth>depth)
                   {
-                     select->type = RVR_PORT_WALL_BOT;
+                     select->type = RVR_PORT_SWALL_BOT;
                      select->as.wall = wall->wall;
                      select->depth = depth;
                   }
