@@ -180,41 +180,41 @@ static void e2d_draw_base(void)
       }
    }
 
-   for(int i = 0;i<map->sprite_count;i++)
+   for(int i = 0; i<map->sprite_count; i++)
    {
-      RvR_port_sprite *sp = map->sprites+i;
-      int x = ((sp->x-camera.x))/RvR_non_zero(zoom)+RvR_xres()/2;
-      int y = ((sp->y-camera.y))/RvR_non_zero(zoom)+RvR_yres()/2;
-      int rad = 128/RvR_non_zero(zoom);
-      if(x>-rad&&x<RvR_xres()+rad&&y>-rad&&y<RvR_yres()+rad)
+      RvR_port_sprite *sp = map->sprites + i;
+      int x = ((sp->x - camera.x)) / RvR_non_zero(zoom) + RvR_xres() / 2;
+      int y = ((sp->y - camera.y)) / RvR_non_zero(zoom) + RvR_yres() / 2;
+      int rad = 128 / RvR_non_zero(zoom);
+      if(x>-rad&&x<RvR_xres() + rad&&y>-rad&&y<RvR_yres() + rad)
       {
          RvR_render_circle(x, y, rad, color_aqua);
          RvR_fix22 dirx = RvR_fix22_cos(sp->dir);
          RvR_fix22 diry = RvR_fix22_sin(sp->dir);
-         RvR_render_line(x * 256, y * 256, x * 256 + (dirx * (rad/ 2)), y * 256 + (diry * (rad/ 2)), color_aqua);
+         RvR_render_line(x * 256, y * 256, x * 256 + (dirx * (rad / 2)), y * 256 + (diry * (rad / 2)), color_aqua);
 
-         if(sp->flags&RVR_PORT_SPRITE_WALL)
+         if(sp->flags & RVR_PORT_SPRITE_WALL)
          {
             int width = RvR_texture_get(sp->tex)->width;
-            RvR_fix22 p0x = x * 256 + (diry * 2*width)/RvR_non_zero(zoom);
-            RvR_fix22 p0y = y * 256 + (-dirx * 2*width)/RvR_non_zero(zoom);
-            RvR_fix22 p1x = x * 256 + (-diry * 2*width)/RvR_non_zero(zoom);
-            RvR_fix22 p1y = y * 256 + (dirx * 2*width)/RvR_non_zero(zoom);
+            RvR_fix22 p0x = x * 256 + (diry * 2 * width) / RvR_non_zero(zoom);
+            RvR_fix22 p0y = y * 256 + (-dirx * 2 * width) / RvR_non_zero(zoom);
+            RvR_fix22 p1x = x * 256 + (-diry * 2 * width) / RvR_non_zero(zoom);
+            RvR_fix22 p1y = y * 256 + (dirx * 2 * width) / RvR_non_zero(zoom);
             RvR_render_line(p0x, p0y, p1x, p1y, color_aqua);
          }
-         else if(sp->flags&RVR_PORT_SPRITE_FLOOR)
+         else if(sp->flags & RVR_PORT_SPRITE_FLOOR)
          {
             int width = RvR_texture_get(sp->tex)->width;
             int height = RvR_texture_get(sp->tex)->height;
             int half_width = (RvR_texture_get(sp->tex)->width * rad);
-            RvR_fix22 p0x = x * 256 + (diry * 2*width+dirx*2*height)/RvR_non_zero(zoom);
-            RvR_fix22 p0y = y * 256 + (-dirx * 2*width+diry*2*height)/RvR_non_zero(zoom);
-            RvR_fix22 p1x = x * 256 + (diry * 2*width-dirx*2*height)/RvR_non_zero(zoom);
-            RvR_fix22 p1y = y * 256 + (-dirx * 2*width-diry*2*height)/RvR_non_zero(zoom);
-            RvR_fix22 p2x = x * 256 + (-diry * 2*width-dirx*2*height)/RvR_non_zero(zoom);
-            RvR_fix22 p2y = y * 256 + (dirx * 2*width-diry*2*height)/RvR_non_zero(zoom);
-            RvR_fix22 p3x = x * 256 + (-diry * 2*width+dirx*2*height)/RvR_non_zero(zoom);
-            RvR_fix22 p3y = y * 256 + (dirx * 2*width+diry*2*height)/RvR_non_zero(zoom);
+            RvR_fix22 p0x = x * 256 + (diry * 2 * width + dirx * 2 * height) / RvR_non_zero(zoom);
+            RvR_fix22 p0y = y * 256 + (-dirx * 2 * width + diry * 2 * height) / RvR_non_zero(zoom);
+            RvR_fix22 p1x = x * 256 + (diry * 2 * width - dirx * 2 * height) / RvR_non_zero(zoom);
+            RvR_fix22 p1y = y * 256 + (-dirx * 2 * width - diry * 2 * height) / RvR_non_zero(zoom);
+            RvR_fix22 p2x = x * 256 + (-diry * 2 * width - dirx * 2 * height) / RvR_non_zero(zoom);
+            RvR_fix22 p2y = y * 256 + (dirx * 2 * width - diry * 2 * height) / RvR_non_zero(zoom);
+            RvR_fix22 p3x = x * 256 + (-diry * 2 * width + dirx * 2 * height) / RvR_non_zero(zoom);
+            RvR_fix22 p3y = y * 256 + (dirx * 2 * width + diry * 2 * height) / RvR_non_zero(zoom);
             RvR_render_line(p0x, p0y, p1x, p1y, color_aqua);
             RvR_render_line(p1x, p1y, p2x, p2y, color_aqua);
             RvR_render_line(p2x, p2y, p3x, p3y, color_aqua);
@@ -275,30 +275,30 @@ static void e2d_update_view(void)
    {
       //Search for selected sprite
       sprite_sel = RVR_PORT_SPRITE_INVALID;
-      int rad = 128/RvR_non_zero(zoom);
-      for(int i = 0;i<map->sprite_count;i++)
+      int rad = 128 / RvR_non_zero(zoom);
+      for(int i = 0; i<map->sprite_count; i++)
       {
-         int sx = ((map->sprites[i].x - camera.x)) / RvR_non_zero(zoom) + RvR_xres()/2;
-         int sy = ((map->sprites[i].y - camera.y)) / RvR_non_zero(zoom) + RvR_yres()/2;
-         if(RvR_abs(sx-mx)<=rad&&RvR_abs(sy-my)<=rad)
+         int sx = ((map->sprites[i].x - camera.x)) / RvR_non_zero(zoom) + RvR_xres() / 2;
+         int sy = ((map->sprites[i].y - camera.y)) / RvR_non_zero(zoom) + RvR_yres() / 2;
+         if(RvR_abs(sx - mx)<=rad&&RvR_abs(sy - my)<=rad)
             sprite_sel = (uint16_t)i;
       }
    }
 
    if(RvR_key_pressed(RVR_KEY_COMMA)&&sprite_sel!=RVR_PORT_SPRITE_INVALID)
    {
-      map->sprites[sprite_sel].dir+=RvR_key_down(RVR_KEY_LSHIFT)?16:64;
+      map->sprites[sprite_sel].dir += RvR_key_down(RVR_KEY_LSHIFT)?16:64;
    }
    if(RvR_key_pressed(RVR_KEY_PERIOD)&&sprite_sel!=RVR_PORT_SPRITE_INVALID)
    {
-      map->sprites[sprite_sel].dir-=RvR_key_down(RVR_KEY_LSHIFT)?16:64;
+      map->sprites[sprite_sel].dir -= RvR_key_down(RVR_KEY_LSHIFT)?16:64;
    }
    if(RvR_key_pressed(RVR_KEY_DEL)&&sprite_sel!=RVR_PORT_SPRITE_INVALID)
    {
       //TODO(Captain4LK): update references to sprites, once these are implemented
-      map->sprites[sprite_sel] = map->sprites[map->sprite_count-1];
+      map->sprites[sprite_sel] = map->sprites[map->sprite_count - 1];
       map->sprite_count--;
-      map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count,"Map sprites grow");
+      map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count, "Map sprites grow");
       sprite_sel = RVR_PORT_SPRITE_INVALID;
    }
 
@@ -411,7 +411,7 @@ static void e2d_update_view(void)
       {
          if(RvR_key_pressed(RVR_KEY_DEL))
          {
-            RvR_port_sector_delete(map,RvR_port_wall_sector(map,i));
+            RvR_port_sector_delete(map, RvR_port_wall_sector(map, i));
             break;
          }
       }
@@ -434,12 +434,12 @@ static void e2d_update_view(void)
             //TODO(Captain4LK): select wall based on mouse position relative to wall
             if(map->walls[i].portal!=RVR_PORT_WALL_INVALID)
             {
-               RvR_port_wall_make_first(map,(uint16_t)i);
-               RvR_port_wall_make_first(map,map->walls[i].portal_wall);
+               RvR_port_wall_make_first(map, (uint16_t)i);
+               RvR_port_wall_make_first(map, map->walls[i].portal_wall);
             }
             else
             {
-               RvR_port_wall_make_first(map,(uint16_t)i);
+               RvR_port_wall_make_first(map, (uint16_t)i);
             }
             break;
          }
@@ -452,12 +452,12 @@ static void e2d_update_view(void)
    {
       x = ((mx + scroll_x) * zoom);
       y = ((my + scroll_y) * zoom);
-      uint16_t sector = RvR_port_sector_update(map,RVR_PORT_SECTOR_INVALID,x,y);
+      uint16_t sector = RvR_port_sector_update(map, RVR_PORT_SECTOR_INVALID, x, y);
       if(sector!=RVR_PORT_SECTOR_INVALID)
       {
          RvR_port_slope slope;
-         RvR_port_slope_from_floor(map,sector,&slope);
-         printf("%d\n",RvR_port_slope_height_at(&slope,x,y));
+         RvR_port_slope_from_floor(map, sector, &slope);
+         printf("%d\n", RvR_port_slope_height_at(&slope, x, y));
 
          if(sector_join==RVR_PORT_SECTOR_INVALID)
          {
@@ -465,7 +465,7 @@ static void e2d_update_view(void)
          }
          else
          {
-            RvR_port_sector_join(map,sector_join,sector);
+            RvR_port_sector_join(map, sector_join, sector);
             sector_join = RVR_PORT_SECTOR_INVALID;
          }
       }
@@ -477,13 +477,13 @@ static void e2d_update_view(void)
       y = ((my + scroll_y) * zoom);
 
       uint16_t sprite = map->sprite_count++;
-      map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count,"Map sprites grow");
-      memset(map->sprites+sprite,0,sizeof(*map->sprites));
+      map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count, "Map sprites grow");
+      memset(map->sprites + sprite, 0, sizeof(*map->sprites));
       map->sprites[sprite].x = x;
       map->sprites[sprite].y = y;
       map->sprites[sprite].z = 0;
       map->sprites[sprite].sector = RVR_PORT_SECTOR_INVALID;
-      uint16_t sector = RvR_port_sector_update(map,RVR_PORT_SECTOR_INVALID,x,y);
+      uint16_t sector = RvR_port_sector_update(map, RVR_PORT_SECTOR_INVALID, x, y);
       if(sector!=RVR_PORT_SECTOR_INVALID)
       {
          map->sprites[sprite].z = map->sectors[sector].floor;

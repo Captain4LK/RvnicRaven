@@ -191,7 +191,7 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             //Add new sector
             uint16_t sector = map->sector_count++;
             map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
-            memset(map->sectors+sector,0,sizeof(*map->sectors));
+            memset(map->sectors + sector, 0, sizeof(*map->sectors));
             map->sectors[sector].wall_count = (uint16_t)RvR_array_length(sd_walls);
             map->sectors[sector].wall_first = map->wall_count;
             map->sectors[sector].floor = 0;
@@ -269,7 +269,7 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          //Add new sector
          uint16_t sector = map->sector_count++;
          map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
-         memset(map->sectors+sector,0,sizeof(*map->sectors));
+         memset(map->sectors + sector, 0, sizeof(*map->sectors));
          map->sectors[sector].wall_count = (uint16_t)RvR_array_length(sd_walls);
          map->sectors[sector].wall_first = map->wall_count;
          map->sectors[sector].floor = 0;
@@ -593,7 +593,7 @@ static int sector_draw_split()
    map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
    for(int i = 0; i<RvR_array_length(sd_walls); i++)
    {
-      uint16_t wall = map->sectors[sector0].wall_first+(uint16_t)i;
+      uint16_t wall = map->sectors[sector0].wall_first + (uint16_t)i;
       map->walls[wall] = sd_walls[i];
       map->walls[wall].p2 = sd_walls[i].p2 + map->sectors[sector0].wall_first;
       map->walls[wall].portal_wall = RVR_PORT_WALL_INVALID;
@@ -794,11 +794,6 @@ static int sector_draw_split()
    }
 
    RvR_port_sector_delete(map, sd_split_sector);
-
-   /*for(int i = 0;i<map->wall_count;i++)
-   {
-      printf("%5d: (%5d %5d) %2d %2d %2d\n",i,map->walls[i].x/1024,map->walls[i].y/1024,map->walls[i].p2,map->walls[i].portal,RvR_port_wall_sector(map,i));
-   }*/
 
    return 1;
 }

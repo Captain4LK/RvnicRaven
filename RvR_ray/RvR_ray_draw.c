@@ -1004,8 +1004,8 @@ static int16_t ray_draw_wall(const RvR_ray_map *map, const RvR_ray_cam *cam, RvR
 
    RvR_texture *texture = NULL;
    //printf("wall %d\n",pixel_info->depth);
-   RvR_fix16 coord_step_scaled = RvR_fix16_mul(64*fovy, pixel_info->depth) / RvR_yres();
-   RvR_fix16 texture_coord_scaled = 64*height + (start - middle_row + 1) * coord_step_scaled;
+   RvR_fix16 coord_step_scaled = RvR_fix16_mul(64 * fovy, pixel_info->depth) / RvR_yres();
+   RvR_fix16 texture_coord_scaled = 64 * height + (start - middle_row + 1) * coord_step_scaled;
 
    if(increment==-1)
       texture = RvR_texture_get(hit->wall_ftex);

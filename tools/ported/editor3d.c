@@ -154,12 +154,12 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
       {
-         if(map->sprites[world_selection.as.sprite].flags&RVR_PORT_SPRITE_TRANS0)
-            map->sprites[world_selection.as.sprite].flags = (map->sprites[world_selection.as.sprite].flags^RVR_PORT_SPRITE_TRANS0)|RVR_PORT_SPRITE_TRANS1;
-         else if(map->sprites[world_selection.as.sprite].flags&RVR_PORT_SPRITE_TRANS1)
-            map->sprites[world_selection.as.sprite].flags^=RVR_PORT_SPRITE_TRANS1;
+         if(map->sprites[world_selection.as.sprite].flags & RVR_PORT_SPRITE_TRANS0)
+            map->sprites[world_selection.as.sprite].flags = (map->sprites[world_selection.as.sprite].flags ^ RVR_PORT_SPRITE_TRANS0) | RVR_PORT_SPRITE_TRANS1;
+         else if(map->sprites[world_selection.as.sprite].flags & RVR_PORT_SPRITE_TRANS1)
+            map->sprites[world_selection.as.sprite].flags ^= RVR_PORT_SPRITE_TRANS1;
          else
-            map->sprites[world_selection.as.sprite].flags|=RVR_PORT_SPRITE_TRANS0;
+            map->sprites[world_selection.as.sprite].flags |= RVR_PORT_SPRITE_TRANS0;
       }
    }
 
@@ -167,12 +167,12 @@ static void e3d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_PERIOD))
    {
       if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
-         map->sprites[world_selection.as.sprite].dir-=RvR_key_down(RVR_KEY_LSHIFT)?16:64;
+         map->sprites[world_selection.as.sprite].dir -= RvR_key_down(RVR_KEY_LSHIFT)?16:64;
    }
    if(RvR_key_pressed(RVR_KEY_COMMA))
    {
       if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
-         map->sprites[world_selection.as.sprite].dir+=RvR_key_down(RVR_KEY_LSHIFT)?16:64;
+         map->sprites[world_selection.as.sprite].dir += RvR_key_down(RVR_KEY_LSHIFT)?16:64;
    }
 
    //Sprite placement
@@ -189,7 +189,7 @@ static void e3d_update_view(void)
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].x_units--;
          //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
-            //map->sectors[world_selection.as.sector].x_units--;
+         //map->sectors[world_selection.as.sector].x_units--;
       }
       else
       {
@@ -206,7 +206,7 @@ static void e3d_update_view(void)
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].x_units++;
          //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
-            //map->sectors[world_selection.as.sector].x_units++;
+         //map->sectors[world_selection.as.sector].x_units++;
       }
       else
       {
@@ -223,7 +223,7 @@ static void e3d_update_view(void)
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].y_units++;
          //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
-            //map->sectors[world_selection.as.sector].y_off--;
+         //map->sectors[world_selection.as.sector].y_off--;
       }
       else
       {
@@ -240,7 +240,7 @@ static void e3d_update_view(void)
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].y_units--;
          //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_SPORT_CEILING)
-            //map->sectors[world_selection.as.sector].y_off++;
+         //map->sectors[world_selection.as.sector].y_off++;
       }
       else
       {
@@ -259,11 +259,11 @@ static void e3d_update_view(void)
       else if(world_selection.type==RVR_PORT_SCEILING)
          map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_ALIGN_CEILING;
       else if(world_selection.type==RVR_PORT_SSPRITE_BILL)
-         map->sprites[world_selection.as.sprite].flags|=RVR_PORT_SPRITE_WALL;
+         map->sprites[world_selection.as.sprite].flags |= RVR_PORT_SPRITE_WALL;
       else if(world_selection.type==RVR_PORT_SSPRITE_WALL)
-         map->sprites[world_selection.as.sprite].flags = (map->sprites[world_selection.as.sprite].flags^RVR_PORT_SPRITE_WALL)|RVR_PORT_SPRITE_FLOOR;
+         map->sprites[world_selection.as.sprite].flags = (map->sprites[world_selection.as.sprite].flags ^ RVR_PORT_SPRITE_WALL) | RVR_PORT_SPRITE_FLOOR;
       else if(world_selection.type==RVR_PORT_SSPRITE_FLOOR)
-         map->sprites[world_selection.as.sprite].flags^=RVR_PORT_SPRITE_FLOOR;
+         map->sprites[world_selection.as.sprite].flags ^= RVR_PORT_SPRITE_FLOOR;
    }
 
    //Slope
@@ -271,17 +271,17 @@ static void e3d_update_view(void)
    {
       int count = RvR_key_down(RVR_KEY_LSHIFT)?1:16;
       if(world_selection.type==RVR_PORT_SFLOOR)
-         map->sectors[world_selection.as.sector].slope_floor-=count;
+         map->sectors[world_selection.as.sector].slope_floor -= count;
       else if(world_selection.type==RVR_PORT_SCEILING)
-         map->sectors[world_selection.as.sector].slope_ceiling-=count;
+         map->sectors[world_selection.as.sector].slope_ceiling -= count;
    }
    if(RvR_key_pressed(RVR_KEY_9))
    {
       int count = RvR_key_down(RVR_KEY_LSHIFT)?1:16;
       if(world_selection.type==RVR_PORT_SFLOOR)
-         map->sectors[world_selection.as.sector].slope_floor+=count;
+         map->sectors[world_selection.as.sector].slope_floor += count;
       else if(world_selection.type==RVR_PORT_SCEILING)
-         map->sectors[world_selection.as.sector].slope_ceiling+=count;
+         map->sectors[world_selection.as.sector].slope_ceiling += count;
    }
 
    if(RvR_key_pressed(RVR_KEY_PGUP))
@@ -395,8 +395,8 @@ static void e3d_draw_view(void)
    world_selection.y = my;
    RvR_port_draw_map(&world_selection);
 
-   for(int i = 0;i<map->sprite_count;i++)
-      RvR_port_draw_sprite(i,NULL);
+   for(int i = 0; i<map->sprite_count; i++)
+      RvR_port_draw_sprite(i, NULL);
 
    RvR_port_draw_end(&world_selection);
 
