@@ -72,7 +72,7 @@ void HLH_gui_radiobutton_set(HLH_gui_radiobutton *r, int trigger_msg, int redraw
             HLH_gui_radiobutton *b = (HLH_gui_radiobutton *)c;
 
             //Send message to previous button
-            if(b->checked&&trigger_msg)
+            if(b->checked&&trigger_msg&&b!=r)
                HLH_gui_element_msg(&b->e, HLH_GUI_MSG_CLICK, 0, NULL);
             b->checked = 0;
          }
