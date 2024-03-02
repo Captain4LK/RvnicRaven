@@ -322,6 +322,8 @@ static void port_plane_slope(rvr_port_plane *pl)
    if((pl->where==1&&port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
       (pl->where==0&&port_map->sectors[pl->sector].flags&RVR_PORT_SECTOR_ALIGN_CEILING))
    {
+      RvR_fix22 scale_x = (16*1024)/RvR_non_zero(port_map->sectors[pl->sector].x_units);
+      RvR_fix22 scale_y = (16*1024)/RvR_non_zero(port_map->sectors[pl->sector].y_units);
       RvR_fix22 wx0 = port_map->walls[port_map->sectors[pl->sector].wall_first].x;
       RvR_fix22 wy0 = port_map->walls[port_map->sectors[pl->sector].wall_first].y;
       RvR_fix22 wx1 = port_map->walls[port_map->walls[port_map->sectors[pl->sector].wall_first].p2].x;
@@ -337,13 +339,13 @@ static void port_plane_slope(rvr_port_plane *pl)
       RvR_fix22 pcos = RvR_fix22_mul(sp_cos,cam_cos)+RvR_fix22_mul(sp_sin,cam_sin);
       RvR_fix22 psin = RvR_fix22_mul(-sp_sin,cam_cos)+RvR_fix22_mul(sp_cos,cam_sin);
 
-      mx = -pcos;
-      mz = psin;
-      my = RvR_port_slope_height_at(&slope,port_cam->x+sp_sin,port_cam->y+sp_cos)-height;
+      mx = -RvR_fix22_mul(pcos,scale_y);
+      mz = RvR_fix22_mul(psin,scale_y);
+      my = RvR_port_slope_height_at(&slope,port_cam->x+RvR_fix22_mul(sp_sin,scale_y),port_cam->y+RvR_fix22_mul(sp_cos,scale_y))-height;
 
-      nx = -psin;
-      nz = -pcos;
-      ny = RvR_port_slope_height_at(&slope,port_cam->x+sp_cos,port_cam->y-sp_sin)-height;
+      nx = -RvR_fix22_mul(psin,scale_x);
+      nz = -RvR_fix22_mul(pcos,scale_x);
+      ny = RvR_port_slope_height_at(&slope,port_cam->x+RvR_fix22_mul(sp_cos,scale_x),port_cam->y-RvR_fix22_mul(sp_sin,scale_x))-height;
 
       RvR_fix22 tmp = x_off;
       x_off = RvR_fix22_mul(sp_cos,x_off)+RvR_fix22_mul(sp_sin,y_off);
@@ -351,13 +353,19 @@ static void port_plane_slope(rvr_port_plane *pl)
    }
    else
    {
+      RvR_fix22 scale_x = (16*1024)/RvR_non_zero(port_map->sectors[pl->sector].x_units);
+      RvR_fix22 scale_y = (16*1024)/RvR_non_zero(port_map->sectors[pl->sector].y_units);
       mx = -RvR_fix22_cos(2048-port_cam->dir);
       mz = RvR_fix22_sin(2048-port_cam->dir);
-      my = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y+1024)-height;
+      mx = RvR_fix22_mul(mx,scale_y);
+      mz = RvR_fix22_mul(mz,scale_y);
+      my = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y+scale_y)-height;
 
       nx = -RvR_fix22_sin(2048-port_cam->dir);
       nz = -RvR_fix22_cos(2048-port_cam->dir);
-      ny = RvR_port_slope_height_at(&slope,port_cam->x+1024,port_cam->y)-height;
+      nx = RvR_fix22_mul(nx,scale_x);
+      nz = RvR_fix22_mul(nz,scale_x);
+      ny = RvR_port_slope_height_at(&slope,port_cam->x+scale_x,port_cam->y)-height;
    }
 
    x0+=x_off;
@@ -460,8 +468,12 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    RvR_fix22 depth = RvR_fix22_div((RvR_yres()/2)*span_height,RvR_non_zero(RvR_fix22_mul(fovy,fdy)));
    depth = RvR_abs(depth);
 
-   RvR_fix22 step_x = (RvR_fix22)(((int64_t)view_sin*slope)/(1<<18));
-   RvR_fix22 step_y = (RvR_fix22)(((int64_t)view_cos*slope)/(1<<18));
+   RvR_fix22 step_x = (RvR_fix22)(((int64_t)view_sin*slope*port_map->sectors[sector].x_units)/(1<<22));
+   RvR_fix22 step_y = (RvR_fix22)(((int64_t)view_cos*slope*port_map->sectors[sector].y_units)/(1<<22));
+
+   //For fixed 16 units
+   //RvR_fix22 step_x = (RvR_fix22)(((int64_t)view_sin*slope)/(1<<18));
+   //RvR_fix22 step_y = (RvR_fix22)(((int64_t)view_cos*slope)/(1<<18));
    RvR_fix22 tx,ty;
 
    if((where==1&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_ALIGN_FLOOR)||
@@ -469,13 +481,23 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    {
       RvR_fix22 wx0 =port_map->walls[port_map->sectors[sector].wall_first].x;
       RvR_fix22 wy0 = port_map->walls[port_map->sectors[sector].wall_first].y;
-      tx = -(port_cam->x-wx0)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
-      ty = (port_cam->y-wy0)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+      tx = -(port_cam->x-wx0)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-RvR_xres()/2)*step_x;;
+      ty = (port_cam->y-wy0)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-RvR_xres()/2)*step_y;;
+
+      //For fixed 16 units
+      //tx = -(port_cam->x-wx0)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
+      //ty = (port_cam->y-wy0)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
    }
    else
    {
-      tx = -(port_cam->x&4095)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
-      ty = (port_cam->y&4095)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+      int x_wrap = RvR_non_zero(16*4096/RvR_non_zero(port_map->sectors[sector].x_units));
+      int y_wrap = RvR_non_zero(16*4096/RvR_non_zero(port_map->sectors[sector].y_units));
+      tx = -(port_cam->x%x_wrap)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-RvR_xres()/2)*step_x;;
+      ty = (port_cam->y%y_wrap)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-RvR_xres()/2)*step_y;;
+
+      //For fixed 16 units
+      //tx = -(port_cam->x&4095)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
+      //ty = (port_cam->y&4095)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
    }
 
    tx*=-1;

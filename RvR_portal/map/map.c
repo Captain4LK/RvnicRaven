@@ -46,7 +46,7 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
    size += 2; //map->wall_count
    size += 2; //map->sector_count
    size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1+2+2+1+1); //Walls
-   size+=map->sector_count*(2+2+4+4+2+2+4+2+2+1+1+2+2); //Sectors
+   size+=map->sector_count*(2+2+4+4+2+2+4+2+2+1+1+2+2+1+1); //Sectors
    size+=map->sprite_count*(4+4+4+4+2+2+4); //Sprites
 
    uint8_t *mem = RvR_malloc(size, "RvR_port map save buffer");
@@ -100,6 +100,8 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u8(&rw,map->sectors[i].shade_ceiling);
       RvR_rw_write_u16(&rw,map->sectors[i].slope_floor);
       RvR_rw_write_u16(&rw,map->sectors[i].slope_ceiling);
+      RvR_rw_write_u8(&rw,map->sectors[i].x_units);
+      RvR_rw_write_u8(&rw,map->sectors[i].y_units);
    }
 
    //Sprites
@@ -230,6 +232,8 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->sectors[i].shade_ceiling = RvR_rw_read_u8(rw);
       map->sectors[i].slope_floor = RvR_rw_read_u16(rw);
       map->sectors[i].slope_ceiling = RvR_rw_read_u16(rw);
+      map->sectors[i].x_units = RvR_rw_read_u8(rw);
+      map->sectors[i].y_units = RvR_rw_read_u8(rw);
    }
 
    for(int i = 0;i<map->sprite_count;i++)

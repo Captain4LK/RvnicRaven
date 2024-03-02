@@ -188,8 +188,8 @@ static void e3d_update_view(void)
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].x_units--;
-         //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
-         //map->sectors[world_selection.as.sector].x_units--;
+         else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+            map->sectors[world_selection.as.sector].x_units--;
       }
       else
       {
@@ -205,8 +205,8 @@ static void e3d_update_view(void)
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].x_units++;
-         //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
-         //map->sectors[world_selection.as.sector].x_units++;
+         else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+            map->sectors[world_selection.as.sector].x_units++;
       }
       else
       {
@@ -222,8 +222,8 @@ static void e3d_update_view(void)
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].y_units++;
-         //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
-         //map->sectors[world_selection.as.sector].y_off--;
+         else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+            map->sectors[world_selection.as.sector].y_units++;
       }
       else
       {
@@ -239,8 +239,8 @@ static void e3d_update_view(void)
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
             map->walls[world_selection.as.wall].y_units--;
-         //else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_SPORT_CEILING)
-         //map->sectors[world_selection.as.sector].y_off++;
+         else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+            map->sectors[world_selection.as.sector].y_units--;
       }
       else
       {
