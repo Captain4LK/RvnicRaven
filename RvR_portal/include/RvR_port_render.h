@@ -18,6 +18,8 @@ typedef struct
    uint16_t sector;
    uint16_t texture;
    uint16_t sprite;
+   uint8_t x_units;
+   uint8_t y_units;
    void *ref;
 
    RvR_fix22 x;

@@ -55,6 +55,8 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
    sp.x = s->x;
    sp.y = s->y;
    sp.z = s->z;
+   sp.x_units = s->x_units;
+   sp.y_units = s->y_units;
    sp.sector = s->sector;
    sp.dir = s->dir;
    sp.ref = ref;
@@ -247,22 +249,30 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
       //return;
 
    //Left of screen
-   if(-sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
+   if(-sp.as.bill.wx - (s->x_units*tex->width)/2>sp.as.bill.wy)
       return;
+   //if(-sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
+      //return;
 
    //Right of screen
-   if(sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
+   if(sp.as.bill.wx - (s->x_units*tex->width)/2>sp.as.bill.wy)
       return;
+   //if(sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
+      //return;
 
    if(s->flags&RVR_PORT_SPRITE_CENTER)
    {
       //Above screen
-      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-tex->height*8))
+      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-(s->y_units*tex->height)/2))
          return;
+      //if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-tex->height*8))
+         //return;
 
       //Below screen
-      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 8))
+      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (s->y_units*tex->height)/2))
          return;
+      //if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 8))
+         //return;
    }
    else
    {
@@ -271,8 +281,10 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
          return;
 
       //Below screen
-      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 16))
+      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (s->y_units*tex->height)))
          return;
+      //if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 16))
+         //return;
    }
 
    RvR_array_push(port_sprites, sp);

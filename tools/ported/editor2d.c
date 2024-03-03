@@ -482,6 +482,8 @@ static void e2d_update_view(void)
       map->sprites[sprite].x = x;
       map->sprites[sprite].y = y;
       map->sprites[sprite].z = 0;
+      map->sprites[sprite].x_units = 16;
+      map->sprites[sprite].y_units = 16;
       map->sprites[sprite].sector = RVR_PORT_SECTOR_INVALID;
       uint16_t sector = RvR_port_sector_update(map, RVR_PORT_SECTOR_INVALID, x, y);
       if(sector!=RVR_PORT_SECTOR_INVALID)

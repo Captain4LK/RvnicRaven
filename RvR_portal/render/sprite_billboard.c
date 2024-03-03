@@ -52,22 +52,27 @@ void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprite *sp, 
    //Dimensions
    RvR_fix22 top;
    if(sp->flags&RVR_PORT_SPRITE_CENTER)
-      top = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z + texture->height * 8), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
+      top = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z + (16*8*texture->height)/RvR_non_zero(sp->y_units)), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
+      //top = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z + texture->height * 8), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
    else
-      top = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z + texture->height * 16), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
+      top = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z + (16*16*texture->height)/RvR_non_zero(sp->y_units)), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
+      //top = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z + texture->height * 16), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
    int y0 = (top + 1023) / 1024;
 
    RvR_fix22 bot;
    if(sp->flags&RVR_PORT_SPRITE_CENTER)
-      bot = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z-texture->height*8), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
+      bot = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z-(16*8*texture->height)/RvR_non_zero(sp->y_units)), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
+      //bot = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z-texture->height*8), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
    else
       bot = middle_row * 1024- RvR_fix22_div((RvR_yres()/2) * (sp->z - port_cam->z), RvR_non_zero(RvR_fix22_mul(depth, fovy)));
    int y1 = (bot - 1) / 1024;
 
-   RvR_fix22 left = RvR_xres() * 512+ RvR_fix22_div((RvR_xres() / 2) * (tpx - texture->width * 8), RvR_non_zero(RvR_fix22_mul(depth, fovx)));
+   RvR_fix22 left = RvR_xres() * 512+ RvR_fix22_div((RvR_xres() / 2) * (tpx - (16*8*texture->width)/RvR_non_zero(sp->x_units)), RvR_non_zero(RvR_fix22_mul(depth, fovx)));
+   //RvR_fix22 left = RvR_xres() * 512+ RvR_fix22_div((RvR_xres() / 2) * (tpx - texture->width * 8), RvR_non_zero(RvR_fix22_mul(depth, fovx)));
    int x0 = (left + 1023) / 1024;
 
-   RvR_fix22 right = RvR_xres() * 512+ RvR_fix22_div((RvR_xres() / 2) * (tpx + texture->width * 8), RvR_non_zero(RvR_fix22_mul(depth, fovx)));
+   RvR_fix22 right = RvR_xres() * 512+ RvR_fix22_div((RvR_xres() / 2) * (tpx + (16*8*texture->width)/RvR_non_zero(sp->x_units)), RvR_non_zero(RvR_fix22_mul(depth, fovx)));
+   //RvR_fix22 right = RvR_xres() * 512+ RvR_fix22_div((RvR_xres() / 2) * (tpx + texture->width * 8), RvR_non_zero(RvR_fix22_mul(depth, fovx)));
    int x1 = (right - 1) / 1024;
 
    //Floor and ceiling clip
@@ -80,8 +85,10 @@ void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprite *sp, 
    y0 = RvR_max(y0, clip_top);
 
    x1 = RvR_min(x1, RvR_xres());
-   RvR_fix22 step_v = (8*fovy* depth) / RvR_yres();
-   RvR_fix22 step_u = (8 * fovx* depth) / RvR_xres();
+   RvR_fix22 step_v = (sp->y_units*fovy* depth) / (RvR_yres()*2);
+   RvR_fix22 step_u = (sp->x_units * fovx* depth) / (RvR_xres()*2);
+   //RvR_fix22 step_v = (8*fovy* depth) / RvR_yres();
+   //RvR_fix22 step_u = (8 * fovx* depth) / RvR_xres();
    RvR_fix22 u = RvR_fix22_mul(step_u, x0 * 1024- left);
 
    if(x0<0)
@@ -129,14 +136,19 @@ void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprite *sp, 
       tex = &texture->data[texture->height * (tu)];
       dst = &RvR_framebuffer()[ys * RvR_xres() + x];
 
+      //RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-RvR_yres()/2)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+
       RvR_fix22 v;
       if(sp->flags&RVR_PORT_SPRITE_CENTER)
-         v = (sp->z - port_cam->z+texture->height*8)*4096 + (ys - middle_row + 1) * step_v;
+         v = (sp->z - port_cam->z+(16*8*texture->height)/RvR_non_zero(sp->y_units))*256*sp->y_units+ (ys - middle_row + 1) * step_v;
+         //v = (sp->z - port_cam->z+texture->height*8)*4096 + (ys - middle_row + 1) * step_v;
       else
-         v = (sp->z - port_cam->z+texture->height*16)*4096 + (ys - middle_row + 1) * step_v;
+         v = (sp->z - port_cam->z+(16*16*texture->height)/RvR_non_zero(sp->y_units))*256*sp->y_units + (ys - middle_row + 1) * step_v;
+         //v = (sp->z - port_cam->z+texture->height*16)*4096 + (ys - middle_row + 1) * step_v;
 
       if(sp->flags & RVR_PORT_SPRITE_YFLIP)
-         v = texture->height * 16 - ((sp->z - port_cam->z)*4096 + (ys - middle_row + 1) * (-step_v) + texture->height * 16);
+         v = (sp->y_units*texture->height) - ((sp->z - port_cam->z)*256*sp->y_units + (ys - middle_row + 1) * (-step_v) + (sp->y_units*texture->height));
+         //v = texture->height * 16 - ((sp->z - port_cam->z)*4096 + (ys - middle_row + 1) * (-step_v) + texture->height * 16);
 
       if(select!=NULL&&select->x==x&&select->y>=ys&&select->y<ye&&select->depth>depth)
       {

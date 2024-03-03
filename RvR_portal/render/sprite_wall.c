@@ -156,8 +156,12 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
       //Vertical flip
       if(sp->flags & RVR_PORT_SPRITE_YFLIP)
       {
+         if(sp->flags&RVR_PORT_SPRITE_CENTER)
+            height = sp->z - scale_vertical/2 - port_cam->z;
+         else
+            height = sp->z - port_cam->z;
          coord_step_scaled = -coord_step_scaled;
-         texture_coord_scaled = texture->height * 16- height + (wy - middle_row + 1) * coord_step_scaled;
+         texture_coord_scaled = texture->height * 16- height*4096 + (wy - middle_row + 1) * coord_step_scaled;
       }
       const uint8_t * restrict tex = &texture->data[(((uint32_t)u) % texture->width) * texture->height];
       const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 12))));

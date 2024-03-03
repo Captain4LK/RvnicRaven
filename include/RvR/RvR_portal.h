@@ -65,6 +65,8 @@ typedef struct
    uint16_t sector;
    uint16_t tex;
    uint32_t flags;
+   uint8_t x_units;
+   uint8_t y_units;
 }RvR_port_sprite;
 
 typedef struct

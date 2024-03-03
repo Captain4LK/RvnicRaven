@@ -117,6 +117,8 @@ void map_new()
    map->sprites[0].x = 0;
    map->sprites[0].y = 0;
    map->sprites[0].z = 0;
+   map->sprites[0].x_units = 16;
+   map->sprites[0].y_units = 16;
    map->sprites[0].sector = 0;
    map->sprites[0].tex = 0;
 

@@ -47,7 +47,7 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
    size += 2; //map->sector_count
    size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1+2+2+1+1); //Walls
    size+=map->sector_count*(2+2+4+4+2+2+4+2+2+1+1+2+2+1+1); //Sectors
-   size+=map->sprite_count*(4+4+4+4+2+2+4); //Sprites
+   size+=map->sprite_count*(4+4+4+4+2+2+4+1+1); //Sprites
 
    uint8_t *mem = RvR_malloc(size, "RvR_port map save buffer");
    RvR_rw rw = {0};
@@ -114,6 +114,8 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
       RvR_rw_write_u16(&rw,map->sprites[i].sector);
       RvR_rw_write_u16(&rw,map->sprites[i].tex);
       RvR_rw_write_u32(&rw,map->sprites[i].flags);
+      RvR_rw_write_u8(&rw,map->sprites[i].x_units);
+      RvR_rw_write_u8(&rw,map->sprites[i].y_units);
    }
 
    //Compress and write to disk
@@ -245,6 +247,8 @@ RvR_port_map *RvR_port_map_load_rw(RvR_rw *rw)
       map->sprites[i].sector = RvR_rw_read_u16(rw);
       map->sprites[i].tex = RvR_rw_read_u16(rw);
       map->sprites[i].flags = RvR_rw_read_u32(rw);
+      map->sprites[i].x_units = RvR_rw_read_u8(rw);
+      map->sprites[i].y_units = RvR_rw_read_u8(rw);
    }
 
    return map;

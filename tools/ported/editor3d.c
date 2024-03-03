@@ -190,6 +190,8 @@ static void e3d_update_view(void)
             map->walls[world_selection.as.wall].x_units--;
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
             map->sectors[world_selection.as.sector].x_units--;
+         else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+            map->sprites[world_selection.as.sprite].x_units--;
       }
       else
       {
@@ -207,6 +209,8 @@ static void e3d_update_view(void)
             map->walls[world_selection.as.wall].x_units++;
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
             map->sectors[world_selection.as.sector].x_units++;
+         else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+            map->sprites[world_selection.as.sprite].x_units++;
       }
       else
       {
@@ -224,6 +228,8 @@ static void e3d_update_view(void)
             map->walls[world_selection.as.wall].y_units++;
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
             map->sectors[world_selection.as.sector].y_units++;
+         else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+            map->sprites[world_selection.as.sprite].y_units++;
       }
       else
       {
@@ -241,6 +247,8 @@ static void e3d_update_view(void)
             map->walls[world_selection.as.wall].y_units--;
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
             map->sectors[world_selection.as.sector].y_units--;
+         else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+            map->sprites[world_selection.as.sprite].y_units--;
       }
       else
       {
