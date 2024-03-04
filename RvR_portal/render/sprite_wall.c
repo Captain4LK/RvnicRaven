@@ -37,7 +37,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
 {
    RvR_texture *texture = RvR_texture_get(sp->texture);
-   RvR_fix22 scale_vertical = texture->height * 16; //texture height in map coordinates
+   RvR_fix22 scale_vertical = (texture->height * 16*16)/RvR_non_zero(sp->y_units); //texture height in map coordinates
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov / 2);
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres() * fovx, RvR_xres()*1024);
    RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
@@ -151,8 +151,9 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
          height = sp->z + scale_vertical/2 - port_cam->z;
       else
          height = sp->z + scale_vertical - port_cam->z;
-      RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
-      RvR_fix22 texture_coord_scaled = height*4096+(wy-RvR_yres()/2+1)*coord_step_scaled;
+      RvR_fix22 coord_step_scaled = (sp->y_units*fovy*depth)/(RvR_yres()*2);
+      //RvR_fix22 coord_step_scaled = (8*fovy*depth)/RvR_yres();
+      RvR_fix22 texture_coord_scaled = height*256*sp->y_units+(wy-RvR_yres()/2+1)*coord_step_scaled;
       //Vertical flip
       if(sp->flags & RVR_PORT_SPRITE_YFLIP)
       {
@@ -161,7 +162,7 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
          else
             height = sp->z - port_cam->z;
          coord_step_scaled = -coord_step_scaled;
-         texture_coord_scaled = texture->height * 16- height*4096 + (wy - middle_row + 1) * coord_step_scaled;
+         texture_coord_scaled = (16*texture->height * 16)/RvR_non_zero(sp->y_units)- height*256*sp->y_units+ (wy - middle_row + 1) * coord_step_scaled;
       }
       const uint8_t * restrict tex = &texture->data[(((uint32_t)u) % texture->width) * texture->height];
       const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 12))));

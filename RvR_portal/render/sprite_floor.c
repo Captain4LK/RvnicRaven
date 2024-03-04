@@ -346,8 +346,12 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
    RvR_fix22 y_log = RvR_log2(texture->height);
    RvR_fix22 step_x = ((view_sin*(port_cam->z-sp->z))/RvR_non_zero(dy));
    RvR_fix22 step_y = ((view_cos*(port_cam->z-sp->z))/RvR_non_zero(dy));
+   //RvR_fix22 step_x = ((view_sin*(port_cam->z-sp->z))/RvR_non_zero(dy));
+   //RvR_fix22 step_y = ((view_cos*(port_cam->z-sp->z))/RvR_non_zero(dy));
    RvR_fix22 tx = (port_cam->x-sp->x)*1024+(view_cos*depth)+(x0-RvR_xres()/2)*step_x;
    RvR_fix22 ty = -(port_cam->y-sp->y)*1024-(view_sin*depth)+(x0-RvR_xres()/2)*step_y;
+   //RvR_fix22 tx = (port_cam->x-sp->x)*1024+(view_cos*depth)+(x0-RvR_xres()/2)*step_x;
+   //RvR_fix22 ty = -(port_cam->y-sp->y)*1024-(view_sin*depth)+(x0-RvR_xres()/2)*step_y;
    RvR_fix22 x_and = (1 << x_log) - 1;
    RvR_fix22 y_and = (1 << y_log) - 1;
 

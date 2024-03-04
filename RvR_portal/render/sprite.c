@@ -76,7 +76,8 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
       //Translate sprite to world space
       RvR_fix22 dirx = RvR_fix22_cos(s->dir);
       RvR_fix22 diry = RvR_fix22_sin(s->dir);
-      RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
+      RvR_fix22 half_width = (tex->width * 1024) / (4 * 2*s->x_units);
+      //RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
       RvR_fix22 p0x = RvR_fix22_mul(-diry, half_width) + s->x;
       RvR_fix22 p0y = RvR_fix22_mul(dirx, half_width) + s->y;
       RvR_fix22 p1x = RvR_fix22_mul(diry, half_width) + s->x;
@@ -189,8 +190,8 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
       //World space coordinates, origin at camera
       RvR_fix22 scos = RvR_fix22_cos(s->dir);
       RvR_fix22 ssin = RvR_fix22_sin(s->dir);
-      RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
-      RvR_fix22 half_height = (tex->height * 1024) / (64 * 2);
+      RvR_fix22 half_width = (tex->width * 1024) / (4* 2*s->x_units);
+      RvR_fix22 half_height = (tex->height * 1024) / (4* 2*s->y_units);
       RvR_fix22 x0 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + s->x - port_cam->x;
       RvR_fix22 y0 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(-half_height, ssin) + s->y - port_cam->y;
       RvR_fix22 x1 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + s->x - port_cam->x;
@@ -219,6 +220,8 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
       //Near clip
       if(depth_max<128)
          return;
+
+      //TODO(Captain4LK): can we check if not on screen here?
 
       //Far clip
       //TODO(Captain4LK): far clip once really far away (only a few/one pixels big)?
@@ -249,13 +252,13 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
       //return;
 
    //Left of screen
-   if(-sp.as.bill.wx - (s->x_units*tex->width)/2>sp.as.bill.wy)
+   if(-sp.as.bill.wx - (16*8*tex->width)/RvR_non_zero(s->x_units)>sp.as.bill.wy)
       return;
    //if(-sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
       //return;
 
    //Right of screen
-   if(sp.as.bill.wx - (s->x_units*tex->width)/2>sp.as.bill.wy)
+   if(sp.as.bill.wx - (16*8*tex->width)/RvR_non_zero(s->x_units)>sp.as.bill.wy)
       return;
    //if(sp.as.bill.wx - tex->width * 8>sp.as.bill.wy)
       //return;
@@ -263,13 +266,13 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
    if(s->flags&RVR_PORT_SPRITE_CENTER)
    {
       //Above screen
-      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-(s->y_units*tex->height)/2))
+      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-(16*8*tex->height)/RvR_non_zero(s->y_units)))
          return;
       //if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-tex->height*8))
          //return;
 
       //Below screen
-      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (s->y_units*tex->height)/2))
+      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (16*8*tex->height)/RvR_non_zero(s->y_units)))
          return;
       //if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 8))
          //return;
@@ -281,7 +284,7 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
          return;
 
       //Below screen
-      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (s->y_units*tex->height)))
+      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (16*16*tex->height)/RvR_non_zero(s->y_units)))
          return;
       //if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 16))
          //return;

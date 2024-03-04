@@ -147,7 +147,7 @@ void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprite *sp, 
          //v = (sp->z - port_cam->z+texture->height*16)*4096 + (ys - middle_row + 1) * step_v;
 
       if(sp->flags & RVR_PORT_SPRITE_YFLIP)
-         v = (sp->y_units*texture->height) - ((sp->z - port_cam->z)*256*sp->y_units + (ys - middle_row + 1) * (-step_v) + (sp->y_units*texture->height));
+         v = (16*16*texture->height)/RvR_non_zero(sp->y_units) - ((sp->z - port_cam->z)*256*sp->y_units + (ys - middle_row + 1) * (-step_v) + (16*16*texture->height)/RvR_non_zero(sp->y_units));
          //v = texture->height * 16 - ((sp->z - port_cam->z)*4096 + (ys - middle_row + 1) * (-step_v) + texture->height * 16);
 
       if(select!=NULL&&select->x==x&&select->y>=ys&&select->y<ye&&select->depth>depth)
