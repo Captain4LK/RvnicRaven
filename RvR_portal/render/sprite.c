@@ -190,8 +190,8 @@ void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
       //World space coordinates, origin at camera
       RvR_fix22 scos = RvR_fix22_cos(s->dir);
       RvR_fix22 ssin = RvR_fix22_sin(s->dir);
-      RvR_fix22 half_width = (tex->width * 1024) / (4* 2*s->x_units);
-      RvR_fix22 half_height = (tex->height * 1024) / (4* 2*s->y_units);
+      RvR_fix22 half_width = (tex->width * 1024) / RvR_non_zero(4* 2*s->x_units);
+      RvR_fix22 half_height = (tex->height * 1024) / RvR_non_zero(4* 2*s->y_units);
       RvR_fix22 x0 = RvR_fix22_mul(-half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + s->x - port_cam->x;
       RvR_fix22 y0 = RvR_fix22_mul(-half_width, scos) + RvR_fix22_mul(-half_height, ssin) + s->y - port_cam->y;
       RvR_fix22 x1 = RvR_fix22_mul(+half_width, -ssin) + RvR_fix22_mul(-half_height, scos) + s->x - port_cam->x;

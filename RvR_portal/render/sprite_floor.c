@@ -82,7 +82,8 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
       {
          verts2[verts2_count][0] = verts[i][0] + RvR_fix22_mul(RvR_fix22_div(left, left - leftn), verts[p2][0] - verts[i][0]);
          verts2[verts2_count][1] = verts[i][1] + RvR_fix22_mul(RvR_fix22_div(left, left - leftn), verts[p2][1] - verts[i][1]);
-         verts2[verts2_count][2] = verts[i][2];
+         verts2[verts2_count][2] = verts[i][2] + RvR_fix22_mul(RvR_fix22_div(left, left - leftn), verts[p2][2] - verts[i][2]);
+         //verts2[verts2_count][2] = verts[i][2];
          verts2_count++;
       }
 
@@ -109,7 +110,8 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
       {
          verts[verts_count][0] = verts2[i][0] + RvR_fix22_mul(RvR_fix22_div(right, right - rightn), verts2[p2][0] - verts2[i][0]);
          verts[verts_count][1] = verts2[i][1] + RvR_fix22_mul(RvR_fix22_div(right, right - rightn), verts2[p2][1] - verts2[i][1]);
-         verts[verts_count][2] = verts2[i][2];
+         verts[verts_count][2] = verts2[i][2] + RvR_fix22_mul(RvR_fix22_div(right, right - rightn), verts2[p2][2] - verts2[i][2]);
+         //verts[verts_count][2] = verts2[i][2];
          verts_count++;
       }
 
@@ -137,7 +139,8 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
       {
          verts2[verts2_count][0] = verts[i][0] + RvR_fix22_div(RvR_fix22_mul(down, verts[p2][0] - verts[i][0]), down - downn);
          verts2[verts2_count][1] = verts[i][1] + RvR_fix22_div(RvR_fix22_mul(down, verts[p2][1] - verts[i][1]), down - downn);
-         verts2[verts2_count][2] = verts[i][2];
+         verts2[verts2_count][2] = verts[i][2] + RvR_fix22_div(RvR_fix22_mul(down, verts[p2][2] - verts[i][2]), down - downn);
+         //verts2[verts2_count][2] = verts[i][2];
          verts2_count++;
       }
 
@@ -165,7 +168,8 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
       {
          verts[verts_count][0] = verts2[i][0] + RvR_fix22_mul(RvR_fix22_div(up, RvR_non_zero(up - upn)), verts2[p2][0] - verts2[i][0]);
          verts[verts_count][1] = verts2[i][1] + RvR_fix22_mul(RvR_fix22_div(up, RvR_non_zero(up - upn)), verts2[p2][1] - verts2[i][1]);
-         verts[verts_count][2] = verts2[i][2];
+         verts[verts_count][2] = verts2[i][2] + RvR_fix22_mul(RvR_fix22_div(up, RvR_non_zero(up - upn)), verts2[p2][2] - verts2[i][2]);
+         //verts[verts_count][2] = verts2[i][2];
          verts_count++;
       }
 
@@ -213,7 +217,8 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
       if(!le_width)
       {
          int index_rightl = (index_minl - 1 + verts_count) % verts_count;
-         le_width = (verts[index_rightl][0] + 1023) / 1024- (verts[index_minl][0] + 1023) / 1024;
+         le_width = (verts[index_rightl][0] - verts[index_minl][0]) / 1024;
+         //le_width = (verts[index_rightl][0] + 1023) / 1024- (verts[index_minl][0] + 1023) / 1024;
          if(le_width<0)
             break;
 
@@ -226,7 +231,8 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
       if(!re_width)
       {
          int index_rightr = (index_minr + 1) % verts_count;
-         re_width = (verts[index_rightr][0] + 1023) / 1024- (verts[index_minr][0] + 1023) / 1024;
+         re_width = (verts[index_rightr][0] - verts[index_minr][0]) / 1024;
+         //re_width = (verts[index_rightr][0] + 1023) / 1024- (verts[index_minr][0] + 1023) / 1024;
          if(re_width<0)
             break;
 
@@ -344,12 +350,16 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
 
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);
-   RvR_fix22 step_x = ((view_sin*(port_cam->z-sp->z))/RvR_non_zero(dy));
-   RvR_fix22 step_y = ((view_cos*(port_cam->z-sp->z))/RvR_non_zero(dy));
+   RvR_fix22 step_x = ((sp->y_units*view_sin*(port_cam->z-sp->z))/RvR_non_zero(16*dy));
+   RvR_fix22 step_y = ((sp->x_units*view_cos*(port_cam->z-sp->z))/RvR_non_zero(16*dy));
+   //RvR_fix22 step_x = (RvR_fix22)(((int64_t)view_sin*slope*port_map->sectors[sector].x_units)/(1<<22));
+   //RvR_fix22 step_y = (RvR_fix22)(((int64_t)view_cos*slope*port_map->sectors[sector].y_units)/(1<<22));
    //RvR_fix22 step_x = ((view_sin*(port_cam->z-sp->z))/RvR_non_zero(dy));
    //RvR_fix22 step_y = ((view_cos*(port_cam->z-sp->z))/RvR_non_zero(dy));
-   RvR_fix22 tx = (port_cam->x-sp->x)*1024+(view_cos*depth)+(x0-RvR_xres()/2)*step_x;
-   RvR_fix22 ty = -(port_cam->y-sp->y)*1024-(view_sin*depth)+(x0-RvR_xres()/2)*step_y;
+   RvR_fix22 tx = (port_cam->x-sp->x)*64*sp->y_units+(sp->y_units*view_cos*depth)/16+(x0-RvR_xres()/2)*step_x;
+   RvR_fix22 ty = -(port_cam->y-sp->y)*64*sp->x_units-(sp->x_units*view_sin*depth)/16+(x0-RvR_xres()/2)*step_y;
+   //tx = -(port_cam->x%x_wrap)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-RvR_xres()/2)*step_x;;
+   //ty = (port_cam->y%y_wrap)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-RvR_xres()/2)*step_y;;
    //RvR_fix22 tx = (port_cam->x-sp->x)*1024+(view_cos*depth)+(x0-RvR_xres()/2)*step_x;
    //RvR_fix22 ty = -(port_cam->y-sp->y)*1024-(view_sin*depth)+(x0-RvR_xres()/2)*step_y;
    RvR_fix22 x_and = (1 << x_log) - 1;
