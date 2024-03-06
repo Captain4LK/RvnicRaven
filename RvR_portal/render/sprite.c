@@ -37,7 +37,7 @@ static int port_wsprite_can_back(const port_sprite * restrict a, const port_spri
 
 //Function implementations
 
-void  RvR_port_draw_sprite(uint16_t sprite, void *ref)
+void RvR_port_draw_sprite(uint16_t sprite, void *ref)
 {
    //flagged as invisible
    RvR_port_sprite *s = port_map->sprites+sprite;

@@ -530,6 +530,28 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    if((where==1&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_ROT_FLOOR)||
       (where==0&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_ROT_CEILING))
    {
+      RvR_fix22 tmp = tx;
+      tx = ty;
+      ty = -tmp;
+      tmp = step_x;
+      step_x = step_y;
+      step_y = -tmp;
+   }
+
+   //Flip x
+   if((where==1&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_FLIP_X_FLOOR)||
+      (where==0&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_FLIP_X_CEILING))
+   {
+      tx = -tx;
+      step_x = -step_x;
+   }
+
+   //Flip y
+   if((where==1&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_FLIP_Y_FLOOR)||
+      (where==0&&port_map->sectors[sector].flags&RVR_PORT_SECTOR_FLIP_Y_CEILING))
+   {
+      ty = -ty;
+      step_y = -step_y;
    }
 
    RvR_fix22 x_log = RvR_log2(texture->width);

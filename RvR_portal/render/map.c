@@ -260,6 +260,13 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
                RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-RvR_yres()/2)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+
+               if(port_map->walls[wall->wall].flags&RVR_PORT_WALL_FLIP_Y)
+               {
+                  coord_step_scaled = -coord_step_scaled;
+                  texture_coord_scaled = -height*256*port_map->walls[wall->wall].y_units+(y0-RvR_yres()/2)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+               }
+
                RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
                const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
@@ -753,6 +760,15 @@ static void port_collect_walls(uint16_t start)
          //Calculate texture coordinates based on line length
          dw.u0 = 0;
          dw.u1 = RvR_fix22_sqrt(RvR_fix22_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix22_mul(w1->y-w0->y,w1->y-w0->y))*w0->x_units*4-1;
+         if(w0->flags&RVR_PORT_WALL_FLIP_X)
+         {
+            RvR_fix22 tmp = dw.u0;
+            dw.u0 = dw.u1;
+            dw.u1 = tmp;
+         }
+
+         RvR_fix22 u0 = dw.u0;
+         RvR_fix22 u1 = dw.u1;
          RvR_fix22 p0x = w0->x;
          RvR_fix22 p0y = w0->y;
          RvR_fix22 p1x = w1->x;
@@ -773,7 +789,7 @@ static void port_collect_walls(uint16_t start)
             dw.x0 = 0;
             RvR_fix22 dx0 = x1-x0;
             RvR_fix22 dx1 = x0+y0;
-            dw.u0 = dw.u0 + RvR_fix22_div(RvR_fix22_mul(-x0-y0,dw.u1-dw.u0),RvR_non_zero(x1-x0+y1-y0));
+            dw.u0 = u0 + RvR_fix22_div(RvR_fix22_mul(-x0-y0,u1-u0),RvR_non_zero(x1-x0+y1-y0));
             dw.z0 = RvR_fix22_div(RvR_fix22_mul(dx0,dx1),RvR_non_zero(y1-y0+x1-x0))-x0;
             dw.p0x = p0x + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1x-p0x),RvR_non_zero(x1-x0+y1-y0));
             dw.p0y = p0y + RvR_fix22_div(RvR_fix22_mul(-x0-y0,p1y-p0y),RvR_non_zero(x1-x0+y1-y0));
@@ -796,7 +812,8 @@ static void port_collect_walls(uint16_t start)
             RvR_fix22 dx1 = y0-x0;
             dw.x1 = RvR_xres()*1024;
             dw.z1 = x0-RvR_fix22_div(RvR_fix22_mul(dx0,dx1),RvR_non_zero(y1-y0-x1+x0));
-            dw.u1 = RvR_fix22_div(RvR_fix22_mul(dx1,dw.u1),RvR_non_zero(-y1+y0+x1-x0));
+            dw.u1 = u0 + RvR_fix22_div(RvR_fix22_mul(dx1,u1-u0),RvR_non_zero(-y1+y0+x1-x0));
+            //dw.u1 = RvR_fix22_div(RvR_fix22_mul(dx1,dw.u1),RvR_non_zero(-y1+y0+x1-x0));
             dw.p1x = p0x + RvR_fix22_div(RvR_fix22_mul(dx1,p1x-p0x),RvR_non_zero(-y1+y0+x1-x0));
             dw.p1y = p0y + RvR_fix22_div(RvR_fix22_mul(dx1,p1y-p0y),RvR_non_zero(-y1+y0+x1-x0));
          }
