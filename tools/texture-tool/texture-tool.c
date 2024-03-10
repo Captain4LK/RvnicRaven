@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022,2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -74,7 +74,7 @@ typedef struct
 
 //Function prototypes
 static void print_help(char **argv);
-static Sprite_pal *texture_load(const char *path, const char *path_pal);
+static Sprite_pal *texture_load(const char *path, const char *path_pal, uint8_t trans_index);
 static Palette *palette_pal(FILE *f);
 static Palette *palette_png(FILE *f);
 static Palette *palette_gpl(FILE *f);
@@ -100,6 +100,7 @@ int main(int argc, char **argv)
       {"anim", 'a', OPTPARSE_REQUIRED},
       {"wall", 'w', OPTPARSE_NONE},
       {"sprite", 's', OPTPARSE_NONE},
+      {"trans", 't', OPTPARSE_REQUIRED},
       {"help", 'h', OPTPARSE_NONE},
       {0},
    };
@@ -110,6 +111,7 @@ int main(int argc, char **argv)
    uint64_t flags = SPRITE_NONE;
    uint8_t anim_range = 0;
    uint8_t anim_speed = 0;
+   uint8_t trans_index = 0;
 
    int option;
    struct optparse options;
@@ -139,6 +141,9 @@ int main(int argc, char **argv)
       case 'p':
          path_pal = options.optarg;
          break;
+      case 't':
+         trans_index = (uint8_t)strtol(options.optarg,NULL,10);
+         break;
       case '?':
          fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
          exit(EXIT_FAILURE);
@@ -162,7 +167,7 @@ int main(int argc, char **argv)
       return 0;
    }
 
-   Sprite_pal *sp = texture_load(path_in, path_pal);
+   Sprite_pal *sp = texture_load(path_in, path_pal,trans_index);
 
    if(flags & SPRITE_WALL)
    {
@@ -219,11 +224,12 @@ static void print_help(char **argv)
            "   -o, --out         output texture path\n"
            "   -p, --pal         palette to use for assigning indices (.pal,.png,.hex,.gpl\n"
            "   -w, --wall        flag sprite as wall texture\n"
+           "   -t, --trans       transparent palette index\n"
            "   -s, --sprite      flag sprite as sprite texture\n",
            argv[0], argv[0]);
 }
 
-static Sprite_pal *texture_load(const char *path, const char *path_pal)
+static Sprite_pal *texture_load(const char *path, const char *path_pal, uint8_t trans_index)
 {
    char ext[33] = {0};
    path_pop_ext(path, NULL, ext);
@@ -261,9 +267,9 @@ static Sprite_pal *texture_load(const char *path, const char *path_pal)
       int min_dist = INT_MAX;
       int min_index = 0;
       Color color = tex_in->data[i];
-      if(color.a==0)
+      if(color.a<=128)
       {
-         tex_out->data[i] = 0;
+         tex_out->data[i] = trans_index;
          continue;
       }
 

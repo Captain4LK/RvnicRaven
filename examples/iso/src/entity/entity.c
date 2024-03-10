@@ -290,7 +290,7 @@ void entity_from_def(Entity *e, const EntityDef *def, int female)
 void entity_sprite_create(Entity *e)
 {
    e->sprite = sprite_new(e);
-   sprite_clear(e->sprite, 0);
+   sprite_clear(e->sprite, 255);
 
    if(e->body.def==NULL)
    {

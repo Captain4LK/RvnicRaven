@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike: definition compiler
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -51,6 +51,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
         { \
            RvR_rw_write_u32(&(parser)->rw, mkr); \
            RvR_rw_write_u16(&(parser)->rw, (uint16_t)strtol((value), NULL, 10)); \
+        } \
+        while(0)
+
+#define field_u8(parser, kind, mkr, key, value) \
+        do \
+        { \
+           RvR_rw_write_u32(&(parser)->rw, mkr); \
+           RvR_rw_write_u8(&(parser)->rw, (uint8_t)strtol((value), NULL, 10)); \
         } \
         while(0)
 //RvR_log("%s:%d: error: material name '%s' too long, max 15 characters\n",p->ini.path,p->ini.line,name);
@@ -191,6 +199,14 @@ static void parse_material(Parser *p, const char *name)
             field_string(p, "material", MKR_ADJECTIVE, 32, key, value);
          else if(strcmp(key, "density")==0)
             field_u32(p, "material", MKR_DENSITY, key, value);
+         else if(strcmp(key, "remap_0")==0)
+            field_u8(p, "material", MKR_REMAP_0, key, value);
+         else if(strcmp(key, "remap_1")==0)
+            field_u8(p, "material", MKR_REMAP_1, key, value);
+         else if(strcmp(key, "remap_2")==0)
+            field_u8(p, "material", MKR_REMAP_2, key, value);
+         else if(strcmp(key, "remap_3")==0)
+            field_u8(p, "material", MKR_REMAP_3, key, value);
          else
          {
             RvR_log("%s:%d: warning: unknown material attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
@@ -253,9 +269,11 @@ static void parse_item(Parser *p, const char *name)
          const char *value = ini_stream_value(&p->ini);
          if(strcmp(key, "name")==0)
             field_string(p, "item", MKR_NAME, 32, key, value);
+         else if(strcmp(key, "sprite")==0)
+            field_u16(p, "item", MKR_SPRITE, key, value);
          else
          {
-            RvR_log("%s:%d: warning: unknown material attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
+            RvR_log("%s:%d: warning: unknown item attribute '%s'\n", p->ini.path, p->ini.line - 1, key);
          }
       }
       break;

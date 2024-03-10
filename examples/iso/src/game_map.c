@@ -29,6 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "game_map.h"
 #include "area_draw.h"
 #include "astar.h"
+#include "draw.h"
 #include "entity_documented.h"
 //-------------------------------------
 
@@ -177,7 +178,7 @@ void game_map_draw()
 
          int collumn_height = RvR_min(8, RvR_max((e0 - e2) / 16, (e0 - e3) / 16));
          for(int h = collumn_height; h>=0; h--)
-            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy - e0 + elevation_center / 512 + h * 16);
+            draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy - e0 + elevation_center / 512 + h * 16);
 
          //Outline
          //-------------------------------------
@@ -194,7 +195,7 @@ void game_map_draw()
          if(x==pe.mx&&y==pe.my)
          {
             tex = RvR_texture_get(16384);
-            RvR_render_texture(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy - e0 + elevation_center / 512 - 16);
+            draw_sprite(tex, x * 16 + y * 16 - cx, z * 20 - 8 * x + 8 * y - cy - e0 + elevation_center / 512 - 16);
          }
       }
       y++;

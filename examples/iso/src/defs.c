@@ -58,6 +58,11 @@ typedef enum
    MKR_FEMALE_START = 28,              //
    MKR_FEMALE_END = 29,                //
    MKR_FROM_CREATURE = 30,             //
+   MKR_SPRITE = 31,                    //sprite: u16
+   MKR_REMAP_0 = 32,                   //remap0: u8
+   MKR_REMAP_1 = 33,                   //remap1: u8
+   MKR_REMAP_2 = 34,                   //remap2: u8
+   MKR_REMAP_3 = 35,                   //remap3: u8
 }Marker;
 //-------------------------------------
 
@@ -260,6 +265,18 @@ static void defs_read_material(RvR_rw *rw, const char *path)
       case MKR_FROM_CREATURE:
          mat->tags |= DEF_MAT_FROM_CREATURE;
          break;
+      case MKR_REMAP_0:
+         mat->remap0 = RvR_rw_read_u8(rw);
+         break;
+      case MKR_REMAP_1:
+         mat->remap1 = RvR_rw_read_u8(rw);
+         break;
+      case MKR_REMAP_2:
+         mat->remap2 = RvR_rw_read_u8(rw);
+         break;
+      case MKR_REMAP_3:
+         mat->remap3 = RvR_rw_read_u8(rw);
+         break;
       default:
          RvR_log_line("defs_load", "invalid material marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);
@@ -294,6 +311,9 @@ static void defs_read_item(RvR_rw *rw, const char *path)
       case MKR_NAME:
          for(int i = 0; i<32; i++)item->name[i] = RvR_rw_read_u8(rw);
          item->name[31] = '\0';
+         break;
+      case MKR_SPRITE:
+         item->sprite = RvR_rw_read_u16(rw);
          break;
       default:
          RvR_log_line("defs_load", "invalid item marker %" PRIu32 " in file '%s'\n", marker, path);

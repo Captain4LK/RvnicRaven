@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -148,5 +148,71 @@ void draw_line_horizontal(int x0, int x1, int y, uint8_t col, int transparent)
       for(int x = x0; x<=x1; x++, dst++)
          *dst = RvR_blend(*dst, col);
    }
+}
+
+void draw_sprite(const RvR_texture *tex, int x, int y)
+{
+   if(tex==NULL)
+      return;
+
+   //Clip source texture
+   int draw_start_y = 0;
+   int draw_start_x = 0;
+   int draw_end_x = tex->width;
+   int draw_end_y = tex->height;
+   if(x<0)
+      draw_start_x = -x;
+   if(y<0)
+      draw_start_y = -y;
+   if(x + draw_end_x>640)
+      draw_end_x = tex->width + (640 - x - draw_end_x);
+   if(y + draw_end_y>480)
+      draw_end_y = tex->height + (480 - y - draw_end_y);
+
+   //Clip dst sprite
+   x = x<0?0:x;
+   y = y<0?0:y;
+
+   const uint8_t * restrict src = &tex->data[draw_start_x + draw_start_y * tex->width];
+   uint8_t * restrict dst = &RvR_framebuffer()[x + y * 640];
+   int src_step = -(draw_end_x - draw_start_x) + tex->width;
+   int dst_step = 640 - (draw_end_x - draw_start_x);
+
+   for(int y1 = draw_start_y; y1<draw_end_y; y1++, dst += dst_step, src += src_step)
+      for(int x1 = draw_start_x; x1<draw_end_x; x1++, src++, dst++)
+         *dst = (*src!=255)?*src:*dst;
+}
+
+void draw_sprite_bw(const RvR_texture *tex, int x, int y)
+{
+   if(tex==NULL)
+      return;
+
+   //Clip source texture
+   int draw_start_y = 0;
+   int draw_start_x = 0;
+   int draw_end_x = tex->width;
+   int draw_end_y = tex->height;
+   if(x<0)
+      draw_start_x = -x;
+   if(y<0)
+      draw_start_y = -y;
+   if(x + draw_end_x>640)
+      draw_end_x = tex->width + (640 - x - draw_end_x);
+   if(y + draw_end_y>480)
+      draw_end_y = tex->height + (480 - y - draw_end_y);
+
+   //Clip dst sprite
+   x = x<0?0:x;
+   y = y<0?0:y;
+
+   const uint8_t * restrict src = &tex->data[draw_start_x + draw_start_y * tex->width];
+   uint8_t * restrict dst = &RvR_framebuffer()[x + y * 640];
+   int src_step = -(draw_end_x - draw_start_x) + tex->width;
+   int dst_step = 640 - (draw_end_x - draw_start_x);
+
+   for(int y1 = draw_start_y; y1<draw_end_y; y1++, dst += dst_step, src += src_step)
+      for(int x1 = draw_start_x; x1<draw_end_x; x1++, src++, dst++)
+         *dst = (*src!=255)?*src + 128:*dst;
 }
 //-------------------------------------

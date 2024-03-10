@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike: definition compiler
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -54,6 +54,11 @@ typedef enum
    MKR_FEMALE_START = 28,              //
    MKR_FEMALE_END = 29,                //
    MKR_FROM_CREATURE = 30,             //
+   MKR_SPRITE = 31,                    //sprite:u16
+   MKR_REMAP_0 = 32,                   //remap0:u8
+   MKR_REMAP_1 = 33,                   //remap1:u8
+   MKR_REMAP_2 = 34,                   //remap2:u8
+   MKR_REMAP_3 = 35,                   //remap3:u8
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);

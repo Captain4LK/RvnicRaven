@@ -16,8 +16,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 typedef struct
 {
+   uint16_t sprite;
    char type[16];
-
    char name[32];
 }ItemDef;
 
@@ -27,6 +27,10 @@ typedef struct
 
    char adjective[32];
    uint32_t density;
+   uint8_t remap0;
+   uint8_t remap1;
+   uint8_t remap2;
+   uint8_t remap3;
 
    uint64_t tags;
 }MaterialDef;

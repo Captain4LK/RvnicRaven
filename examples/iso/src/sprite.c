@@ -101,7 +101,7 @@ void sprite_draw_sprite(uint16_t id, uint16_t tex, int x, int y, int sx, int sy,
    {
       for(int dx = start_x; dx<end_x; dx++, psrc++, pdst++)
       {
-         *pdst = *psrc?*psrc:*pdst;
+         *pdst = (*psrc!=255)?*psrc:*pdst;
       }
    }
 
