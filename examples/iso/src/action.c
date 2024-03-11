@@ -21,6 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "area.h"
 #include "entity.h"
 #include "astar.h"
+#include "item.h"
 #include "entity_documented.h"
 //-------------------------------------
 
@@ -40,6 +41,8 @@ static int action_ascend(World *w, Area *a, Entity *e);
 static int action_descend(World *w, Area *a, Entity *e);
 static int action_attack(World *w, Area *a, Entity *e);
 static int action_path(World *w, Area *a, Entity *e);
+static int action_pickup(World *w, Area *a, Entity *e);
+static int action_drop(World *w, Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
@@ -72,6 +75,12 @@ int action_do(World *w, Area *a, Entity *e)
       break;
    case ACTION_PATH:
       status = action_path(w, a, e);
+      break;
+   case ACTION_PICKUP:
+      status = action_pickup(w, a, e);
+      break;
+   case ACTION_DROP:
+      status = action_drop(w, a, e);
       break;
    default:
       break;
@@ -184,6 +193,36 @@ void action_set_path(Area *a, Entity *e, Point goal, uint32_t flags)
    e->action.as.path.flags = flags;
 }
 
+void action_set_pickup(Area *a, Entity *e, Item_index index)
+{
+   if(e==NULL)
+      return;
+
+   action_free(e);
+
+   e->action.id = ACTION_PICKUP;
+   e->action.cost = 128;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 1;
+
+   e->action.as.pickup.item = index;
+}
+
+void action_set_drop(Area *a, Entity *e, Item_index index)
+{
+   if(e==NULL)
+      return;
+
+   action_free(e);
+
+   e->action.id = ACTION_DROP;
+   e->action.cost = 128;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 1;
+
+   e->action.as.drop.item = index;
+}
+
 void action_interrupt(Entity *e)
 {
    e->action.interrupt = 1;
@@ -271,5 +310,39 @@ static int action_path(World *w, Area *a, Entity *e)
    }
 
    return status==2?ACTION_LEFT_MAP:ACTION_FINISHED;
+}
+
+static int action_pickup(World *w, Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = 0;
+
+   Item *it = item_index_try(act->as.pickup.item);
+
+   if(it==NULL)
+      return ACTION_FINISHED;
+
+   if(!point_equal(it->pos,e->pos))
+      return ACTION_FINISHED;
+
+   entity_store_item(w,a,e,it);
+
+   return ACTION_FINISHED;
+}
+
+static int action_drop(World *w, Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = 0;
+
+   Item *it = item_index_try(act->as.pickup.item);
+
+   if(it==NULL)
+      return ACTION_FINISHED;
+
+   //Check if eligible
+
+
+   return ACTION_FINISHED;
 }
 //-------------------------------------

@@ -25,5 +25,6 @@ uint16_t sprite_texture(uint16_t id);
 //Drawing
 void sprite_clear(uint16_t id, uint8_t color);
 void sprite_draw_sprite(uint16_t id, uint16_t tex, int x, int y, int sx, int sy, int width, int height);
+void sprite_draw_sprite_remap(uint16_t id, uint16_t tex, int x, int y, int sx, int sy, int width, int height, uint8_t r0, uint8_t r1, uint8_t r2, uint8_t r3);
 
 #endif

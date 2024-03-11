@@ -61,6 +61,7 @@ World *world_new(const char *name, World_size size)
    memset(w->regions, 0, sizeof(*w->regions) * dim * dim);
    memset(w->region_map, 0, sizeof(*w->region_map) * dim * dim);
    w->next_eid = INT64_MAX;
+   w->next_iid = INT64_MAX;
 
    //Create files
    //-------------------------------------

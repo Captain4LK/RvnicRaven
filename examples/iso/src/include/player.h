@@ -22,12 +22,14 @@ typedef struct
    Camera cam;
 
    uint64_t id;
+   int menu_state;
 }Player;
 
 extern Player player;
 
 void player_new(World *w, Area *a);
 void player_add(World *w, Area *a);
-void player_update();
+int player_update();
+void player_menu_draw();
 
 #endif

@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -19,11 +19,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "player.h"
 #include "action.h"
+#include "color.h"
 #include "world_defs.h"
 #include "area.h"
 #include "entity.h"
 #include "tile.h"
 #include "defs.h"
+#include "log.h"
+#include "item.h"
+#include "draw.h"
 #include "entity_documented.h"
 #include "game.h"
 //-------------------------------------
@@ -36,9 +40,18 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 Player player;
+
+static Item **player_menu_items = NULL;
+static int player_menu_select = 0;
 //-------------------------------------
 
 //Function prototypes
+static int player_update_none();
+static void player_draw_none();
+static int player_update_pickup();
+static void player_draw_pickup();
+static int player_update_drop();
+static void player_draw_drop();
 //-------------------------------------
 
 //Function implementations
@@ -59,6 +72,7 @@ void player_new(World *w, Area *a)
 
 void player_add(World *w, Area *a)
 {
+   player.menu_state = 0;
    player.e = entity_from_docent(w, a, player.id);
    player.e->speed = 128;
    player.e->ai_type = AI_PLAYER;
@@ -70,9 +84,50 @@ void player_add(World *w, Area *a)
    entity_add(a, e);
    entity_grid_add(a, e);
    entity_from_def(e, defs_get_entity("human"), 1);
+
+   Item *i = item_new(w);
+   i->pos = player.e->pos;
+   item_set_material(i,defs_get_material("aurum"));
+   item_from_def(i,defs_get_item("sword"));
+   item_add(a,i);
+   item_grid_add(a,i);
+
+   i = item_new(w);
+   i->pos = player.e->pos;
+   item_set_material(i,defs_get_material("skin"));
+   item_from_def(i,defs_get_item("sword"));
+   item_add(a,i);
+   item_grid_add(a,i);
+
+   i = item_new(w);
+   i->pos = player.e->pos;
+   item_set_material(i,defs_get_material("bone"));
+   item_from_def(i,defs_get_item("sword"));
+   item_add(a,i);
+   item_grid_add(a,i);
 }
 
-void player_update()
+int player_update()
+{
+   switch(player.menu_state)
+   {
+   case 0: return player_update_none();
+   case 1: return player_update_pickup();
+   }
+
+   return 0;
+}
+
+void player_menu_draw()
+{
+   switch(player.menu_state)
+   {
+   case 0: player_draw_none(); break;
+   case 1: player_draw_pickup(); break;
+   }
+}
+
+static int player_update_none()
 {
    if(player.e->action.id!=ACTION_INVALID)
    {}
@@ -109,6 +164,118 @@ void player_update()
          action_set_attack(player.e, dir);
       else
          action_set_move(player.e, dir);
+   }
+
+   //Pickup
+   if(RvR_key_pressed(RVR_KEY_G))
+   {
+      //Create list of items on same tile as player
+      RvR_array_length_set(player_menu_items,0);
+
+      int gx = player.e->pos.x/8;
+      int gy = player.e->pos.y/8;
+      int gz = player.e->pos.z/8;
+
+      Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
+      for(; cur!=NULL; cur = cur->g_next)
+      {
+         if(cur->removed)
+            continue;
+
+         if(point_equal(cur->pos, player.e->pos))
+            RvR_array_push(player_menu_items,cur);
+      }
+
+      if(RvR_array_length(player_menu_items)>=1)
+      {
+         player_menu_select = 0;
+         player.menu_state = 1;
+         return 1;
+      }
+   }
+
+   return 0;
+}
+
+static void player_draw_none()
+{
+   log_draw(0);
+
+   //Draw status
+   if(player.e->hunger>=2)
+      RvR_render_string(1, 1, 1, "Hungry", 5);
+
+   //Draw vital hp bars
+   int dy = RvR_yres() - 74;
+   for(int i = 0; i<player.e->body.part_count; i++)
+   {
+      Bodypart *bp = &player.e->body.parts[i];
+      if(bp->def->tags & DEF_BODY_VITAL)
+      {
+         char tmp[128];
+         snprintf(tmp, 128, "%5s: %3d/%3d", bp->def->name, bp->hp, bp->hp_max);
+         RvR_render_string(1, dy, 1, tmp, 12);
+         dy += 8;
+      }
+   }
+}
+
+static int player_update_pickup()
+{
+   int redraw = 0;
+
+   if(RvR_key_pressed(RVR_KEY_UP))
+   {
+      player_menu_select--;
+      if(player_menu_select<0)
+         player_menu_select = 0;
+      redraw = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      player_menu_select++;
+      if(player_menu_select>=RvR_array_length(player_menu_items))
+         player_menu_select = RvR_array_length(player_menu_items)-1;
+      redraw = 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      player.menu_state = 0;
+      action_set_pickup(area,player.e, item_index_get(player_menu_items[player_menu_select]));
+      return 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+   {
+      player.menu_state = 0;
+      return 1;
+   }
+
+   return redraw;
+}
+
+static void player_draw_pickup()
+{
+   //Item list
+   draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, 31, 42, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, RvR_yres() - 32, 42, 1);
+   draw_line_vertical(31, 32, RvR_yres() - 33, 42, 1);
+   draw_line_vertical(RvR_xres() - 32, 32, RvR_yres() - 33, 42, 1);
+
+   for(int i = 0;i<RvR_array_length(player_menu_items);i++)
+   {
+      const char *str = item_name(player_menu_items[i]);
+      if(i==player_menu_select)
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_white);
+         RvR_render_string(36, 42+i*12, 1, ">", color_white);
+      }
+      else
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_light_gray);
+      }
    }
 }
 //-------------------------------------

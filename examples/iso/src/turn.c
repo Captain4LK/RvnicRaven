@@ -52,21 +52,18 @@ void turn_start(World *w, Area *a)
 
       if(e->removed)
          entity_free(e);
-
-      e = next;
    }
 
-   /*//Delete removed items
-   Item_world *it = items;
-   while(it != NULL)
+   //Delete removed items
+   Item *it = a->items;
+   Item *inext  = NULL;
+   for(;it!=NULL;it = inext)
    {
-      Item_world *next = it->next;
+      inext = it->next;
 
       if(it->removed)
-         item_world_free(it);
-
-      it = next;
-   }*/
+         item_free(it);
+   }
 
    RvR_array_length_set(turn_heap, 0);
 

@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _ACTION_DEFS_H_
 
 #include "point.h"
+#include "item_defs.h"
 
 typedef enum
 {
@@ -26,6 +27,9 @@ typedef enum
    ACTION_ATTACK = 4,
 
    ACTION_PATH = 5,
+
+   ACTION_PICKUP = 6,
+   ACTION_DROP = 7,
 }Action_id;
 
 typedef enum
@@ -62,6 +66,16 @@ typedef struct
 
 typedef struct
 {
+   Item_index item;
+}APickup;
+
+typedef struct
+{
+   Item_index item;
+}ADrop;
+
+typedef struct
+{
    Action_id id;
    int status;
 
@@ -75,6 +89,8 @@ typedef struct
       AMove move;
       AAttack attack;
       APath path;
+      APickup pickup;
+      ADrop drop;
    }as;
 }Action;
 

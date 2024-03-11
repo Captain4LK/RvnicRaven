@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include "RvR/RvR.h"
+#include "color.h"
 #include "region.h"
 #include "area.h"
 #include "area_draw.h"
@@ -56,6 +57,8 @@ int main(int argc, char **argv)
 
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
+
+   colors_find();
 
    defs_init();
    defs_load("out.bdef");

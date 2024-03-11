@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -53,6 +53,8 @@ static int redraw = 0;
 //-------------------------------------
 
 //Function prototypes
+static void game_menu_none_update();
+static void game_menu_none_draw();
 //-------------------------------------
 
 //Function implementations
@@ -67,7 +69,8 @@ void game_update()
    if(turn_heap_peek_max()!=player.e)
       RvR_log_line("game_update", "warning: player not at start of turn queue\n");
 
-   player_update();
+   if(player_update())
+      redraw = 1;
 
    Point old_pos = player.e->pos;
    if(player.e->action.id!=ACTION_INVALID)
@@ -173,6 +176,7 @@ void game_draw()
 {
    if(!redraw)
       return;
+
    redraw = 0;
 
    RvR_render_clear(43);
@@ -181,34 +185,24 @@ void game_draw()
    //Draw entities
    Entity *e = area->entities;
    for(; e!=NULL; e = e->next)
+   {
+      if(e->removed)
+         continue;
       area_draw_entity(e, e->pos);
+   }
 
    //Draw items
    Item *it = area->items;
    for(; it!=NULL; it = it->next)
+   {
+      if(it->removed)
+         continue;
       area_draw_item(it, it->pos);
+   }
 
    area_draw_end();
 
-   log_draw(0);
-
-   //Draw status
-   if(player.e->hunger>=2)
-      RvR_render_string(1, 1, 1, "Hungry", 5);
-
-   //Draw vital hp bars
-   int dy = RvR_yres() - 74;
-   for(int i = 0; i<player.e->body.part_count; i++)
-   {
-      Bodypart *bp = &player.e->body.parts[i];
-      if(bp->def->tags & DEF_BODY_VITAL)
-      {
-         char tmp[128];
-         snprintf(tmp, 128, "%5s: %3d/%3d", bp->def->name, bp->hp, bp->hp_max);
-         RvR_render_string(1, dy, 1, tmp, 12);
-         dy += 8;
-      }
-   }
+   player_menu_draw();
 }
 
 void game_init()

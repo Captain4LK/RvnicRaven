@@ -28,7 +28,7 @@ struct Item
    int removed;
 
    Material material;
-   ItemDef *def;
+   const ItemDef *def;
 
    Item *next;
    Item **prev_next;
@@ -62,5 +62,11 @@ typedef struct
    Item_slot_layer layer;
    Item *it;
 }Item_slot;
+
+typedef struct
+{
+   uint64_t id;
+   Item *index;
+}Item_index;
 
 #endif

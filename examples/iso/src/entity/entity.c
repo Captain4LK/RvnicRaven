@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -25,6 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "ai.h"
 #include "log.h"
 #include "body.h"
+#include "item.h"
 
 #include "player.h"
 #include "sprite.h"
@@ -330,5 +331,44 @@ void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part)
 
 void entity_die(World *w, Area *a, Entity *e)
 {
+}
+
+int entity_store_item(World *w, Area *a, Entity *e, Item *it)
+{
+   //Search for free slot
+   //-------------------------------------
+
+   //Grasp
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP&&
+            e->body.parts[i].slots[j].it==NULL)
+         {
+            Item *inv = item_duplicate(w,it);
+            item_remove(it);
+
+            inv->prev_next = &e->body.parts[i].slots[j].it;
+            inv->next = e->body.parts[i].slots[j].it;
+            e->body.parts[i].slots[j].it = inv;
+
+            return 0;
+         }
+      }
+   }
+
+   //Slots in equipment
+   //TODO(Captain4LK): slots in equipment
+
+   //-------------------------------------
+
+   //Item *inv = item_duplicate(w,it);
+   //item_remove(it);
+
+   return 1;
 }
 //-------------------------------------

@@ -48,4 +48,6 @@ void entity_hit(Entity *e, Entity *src, Item *weapon, int16_t body_part);
 //Create corpse and remove entity
 void entity_die(World *w, Area *a, Entity *e);
 
+int entity_store_item(World *w, Area *a, Entity *e, Item *it);
+
 #endif

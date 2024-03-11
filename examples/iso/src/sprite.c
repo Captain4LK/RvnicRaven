@@ -131,4 +131,50 @@ void sprite_draw_sprite(uint16_t id, uint16_t tex, int x, int y, int sx, int sy,
       for(int x1 = draw_start_x;x1<draw_end_x;x1++,src++,dst++)
          *dst = *src?*src:*dst;*/
 }
+
+void sprite_draw_sprite_remap(uint16_t id, uint16_t tex, int x, int y, int sx, int sy, int width, int height, uint8_t r0, uint8_t r1, uint8_t r2, uint8_t r3)
+{
+   RvR_texture *dst = RvR_texture_get(65536 - SPRITE_CACHE_COUNT + id);
+   RvR_texture *src = RvR_texture_get(tex);
+
+   int start_x = 0;
+   int start_y = 0;
+   int end_x = width;
+   int end_y = height;
+   if(x<0)
+      start_x = -x;
+   if(y<0)
+      start_y = -y;
+   if(x + end_x>dst->width)
+      end_x = width + (dst->width - x - end_x);
+   if(y + end_y>dst->height)
+      end_y = height + (dst->height - y - end_y);
+
+   x = x<0?0:x;
+   y = y<0?0:y;
+
+   const uint8_t *psrc = &src->data[start_x + sx + (start_y + sy) * src->width];
+   uint8_t *pdst = &dst->data[x + y * dst->width];
+   int src_step = -(end_x - start_x) + src->width;
+   int dst_step = dst->width - (end_x - start_x);
+
+   for(int dy = start_y; dy<end_y; dy++, pdst += dst_step, psrc += src_step)
+   {
+      for(int dx = start_x; dx<end_x; dx++, psrc++, pdst++)
+      {
+         uint8_t p = *psrc;
+         if(*psrc==255)
+            p = *pdst;
+         else if(*psrc==62)
+            p = r0;
+         else if(*psrc==63)
+            p = r1;
+         else if(*psrc==64)
+            p = r2;
+         else if(*psrc==65)
+            p = r3;
+         *pdst = p;
+      }
+   }
+}
 //-------------------------------------

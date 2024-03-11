@@ -69,6 +69,7 @@ typedef struct
    uint64_t next_eid; //entity id
    uint64_t next_deid; //docent id
    uint64_t next_iid; //item id
+   uint64_t next_diid; //docit id
 
    World_size size;
 
