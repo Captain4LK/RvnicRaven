@@ -278,7 +278,32 @@ static void parse_item(Parser *p, const char *name)
       }
       break;
       case INI_TAG:
+      {
+         const char *key = ini_stream_key(&p->ini);
+         if(strcmp(key, "slot_container")==0)
+            RvR_rw_write_u32(&p->rw, MKR_SLOT_CONTAINER);
+         else if(strcmp(key, "equip_head")==0)
+            RvR_rw_write_u32(&p->rw, MKR_EQUIP_HEAD);
+         else if(strcmp(key, "equip_upper")==0)
+            RvR_rw_write_u32(&p->rw, MKR_EQUIP_UPPER);
+         else if(strcmp(key, "equip_lower")==0)
+            RvR_rw_write_u32(&p->rw, MKR_EQUIP_LOWER);
+         else if(strcmp(key, "equip_hand")==0)
+            RvR_rw_write_u32(&p->rw, MKR_EQUIP_HAND);
+         else if(strcmp(key, "equip_foot")==0)
+            RvR_rw_write_u32(&p->rw, MKR_EQUIP_FOOT);
+         else if(strcmp(key, "layer_under")==0)
+            RvR_rw_write_u32(&p->rw, MKR_LAYER_UNDER);
+         else if(strcmp(key, "layer_over")==0)
+            RvR_rw_write_u32(&p->rw, MKR_LAYER_OVER);
+         else if(strcmp(key, "layer_armor")==0)
+            RvR_rw_write_u32(&p->rw, MKR_LAYER_ARMOR);
+         else if(strcmp(key, "layer_back")==0)
+            RvR_rw_write_u32(&p->rw, MKR_LAYER_BACK);
+         else
+            RvR_log("%s:%d: warning: unknown item tag '%s'\n", p->ini.path, p->ini.line - 1, key);
          break;
+      }
       //Next section
       //case INI_SECTION:
       //RvR_rw_write_u32(&p->rw,MKR_ITEM_END);

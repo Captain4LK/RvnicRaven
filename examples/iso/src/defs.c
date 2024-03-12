@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -63,6 +63,16 @@ typedef enum
    MKR_REMAP_1 = 33,                   //remap1: u8
    MKR_REMAP_2 = 34,                   //remap2: u8
    MKR_REMAP_3 = 35,                   //remap3: u8
+   MKR_SLOT_CONTAINER = 36,            //
+   MKR_EQUIP_HEAD = 37,                //
+   MKR_EQUIP_UPPER = 38,               //
+   MKR_EQUIP_LOWER = 39,               //
+   MKR_EQUIP_HAND = 40,                //
+   MKR_EQUIP_FOOT = 41,                //
+   MKR_LAYER_UNDER = 42,               //
+   MKR_LAYER_OVER = 43,                //
+   MKR_LAYER_ARMOR = 44,               //
+   MKR_LAYER_BACK = 45,                //
 }Marker;
 //-------------------------------------
 
@@ -315,6 +325,16 @@ static void defs_read_item(RvR_rw *rw, const char *path)
       case MKR_SPRITE:
          item->sprite = RvR_rw_read_u16(rw);
          break;
+      case MKR_SLOT_CONTAINER: item->tags|=DEF_ITEM_SLOT_CONTAINER; break;
+      case MKR_EQUIP_UPPER: item->tags|=DEF_ITEM_EQUIP_UPPER; break;
+      case MKR_EQUIP_LOWER: item->tags|=DEF_ITEM_EQUIP_LOWER; break;
+      case MKR_EQUIP_HEAD: item->tags|=DEF_ITEM_EQUIP_HEAD; break;
+      case MKR_EQUIP_HAND: item->tags|=DEF_ITEM_EQUIP_HAND; break;
+      case MKR_EQUIP_FOOT: item->tags|=DEF_ITEM_EQUIP_FOOT; break;
+      case MKR_LAYER_UNDER: item->tags|=DEF_ITEM_LAYER_UNDER; break;
+      case MKR_LAYER_OVER: item->tags|=DEF_ITEM_LAYER_OVER; break;
+      case MKR_LAYER_ARMOR: item->tags|=DEF_ITEM_LAYER_ARMOR; break;
+      case MKR_LAYER_BACK: item->tags|=DEF_ITEM_LAYER_BACK; break;
       default:
          RvR_log_line("defs_load", "invalid item marker %" PRIu32 " in file '%s'\n", marker, path);
          exit(0);

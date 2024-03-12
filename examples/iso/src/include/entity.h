@@ -50,4 +50,6 @@ void entity_die(World *w, Area *a, Entity *e);
 
 int entity_store_item(World *w, Area *a, Entity *e, Item *it);
 
+int entity_can_equip(World *w, Area *a, Entity *e, Item *it, int check_space);
+
 #endif

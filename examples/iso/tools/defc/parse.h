@@ -59,6 +59,16 @@ typedef enum
    MKR_REMAP_1 = 33,                   //remap1:u8
    MKR_REMAP_2 = 34,                   //remap2:u8
    MKR_REMAP_3 = 35,                   //remap3:u8
+   MKR_SLOT_CONTAINER = 36,            //
+   MKR_EQUIP_HEAD = 37,                //
+   MKR_EQUIP_UPPER = 38,               //
+   MKR_EQUIP_LOWER = 39,               //
+   MKR_EQUIP_HAND = 40,                //
+   MKR_EQUIP_FOOT = 41,                //
+   MKR_LAYER_UNDER = 42,               //
+   MKR_LAYER_OVER = 43,                //
+   MKR_LAYER_ARMOR = 44,               //
+   MKR_LAYER_BACK = 45,                //
 }Marker;
 
 void parser_init(Parser *p, const char *path_out);

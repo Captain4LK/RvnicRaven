@@ -30,6 +30,7 @@ typedef enum
 
    ACTION_PICKUP = 6,
    ACTION_DROP = 7,
+   ACTION_EQUIP = 8,
 }Action_id;
 
 typedef enum
@@ -76,6 +77,11 @@ typedef struct
 
 typedef struct
 {
+   Item_index item;
+}AEquip;
+
+typedef struct
+{
    Action_id id;
    int status;
 
@@ -91,6 +97,7 @@ typedef struct
       APath path;
       APickup pickup;
       ADrop drop;
+      AEquip equip;
    }as;
 }Action;
 

@@ -19,6 +19,8 @@ typedef struct
    uint16_t sprite;
    char type[16];
    char name[32];
+
+   uint64_t tags;
 }ItemDef;
 
 typedef struct
@@ -91,6 +93,20 @@ const GroupDef *defs_get_group(const char *type);
 //Material
 //-------------------------------------
 #define DEF_MAT_FROM_CREATURE   (UINT64_C(1) << 0)
+//-------------------------------------
+
+//Item
+//-------------------------------------
+#define DEF_ITEM_EQUIP_UPPER     UINT64_C(0x1)
+#define DEF_ITEM_EQUIP_LOWER     UINT64_C(0x2)
+#define DEF_ITEM_EQUIP_HEAD      UINT64_C(0x4)
+#define DEF_ITEM_EQUIP_HAND      UINT64_C(0x8)
+#define DEF_ITEM_EQUIP_FOOT      UINT64_C(0x10)
+#define DEF_ITEM_LAYER_UNDER     UINT64_C(0x20)
+#define DEF_ITEM_LAYER_OVER      UINT64_C(0x40)
+#define DEF_ITEM_LAYER_ARMOR     UINT64_C(0x80)
+#define DEF_ITEM_LAYER_BACK      UINT64_C(0x100)
+#define DEF_ITEM_SLOT_CONTAINER  UINT64_C(0x200)
 //-------------------------------------
 
 #endif

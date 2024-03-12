@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -43,6 +43,7 @@ static int action_attack(World *w, Area *a, Entity *e);
 static int action_path(World *w, Area *a, Entity *e);
 static int action_pickup(World *w, Area *a, Entity *e);
 static int action_drop(World *w, Area *a, Entity *e);
+static int action_equip(World *w, Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
@@ -81,6 +82,9 @@ int action_do(World *w, Area *a, Entity *e)
       break;
    case ACTION_DROP:
       status = action_drop(w, a, e);
+      break;
+   case ACTION_EQUIP:
+      status = action_equip(w, a, e);
       break;
    default:
       break;
@@ -223,6 +227,21 @@ void action_set_drop(Area *a, Entity *e, Item_index index)
    e->action.as.drop.item = index;
 }
 
+void action_set_equip(Area *a, Entity *e, Item_index index)
+{
+   if(e==NULL)
+      return;
+
+   action_free(e);
+
+   e->action.id = ACTION_EQUIP;
+   e->action.cost = 128;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 1;
+
+   e->action.as.equip.item = index;
+}
+
 void action_interrupt(Entity *e)
 {
    e->action.interrupt = 1;
@@ -335,13 +354,83 @@ static int action_drop(World *w, Area *a, Entity *e)
    Action *act = &e->action;
    act->status = 0;
 
-   Item *it = item_index_try(act->as.pickup.item);
+   Item *it = item_index_try(act->as.drop.item);
 
    if(it==NULL)
       return ACTION_FINISHED;
 
    //Check if eligible
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
 
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+         {
+            Item *cur = e->body.parts[i].slots[j].it;
+            for(;cur!=NULL;cur = cur->next)
+            {
+               if(cur==it)
+               {
+                  Item *ni = item_duplicate(w,it);
+                  ni->pos = e->pos;
+                  item_add(a,ni);
+                  item_grid_add(a,ni);
+
+                  item_free(it);
+
+                  return ACTION_FINISHED;
+               }
+            }
+         }
+      }
+   }
+
+   return ACTION_FINISHED;
+}
+
+static int action_equip(World *w, Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = 0;
+
+   Item *it = item_index_try(act->as.equip.item);
+
+   if(it==NULL)
+      return ACTION_FINISHED;
+
+   if(!entity_can_equip(w,a,e,it,1))
+      return ACTION_FINISHED;
+
+   //Check if eligible
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+         {
+            Item *cur = e->body.parts[i].slots[j].it;
+            for(;cur!=NULL;cur = cur->next)
+            {
+               if(cur==it)
+               {
+                  //Item *inv = item_duplicate(w,it);
+                  //item_free(it);
+                  //inv->prev_next = &e->body.parts[i].slots[j].it;
+                  //inv->next = e->body.parts[i].slots[j].it;
+                  //e->body.parts[i].slots[j].it = inv;
+
+                  return ACTION_FINISHED;
+               }
+            }
+         }
+      }
+   }
 
    return ACTION_FINISHED;
 }

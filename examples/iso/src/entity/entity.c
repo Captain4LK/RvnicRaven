@@ -371,4 +371,47 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it)
 
    return 1;
 }
+
+int entity_can_equip(World *w, Area *a, Entity *e, Item *it, int check_space)
+{
+   if(e==NULL)
+      return 0;
+
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(check_space&&e->body.parts[i].slots[j].it!=NULL)
+            continue;
+
+         //Check slot type
+         if(!(
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_UPPER&&it->def->tags&DEF_ITEM_EQUIP_UPPER)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_LOWER&&it->def->tags&DEF_ITEM_EQUIP_LOWER)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_HEAD&&it->def->tags&DEF_ITEM_EQUIP_HEAD)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_HAND&&it->def->tags&DEF_ITEM_EQUIP_HAND)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_FOOT&&it->def->tags&DEF_ITEM_EQUIP_FOOT)
+         ))
+            continue;
+
+
+         //Check slot layer
+         if(!(
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_UNDER&&it->def->tags&DEF_ITEM_LAYER_UNDER)||
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_OVER&&it->def->tags&DEF_ITEM_LAYER_OVER)||
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_ARMOR&&it->def->tags&DEF_ITEM_LAYER_ARMOR)||
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_BACK&&it->def->tags&DEF_ITEM_LAYER_BACK)
+         ))
+            continue;
+
+         //All passed --> can equip
+         return 1;
+      }
+   }
+
+   return 0;
+}
 //-------------------------------------
