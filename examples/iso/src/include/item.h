@@ -20,7 +20,7 @@ Item *item_new(World *w);
 void item_free(Item *i);
 
 Item *item_duplicate(World *w, const Item *i);
-void item_remove(Item *i);
+//void item_remove(Item *i);
 void item_add(Area *a, Item *i);
 
 void item_update_pos(Area *a, Item *i, Point new_pos);

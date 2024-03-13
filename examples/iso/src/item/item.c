@@ -60,6 +60,8 @@ Item *item_new(World *w)
    n->g_next = NULL;
    n->g_prev_next = NULL;
    n->id = id;
+   n->container.it = NULL;
+   n->container.type = ITEM_SLOT_NONE;
 
    return n;
 }
@@ -69,6 +71,9 @@ void item_free(Item *i)
    if(i == NULL)
       return;
 
+   item_grid_remove(i);
+   i->id = UINT64_MAX;
+
    *i->prev_next = i->next;
    if(i->next != NULL)
       i->next->prev_next = i->prev_next;
@@ -77,7 +82,7 @@ void item_free(Item *i)
    item_pool = i;
 }
 
-void item_remove(Item *i)
+/*void item_remove(Item *i)
 {
    if(i == NULL)
       return;
@@ -86,7 +91,7 @@ void item_remove(Item *i)
 
    i->id = UINT64_MAX;
    i->removed = 1;
-}
+}*/
 
 void item_add(Area *a, Item *i)
 {
@@ -139,6 +144,9 @@ void item_grid_remove(Item *i)
    if(i==NULL)
       return;
 
+   if(i->g_prev_next==NULL)
+      return;
+
    *i->g_prev_next = i->g_next;
    if(i->g_next != NULL)
       i->g_next->g_prev_next = i->g_prev_next;
@@ -160,6 +168,10 @@ void item_set_material(Item *it, const MaterialDef *def)
 void item_from_def(Item *it, const ItemDef *def)
 {
    it->def = def;
+   if(def->tags&DEF_ITEM_SLOT_CONTAINER)
+   {
+      it->container.type = ITEM_SLOT_CONTAINER;
+   }
 }
 
 Item *item_duplicate(World *w, const Item *i)
@@ -167,8 +179,8 @@ Item *item_duplicate(World *w, const Item *i)
    Item *ni = item_new(w);
    ni->pos = i->pos;
    ni->sprite = i->sprite;
-   ni->material = i->material;
-   ni->def = i->def;
+   item_set_material(ni,i->material.def);
+   item_from_def(ni,i->def);
 
    return ni;
 }

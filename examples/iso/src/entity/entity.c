@@ -80,6 +80,9 @@ void entity_free(Entity *e)
    if(e == NULL)
       return;
 
+   entity_grid_remove(e);
+   e->id = UINT64_MAX;
+
    *e->prev_next = e->next;
    if(e->next != NULL)
       e->next->prev_next = e->prev_next;
@@ -88,7 +91,7 @@ void entity_free(Entity *e)
    entity_pool = e;
 }
 
-void entity_remove(Entity *e)
+/*void entity_remove(Entity *e)
 {
    if(e == NULL)
       return;
@@ -97,7 +100,7 @@ void entity_remove(Entity *e)
 
    e->id = UINT64_MAX;
    e->removed = 1;
-}
+}*/
 
 void entity_add(Area *a, Entity *e)
 {
@@ -150,6 +153,9 @@ void entity_grid_remove(Entity *e)
    if(e==NULL)
       return;
 
+   if(e->g_prev_next==NULL)
+      return;
+
    *e->g_prev_next = e->g_next;
    if(e->g_next != NULL)
       e->g_next->g_prev_next = e->g_prev_next;
@@ -192,7 +198,7 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
          e->pos = point_sub_dir(e->pos, dir);
       }
 
-      entity_remove(e);
+      entity_free(e);
       return 2;
    }
 
@@ -256,6 +262,7 @@ void entity_think(World *w, Area *a, Entity *e)
    ai_think(w, a, e);
 }
 
+//TODO(Captain4LK): kill if dead
 void entity_turn(World *w, Area *a, Entity *e)
 {
    e->fatigue_next--;
@@ -350,7 +357,7 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it)
             e->body.parts[i].slots[j].it==NULL)
          {
             Item *inv = item_duplicate(w,it);
-            item_remove(it);
+            item_free(it);
 
             inv->prev_next = &e->body.parts[i].slots[j].it;
             inv->next = e->body.parts[i].slots[j].it;
@@ -361,7 +368,45 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it)
       }
    }
 
-   //Slots in equipment
+   //Container slots in equipment
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         Item *cur = e->body.parts[i].slots[j].it;
+         for(;cur!=NULL;cur = cur->next)
+         {
+            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+            {
+               Item *inv = item_duplicate(w,it);
+               item_free(it);
+
+               inv->prev_next = &cur->container.it;
+               if(cur->container.it!=NULL)
+                  cur->container.it->prev_next = &inv->next;
+               inv->next = cur->container.it;
+               cur->container.it = inv;
+
+               return 0;
+            }
+         }
+         /*if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP&&
+            e->body.parts[i].slots[j].it==NULL)
+         {
+            Item *inv = item_duplicate(w,it);
+            item_free(it);
+
+            inv->prev_next = &e->body.parts[i].slots[j].it;
+            inv->next = e->body.parts[i].slots[j].it;
+            e->body.parts[i].slots[j].it = inv;
+
+            return 0;
+         }*/
+      }
+   }
    //TODO(Captain4LK): slots in equipment
 
    //-------------------------------------
@@ -413,5 +458,53 @@ int entity_can_equip(World *w, Area *a, Entity *e, Item *it, int check_space)
    }
 
    return 0;
+}
+
+void entity_equip(World *w, Area *a, Entity *e, Item *it)
+{
+   if(e==NULL)
+      return 0;
+
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(e->body.parts[i].slots[j].it!=NULL)
+            continue;
+
+         //Check slot type
+         if(!(
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_UPPER&&it->def->tags&DEF_ITEM_EQUIP_UPPER)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_LOWER&&it->def->tags&DEF_ITEM_EQUIP_LOWER)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_HEAD&&it->def->tags&DEF_ITEM_EQUIP_HEAD)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_HAND&&it->def->tags&DEF_ITEM_EQUIP_HAND)||
+            (e->body.parts[i].slots[j].type==ITEM_SLOT_FOOT&&it->def->tags&DEF_ITEM_EQUIP_FOOT)
+         ))
+            continue;
+
+
+         //Check slot layer
+         if(!(
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_UNDER&&it->def->tags&DEF_ITEM_LAYER_UNDER)||
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_OVER&&it->def->tags&DEF_ITEM_LAYER_OVER)||
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_ARMOR&&it->def->tags&DEF_ITEM_LAYER_ARMOR)||
+            (e->body.parts[i].slots[j].layer==ITEM_SLOT_BACK&&it->def->tags&DEF_ITEM_LAYER_BACK)
+         ))
+            continue;
+
+         //All passed --> can equip
+         Item *inv = item_duplicate(w,it);
+         item_free(it);
+
+         inv->prev_next = &e->body.parts[i].slots[j].it;
+         inv->next = e->body.parts[i].slots[j].it;
+         e->body.parts[i].slots[j].it = inv;
+         
+         return;
+      }
+   }
 }
 //-------------------------------------

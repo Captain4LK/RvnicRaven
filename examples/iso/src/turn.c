@@ -44,7 +44,7 @@ void turn_start(World *w, Area *a)
    //TODO: should we run this every turn?
 
    //Delete removed entities
-   Entity *e = a->entities;
+   /*Entity *e = a->entities;
    Entity *next = NULL;
    for(; e!=NULL; e = next)
    {
@@ -52,10 +52,10 @@ void turn_start(World *w, Area *a)
 
       if(e->removed)
          entity_free(e);
-   }
+   }*/
 
    //Delete removed items
-   Item *it = a->items;
+   /*Item *it = a->items;
    Item *inext  = NULL;
    for(;it!=NULL;it = inext)
    {
@@ -63,7 +63,7 @@ void turn_start(World *w, Area *a)
 
       if(it->removed)
          item_free(it);
-   }
+   }*/
 
    RvR_array_length_set(turn_heap, 0);
 
@@ -72,12 +72,15 @@ void turn_start(World *w, Area *a)
    if(player.e->action_points>0)
       turn_heap_push(player.e);
 
-   Entity *cur = a->entities;
-   for(; cur!=NULL; cur = cur->next)
+   for(Entity *next = NULL, *cur = a->entities; cur!=NULL; cur = next)
    {
+      next = cur->next;
+
+      Entity_index ind = entity_index_get(cur);
       entity_turn(w, a, cur);
-      if(cur==player.e)
+      if(entity_index_try(ind)==NULL||cur==player.e)
          continue;
+
       cur->action_points += 128;
       if(cur->action_points<=0)
          continue;
@@ -91,6 +94,7 @@ void turns_do_until(World *w, Area *a, Entity *until)
    while(RvR_array_length(turn_heap)>0&&turn_heap[0]!=until)
    {
       Entity *e = turn_heap_max();
+      Entity_index ind = entity_index_get(e);
       if(e==NULL)
          return;
 
@@ -103,7 +107,7 @@ void turns_do_until(World *w, Area *a, Entity *until)
 
       action_do(w, a, e);
 
-      if(e->action_points>0)
+      if(entity_index_try(ind)!=NULL&&e->action_points>0)
          turn_heap_push(e);
    }
 }

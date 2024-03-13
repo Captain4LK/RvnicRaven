@@ -90,13 +90,11 @@ void area_free(World *w, Area *a)
       return;
 
    //Free all entities, modify historic ones
-   Entity *e = a->entities;
-   Entity *next = e->next;
-   for(; e!=NULL; e = next)
+   for(Entity *next = NULL, *e = a->entities; e!=NULL; e = next)
    {
       next = e->next;
 
-      entity_remove(e);
+      //entity_remove(e);
       entity_free(e);
    }
 
@@ -111,8 +109,7 @@ void area_exit(World *w, Area *a)
       return;
 
    //modify historic entities
-   Entity *e = a->entities;
-   for(; e!=NULL; e = e->next)
+   for(Entity *e = a->entities; e!=NULL; e = e->next)
    {
       if(!(e->id & (UINT64_C(1) << 63)))
          docent_from_entity(w, a, e);

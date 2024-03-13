@@ -69,8 +69,7 @@ void game_inventory_draw()
    area_draw_begin(world, area, &player.cam);
 
    //Draw entities
-   Entity *e = area->entities;
-   for(; e!=NULL; e = e->next)
+   for(Entity *e = area->entities; e!=NULL; e = e->next)
       area_draw_entity(e, e->pos);
 
    //Draw items

@@ -17,28 +17,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "material_defs.h"
 
 typedef struct Item Item;
-
-struct Item
-{
-   Point pos;
-   uint16_t sprite;
-
-   uint64_t id;
-
-   int removed;
-
-   Material material;
-   const ItemDef *def;
-
-   Item *next;
-   Item **prev_next;
-
-   Item *g_next;
-   Item **g_prev_next;
-};
+typedef struct Item_slot Item_slot;
 
 typedef enum
 {
+   ITEM_SLOT_NONE = 0,
    ITEM_SLOT_UPPER,
    ITEM_SLOT_LOWER,
    ITEM_SLOT_HEAD,
@@ -57,12 +40,33 @@ typedef enum
    ITEM_SLOT_BACK,
 }Item_slot_layer;
 
-typedef struct
+struct Item_slot
 {
    Item_slot_type type;
    Item_slot_layer layer;
    Item *it;
-}Item_slot;
+};
+
+struct Item
+{
+   Point pos;
+   uint16_t sprite;
+
+   uint64_t id;
+
+   //int removed;
+
+   Material material;
+   const ItemDef *def;
+
+   Item_slot container;
+
+   Item *next;
+   Item **prev_next;
+
+   Item *g_next;
+   Item **g_prev_next;
+};
 
 typedef struct
 {

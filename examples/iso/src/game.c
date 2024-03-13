@@ -183,11 +183,10 @@ void game_draw()
    area_draw_begin(world, area, &player.cam);
 
    //Draw entities
-   Entity *e = area->entities;
-   for(; e!=NULL; e = e->next)
+   for(Entity *e = area->entities; e!=NULL; e = e->next)
    {
-      if(e->removed)
-         continue;
+      //if(e->removed)
+         //continue;
       area_draw_entity(e, e->pos);
    }
 
@@ -195,8 +194,8 @@ void game_draw()
    Item *it = area->items;
    for(; it!=NULL; it = it->next)
    {
-      if(it->removed)
-         continue;
+      //if(it->removed)
+         //continue;
       area_draw_item(it, it->pos);
    }
 

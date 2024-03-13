@@ -52,6 +52,8 @@ static int player_update_pickup();
 static void player_draw_pickup();
 static int player_update_drop();
 static void player_draw_drop();
+static int player_update_equip();
+static void player_draw_equip();
 //-------------------------------------
 
 //Function implementations
@@ -78,12 +80,14 @@ void player_add(World *w, Area *a)
    player.e->ai_type = AI_PLAYER;
    entity_from_def(player.e, defs_get_entity("human"), 0);
 
+   /*
    Entity *e = entity_new(w);
    e->speed = 128;
    e->pos = player.e->pos;
    entity_add(a, e);
    entity_grid_add(a, e);
    entity_from_def(e, defs_get_entity("human"), 1);
+   */
 
    Item *i = item_new(w);
    i->pos = player.e->pos;
@@ -99,12 +103,15 @@ void player_add(World *w, Area *a)
    item_add(a,i);
    item_grid_add(a,i);
 
-   i = item_new(w);
-   i->pos = player.e->pos;
-   item_set_material(i,defs_get_material("bone"));
-   item_from_def(i,defs_get_item("sword"));
-   item_add(a,i);
-   item_grid_add(a,i);
+   for(int j = 0;j<10;j++)
+   {
+      i = item_new(w);
+      i->pos = player.e->pos;
+      item_set_material(i,defs_get_material("bone"));
+      item_from_def(i,defs_get_item("sword"));
+      item_add(a,i);
+      item_grid_add(a,i);
+   }
 }
 
 int player_update()
@@ -114,6 +121,7 @@ int player_update()
    case 0: return player_update_none();
    case 1: return player_update_pickup();
    case 2: return player_update_drop();
+   case 3: return player_update_equip();
    }
 
    return 0;
@@ -126,6 +134,7 @@ void player_menu_draw()
    case 0: player_draw_none(); break;
    case 1: player_draw_pickup(); break;
    case 2: player_draw_drop(); break;
+   case 3: player_draw_equip(); break;
    }
 }
 
@@ -136,13 +145,13 @@ static int player_update_none()
 
    //Movement
    int8_t dir = -1;
-   if(RvR_key_pressed(RVR_KEY_W)||(0&&RvR_key_pressed(RVR_KEY_UP))||RvR_key_pressed(RVR_KEY_NP7))
+   if(RvR_key_pressed(RVR_KEY_NP7))
       dir = (3 + player.cam.rotation) & 3;
-   if(RvR_key_pressed(RVR_KEY_S)||(0&&RvR_key_pressed(RVR_KEY_DOWN))||RvR_key_pressed(RVR_KEY_NP3))
+   if(RvR_key_pressed(RVR_KEY_NP3))
       dir = (1 + player.cam.rotation) & 3;
-   if(RvR_key_pressed(RVR_KEY_A)||(0&&RvR_key_pressed(RVR_KEY_LEFT))||RvR_key_pressed(RVR_KEY_NP1))
+   if(RvR_key_pressed(RVR_KEY_NP1))
       dir = (2 + player.cam.rotation) & 3;
-   if(RvR_key_pressed(RVR_KEY_D)||(0&&RvR_key_pressed(RVR_KEY_RIGHT))||RvR_key_pressed(RVR_KEY_NP9))
+   if(RvR_key_pressed(RVR_KEY_NP9))
       dir = (0 + player.cam.rotation) & 3;
    if(RvR_key_pressed(RVR_KEY_NP6))
       dir = 4 + ((3 + player.cam.rotation) & 3);
@@ -181,8 +190,8 @@ static int player_update_none()
       Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
       for(; cur!=NULL; cur = cur->g_next)
       {
-         if(cur->removed)
-            continue;
+         //if(cur->removed)
+            //continue;
 
          if(point_equal(cur->pos, player.e->pos))
             RvR_array_push(player_menu_items,cur);
@@ -215,6 +224,15 @@ static int player_update_none()
                for(;cur!=NULL;cur = cur->next)
                   RvR_array_push(player_menu_items,cur);
             }
+
+            for(Item *cur = player.e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+            {
+               if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+               {
+                  for(Item *con = cur->container.it;con!=NULL;con = con->next)
+                     RvR_array_push(player_menu_items,con);
+               }
+            }
          }
       }
 
@@ -222,6 +240,49 @@ static int player_update_none()
       {
          player_menu_select = 0;
          player.menu_state = 2;
+         return 1;
+      }
+   }
+
+   //Wear
+   if(RvR_key_pressed(RVR_KEY_W))
+   {
+      //Create list of equibableitems in accesible slots
+      RvR_array_length_set(player_menu_items,0);
+
+      for(int i = 0;i<player.e->body.part_count;i++)
+      {
+         if(player.e->body.parts[i].hp<=0)
+            continue;
+
+         for(int j = 0;j<player.e->body.parts[i].slot_count;j++)
+         {
+            if(player.e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+            {
+               Item *cur = player.e->body.parts[i].slots[j].it;
+               for(;cur!=NULL;cur = cur->next)
+               {
+                  if(entity_can_equip(world,area,player.e,cur,1))
+                     RvR_array_push(player_menu_items,cur);
+               }
+            }
+
+            for(Item *cur = player.e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+            {
+               if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+               {
+                  for(Item *con = cur->container.it;con!=NULL;con = con->next)
+                     if(entity_can_equip(world,area,player.e,con,1))
+                        RvR_array_push(player_menu_items,con);
+               }
+            }
+         }
+      }
+
+      if(RvR_array_length(player_menu_items)>=1)
+      {
+         player_menu_select = 0;
+         player.menu_state = 3;
          return 1;
       }
    }
@@ -347,6 +408,65 @@ static int player_update_drop()
 }
 
 static void player_draw_drop()
+{
+   //Item list
+   draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, 31, 42, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, RvR_yres() - 32, 42, 1);
+   draw_line_vertical(31, 32, RvR_yres() - 33, 42, 1);
+   draw_line_vertical(RvR_xres() - 32, 32, RvR_yres() - 33, 42, 1);
+
+   for(int i = 0;i<RvR_array_length(player_menu_items);i++)
+   {
+      const char *str = item_name(player_menu_items[i]);
+      if(i==player_menu_select)
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_white);
+         RvR_render_string(36, 42+i*12, 1, ">", color_white);
+      }
+      else
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_light_gray);
+      }
+   }
+}
+
+static int player_update_equip()
+{
+   int redraw = 0;
+
+   if(RvR_key_pressed(RVR_KEY_UP))
+   {
+      player_menu_select--;
+      if(player_menu_select<0)
+         player_menu_select = 0;
+      redraw = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      player_menu_select++;
+      if(player_menu_select>=RvR_array_length(player_menu_items))
+         player_menu_select = RvR_array_length(player_menu_items)-1;
+      redraw = 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      player.menu_state = 0;
+      action_set_equip(area,player.e, item_index_get(player_menu_items[player_menu_select]));
+      return 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+   {
+      player.menu_state = 0;
+      return 1;
+   }
+
+   return redraw;
+}
+
+static void player_draw_equip()
 {
    //Item list
    draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);

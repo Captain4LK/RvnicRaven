@@ -319,6 +319,9 @@ static int action_path(World *w, Area *a, Entity *e)
          return ACTION_FINISHED;
    }
 
+   if(status==2)
+      return ACTION_LEFT_MAP;
+
    if(!act->interrupt&&!point_equal(e->pos, act->as.path.goal)&&act->as.path.pos<act->as.path.len - 1)
    {
       act->id = ACTION_PATH;
@@ -385,6 +388,27 @@ static int action_drop(World *w, Area *a, Entity *e)
                }
             }
          }
+
+         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         {
+            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+            {
+               for(Item *con = cur->container.it;con!=NULL;con = con->next)
+               {
+                  if(con==it)
+                  {
+                     Item *ni = item_duplicate(w,it);
+                     ni->pos = e->pos;
+                     item_add(a,ni);
+                     item_grid_add(a,ni);
+
+                     item_free(it);
+
+                     return ACTION_FINISHED;
+                  }
+               }
+            }
+         }
       }
    }
 
@@ -419,6 +443,7 @@ static int action_equip(World *w, Area *a, Entity *e)
             {
                if(cur==it)
                {
+                  entity_equip(w,a,e,it);
                   //Item *inv = item_duplicate(w,it);
                   //item_free(it);
                   //inv->prev_next = &e->body.parts[i].slots[j].it;
@@ -426,6 +451,21 @@ static int action_equip(World *w, Area *a, Entity *e)
                   //e->body.parts[i].slots[j].it = inv;
 
                   return ACTION_FINISHED;
+               }
+            }
+         }
+
+         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         {
+            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+            {
+               for(Item *con = cur->container.it;con!=NULL;con = con->next)
+               {
+                  if(con==it)
+                  {
+                     entity_equip(w,a,e,it);
+                     return ACTION_FINISHED;
+                  }
                }
             }
          }

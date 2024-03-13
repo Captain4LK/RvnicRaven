@@ -69,7 +69,7 @@ struct Entity
 
    //>UINT64_MAX/2 --> non-historic
    uint64_t id;
-   int removed;
+   //int removed;
 
    //
    int fatigue;
@@ -118,6 +118,6 @@ typedef struct
 {
    uint64_t id;
    Entity *index;
-}Gendex;
+}Entity_index;
 
 #endif
