@@ -30,6 +30,8 @@ void action_set_path(Area *a, Entity *e, Point goal, uint32_t flags);
 void action_set_pickup(Area *a, Entity *e, Item_index index);
 void action_set_drop(Area *a, Entity *e, Item_index index);
 void action_set_equip(Area *a, Entity *e, Item_index index);
+void action_set_remove(Area *a, Entity *e, Item_index index);
+void action_set_put(Area *a, Entity *e, Item_index index, Item_index container);
 
 void action_interrupt(Entity *e);
 

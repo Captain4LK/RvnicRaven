@@ -44,6 +44,8 @@ static int action_path(World *w, Area *a, Entity *e);
 static int action_pickup(World *w, Area *a, Entity *e);
 static int action_drop(World *w, Area *a, Entity *e);
 static int action_equip(World *w, Area *a, Entity *e);
+static int action_remove(World *w, Area *a, Entity *e);
+static int action_put(World *w, Area *a, Entity *e);
 //-------------------------------------
 
 //Function implementations
@@ -85,6 +87,12 @@ int action_do(World *w, Area *a, Entity *e)
       break;
    case ACTION_EQUIP:
       status = action_equip(w, a, e);
+      break;
+   case ACTION_REMOVE:
+      status = action_remove(w, a, e);
+      break;
+   case ACTION_PUT:
+      status = action_put(w, a, e);
       break;
    default:
       break;
@@ -240,6 +248,37 @@ void action_set_equip(Area *a, Entity *e, Item_index index)
    e->action.can_interrupt = 1;
 
    e->action.as.equip.item = index;
+}
+
+void action_set_remove(Area *a, Entity *e, Item_index index)
+{
+   if(e==NULL)
+      return;
+
+   action_free(e);
+
+   e->action.id = ACTION_REMOVE;
+   e->action.cost = 128;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 1;
+
+   e->action.as.remove.item = index;
+}
+
+void action_set_put(Area *a, Entity *e, Item_index index, Item_index container)
+{
+   if(e==NULL)
+      return;
+
+   action_free(e);
+
+   e->action.id = ACTION_PUT;
+   e->action.cost = 128;
+   e->action.interrupt = 0;
+   e->action.can_interrupt = 1;
+
+   e->action.as.put.item = index;
+   e->action.as.put.container = container;
 }
 
 void action_interrupt(Entity *e)
@@ -471,6 +510,31 @@ static int action_equip(World *w, Area *a, Entity *e)
          }
       }
    }
+
+   return ACTION_FINISHED;
+}
+
+static int action_remove(World *w, Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = 0;
+
+   Item *it = item_index_try(act->as.remove.item);
+
+   entity_remove(w,a,e,it);
+
+   return ACTION_FINISHED;
+}
+
+static int action_put(World *w, Area *a, Entity *e)
+{
+   Action *act = &e->action;
+   act->status = 0;
+
+   Item *it = item_index_try(act->as.put.item);
+   Item *con = item_index_try(act->as.put.container);
+
+   entity_put(w,a,e,it,con);
 
    return ACTION_FINISHED;
 }

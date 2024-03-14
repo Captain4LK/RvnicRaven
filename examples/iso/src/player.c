@@ -42,6 +42,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 Player player;
 
 static Item **player_menu_items = NULL;
+static Item_index player_menu_put = {0};
 static int player_menu_select = 0;
 //-------------------------------------
 
@@ -54,6 +55,12 @@ static int player_update_drop();
 static void player_draw_drop();
 static int player_update_equip();
 static void player_draw_equip();
+static int player_update_remove();
+static void player_draw_remove();
+static int player_update_put0();
+static void player_draw_put0();
+static int player_update_put1();
+static void player_draw_put1();
 //-------------------------------------
 
 //Function implementations
@@ -122,6 +129,9 @@ int player_update()
    case 1: return player_update_pickup();
    case 2: return player_update_drop();
    case 3: return player_update_equip();
+   case 4: return player_update_remove();
+   case 5: return player_update_put0();
+   case 6: return player_update_put1();
    }
 
    return 0;
@@ -135,6 +145,9 @@ void player_menu_draw()
    case 1: player_draw_pickup(); break;
    case 2: player_draw_drop(); break;
    case 3: player_draw_equip(); break;
+   case 4: player_draw_remove(); break;
+   case 5: player_draw_put0(); break;
+   case 6: player_draw_put1(); break;
    }
 }
 
@@ -283,6 +296,93 @@ static int player_update_none()
       {
          player_menu_select = 0;
          player.menu_state = 3;
+         return 1;
+      }
+   }
+
+   //Remove
+   if(RvR_key_pressed(RVR_KEY_R))
+   {
+      //Create list of removable items
+      RvR_array_length_set(player_menu_items,0);
+
+      for(int i = 0;i<player.e->body.part_count;i++)
+      {
+         if(player.e->body.parts[i].hp<=0)
+            continue;
+
+         for(int j = 0;j<player.e->body.parts[i].slot_count;j++)
+         {
+            if(player.e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+               continue;
+
+            for(Item *cur = player.e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+            {
+               RvR_array_push(player_menu_items,cur);
+
+               if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
+                  continue;
+
+               for(Item *con = cur->container.it;con!=NULL;con = con->next)
+               {
+                  RvR_array_push(player_menu_items,con);
+               }
+            }
+         }
+      }
+
+      if(RvR_array_length(player_menu_items)>=1)
+      {
+         player_menu_select = 0;
+         player.menu_state = 4;
+         return 1;
+      }
+   }
+
+   //Put
+   if(RvR_key_pressed(RVR_KEY_P))
+   {
+      //Create list of accessible items
+      RvR_array_length_set(player_menu_items,0);
+
+      int gx = player.e->pos.x/8;
+      int gy = player.e->pos.y/8;
+      int gz = player.e->pos.z/8;
+
+      Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
+      for(; cur!=NULL; cur = cur->g_next)
+         if(point_equal(cur->pos, player.e->pos))
+            RvR_array_push(player_menu_items,cur);
+
+      for(int i = 0;i<player.e->body.part_count;i++)
+      {
+         if(player.e->body.parts[i].hp<=0)
+            continue;
+
+         for(int j = 0;j<player.e->body.parts[i].slot_count;j++)
+         {
+            if(player.e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+            {
+               Item *cur = player.e->body.parts[i].slots[j].it;
+               for(;cur!=NULL;cur = cur->next)
+                  RvR_array_push(player_menu_items,cur);
+            }
+
+            for(Item *cur = player.e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+            {
+               if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+               {
+                  for(Item *con = cur->container.it;con!=NULL;con = con->next)
+                     RvR_array_push(player_menu_items,con);
+               }
+            }
+         }
+      }
+
+      if(RvR_array_length(player_menu_items)>=1)
+      {
+         player_menu_select = 0;
+         player.menu_state = 5;
          return 1;
       }
    }
@@ -467,6 +567,234 @@ static int player_update_equip()
 }
 
 static void player_draw_equip()
+{
+   //Item list
+   draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, 31, 42, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, RvR_yres() - 32, 42, 1);
+   draw_line_vertical(31, 32, RvR_yres() - 33, 42, 1);
+   draw_line_vertical(RvR_xres() - 32, 32, RvR_yres() - 33, 42, 1);
+
+   for(int i = 0;i<RvR_array_length(player_menu_items);i++)
+   {
+      const char *str = item_name(player_menu_items[i]);
+      if(i==player_menu_select)
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_white);
+         RvR_render_string(36, 42+i*12, 1, ">", color_white);
+      }
+      else
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_light_gray);
+      }
+   }
+}
+
+static int player_update_remove()
+{
+   int redraw = 0;
+
+   if(RvR_key_pressed(RVR_KEY_UP))
+   {
+      player_menu_select--;
+      if(player_menu_select<0)
+         player_menu_select = 0;
+      redraw = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      player_menu_select++;
+      if(player_menu_select>=RvR_array_length(player_menu_items))
+         player_menu_select = RvR_array_length(player_menu_items)-1;
+      redraw = 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      player.menu_state = 0;
+      action_set_remove(area,player.e, item_index_get(player_menu_items[player_menu_select]));
+      return 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+   {
+      player.menu_state = 0;
+      return 1;
+   }
+
+   return redraw;
+}
+
+static void player_draw_remove()
+{
+   //Item list
+   draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, 31, 42, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, RvR_yres() - 32, 42, 1);
+   draw_line_vertical(31, 32, RvR_yres() - 33, 42, 1);
+   draw_line_vertical(RvR_xres() - 32, 32, RvR_yres() - 33, 42, 1);
+
+   for(int i = 0;i<RvR_array_length(player_menu_items);i++)
+   {
+      const char *str = item_name(player_menu_items[i]);
+      if(i==player_menu_select)
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_white);
+         RvR_render_string(36, 42+i*12, 1, ">", color_white);
+      }
+      else
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_light_gray);
+      }
+   }
+}
+
+static int player_update_put0()
+{
+   int redraw = 0;
+
+   if(RvR_key_pressed(RVR_KEY_UP))
+   {
+      player_menu_select--;
+      if(player_menu_select<0)
+         player_menu_select = 0;
+      redraw = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      player_menu_select++;
+      if(player_menu_select>=RvR_array_length(player_menu_items))
+         player_menu_select = RvR_array_length(player_menu_items)-1;
+      redraw = 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      player.menu_state = 0;
+      player_menu_put = item_index_get(player_menu_items[player_menu_select]);
+      
+      //Create list of containers
+      RvR_array_length_set(player_menu_items,0);
+
+      int gx = player.e->pos.x/8;
+      int gy = player.e->pos.y/8;
+      int gz = player.e->pos.z/8;
+
+      Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
+      for(; cur!=NULL; cur = cur->g_next)
+      {
+         if(point_equal(cur->pos, player.e->pos)&&cur->def->tags&DEF_ITEM_SLOT_CONTAINER&&cur!=item_index_try(player_menu_put))
+            RvR_array_push(player_menu_items,cur);
+      }
+
+      for(int i = 0;i<player.e->body.part_count;i++)
+      {
+         if(player.e->body.parts[i].hp<=0)
+            continue;
+
+         for(int j = 0;j<player.e->body.parts[i].slot_count;j++)
+         {
+            if(player.e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+            {
+               Item *cur = player.e->body.parts[i].slots[j].it;
+               for(;cur!=NULL;cur = cur->next)
+               {
+                  if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER&&cur!=item_index_try(player_menu_put))
+                     RvR_array_push(player_menu_items,cur);
+               }
+            }
+
+            for(Item *cur = player.e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+            {
+               if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+               {
+                  for(Item *con = cur->container.it;con!=NULL;con = con->next)
+                     if(con->def->tags&DEF_ITEM_SLOT_CONTAINER&&con!=item_index_try(player_menu_put))
+                        RvR_array_push(player_menu_items,con);
+               }
+            }
+         }
+      }
+
+      if(RvR_array_length(player_menu_items)>=1)
+      {
+         player_menu_select = 0;
+         player.menu_state = 5;
+         return 1;
+      }
+
+      return 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+   {
+      player.menu_state = 0;
+      return 1;
+   }
+
+   return redraw;
+}
+
+static void player_draw_put0()
+{
+   //Item list
+   draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, 31, 42, 1);
+   draw_line_horizontal(31, RvR_xres() - 32, RvR_yres() - 32, 42, 1);
+   draw_line_vertical(31, 32, RvR_yres() - 33, 42, 1);
+   draw_line_vertical(RvR_xres() - 32, 32, RvR_yres() - 33, 42, 1);
+
+   for(int i = 0;i<RvR_array_length(player_menu_items);i++)
+   {
+      const char *str = item_name(player_menu_items[i]);
+      if(i==player_menu_select)
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_white);
+         RvR_render_string(36, 42+i*12, 1, ">", color_white);
+      }
+      else
+      {
+         RvR_render_string(42, 42+i*12, 1, str, color_light_gray);
+      }
+   }
+}
+
+static int player_update_put1()
+{
+   int redraw = 0;
+
+   if(RvR_key_pressed(RVR_KEY_UP))
+   {
+      player_menu_select--;
+      if(player_menu_select<0)
+         player_menu_select = 0;
+      redraw = 1;
+   }
+   if(RvR_key_pressed(RVR_KEY_DOWN))
+   {
+      player_menu_select++;
+      if(player_menu_select>=RvR_array_length(player_menu_items))
+         player_menu_select = RvR_array_length(player_menu_items)-1;
+      redraw = 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ENTER))
+   {
+      player.menu_state = 0;
+      action_set_put(area,player.e, player_menu_put,item_index_get(player_menu_items[player_menu_select]));
+      return 1;
+   }
+
+   if(RvR_key_pressed(RVR_KEY_ESCAPE))
+   {
+      player.menu_state = 0;
+      return 1;
+   }
+
+   return redraw;
+}
+
+static void player_draw_put1()
 {
    //Item list
    draw_fill_rectangle(32, 32, RvR_xres() - 64, RvR_yres() - 64, 1, 1);

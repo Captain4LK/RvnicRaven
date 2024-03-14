@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 Item *item_new(World *w);
 void item_free(Item *i);
 
+//Not a deep copy!
 Item *item_duplicate(World *w, const Item *i);
 //void item_remove(Item *i);
 void item_add(Area *a, Item *i);
@@ -34,6 +35,7 @@ void item_from_def(Item *it, const ItemDef *def);
 
 inline Item_index item_index_get(Item *it) { if(it==NULL) return (Item_index){.id = 0, .index = NULL}; return (Item_index){.id = it->id,.index = it}; }
 inline Item *item_index_try(Item_index index) { if(index.index==NULL) return NULL; if(index.index->id==index.id) return index.index; return NULL; }
+inline int item_list_length(const Item *it) { int len = 0; for(const Item *cur = it;cur!=NULL;cur = cur->next) len++; return len; }
 
 //returns temporary buffer
 const char *item_name(Item *it);

@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -53,7 +53,11 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it);
 int entity_can_equip(World *w, Area *a, Entity *e, Item *it, int check_space);
 void entity_equip(World *w, Area *a, Entity *e, Item *it);
 
+void entity_remove(World *w, Area *a, Entity *e, Item *it);
+void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container);
+
 inline Entity_index entity_index_get(Entity *e) { if(e==NULL) return (Entity_index){.id = 0, .index = NULL}; return (Entity_index){.id = e->id,.index = e}; }
 inline Entity *entity_index_try(Entity_index index) { if(index.index==NULL) return NULL; if(index.index->id==index.id) return index.index; return NULL; }
+inline int entity_list_length(const Entity *e) { int len = 0; for(const Entity *cur = e; cur!=NULL; cur = cur->next) len++; return len; }
 
 #endif

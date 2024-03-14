@@ -174,11 +174,13 @@ void item_from_def(Item *it, const ItemDef *def)
    }
 }
 
+//Not a deep copy!
 Item *item_duplicate(World *w, const Item *i)
 {
    Item *ni = item_new(w);
    ni->pos = i->pos;
    ni->sprite = i->sprite;
+   ni->container = i->container;
    item_set_material(ni,i->material.def);
    item_from_def(ni,i->def);
 

@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 #include "RvR/RvR.h"
 //-------------------------------------
 
@@ -393,26 +394,9 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it)
                return 0;
             }
          }
-         /*if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP&&
-            e->body.parts[i].slots[j].it==NULL)
-         {
-            Item *inv = item_duplicate(w,it);
-            item_free(it);
-
-            inv->prev_next = &e->body.parts[i].slots[j].it;
-            inv->next = e->body.parts[i].slots[j].it;
-            e->body.parts[i].slots[j].it = inv;
-
-            return 0;
-         }*/
       }
    }
-   //TODO(Captain4LK): slots in equipment
-
    //-------------------------------------
-
-   //Item *inv = item_duplicate(w,it);
-   //item_remove(it);
 
    return 1;
 }
@@ -463,7 +447,7 @@ int entity_can_equip(World *w, Area *a, Entity *e, Item *it, int check_space)
 void entity_equip(World *w, Area *a, Entity *e, Item *it)
 {
    if(e==NULL)
-      return 0;
+      return;
 
    for(int i = 0;i<e->body.part_count;i++)
    {
@@ -504,6 +488,197 @@ void entity_equip(World *w, Area *a, Entity *e, Item *it)
          e->body.parts[i].slots[j].it = inv;
          
          return;
+      }
+   }
+}
+
+void entity_remove(World *w, Area *a, Entity *e, Item *it)
+{
+   //Search for free slot
+   Item_slot *hand = NULL;
+   int min = INT_MAX;
+
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(e->body.parts[i].slots[j].type!=ITEM_SLOT_GRASP)
+            continue;
+
+         int len = item_list_length(e->body.parts[i].slots[j].it);
+         if(len<min)
+         {
+            min = len;
+            hand = &e->body.parts[i].slots[j];
+         }
+      }
+   }
+
+   //No usable grasp slot
+   if(hand==NULL)
+      return;
+
+   //Check if item accessible
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+            continue;
+
+         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         {
+            if(cur==it)
+            {
+               Item *inv = item_duplicate(w,it);
+               item_free(it);
+
+               inv->prev_next = &hand->it;
+               if(hand->it!=NULL)
+                  hand->it->prev_next = &inv->next;
+               inv->next = hand->it;
+               hand->it = inv;
+
+               return;
+            }
+
+            if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
+               continue;
+
+            for(Item *con = cur->container.it;con!=NULL;con = con->next)
+            {
+               if(con!=it)
+                  continue;
+
+               Item *inv = item_duplicate(w,it);
+               item_free(it);
+
+               inv->prev_next = &hand->it;
+               if(hand->it!=NULL)
+                  hand->it->prev_next = &inv->next;
+               inv->next = hand->it;
+               hand->it = inv;
+
+               return;
+            }
+         }
+      }
+   }
+}
+
+void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
+{
+   if(!(container->def->tags&DEF_ITEM_SLOT_CONTAINER))
+      return;
+
+   if(it==container)
+      return;
+
+   //Check if container accessible
+   Item_slot *contain = NULL;
+   int gx = e->pos.x/8;
+   int gy = e->pos.y/8;
+   int gz = e->pos.z/8;
+
+   for(Item *cur = a->item_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx]; cur!=NULL; cur = cur->g_next)
+      if(point_equal(cur->pos, e->pos)&&cur==container)
+         contain = &container->container;
+
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         {
+            if(cur==container)
+               contain = &container->container;
+         }
+      }
+   }
+
+   if(contain==NULL)
+      return;
+
+   //Check if item accessible
+   gx = e->pos.x/8;
+   gy = e->pos.y/8;
+   gz = e->pos.z/8;
+   for(Item *cur = a->item_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx]; cur!=NULL; cur = cur->g_next)
+   {
+      if(!(point_equal(cur->pos, e->pos)&&cur==container))
+         continue;
+
+      Item *inv = item_duplicate(w,it);
+      item_free(it);
+
+      inv->prev_next = &contain->it;
+      if(contain->it!=NULL)
+         contain->it->prev_next = &inv->next;
+      inv->next = contain->it;
+      contain->it = inv;
+
+      return;
+   }
+
+   for(int i = 0;i<e->body.part_count;i++)
+   {
+      if(e->body.parts[i].hp<=0)
+         continue;
+
+      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      {
+         if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
+         {
+            Item *cur = e->body.parts[i].slots[j].it;
+            for(;cur!=NULL;cur = cur->next)
+            {
+               if(cur==it)
+               {
+                  Item *inv = item_duplicate(w,it);
+                  item_free(it);
+
+                  inv->prev_next = &contain->it;
+                  if(contain->it!=NULL)
+                     contain->it->prev_next = &inv->next;
+                  inv->next = contain->it;
+                  contain->it = inv;
+
+                  return;
+               }
+            }
+         }
+
+         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         {
+            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+            {
+               for(Item *con = cur->container.it;con!=NULL;con = con->next)
+               {
+                  if(con==it)
+                  {
+                     Item *inv = item_duplicate(w,it);
+                     item_free(it);
+
+                     inv->prev_next = &contain->it;
+                     if(contain->it!=NULL)
+                        contain->it->prev_next = &inv->next;
+                     inv->next = contain->it;
+                     contain->it = inv;
+
+                     return;
+                  }
+               }
+            }
+         }
       }
    }
 }

@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -31,6 +31,8 @@ typedef enum
    ACTION_PICKUP = 6,
    ACTION_DROP = 7,
    ACTION_EQUIP = 8,
+   ACTION_REMOVE = 9,
+   ACTION_PUT = 10,
 }Action_id;
 
 typedef enum
@@ -82,6 +84,17 @@ typedef struct
 
 typedef struct
 {
+   Item_index item;
+}ARemove;
+
+typedef struct
+{
+   Item_index item;
+   Item_index container;
+}APut;
+
+typedef struct
+{
    Action_id id;
    int status;
 
@@ -98,6 +111,8 @@ typedef struct
       APickup pickup;
       ADrop drop;
       AEquip equip;
+      ARemove remove;
+      APut put;
    }as;
 }Action;
 
