@@ -92,17 +92,6 @@ void entity_free(Entity *e)
    entity_pool = e;
 }
 
-/*void entity_remove(Entity *e)
-{
-   if(e == NULL)
-      return;
-
-   entity_grid_remove(e);
-
-   e->id = UINT64_MAX;
-   e->removed = 1;
-}*/
-
 void entity_add(Area *a, Entity *e)
 {
    if(e==NULL)
@@ -380,19 +369,19 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it)
          Item *cur = e->body.parts[i].slots[j].it;
          for(;cur!=NULL;cur = cur->next)
          {
-            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
-            {
-               Item *inv = item_duplicate(w,it);
-               item_free(it);
+            if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
+               continue;
 
-               inv->prev_next = &cur->container.it;
-               if(cur->container.it!=NULL)
-                  cur->container.it->prev_next = &inv->next;
-               inv->next = cur->container.it;
-               cur->container.it = inv;
+            Item *inv = item_duplicate(w,it);
+            item_free(it);
 
-               return 0;
-            }
+            inv->prev_next = &cur->container.it;
+            if(cur->container.it!=NULL)
+               cur->container.it->prev_next = &inv->next;
+            inv->next = cur->container.it;
+            cur->container.it = inv;
+
+            return 0;
          }
       }
    }
@@ -534,39 +523,19 @@ void entity_remove(World *w, Area *a, Entity *e, Item *it)
 
          for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
          {
-            if(cur==it)
-            {
-               Item *inv = item_duplicate(w,it);
-               item_free(it);
-
-               inv->prev_next = &hand->it;
-               if(hand->it!=NULL)
-                  hand->it->prev_next = &inv->next;
-               inv->next = hand->it;
-               hand->it = inv;
-
-               return;
-            }
-
-            if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
+            if(cur!=it)
                continue;
 
-            for(Item *con = cur->container.it;con!=NULL;con = con->next)
-            {
-               if(con!=it)
-                  continue;
+            Item *inv = item_duplicate(w,it);
+            item_free(it);
 
-               Item *inv = item_duplicate(w,it);
-               item_free(it);
+            inv->prev_next = &hand->it;
+            if(hand->it!=NULL)
+               hand->it->prev_next = &inv->next;
+            inv->next = hand->it;
+            hand->it = inv;
 
-               inv->prev_next = &hand->it;
-               if(hand->it!=NULL)
-                  hand->it->prev_next = &inv->next;
-               inv->next = hand->it;
-               hand->it = inv;
-
-               return;
-            }
+            return;
          }
       }
    }
@@ -574,6 +543,9 @@ void entity_remove(World *w, Area *a, Entity *e, Item *it)
 
 void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
 {
+   if(it==NULL||container==NULL)
+      return;
+
    if(!(container->def->tags&DEF_ITEM_SLOT_CONTAINER))
       return;
 
@@ -614,7 +586,7 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
    gz = e->pos.z/8;
    for(Item *cur = a->item_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx]; cur!=NULL; cur = cur->g_next)
    {
-      if(!(point_equal(cur->pos, e->pos)&&cur==container))
+      if(!(point_equal(cur->pos, e->pos)&&cur!=container))
          continue;
 
       Item *inv = item_duplicate(w,it);
@@ -659,23 +631,23 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
 
          for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
          {
-            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+            if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
+               continue;
+
+            for(Item *con = cur->container.it;con!=NULL;con = con->next)
             {
-               for(Item *con = cur->container.it;con!=NULL;con = con->next)
+               if(con==it)
                {
-                  if(con==it)
-                  {
-                     Item *inv = item_duplicate(w,it);
-                     item_free(it);
+                  Item *inv = item_duplicate(w,it);
+                  item_free(it);
 
-                     inv->prev_next = &contain->it;
-                     if(contain->it!=NULL)
-                        contain->it->prev_next = &inv->next;
-                     inv->next = contain->it;
-                     contain->it = inv;
+                  inv->prev_next = &contain->it;
+                  if(contain->it!=NULL)
+                     contain->it->prev_next = &inv->next;
+                  inv->next = contain->it;
+                  contain->it = inv;
 
-                     return;
-                  }
+                  return;
                }
             }
          }

@@ -203,9 +203,6 @@ static int player_update_none()
       Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
       for(; cur!=NULL; cur = cur->g_next)
       {
-         //if(cur->removed)
-            //continue;
-
          if(point_equal(cur->pos, player.e->pos))
             RvR_array_push(player_menu_items,cur);
       }
@@ -260,7 +257,7 @@ static int player_update_none()
    //Wear
    if(RvR_key_pressed(RVR_KEY_W))
    {
-      //Create list of equibableitems in accesible slots
+      //Create list of equibable items in accesible slots
       RvR_array_length_set(player_menu_items,0);
 
       for(int i = 0;i<player.e->body.part_count;i++)
@@ -319,14 +316,6 @@ static int player_update_none()
             for(Item *cur = player.e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
             {
                RvR_array_push(player_menu_items,cur);
-
-               if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
-                  continue;
-
-               for(Item *con = cur->container.it;con!=NULL;con = con->next)
-               {
-                  RvR_array_push(player_menu_items,con);
-               }
             }
          }
       }
@@ -349,8 +338,7 @@ static int player_update_none()
       int gy = player.e->pos.y/8;
       int gz = player.e->pos.z/8;
 
-      Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
-      for(; cur!=NULL; cur = cur->g_next)
+      for(Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
          if(point_equal(cur->pos, player.e->pos))
             RvR_array_push(player_menu_items,cur);
 
@@ -680,8 +668,8 @@ static int player_update_put0()
       int gy = player.e->pos.y/8;
       int gz = player.e->pos.z/8;
 
-      Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
-      for(; cur!=NULL; cur = cur->g_next)
+      
+      for(Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
       {
          if(point_equal(cur->pos, player.e->pos)&&cur->def->tags&DEF_ITEM_SLOT_CONTAINER&&cur!=item_index_try(player_menu_put))
             RvR_array_push(player_menu_items,cur);
@@ -694,24 +682,10 @@ static int player_update_put0()
 
          for(int j = 0;j<player.e->body.parts[i].slot_count;j++)
          {
-            if(player.e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
-            {
-               Item *cur = player.e->body.parts[i].slots[j].it;
-               for(;cur!=NULL;cur = cur->next)
-               {
-                  if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER&&cur!=item_index_try(player_menu_put))
-                     RvR_array_push(player_menu_items,cur);
-               }
-            }
-
             for(Item *cur = player.e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
             {
-               if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
-               {
-                  for(Item *con = cur->container.it;con!=NULL;con = con->next)
-                     if(con->def->tags&DEF_ITEM_SLOT_CONTAINER&&con!=item_index_try(player_menu_put))
-                        RvR_array_push(player_menu_items,con);
-               }
+               if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER&&cur!=item_index_try(player_menu_put))
+                     RvR_array_push(player_menu_items,cur);
             }
          }
       }
@@ -719,7 +693,7 @@ static int player_update_put0()
       if(RvR_array_length(player_menu_items)>=1)
       {
          player_menu_select = 0;
-         player.menu_state = 5;
+         player.menu_state = 6;
          return 1;
       }
 

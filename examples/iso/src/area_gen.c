@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -41,14 +41,15 @@ static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var);
 
 Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, uint8_t dimy, uint8_t dimz, uint16_t id)
 {
-   RvR_rand_pcg rand = {0};
-   RvR_rand_pcg_seed(&rand, seed);
+   //RvR_rand_pcg rand = {0};
+   //RvR_rand_pcg_seed(&rand, seed);
 
    int stridey = dimy * 32 + 1;
    int stridex = dimx * 32 + 1;
    int32_t *elevation = RvR_malloc(sizeof(*elevation) * stridex * stridey, "AreaGen elevation");
    int32_t *temperature = RvR_malloc(sizeof(*temperature) * stridex * stridey, "AreaGen temperature");
    int32_t *rainfall = RvR_malloc(sizeof(*rainfall) * stridex * stridey, "AreaGen rainfall");
+   RvR_rand_pcg *pcg = RvR_malloc(sizeof(*pcg) * stridex * stridey, "AreaGen pcg");
    for(int i = 0; i<stridex * stridey; i++)
    {
       elevation[i] = -1;
@@ -56,6 +57,16 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
       rainfall[i] = -1;
    }
    int stride = dimy * 32 + 1;
+
+   //Init rngs
+   for(int y = 0; y<stridey; y++)
+   {
+      for(int x = 0; x<stridex; x++)
+      {
+         uint32_t buf[3] = {seed,ax+x,ay+y};
+         RvR_rand_pcg_seed(&pcg[y*stridex+y],RvR_fnv32a_buf(buf,sizeof(buf),RVR_HASH_FNV32_INIT));
+      }
+   }
 
    //Init grid
    for(int y = 0; y<dimy; y++)
@@ -86,9 +97,10 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
             int32_t e1 = elevation[(y) * dimy_rest * stride + (x + 1) * dimx_rest];
             int32_t e2 = elevation[(y + 1) * dimy_rest * stride + (x) * dimx_rest];
             int32_t e3 = elevation[(y + 1) * dimy_rest * stride + (x + 1) * dimx_rest];
+            size_t index = (y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest+dimx_rest/2;
 
-            if(elevation[(y * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest + dimx_rest / 2]==-1)
-               elevation[(y * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest + dimx_rest / 2] = (e0 + e1 + e2 + e3) / 4 + rand_offset(&rand, 5 + l, w->preset.var_elevation);
+            if(elevation[index]==-1)
+               elevation[index] = (e0 + e1 + e2 + e3) / 4 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
          }
       }
 
@@ -114,17 +126,21 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
                e6 = elevation[((y - 1) * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest + dimx_rest / 2];
             }
 
-            if(elevation[(y * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest]==-1)
-               elevation[(y * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest] = (e0 + e3 + e5 + e4) / 4 + rand_offset(&rand, 5 + l, w->preset.var_elevation);
+            size_t index = (y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest;
+            if(elevation[index]==-1)
+               elevation[index] = (e0 + e3 + e5 + e4) / 4 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
 
-            if(elevation[(y * dimy_rest) * stride + x * dimx_rest + dimx_rest / 2]==-1)
-               elevation[(y * dimy_rest) * stride + x * dimx_rest + dimx_rest / 2] = (e0 + e1 + e6 + e4) / 4 + rand_offset(&rand, 5 + l, w->preset.var_elevation);
+            index = (y*dimy_rest)*stride+x*dimx_rest+dimx_rest/2;
+            if(elevation[index]==-1)
+               elevation[index] = (e0 + e1 + e6 + e4) / 4 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
 
-            if(x==dimx_level - 1&&elevation[(y * dimy_rest + dimy_rest / 2) * stride + (x + 1) * dimx_rest]==-1)
-               elevation[(y * dimy_rest + dimy_rest / 2) * stride + (x + 1) * dimx_rest] = (e1 + e2 + e4) / 3 + rand_offset(&rand, 5 + l, w->preset.var_elevation);
+            index = (y*dimy_rest+dimy_rest/2)*stride+(x+1)*dimx_rest;
+            if(x==dimx_level - 1&&elevation[index]==-1)
+               elevation[index] = (e1 + e2 + e4) / 3 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
 
-            if(y==dimy_level - 1&&elevation[((y + 1) * dimy_rest) * stride + x * dimx_rest + dimx_rest / 2]==-1)
-               elevation[((y + 1) * dimy_rest) * stride + x * dimx_rest + dimx_rest / 2] = (e2 + e3 + e4) / 3 + rand_offset(&rand, 5 + l, w->preset.var_elevation);
+            index = ((y+1)*dimy_rest)*stride+x*dimx_rest+dimx_rest/2;
+            if(y==dimy_level - 1&&elevation[index]==-1)
+               elevation[index] = (e2 + e3 + e4) / 3 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
          }
       }
 
@@ -144,7 +160,8 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
             if(y - 1>=0) {sum += elevation[((y) * dimy_rest - dimy_rest / 2) * stride + (x) * dimx_rest]; count++;}
             if(y + 1<dimy_level) {sum += elevation[((y) * dimy_rest + dimy_rest / 2) * stride + (x) * dimx_rest]; count++;}
 
-            elevation[y * dimy_rest * stride + x * dimx_rest] = sum / count + rand_offset(&rand, 5 + l, w->preset.var_elevation);
+            size_t index = y*dimy_rest*stride+x*dimx_rest;
+            elevation[index] = sum / count + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
          }
       }
 #endif
@@ -178,6 +195,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
    RvR_free(elevation);
    RvR_free(temperature);
    RvR_free(rainfall);
+   RvR_free(pcg);
 
    //TODO(Captain4LK): slopes
    for(int y = 0; y<dimy * 32; y++)
