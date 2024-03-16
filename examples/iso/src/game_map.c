@@ -124,7 +124,7 @@ void game_map_draw()
    Region *rc = region_get(world, pe.mx / 32, pe.my / 32);
    if(rc!=NULL)
    {
-      elevation_center = rc->elevation[(pe.my % 32) * 33 + (pe.mx % 32)];
+      elevation_center = rc->srf.top[(pe.my % 32) * 33 + (pe.mx % 32)];
    }
 
    int origin_y = (16 * cam.y) / 16;

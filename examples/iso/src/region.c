@@ -202,11 +202,25 @@ Region *region_get(World *w, unsigned x, unsigned y)
    for(int i = 0; i<32 * 32; i++)
       r->tiles[i] = RvR_rw_read_u16(&rw_reg);
    for(int i = 0; i<33 * 33; i++)
-      r->elevation[i] = RvR_rw_read_u32(&rw_reg);
+      r->temperature[i] = RvR_rw_read_u16(&rw_reg);
    for(int i = 0; i<33 * 33; i++)
-      r->temperature[i] = RvR_rw_read_u32(&rw_reg);
+      r->wetness[i] = RvR_rw_read_u16(&rw_reg);
    for(int i = 0; i<33 * 33; i++)
-      r->rainfall[i] = RvR_rw_read_u32(&rw_reg);
+      r->sky.top[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0; i<33 * 33; i++)
+      r->srf.top[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0; i<33 * 33; i++)
+      r->cv0.top[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0; i<33 * 33; i++)
+      r->cv0.bot[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0; i<33 * 33; i++)
+      r->cv1.top[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0; i<33 * 33; i++)
+      r->cv1.bot[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0; i<33 * 33; i++)
+      r->cv2.top[i] = RvR_rw_read_u16(&rw_reg);
+   for(int i = 0; i<33 * 33; i++)
+      r->cv2.bot[i] = RvR_rw_read_u16(&rw_reg);
 
    RvR_rw_close(&rw_reg);
    //-------------------------------------
@@ -261,7 +275,7 @@ void region_save(World *w, unsigned x, unsigned y)
    //Compress
    //-------------------------------------
    int32_t size = 32 * 32 * 2;
-   size += 33 * 33 * 4 * 3;
+   size += 33 * 33 * 2 * 10;
    if(region_buffer==NULL||region_buffer_size<size)
    {
       region_buffer = RvR_realloc(region_buffer, size, "Region buffer");
@@ -276,11 +290,25 @@ void region_save(World *w, unsigned x, unsigned y)
    for(int i = 0; i<32 * 32; i++)
       RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->tiles[i]);
    for(int i = 0; i<33 * 33; i++)
-      RvR_rw_write_u32(&rw_comp, w->regions[y * dim + x]->elevation[i]);
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->temperature[i]);
    for(int i = 0; i<33 * 33; i++)
-      RvR_rw_write_u32(&rw_comp, w->regions[y * dim + x]->temperature[i]);
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->wetness[i]);
    for(int i = 0; i<33 * 33; i++)
-      RvR_rw_write_u32(&rw_comp, w->regions[y * dim + x]->rainfall[i]);
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->sky.top[i]);
+   for(int i = 0; i<33 * 33; i++)
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->srf.top[i]);
+   for(int i = 0; i<33 * 33; i++)
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->cv0.top[i]);
+   for(int i = 0; i<33 * 33; i++)
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->cv0.bot[i]);
+   for(int i = 0; i<33 * 33; i++)
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->cv1.top[i]);
+   for(int i = 0; i<33 * 33; i++)
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->cv1.bot[i]);
+   for(int i = 0; i<33 * 33; i++)
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->cv2.top[i]);
+   for(int i = 0; i<33 * 33; i++)
+      RvR_rw_write_u16(&rw_comp, w->regions[y * dim + x]->cv2.bot[i]);
 
    RvR_rw_init_dyn_mem(&rw_comp_out, size, 1);
    RvR_crush_compress(&rw_comp, &rw_comp_out, 10);

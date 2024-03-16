@@ -25,6 +25,9 @@ typedef enum
 
 typedef struct
 {
+   uint16_t x;
+   uint16_t y;
+   uint16_t z;
    uint32_t tiles[32*32*32];
 }Chunk;
 
@@ -52,12 +55,48 @@ typedef struct
 typedef struct
 {
    uint16_t tiles[32 * 32];
+   uint16_t wetness[33*33];
+   uint16_t temperature[33*33];
 
+   //Sky -- ???
+   struct
+   {
+      uint16_t top[33*33];
+   }sky;
+
+   //Surface
+   struct
+   {
+      uint16_t top[33*33];
+   }srf;
+
+   //Surface
    //Edge points duplicated
    //-1 for uninitialized
-   int32_t elevation[33 * 33];
-   int32_t temperature[33 * 33];
-   int32_t rainfall[33 * 33];
+   //int32_t elevation[33 * 33];
+   //int32_t temperature[33 * 33];
+   //int32_t rainfall[33 * 33];
+
+   //Cavern 0 -- ???
+   struct
+   {
+      uint16_t top[33*33];
+      uint16_t bot[33*33];
+   }cv0;
+
+   //Cavern 1 -- ???
+   struct
+   {
+      uint16_t top[33*33];
+      uint16_t bot[33*33];
+   }cv1;
+
+   //Cavern 2 -- Hell
+   struct
+   {
+      uint16_t top[33*33];
+      uint16_t bot[33*33];
+   }cv2;
 }Region;
 
 typedef struct

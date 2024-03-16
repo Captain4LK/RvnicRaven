@@ -191,7 +191,7 @@ int32_t world_elevation(World *w, int32_t x, int32_t y)
    if(r==NULL)
       return 0;
 
-   return r->elevation[ty * 33 + tx];
+   return r->srf.top[ty * 33 + tx];
 }
 
 static void world_load_base_file(World *world)
