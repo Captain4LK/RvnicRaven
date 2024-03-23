@@ -71,6 +71,23 @@ typedef struct
    }as;
 }ray_sprite;
 
+
+typedef struct
+{
+   RvR_ray_depth_buffer_entry *floor[RVR_XRES_MAX];
+   RvR_ray_depth_buffer_entry *ceiling[RVR_XRES_MAX];
+} RvR_ray_depth_buffer;
+
+extern RvR_ray_depth_buffer ray_depth_buffer;
+
 extern ray_sprite *ray_sprites;
+extern const RvR_ray_cam *ray_cam;
+extern const RvR_ray_map *ray_map;
+extern RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_pool;
+
+void sprites_render(RvR_ray_selection *select);
+void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
+void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
+void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
 
 #endif

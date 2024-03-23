@@ -102,7 +102,7 @@ typedef struct
    void *ref;
 }RvR_ray_selection;
 
-void               RvR_ray_draw_begin();
+void               RvR_ray_draw_begin(const RvR_ray_cam *cam, const RvR_ray_map *map);
 void               RvR_ray_draw_end(const RvR_ray_cam *cam, const RvR_ray_map *map, RvR_ray_selection *select);
 void               RvR_ray_draw_map(const RvR_ray_cam *cam, const RvR_ray_map *map);
 void               RvR_ray_draw_sprite(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags, void *ref);
