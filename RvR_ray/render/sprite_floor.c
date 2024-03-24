@@ -31,36 +31,36 @@ static RvR_fix16 ray_span_start[RVR_YRES_MAX] = {0};
 //-------------------------------------
 
 //Function prototypes
-static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
+static void ray_floor_span_draw(const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture);
 //-------------------------------------
 
 //Function implementations
 
-void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select)
+void ray_sprite_draw_floor(const ray_sprite *sp, RvR_ray_selection *select)
 {
    //After clipping we will never have more than 8 vertices
    RvR_fix16 verts[8][3];
    RvR_fix16 verts2[8][3];
    int verts_count = 4;
    int verts2_count = 0;
-   RvR_fix16 fovx = RvR_fix16_tan(cam->fov / 2);
+   RvR_fix16 fovx = RvR_fix16_tan(ray_cam->fov / 2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres() * fovx * 2, RvR_xres() << 16);
    RvR_texture *texture = RvR_texture_get(sp->texture);
-   RvR_fix16 middle_row = (RvR_yres() / 2) + cam->shear;
-   RvR_fix16 middle_row2 = (RvR_yres() / 2) - cam->shear;
+   RvR_fix16 middle_row = (RvR_yres() / 2) + ray_cam->shear;
+   RvR_fix16 middle_row2 = (RvR_yres() / 2) - ray_cam->shear;
 
    verts[0][0] = sp->as.floor.x0;
    verts[0][1] = sp->as.floor.z0;
-   verts[0][2] = (sp->z - cam->z) * RvR_yres();
+   verts[0][2] = (sp->z - ray_cam->z) * RvR_yres();
    verts[1][0] = sp->as.floor.x1;
    verts[1][1] = sp->as.floor.z1;
-   verts[1][2] = (sp->z - cam->z) * RvR_yres();
+   verts[1][2] = (sp->z - ray_cam->z) * RvR_yres();
    verts[2][0] = sp->as.floor.x2;
    verts[2][1] = sp->as.floor.z2;
-   verts[2][2] = (sp->z - cam->z) * RvR_yres();
+   verts[2][2] = (sp->z - ray_cam->z) * RvR_yres();
    verts[3][0] = sp->as.floor.x3;
    verts[3][1] = sp->as.floor.z3;
-   verts[3][2] = (sp->z - cam->z) * RvR_yres();
+   verts[3][2] = (sp->z - ray_cam->z) * RvR_yres();
 
    //Clip to view
    //-------------------------------
@@ -294,11 +294,11 @@ void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const
 
          //End spans top
          for(; s0<s1&&s0<=e0; s0++)
-            ray_floor_span_draw(cam, sp, ray_span_start[s0], x, s0, texture);
+            ray_floor_span_draw(sp, ray_span_start[s0], x, s0, texture);
 
          //End spans bottom
          for(; e0>e1&&e0>=s0; e0--)
-            ray_floor_span_draw(cam, sp, ray_span_start[e0], x, e0, texture);
+            ray_floor_span_draw(sp, ray_span_start[e0], x, e0, texture);
 
          //Start spans top
          for(; s1<s0&&s1<=e1; s1++)
@@ -320,11 +320,11 @@ void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const
    RvR_fix16 s0 = prev_start;
    RvR_fix16 s1 = prev_end;
    for(; s0<=s1; s0++)
-      ray_floor_span_draw(cam, sp, ray_span_start[s0], x, s0, texture);
+      ray_floor_span_draw(sp, ray_span_start[s0], x, s0, texture);
    //-------------------------------
 }
 
-static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture)
+static void ray_floor_span_draw(const ray_sprite *sp, int x0, int x1, int y, const RvR_texture *texture)
 {
    //Shouldn't happen
    if(x0>=x1)
@@ -333,22 +333,22 @@ static void ray_floor_span_draw(const RvR_ray_cam *cam, const ray_sprite *sp, in
    if(texture==NULL)
       return;
 
-   RvR_fix16 view_sin = RvR_fix16_sin(cam->dir);
-   RvR_fix16 view_cos = RvR_fix16_cos(cam->dir);
-   RvR_fix16 fovx = RvR_fix16_tan(cam->fov / 2);
+   RvR_fix16 view_sin = RvR_fix16_sin(ray_cam->dir);
+   RvR_fix16 view_cos = RvR_fix16_cos(ray_cam->dir);
+   RvR_fix16 fovx = RvR_fix16_tan(ray_cam->fov / 2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres() * fovx * 2, RvR_xres() << 16);
-   RvR_fix16 middle_row = (RvR_yres() / 2) + cam->shear;
+   RvR_fix16 middle_row = (RvR_yres() / 2) + ray_cam->shear;
 
    RvR_fix16 dy = middle_row - y;
-   RvR_fix16 depth = RvR_fix16_div(RvR_abs(cam->z - sp->z), RvR_non_zero(fovy));
+   RvR_fix16 depth = RvR_fix16_div(RvR_abs(ray_cam->z - sp->z), RvR_non_zero(fovy));
    depth = RvR_fix16_div(depth * RvR_yres(), RvR_non_zero(RvR_abs(dy) << 16)); //TODO
 
    RvR_fix16 x_log = RvR_log2(texture->width);
    RvR_fix16 y_log = RvR_log2(texture->height);
-   RvR_fix16 step_x = RvR_fix16_div(RvR_fix16_mul(view_sin, cam->z - sp->z), RvR_non_zero(dy * 65536));
-   RvR_fix16 step_y = RvR_fix16_div(RvR_fix16_mul(view_cos, cam->z - sp->z), RvR_non_zero(dy * 65536));
-   RvR_fix16 tx = (cam->x - sp->x) + RvR_fix16_mul(view_cos, depth) + (x0 - RvR_xres() / 2) * step_x;
-   RvR_fix16 ty = -(cam->y - sp->y) - RvR_fix16_mul(view_sin, depth) + (x0 - RvR_xres() / 2) * step_y;
+   RvR_fix16 step_x = RvR_fix16_div(RvR_fix16_mul(view_sin, ray_cam->z - sp->z), RvR_non_zero(dy * 65536));
+   RvR_fix16 step_y = RvR_fix16_div(RvR_fix16_mul(view_cos, ray_cam->z - sp->z), RvR_non_zero(dy * 65536));
+   RvR_fix16 tx = (ray_cam->x - sp->x) + RvR_fix16_mul(view_cos, depth) + (x0 - RvR_xres() / 2) * step_x;
+   RvR_fix16 ty = -(ray_cam->y - sp->y) - RvR_fix16_mul(view_sin, depth) + (x0 - RvR_xres() / 2) * step_y;
    RvR_fix16 x_and = (1 << x_log) - 1;
    RvR_fix16 y_and = (1 << y_log) - 1;
 

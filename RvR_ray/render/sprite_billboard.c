@@ -34,26 +34,26 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select)
+void ray_sprite_draw_billboard(const ray_sprite *sp, RvR_ray_selection *select)
 {
-   RvR_fix16 cos = RvR_fix16_cos(cam->dir);
-   RvR_fix16 sin = RvR_fix16_sin(cam->dir);
-   RvR_fix16 fovx = RvR_fix16_tan(cam->fov / 2);
+   RvR_fix16 cos = RvR_fix16_cos(ray_cam->dir);
+   RvR_fix16 sin = RvR_fix16_sin(ray_cam->dir);
+   RvR_fix16 fovx = RvR_fix16_tan(ray_cam->fov / 2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres() * fovx * 2, RvR_xres() << 16);
-   RvR_fix16 middle_row = (RvR_yres() / 2) + cam->shear;
+   RvR_fix16 middle_row = (RvR_yres() / 2) + ray_cam->shear;
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
 
-   RvR_fix16 tpx = sp->x - cam->x;
-   RvR_fix16 tpy = sp->y - cam->y;
+   RvR_fix16 tpx = sp->x - ray_cam->x;
+   RvR_fix16 tpy = sp->y - ray_cam->y;
    RvR_fix16 depth = RvR_fix16_mul(tpx, cos) + RvR_fix16_mul(tpy, sin);
    tpx = RvR_fix16_mul(-tpx, sin) + RvR_fix16_mul(tpy, cos);
 
    //Dimensions
-   RvR_fix16 top = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (sp->z - cam->z + texture->height * 1024), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
+   RvR_fix16 top = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (sp->z - ray_cam->z + texture->height * 1024), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
    int y0 = (top + 65535) / 65536;
 
-   RvR_fix16 bot = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (sp->z - cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
+   RvR_fix16 bot = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (sp->z - ray_cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
    int y1 = (bot - 1) / 65536;
 
    RvR_fix16 left = RvR_xres() * 32768 + RvR_fix16_div((RvR_xres() / 2) * (tpx - texture->width * 512), RvR_non_zero(RvR_fix16_mul(depth, fovx)));
@@ -63,11 +63,11 @@ void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, c
    int x1 = (right - 1) / 65536;
 
    //Floor and ceiling clip
-   RvR_fix16 cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_floor_height_at(map, (int16_t)(sp->x / 65536), (int16_t)(sp->y / 65536)) - cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
+   RvR_fix16 cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_floor_height_at(ray_map, (int16_t)(sp->x / 65536), (int16_t)(sp->y / 65536)) - ray_cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
    int clip_bottom = RvR_min(cy / 65536, RvR_yres());
    y1 = RvR_min(y1, clip_bottom);
 
-   cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_ceiling_height_at(map, (int16_t)(sp->x / 65536), (int16_t)(sp->y / 65536)) - cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
+   cy = middle_row * 65536 - RvR_fix16_div(RvR_yres() * (RvR_ray_map_ceiling_height_at(ray_map, (int16_t)(sp->x / 65536), (int16_t)(sp->y / 65536)) - ray_cam->z), RvR_non_zero(RvR_fix16_mul(depth, fovy)));
    int clip_top = RvR_max(cy / 65536, 0);
    y0 = RvR_max(y0, clip_top);
 
@@ -125,9 +125,9 @@ void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, c
       tex = &texture->data[texture->height * (tu)];
       dst = &RvR_framebuffer()[ys * RvR_xres() + x];
 
-      RvR_fix16 v = (sp->z - cam->z) + (ys - middle_row + 1) * step_v + texture->height * 1024;
+      RvR_fix16 v = (sp->z - ray_cam->z) + (ys - middle_row + 1) * step_v + texture->height * 1024;
       if(sp->flags & 4)
-         v = texture->height * 1024 - ((sp->z - cam->z) + (ys - middle_row + 1) * (-step_v) + texture->height * 1024);
+         v = texture->height * 1024 - ((sp->z - ray_cam->z) + (ys - middle_row + 1) * (-step_v) + texture->height * 1024);
 
       if(select!=NULL&&select->x==x&&select->y>=ys&&select->y<ye&&select->depth>depth)
       {

@@ -34,23 +34,23 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select)
+void ray_sprite_draw_wall(const ray_sprite *sp, RvR_ray_selection *select)
 {
    RvR_texture *texture = RvR_texture_get(sp->texture);
    RvR_fix16 scale_vertical = texture->height * 1024; //texture height in map coordinates
-   RvR_fix16 fovx = RvR_fix16_tan(cam->fov / 2);
+   RvR_fix16 fovx = RvR_fix16_tan(ray_cam->fov / 2);
    RvR_fix16 fovy = RvR_fix16_div(RvR_yres() * fovx * 2, RvR_xres() << 16);
-   RvR_fix16 middle_row = (RvR_yres() / 2) + cam->shear;
+   RvR_fix16 middle_row = (RvR_yres() / 2) + ray_cam->shear;
 
-   RvR_fix16 cy0 = RvR_fix16_div(RvR_yres() * (sp->z + scale_vertical - cam->z), RvR_fix16_mul(sp->as.wall.z0, fovy));
-   RvR_fix16 cy1 = RvR_fix16_div(RvR_yres() * (sp->z + scale_vertical - cam->z), RvR_fix16_mul(sp->as.wall.z1, fovy));
+   RvR_fix16 cy0 = RvR_fix16_div(RvR_yres() * (sp->z + scale_vertical - ray_cam->z), RvR_fix16_mul(sp->as.wall.z0, fovy));
+   RvR_fix16 cy1 = RvR_fix16_div(RvR_yres() * (sp->z + scale_vertical - ray_cam->z), RvR_fix16_mul(sp->as.wall.z1, fovy));
    cy0 = middle_row * 65536 - cy0;
    cy1 = middle_row * 65536 - cy1;
    RvR_fix16 step_cy = RvR_fix16_div(cy1 - cy0, RvR_non_zero(sp->as.wall.x1 - sp->as.wall.x0));
    RvR_fix16 cy = cy0;
 
-   RvR_fix16 fy0 = RvR_fix16_div(RvR_yres() * (sp->z - cam->z), RvR_fix16_mul(sp->as.wall.z0, fovy));
-   RvR_fix16 fy1 = RvR_fix16_div(RvR_yres() * (sp->z - cam->z), RvR_fix16_mul(sp->as.wall.z1, fovy));
+   RvR_fix16 fy0 = RvR_fix16_div(RvR_yres() * (sp->z - ray_cam->z), RvR_fix16_mul(sp->as.wall.z0, fovy));
+   RvR_fix16 fy1 = RvR_fix16_div(RvR_yres() * (sp->z - ray_cam->z), RvR_fix16_mul(sp->as.wall.z1, fovy));
    fy0 = middle_row * 65536 - fy0;
    fy1 = middle_row * 65536 - fy1;
    RvR_fix16 step_fy = RvR_fix16_div(fy1 - fy0, RvR_non_zero(sp->as.wall.x1 - sp->as.wall.x0));
@@ -131,7 +131,7 @@ void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const 
       //TODO: investigate this
       if(sp->flags & 2)
          u = texture->width - u - 1;
-      RvR_fix16 height = sp->z + scale_vertical - cam->z;
+      RvR_fix16 height = sp->z + scale_vertical - ray_cam->z;
       RvR_fix16 coord_step_scaled = RvR_fix16_mul(fovy, depth) / RvR_yres();
       RvR_fix16 texture_coord_scaled = height + (wy - middle_row + 1) * coord_step_scaled;
       //Vertical flip

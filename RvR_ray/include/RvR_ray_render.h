@@ -37,20 +37,17 @@ typedef struct
       }bill;
       struct
       {
+         RvR_fix16 x0;
+         RvR_fix16 xw0;
+         RvR_fix16 z0;
+         RvR_fix16 zw0;
+         RvR_fix16 x1;
+         RvR_fix16 xw1;
+         RvR_fix16 z1;
+         RvR_fix16 zw1;
+
          RvR_fix16 u0;
          RvR_fix16 u1;
-
-         RvR_fix16 x0;
-         RvR_fix16 z0;
-         RvR_fix16 x1;
-         RvR_fix16 z1;
-
-         //Camera space coordinates
-         //wy is depth
-         RvR_fix16 wx0;
-         RvR_fix16 wy0;
-         RvR_fix16 wx1;
-         RvR_fix16 wy1;
       }wall;
       struct
       {
@@ -86,8 +83,8 @@ extern const RvR_ray_map *ray_map;
 extern RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_pool;
 
 void sprites_render(RvR_ray_selection *select);
-void ray_sprite_draw_billboard(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
-void ray_sprite_draw_floor(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
-void ray_sprite_draw_wall(const RvR_ray_cam *cam, const RvR_ray_map *map, const ray_sprite *sp, RvR_ray_selection *select);
+void ray_sprite_draw_billboard(const ray_sprite *sp, RvR_ray_selection *select);
+void ray_sprite_draw_floor(const ray_sprite *sp, RvR_ray_selection *select);
+void ray_sprite_draw_wall(const ray_sprite *sp, RvR_ray_selection *select);
 
 #endif
