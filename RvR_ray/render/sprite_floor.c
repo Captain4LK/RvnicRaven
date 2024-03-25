@@ -276,15 +276,15 @@ void ray_sprite_draw_floor(const ray_sprite *sp, RvR_ray_selection *select)
             clip = clip->next;
          }
 
-         if(select!=NULL&&x==select->x&&select->y>=start&&select->y<=end&&select->depth>sp->as.floor.wy)
+         if(select!=NULL)
          {
-            //Check for transparent pixels
-            //TODO(Captain4LK): move to ray_floor_span_draw?
-            /*if(tex[(v + step_v * (select->y - ys)) >> 10])
+            if(x==select->x&&select->y>=start&&select->y<=end&&select->depth>sp->as.floor.wy)
             {
-               select->depth = depth;
                select->ref = sp->ref;
-            }*/
+               //select->as.sprite = sp->sprite;
+               select->depth = sp->as.floor.wy;
+               //select->type = RVR_PORT_SSPRITE_FLOOR;
+            }
          }
 
          RvR_fix16 s0 = prev_start;

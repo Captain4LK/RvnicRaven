@@ -91,10 +91,6 @@ void RvR_ray_draw_sprite(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, u
       tmp = x1;
       x1 = RvR_fix16_mul(-x1, sin) + RvR_fix16_mul(y1, cos);
       y1 = RvR_fix16_mul(tmp, cos_fov) + RvR_fix16_mul(y1, sin_fov);
-      //RvR_fix16 tp0x = RvR_fix16_mul(-x0, sin) + RvR_fix16_mul(y0, cos);
-      //RvR_fix16 tp0y = RvR_fix16_mul(x0, cos_fov) + RvR_fix16_mul(y0, sin_fov);
-      //RvR_fix16 tp1x = RvR_fix16_mul(-x1, sin) + RvR_fix16_mul(y1, cos);
-      //RvR_fix16 tp1y = RvR_fix16_mul(x1, cos_fov) + RvR_fix16_mul(y1, sin_fov);
 
       //Behind camera
       if(y0<-128&&y1<-128)
