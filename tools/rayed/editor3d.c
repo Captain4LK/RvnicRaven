@@ -530,7 +530,7 @@ void editor3d_draw()
       }
       //-------------------------------------
 
-      RvR_ray_draw_begin();
+      RvR_ray_draw_begin(&camera,&map);
       Map_sprite *s = map_sprites;
       while(s!=NULL)
       {
@@ -539,8 +539,9 @@ void editor3d_draw()
          s = s->next;
       }
 
-      RvR_ray_draw_map(&camera, map);
-      RvR_ray_draw_end(&camera, map);
+      RvR_ray_selection selection;
+      RvR_ray_draw_map();
+      RvR_ray_draw_end(&selection);
 
       texture_highlight_old = texture_highlight;
       if(wlocation==0)
