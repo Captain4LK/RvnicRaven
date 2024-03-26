@@ -530,7 +530,7 @@ void editor3d_draw()
       }
       //-------------------------------------
 
-      RvR_ray_draw_begin(&camera,&map);
+      RvR_ray_draw_begin(&camera,map);
       Map_sprite *s = map_sprites;
       while(s!=NULL)
       {

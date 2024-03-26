@@ -90,13 +90,13 @@ void sprite_draw(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, int32_t s
    const Sprite *sp = sprites + sprite;
    if(!sp->rot)
    {
-      RvR_ray_draw_sprite(&player.cam, x, y, z, dir, sp->tex[0], 0, ref);
+      RvR_ray_draw_sprite(x, y, z, dir, sp->tex[0], 0, ref);
       return;
    }
 
    RvR_fix16 rot = RvR_fix16_atan2(player.entity->y - y, player.entity->x - x);
    rot = (rot + 4096 - dir) & 65535;
-   RvR_ray_draw_sprite(&player.cam, x, y, z, dir, sp->tex[(rot / 8192) & 7], 0, ref);
+   RvR_ray_draw_sprite(x, y, z, dir, sp->tex[(rot / 8192) & 7], 0, ref);
 }
 
 void sprite_draw_end()

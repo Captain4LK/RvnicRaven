@@ -74,7 +74,7 @@ void game_card_draw()
    if(fade_timer==FADE_TIME)
       memcpy(RvR_texture_get(65535)->data, RvR_framebuffer(), RvR_xres() * RvR_yres());
 
-   RvR_ray_draw_begin();
+   RvR_ray_draw_begin(&player.cam,map_current());
    sprite_draw_begin();
 
    //Draw entities
@@ -94,7 +94,7 @@ void game_card_draw()
       sprite_draw(c->x, c->y, c->z, 0, 32768, c);
    }
 
-   RvR_ray_draw_map(&player.cam, map_current());
+   RvR_ray_draw_map();
 
    sprite_draw_end();
 
@@ -102,7 +102,7 @@ void game_card_draw()
    RvR_mouse_pos(&mx, &my);
    select.x = mx;
    select.y = my;
-   RvR_ray_draw_end(&player.cam, map_current(), &select);
+   RvR_ray_draw_end(&select);
 
    RvR_render_rectangle_fill(0, 0, RvR_xres(), 8, 20);
    RvR_render_rectangle_fill(0, 0, 8, RvR_yres(), 20);
@@ -167,7 +167,7 @@ void game_card_view_draw()
    if(fade_timer==FADE_TIME)
       memcpy(RvR_texture_get(65535)->data, RvR_framebuffer(), RvR_xres() * RvR_yres());
 
-   RvR_ray_draw_begin();
+   RvR_ray_draw_begin(&player.cam,map_current());
    sprite_draw_begin();
 
    //Draw entities
@@ -187,11 +187,11 @@ void game_card_view_draw()
       sprite_draw(c->x, c->y, c->z, 0, 32768, NULL);
    }
 
-   RvR_ray_draw_map(&player.cam, map_current());
+   RvR_ray_draw_map();
 
    sprite_draw_end();
 
-   RvR_ray_draw_end(&player.cam, map_current(), NULL);
+   RvR_ray_draw_end(NULL);
 
    RvR_render_rectangle_fill(RvR_xres() / 2 - 96, RvR_yres() / 2 - 128, 192, 256, 10);
 

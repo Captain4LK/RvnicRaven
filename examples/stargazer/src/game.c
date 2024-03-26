@@ -100,7 +100,7 @@ void game_draw()
    if(fade_timer==FADE_TIME)
       memcpy(RvR_texture_get(65535)->data, RvR_framebuffer(), RvR_xres() * RvR_yres());
 
-   RvR_ray_draw_begin();
+   RvR_ray_draw_begin(&player.cam,map_current());
    sprite_draw_begin();
 
    //Draw entities
@@ -119,11 +119,11 @@ void game_draw()
       c = c->next;
    }
 
-   RvR_ray_draw_map(&player.cam, map_current());
+   RvR_ray_draw_map();
 
    sprite_draw_end();
 
-   RvR_ray_draw_end(&player.cam, map_current(), NULL);
+   RvR_ray_draw_end(NULL);
 
    if(fade_timer--)
    {
