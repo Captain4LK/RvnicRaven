@@ -151,6 +151,7 @@ void ray_sprite_draw_wall(const ray_sprite *sp, RvR_ray_selection *select)
          //Check for transparent pixels
          if(tex[(texture_coord_scaled + coord_step_scaled * (select->y - wy)) >> 10])
          {
+            select->type = RVR_RAY_SSPRITE_WALL;
             select->depth = depth;
             select->ref = sp->ref;
          }

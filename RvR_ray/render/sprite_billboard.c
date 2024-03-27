@@ -134,6 +134,7 @@ void ray_sprite_draw_billboard(const ray_sprite *sp, RvR_ray_selection *select)
          //Check for transparent pixels
          if(tex[(v + step_v * (select->y - ys)) >> 10])
          {
+            select->type = RVR_RAY_SSPRITE_BILL;
             select->depth = depth;
             select->ref = sp->ref;
          }

@@ -94,12 +94,25 @@ struct RvR_ray_depth_buffer_entry
    RvR_ray_depth_buffer_entry *next;
 };
 
+typedef enum
+{
+   RVR_RAY_SNONE,
+   RVR_RAY_SSPRITE_BILL,
+   RVR_RAY_SSPRITE_WALL,
+   RVR_RAY_SSPRITE_FLOOR,
+}RvR_ray_select;
+
 typedef struct
 {
    int x;
    int y;
    RvR_fix16 depth;
+   RvR_ray_select type;
    void *ref;
+   union
+   {
+      uint8_t tmp; //Nothing here yet
+   }as;
 }RvR_ray_selection;
 
 void               RvR_ray_draw_begin(const RvR_ray_cam *cam, const RvR_ray_map *map);

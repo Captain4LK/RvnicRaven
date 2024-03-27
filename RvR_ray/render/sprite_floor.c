@@ -280,10 +280,10 @@ void ray_sprite_draw_floor(const ray_sprite *sp, RvR_ray_selection *select)
          {
             if(x==select->x&&select->y>=start&&select->y<=end&&select->depth>sp->as.floor.wy)
             {
+               select->type = RVR_RAY_SSPRITE_FLOOR;
                select->ref = sp->ref;
                //select->as.sprite = sp->sprite;
                select->depth = sp->as.floor.wy;
-               //select->type = RVR_PORT_SSPRITE_FLOOR;
             }
          }
 
