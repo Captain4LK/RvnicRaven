@@ -101,48 +101,6 @@ void editor3d_draw(void)
    }
 }
 
-#if 0
-void editor3d_update()
-{
-   int mx, my;
-   RvR_mouse_pos(&mx, &my);
-
-   if(menu==0)
-   {
-   }
-   else if(menu==1)
-   {
-   }
-   else if(menu==2)
-   {
-   }
-
-   if(menu==3||menu==4)
-   {
-   }
-}
-
-void editor3d_draw()
-{
-   int mx, my;
-   RvR_mouse_pos(&mx, &my);
-
-   if(menu==0)
-   {
-   }
-   else if(menu==1||menu==3)
-   {
-   }
-   else if(menu==2||menu==4)
-   {
-   }
-
-   if(menu==3||menu==4)
-   {
-   }
-}
-#endif
-
 static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location)
 {
    if(my<0||my>=RvR_yres()||mx<0||mx>=RvR_xres())
