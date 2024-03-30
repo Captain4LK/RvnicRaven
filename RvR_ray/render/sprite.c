@@ -306,12 +306,6 @@ void sprites_render(RvR_ray_selection *select)
       }
    }
 
-   if(select!=NULL)
-   {
-      select->depth = RVR_RAY_MAX_STEPS * 65536;
-      select->ref = NULL;
-   }
-
    //Render sprites
    for(int i = 0; i<RvR_array_length(ray_sprites); i++)
    {

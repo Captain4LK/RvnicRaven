@@ -100,6 +100,8 @@ typedef enum
    RVR_RAY_SSPRITE_BILL,
    RVR_RAY_SSPRITE_WALL,
    RVR_RAY_SSPRITE_FLOOR,
+   RVR_RAY_SWALL_TOP,
+   RVR_RAY_SWALL_BOT,
 }RvR_ray_select;
 
 typedef struct
@@ -117,7 +119,7 @@ typedef struct
 
 void               RvR_ray_draw_begin(const RvR_ray_cam *cam, const RvR_ray_map *map);
 void               RvR_ray_draw_end(RvR_ray_selection *select);
-void               RvR_ray_draw_map();
+void               RvR_ray_draw_map(RvR_ray_selection *select);
 void               RvR_ray_draw_sprite(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, uint16_t sprite, uint32_t flags, void *ref);
 RvR_ray_pixel_info RvR_ray_map_to_screen(const RvR_ray_cam *cam, RvR_fix16 x, RvR_fix16 y, RvR_fix16 z);
 

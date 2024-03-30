@@ -54,7 +54,7 @@ const RvR_ray_map *ray_map = NULL;
 //-------------------------------------
 
 //Function prototypes
-static void ray_draw_column(RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray);
+static void ray_draw_column(RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray, RvR_ray_selection *select);
 static int16_t ray_draw_wall(RvR_fix16 y_current, RvR_fix16 y_from, RvR_fix16 y_to, RvR_fix16 limit0, RvR_fix16 limit1, RvR_fix16 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit);
 static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix16 height, const RvR_texture *texture);
 
@@ -136,8 +136,15 @@ const RvR_ray_depth_buffer_entry *RvR_ray_depth_buffer_entry_ceiling(int x)
    return ray_depth_buffer.ceiling[x];
 }
 
-void RvR_ray_draw_map()
+void RvR_ray_draw_map(RvR_ray_selection *select)
 {
+   if(select!=NULL)
+   {
+      select->depth = RVR_RAY_MAX_STEPS * 65536;
+      select->ref = NULL;
+      select->type = RVR_RAY_SNONE;
+   }
+
    RvR_fix16 dir0x = RvR_fix16_cos(ray_cam->dir - (ray_cam->fov / 2));
    RvR_fix16 dir0y = RvR_fix16_sin(ray_cam->dir - (ray_cam->fov / 2));
    RvR_fix16 dir1x = RvR_fix16_cos(ray_cam->dir + (ray_cam->fov / 2));
@@ -354,7 +361,7 @@ void RvR_ray_draw_map()
          }
       }
 
-      ray_draw_column(hits, hit_count, x, r);
+      ray_draw_column(hits, hit_count, x, r,select);
 
    }
 
@@ -459,7 +466,7 @@ void RvR_ray_draw_map()
    //-------------------------------------
 }
 
-static void ray_draw_column(RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray)
+static void ray_draw_column(RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray, RvR_ray_selection *select)
 {
    //last written Y position, can never go backwards
    RvR_fix16 f_pos_y = RvR_yres();
