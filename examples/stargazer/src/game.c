@@ -119,7 +119,7 @@ void game_draw()
       c = c->next;
    }
 
-   RvR_ray_draw_map();
+   RvR_ray_draw_map(NULL);
 
    sprite_draw_end();
 

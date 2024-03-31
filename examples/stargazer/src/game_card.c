@@ -94,7 +94,7 @@ void game_card_draw()
       sprite_draw(c->x, c->y, c->z, 0, 32768, c);
    }
 
-   RvR_ray_draw_map();
+   RvR_ray_draw_map(NULL);
 
    sprite_draw_end();
 
@@ -187,7 +187,7 @@ void game_card_view_draw()
       sprite_draw(c->x, c->y, c->z, 0, 32768, NULL);
    }
 
-   RvR_ray_draw_map();
+   RvR_ray_draw_map(NULL);
 
    sprite_draw_end();
 
