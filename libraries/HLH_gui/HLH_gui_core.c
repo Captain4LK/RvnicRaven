@@ -14,9 +14,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <string.h>
 #include <stdint.h>
 
+#define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_STATIC
 #include "stb_image.h"
+#define STBIW_WINDOWS_UTF8
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_STATIC
+#include "stb_image_write.h"
+
+#include "HLH.h"
 //-------------------------------------
 
 //Internal includes
@@ -36,6 +43,7 @@ static HLH_gui_window **core_windows;
 static int core_scale = 1;
 static SDL_Surface *core_font_surface;
 uint32_t HLH_gui_timer_event = 0;
+static int textinput_count = 0;
 
 static const uint64_t core_font[] =
 {
@@ -77,6 +85,8 @@ static const uint64_t core_font[] =
 //Function prototypes
 HLH_gui_window *core_find_window(SDL_Window *win);
 static int core_window_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
+
+static void image_write_func(void *context, void *data, int size);
 //-------------------------------------
 
 //Function implementations
@@ -117,6 +127,7 @@ HLH_gui_window *HLH_gui_window_create(const char *title, int width, int height, 
 {
    HLH_gui_window *window = (HLH_gui_window *)HLH_gui_element_create(sizeof(*window), NULL, 0, core_window_msg);
    window->e.window = window;
+   window->e.type = HLH_GUI_WINDOW;
    //window->hover = &window->e;
    window->width = width;
    window->height = height;
@@ -249,7 +260,7 @@ int HLH_gui_message_loop(void)
 
                win->e.bounds = HLH_gui_rect_make(0, 0, win->width, win->height);
 
-               HLH_gui_element_pack(&win->e, win->e.bounds);
+               HLH_gui_element_layout(&win->e, win->e.bounds);
                HLH_gui_element_redraw(&win->e);
             }
          }
@@ -298,11 +309,12 @@ int HLH_gui_message_loop(void)
             continue;
 
          //Hack to prevent flooding the event queue
-         SDL_GetMouseState(&win->mouse_x, &win->mouse_y);
+         //SDL_GetMouseState(&win->mouse_x, &win->mouse_y);
+         SDL_GetMouseState(&mouse.pos.x, &mouse.pos.y);
          SDL_FlushEvent(SDL_MOUSEMOTION);
 
-         mouse.pos.x = event.motion.x;
-         mouse.pos.y = event.motion.y;
+         //mouse.pos.x = event.motion.x;
+         //mouse.pos.y = event.motion.y;
          mouse.wheel = 0;
          HLH_gui_handle_mouse(&win->e, mouse);
 
@@ -320,6 +332,15 @@ int HLH_gui_message_loop(void)
             win = core_find_window(SDL_GetWindowFromID(event.key.windowID));
             if(win==NULL)
                continue;
+
+            if(win->keyboard!=NULL)
+            {
+               HLH_gui_textinput in = {0};
+               in.type = 1;
+               in.keycode = event.key.keysym.sym;
+               HLH_gui_element_msg(win->keyboard,HLH_GUI_MSG_TEXTINPUT,0,&in);
+               continue;
+            }
 
             if(event.key.repeat)
                HLH_gui_element_msg_all(&win->e, HLH_GUI_MSG_BUTTON_REPEAT, event.key.keysym.scancode, NULL);
@@ -371,12 +392,58 @@ int HLH_gui_message_loop(void)
          HLH_gui_handle_mouse(&win->e, mouse);
 
          break;
+      case SDL_TEXTINPUT:
+         win = core_find_window(SDL_GetWindowFromID(event.text.windowID));
+         if(win==NULL||win->keyboard==NULL)
+            continue;
+
+         for(int i = 0;i<strlen(event.text.text);i++)
+         {
+            HLH_gui_textinput in = {0};
+            in.type = 0;
+            in.ch = event.text.text[i];
+            HLH_gui_element_msg(win->keyboard,HLH_GUI_MSG_TEXTINPUT,0,&in);
+         }
+
+         break;
+      case SDL_TEXTEDITING:
+         win = core_find_window(SDL_GetWindowFromID(event.edit.windowID));
+         if(win==NULL||win->keyboard==NULL)
+            continue;
+
+         break;
       }
 
       if(event.type==HLH_gui_timer_event)
       {
          //TODO(Captain4LK): what do we do if this takes longer than timer_interval?
          HLH_gui_element_msg(event.user.data1, HLH_GUI_MSG_TIMER, 0, NULL);
+      }
+
+      if(win!=NULL)
+      {
+         if(HLH_array_length(win->redraw)>0)
+         {
+            if(SDL_SetRenderTarget(win->renderer, win->target)<0)
+               fprintf(stderr, "SDL_SetRenderTarget(): %s\n", SDL_GetError());
+
+            for(int i = 0;i<HLH_array_length(win->redraw);i++)
+            {
+               if(win->redraw[i]->needs_redraw)
+                  HLH_gui_element_redraw_msg(win->redraw[i]);
+            }
+            HLH_array_length_set(win->redraw,0);
+
+            if(SDL_SetRenderTarget(win->renderer, NULL)<0)
+               fprintf(stderr, "SDL_SetRenderTarget(): %s\n", SDL_GetError());
+            if(SDL_RenderClear(win->renderer)<0)
+               fprintf(stderr, "SDL_RenderClear(): %s\n", SDL_GetError());
+            if(SDL_RenderCopy(win->renderer, win->target, NULL, NULL)<0)
+               fprintf(stderr, "SDL_RenderCopy(): %s\n", SDL_GetError());
+            if(SDL_RenderCopy(win->renderer, win->overlay, NULL, NULL)<0)
+               fprintf(stderr, "SDL_RenderCopy(): %s\n", SDL_GetError());
+            SDL_RenderPresent(win->renderer);
+         }
       }
    }
 }
@@ -395,30 +462,21 @@ void HLH_gui_handle_mouse(HLH_gui_element *e, HLH_gui_mouse m)
 {
    HLH_gui_element *click = NULL;
 
-   if(e->flags & HLH_GUI_REMOUSE)
+   if(e->flags & HLH_GUI_CAPTURE_MOUSE)
    {
       click = e->last_mouse;
    }
    else
    {
       click = HLH_gui_element_by_point(e, m.pos);
-      HLH_gui_element *last = e->last_mouse;
-
-      if(last!=NULL&&last!=click)
-      {
-         m.button |= HLH_GUI_MOUSE_OUT;
-         HLH_gui_element_msg(last, HLH_GUI_MSG_HIT, 0, &m);
-         m.button &= ~HLH_GUI_MOUSE_OUT;
-      }
+      if(e->last_mouse!=NULL&&e->last_mouse!=click)
+         HLH_gui_element_msg(e->last_mouse, HLH_GUI_MSG_MOUSE_LEAVE, 0,NULL);
    }
 
    if(click!=NULL)
    {
-      int remouse = HLH_gui_element_msg(click, HLH_GUI_MSG_HIT, 0, &m);
-      if(remouse)
-         e->flags |= HLH_GUI_REMOUSE;
-      else
-         e->flags &= ~HLH_GUI_REMOUSE;
+      int capture = HLH_gui_element_msg(click, HLH_GUI_MSG_MOUSE, 0, &m);
+      HLH_gui_flag_set(e->flags,HLH_GUI_CAPTURE_MOUSE,capture);
       e->last_mouse = click;
    }
 }
@@ -457,13 +515,48 @@ void HLH_gui_window_block(HLH_gui_window *root, HLH_gui_window *blocking)
    root->blocking = blocking;
 }
 
-uint32_t *HLH_gui_image_load(const char *path, int *width, int *height)
+void HLH_gui_textinput_start(HLH_gui_element *e)
 {
-   if(path==NULL)
+   if(e==NULL)
+      return;
+
+   HLH_gui_textinput_stop(e->window);
+
+   e->window->keyboard = e;
+   if(textinput_count<=0)
+   {
+      textinput_count = 0;
+      SDL_StartTextInput();
+   }
+
+   textinput_count++;
+}
+
+void HLH_gui_textinput_stop(HLH_gui_window *w)
+{
+   if(w==NULL)
+      return;
+
+   if(w->keyboard!=NULL)
+   {
+      HLH_gui_element_msg(w->keyboard,HLH_GUI_MSG_TEXTINPUT_END,0,NULL);
+      w->keyboard = NULL;
+      textinput_count--;
+      if(textinput_count<=0)
+      {
+         textinput_count = 0;
+         SDL_StopTextInput();
+      }
+   }
+}
+
+uint32_t *HLH_gui_image_load(FILE *fp, int *width, int *height)
+{
+   if(fp==NULL)
       return NULL;
 
    int n;
-   return (uint32_t *)stbi_load(path, width, height, &n, 4);
+   return (uint32_t *)stbi_load_from_file(fp, width, height, &n, 4);
 }
 
 void HLH_gui_image_free(uint32_t *pix)
@@ -472,6 +565,22 @@ void HLH_gui_image_free(uint32_t *pix)
       return;
 
    stbi_image_free(pix);
+}
+
+void HLH_gui_image_save(FILE *fp, uint32_t *data, int width, int height, const char *ext)
+{
+   if(fp==NULL||data==NULL||width<=0||height<=0)
+      return;
+   if(strcmp(ext,"bmp")==0)
+      stbi_write_bmp_to_func(image_write_func,fp,width,height,4,data);
+   else if(strcmp(ext,"tga")==0)
+      stbi_write_tga_to_func(image_write_func,fp,width,height,4,data);
+   else if(strcmp(ext,"jpg")==0||strcmp(ext,"JPG")==0)
+      stbi_write_jpg_to_func(image_write_func,fp,width,height,4,data,96);
+   //Save as png if unknown
+   //Could error out here, but better to save something
+   else
+      stbi_write_png_to_func(image_write_func,fp,width,height,4,data,width*4);
 }
 
 SDL_Texture *HLH_gui_texture_load(HLH_gui_window *win, const char *path, int *width, int *height)
@@ -550,5 +659,10 @@ HLH_gui_window *core_find_window(SDL_Window *win)
          return core_windows[i];
 
    return NULL;
+}
+
+static void image_write_func(void *context, void *data, int size)
+{
+   fwrite(data,size,1,(FILE *)context);
 }
 //-------------------------------------

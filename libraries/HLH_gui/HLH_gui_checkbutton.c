@@ -34,7 +34,7 @@ static void checkbutton_draw(HLH_gui_checkbutton *c);
 HLH_gui_checkbutton *HLH_gui_checkbutton_create(HLH_gui_element *parent, uint64_t flags, const char *text, HLH_gui_rect *icon_bounds)
 {
    HLH_gui_checkbutton *button = (HLH_gui_checkbutton *) HLH_gui_element_create(sizeof(*button), parent, flags, checkbutton_msg);
-   button->e.type = "checkbutton";
+   button->e.type = HLH_GUI_CHECKBUTTON;
 
    if(text!=NULL)
    {
@@ -51,21 +51,20 @@ HLH_gui_checkbutton *HLH_gui_checkbutton_create(HLH_gui_element *parent, uint64_
    return button;
 }
 
-void HLH_gui_checkbutton_set(HLH_gui_element *e, int checked, int trigger_msg, int redraw)
+void HLH_gui_checkbutton_set(HLH_gui_checkbutton *c, int checked, int trigger_msg, int redraw)
 {
-   if(e==NULL)
+   if(c==NULL)
       return;
 
-   HLH_gui_checkbutton *b = (HLH_gui_checkbutton *)e;
-   int previously = b->checked;
-   b->checked = checked;
-   if(previously!=b->checked)
+   int previously = c->checked;
+   c->checked = checked;
+   if(previously!=c->checked)
    {
       if(redraw)
-         HLH_gui_element_redraw(e);
+         HLH_gui_element_redraw(&c->e);
 
       if(trigger_msg)
-         HLH_gui_element_msg(e, HLH_GUI_MSG_CLICK, b->checked, NULL);
+         HLH_gui_element_msg(&c->e, HLH_GUI_MSG_CLICK, c->checked, NULL);
    }
 }
 
@@ -93,17 +92,20 @@ static int checkbutton_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp
    }
    else if(msg==HLH_GUI_MSG_GET_CHILD_SPACE)
    {}
-   else if(msg==HLH_GUI_MSG_HIT)
+   else if(msg==HLH_GUI_MSG_MOUSE_LEAVE)
+   {
+      int state_old = button->state;
+      button->state = 0;
+      if(state_old!=button->state)
+         HLH_gui_element_redraw(e);
+   }
+   else if(msg==HLH_GUI_MSG_MOUSE)
    {
       HLH_gui_mouse *m = dp;
 
       int click = 0;
       int state_old = button->state;
-      if(m->button & HLH_GUI_MOUSE_OUT)
-      {
-         button->state = 0;
-      }
-      else if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
+      if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
       {
          button->state = 1;
       }

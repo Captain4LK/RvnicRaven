@@ -33,7 +33,7 @@ static int label_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 HLH_gui_label *HLH_gui_label_create(HLH_gui_element *parent, uint64_t flags, const char *text)
 {
    HLH_gui_label *label = (HLH_gui_label *) HLH_gui_element_create(sizeof(*label), parent, flags, label_msg);
-   label->e.type = "label";
+   label->e.type = HLH_GUI_LABEL;
 
    label->text_len = (int)strlen(text);
    label->text = malloc(label->text_len + 1);
@@ -58,7 +58,7 @@ static int label_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    {}
    else if(msg==HLH_GUI_MSG_DRAW)
    {
-      HLH_gui_draw_string(e, e->bounds, label->text, label->text_len, 0x000000, 1);
+      HLH_gui_draw_string(e, e->bounds, label->text, label->text_len, 0x1f1f1f, 1);
    }
    else if(msg==HLH_GUI_MSG_DESTROY)
    {

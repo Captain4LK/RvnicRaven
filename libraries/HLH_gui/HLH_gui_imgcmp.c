@@ -1,7 +1,7 @@
 /*
 HLH_gui - gui framework
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -35,7 +35,7 @@ static void imgcmp_draw(HLH_gui_imgcmp *img);
 HLH_gui_imgcmp *HLH_gui_imgcmp_create(HLH_gui_element *parent, uint64_t flags, uint32_t *pix0, int width0, int height0, uint32_t *pix1, int width1, int height1)
 {
    HLH_gui_imgcmp *img = (HLH_gui_imgcmp *) HLH_gui_element_create(sizeof(*img), parent, flags, imgcmp_msg);
-   img->e.type = "imgcmp";
+   img->e.type = HLH_GUI_IMGCMP;
 
    img->slider = 1024;
    img->width0 = width0;
@@ -85,7 +85,7 @@ static int imgcmp_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    {
       return img->height0 + 6 * HLH_gui_get_scale();
    }
-   else if(msg==HLH_GUI_MSG_HIT)
+   else if(msg==HLH_GUI_MSG_MOUSE)
    {
       HLH_gui_mouse *m = dp;
 
@@ -154,6 +154,39 @@ static void imgcmp_draw(HLH_gui_imgcmp *img)
    int width = bounds.maxx - bounds.minx - scale * 6;
    int height = bounds.maxy - bounds.miny - scale * 6;
 
+   if(width * img->height1>img->width1 * height)
+   {
+      view_height = height;
+      view_width = (img->width1 * height) / img->height1;
+   }
+   else
+   {
+      view_width = width;
+      view_height = (img->height1 * width) / img->width1;
+   }
+
+   view_x = (width - view_width) / 2 + bounds.minx + 3 * scale;
+   view_y = (height - view_height) / 2 + bounds.miny + 3 * scale;
+
+   //Img0
+   SDL_Rect clip = {0};
+   int clip_width = (view_width*img->slider)/2048;
+   clip.x = view_x+clip_width;
+   clip.y = view_y;
+   clip.w = view_width-clip_width;
+   if(clip.w<=0)
+      clip.w = 1;
+   clip.h = view_height;
+   SDL_Rect dst = {0};
+   dst.x = view_x;
+   dst.y = view_y;
+   dst.w = view_width;
+   dst.h = view_height;
+   SDL_RenderSetClipRect(img->e.window->renderer, &clip);
+   SDL_RenderCopy(img->e.window->renderer, img->img1, NULL, &dst);
+   SDL_RenderSetClipRect(img->e.window->renderer, NULL);
+
+   //Img1
    if(width * img->height0>img->width0 * height)
    {
       view_height = height;
@@ -167,17 +200,10 @@ static void imgcmp_draw(HLH_gui_imgcmp *img)
 
    view_x = (width - view_width) / 2 + bounds.minx + 3 * scale;
    view_y = (height - view_height) / 2 + bounds.miny + 3 * scale;
-
-   //Img0
-   SDL_Rect dst = {0};
    dst.x = view_x;
    dst.y = view_y;
    dst.w = view_width;
    dst.h = view_height;
-   SDL_RenderCopy(img->e.window->renderer, img->img1, NULL, &dst);
-
-   //Img1
-   SDL_Rect clip = {0};
    clip.x = view_x;
    clip.y = view_y;
    clip.w = (view_width * img->slider) / 2048;

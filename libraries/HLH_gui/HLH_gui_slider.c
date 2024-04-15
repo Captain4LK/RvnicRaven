@@ -16,6 +16,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
+#define hlh_gui_max(a, b) ((a)>(b)?(a):(b))
+#define hlh_gui_min(a, b) ((a)<(b)?(a):(b))
 //-------------------------------------
 
 //Typedefs
@@ -34,6 +36,7 @@ static void slider_draw(HLH_gui_slider *s);
 HLH_gui_slider *HLH_gui_slider_create(HLH_gui_element *parent, uint64_t flags, int direction)
 {
    HLH_gui_slider *slider = (HLH_gui_slider *) HLH_gui_element_create(sizeof(*slider), parent, flags, slider_msg);
+   slider->e.type = HLH_GUI_SLIDER;
    slider->direction = direction;
    slider->value = 100;
    slider->range = 100;
@@ -43,9 +46,12 @@ HLH_gui_slider *HLH_gui_slider_create(HLH_gui_element *parent, uint64_t flags, i
 
 void HLH_gui_slider_set(HLH_gui_slider *slider, int value, int range, int trigger_msg, int redraw)
 {
+   if(slider==NULL)
+      return;
+
    if(slider->value!=value||slider->range!=range)
    {
-      slider->value = value;
+      slider->value = hlh_gui_max(0,hlh_gui_min(range,value));
       slider->range = range;
 
       if(trigger_msg)
@@ -73,7 +79,7 @@ static int slider_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    {
       slider_draw(slider);
    }
-   else if(msg==HLH_GUI_MSG_HIT)
+   else if(msg==HLH_GUI_MSG_MOUSE)
    {
       HLH_gui_mouse *m = dp;
       if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
@@ -153,4 +159,7 @@ static void slider_draw(HLH_gui_slider *s)
       HLH_gui_draw_rectangle_fill(&s->e, HLH_gui_rect_make(bounds.minx + 3 * scale, bounds.maxy - 3 * scale - height, bounds.maxx - 3 * scale, bounds.maxy - 3 * scale), 0xff323232);
    }
 }
+
+#undef hlh_gui_min
+#undef hlh_gui_max
 //-------------------------------------

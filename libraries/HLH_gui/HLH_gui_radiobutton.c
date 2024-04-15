@@ -35,7 +35,7 @@ static void radiobutton_draw(HLH_gui_radiobutton *r);
 HLH_gui_radiobutton *HLH_gui_radiobutton_create(HLH_gui_element *parent, uint64_t flags, const char *text, HLH_gui_rect *icon_bounds)
 {
    HLH_gui_radiobutton *button = (HLH_gui_radiobutton *) HLH_gui_element_create(sizeof(*button), parent, flags, radiobutton_msg);
-   button->e.type = radiobutton_type;
+   button->e.type = HLH_GUI_RADIOBUTTON;
 
    if(text!=NULL)
    {
@@ -66,13 +66,12 @@ void HLH_gui_radiobutton_set(HLH_gui_radiobutton *r, int trigger_msg, int redraw
       {
          HLH_gui_element *c = r->e.parent->children[i];
 
-         //Valid pointer comparison
-         if(c->type==radiobutton_type)
+         if(c->type==HLH_GUI_RADIOBUTTON)
          {
             HLH_gui_radiobutton *b = (HLH_gui_radiobutton *)c;
 
             //Send message to previous button
-            if(b->checked&&trigger_msg&&b!=r)
+            if(b->checked&&trigger_msg&&b->e.id!=r->e.id)
                HLH_gui_element_msg(&b->e, HLH_GUI_MSG_CLICK, 0, NULL);
             b->checked = 0;
          }
@@ -100,8 +99,10 @@ static int radiobutton_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp
    {
       if(button->is_icon)
          return (button->icon_bounds.maxx - button->icon_bounds.minx) + 6 * HLH_gui_get_scale();
-      else
+      else if(button->text_len>0)
          return (HLH_GUI_GLYPH_HEIGHT + 8) * HLH_gui_get_scale() + button->text_len * HLH_GUI_GLYPH_WIDTH * HLH_gui_get_scale() + 10 * HLH_gui_get_scale();
+      else
+         return (HLH_GUI_GLYPH_HEIGHT + 8) * HLH_gui_get_scale();
    }
    else if(msg==HLH_GUI_MSG_GET_HEIGHT)
    {
@@ -116,17 +117,20 @@ static int radiobutton_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp
    }
    else if(msg==HLH_GUI_MSG_GET_CHILD_SPACE)
    {}
-   else if(msg==HLH_GUI_MSG_HIT)
+   else if(msg==HLH_GUI_MSG_MOUSE_LEAVE)
+   {
+      int state_old = button->state;
+      button->state = 0;
+      if(state_old!=button->state)
+         HLH_gui_element_redraw(e);
+   }
+   else if(msg==HLH_GUI_MSG_MOUSE)
    {
       HLH_gui_mouse *m = dp;
 
       int click = 0;
       int state_old = button->state;
-      if(m->button & HLH_GUI_MOUSE_OUT)
-      {
-         button->state = 0;
-      }
-      else if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
+      if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
       {
          button->state = 1;
       }

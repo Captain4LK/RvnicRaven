@@ -34,7 +34,7 @@ static void button_draw(HLH_gui_button *t);
 HLH_gui_button *HLH_gui_button_create(HLH_gui_element *parent, uint64_t flags, const char *text, HLH_gui_rect *icon_bounds)
 {
    HLH_gui_button *button = (HLH_gui_button *) HLH_gui_element_create(sizeof(*button), parent, flags, button_msg);
-   button->e.type = "button";
+   button->e.type = HLH_GUI_BUTTON;
 
    if(text!=NULL)
    {
@@ -75,17 +75,20 @@ static int button_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    }
    else if(msg==HLH_GUI_MSG_GET_CHILD_SPACE)
    {}
-   else if(msg==HLH_GUI_MSG_HIT)
+   else if(msg==HLH_GUI_MSG_MOUSE_LEAVE)
+   {
+      int state_old = button->state;
+      button->state = 0;
+      if(state_old!=button->state)
+         HLH_gui_element_redraw(e);
+   }
+   else if(msg==HLH_GUI_MSG_MOUSE)
    {
       HLH_gui_mouse *m = dp;
 
       int click = 0;
       int state_old = button->state;
-      if(m->button & HLH_GUI_MOUSE_OUT)
-      {
-         button->state = 0;
-      }
-      else if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
+      if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
       {
          button->state = 1;
       }

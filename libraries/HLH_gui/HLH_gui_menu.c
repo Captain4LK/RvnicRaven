@@ -38,7 +38,7 @@ HLH_gui_group *HLH_gui_menu_create(HLH_gui_element *parent, uint64_t flags, uint
    for(int i = 0; i<label_count; i++)
    {
       HLH_gui_menubutton *button = (HLH_gui_menubutton *) HLH_gui_element_create(sizeof(*button), &group->e, cflags, menubutton_msg);
-      button->e.type = "menubutton";
+      button->e.type = HLH_GUI_MENUBUTTON;
 
       button->index = i;
       button->text_len = (int)strlen(labels[i]);
@@ -68,17 +68,20 @@ static int menubutton_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
    }
    else if(msg==HLH_GUI_MSG_GET_CHILD_SPACE)
    {}
-   else if(msg==HLH_GUI_MSG_HIT)
+   else if(msg==HLH_GUI_MSG_MOUSE_LEAVE)
+   {
+      int state_old = button->state;
+      button->state = 0;
+      if(state_old!=button->state)
+         HLH_gui_element_redraw(e);
+   }
+   else if(msg==HLH_GUI_MSG_MOUSE)
    {
       HLH_gui_mouse *m = dp;
 
       int click = 0;
       int state_old = button->state;
-      if(m->button & HLH_GUI_MOUSE_OUT)
-      {
-         button->state = 0;
-      }
-      else if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
+      if(m->button & (HLH_GUI_MOUSE_LEFT | HLH_GUI_MOUSE_RIGHT | HLH_GUI_MOUSE_MIDDLE))
       {
          button->state = 1;
       }
