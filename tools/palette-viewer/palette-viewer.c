@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 
 #include "RvR/RvR.h"
 //-------------------------------------
@@ -29,9 +30,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static uint8_t mem[MEM_SIZE];
+
+static uint8_t color_black = 0;
+static uint8_t color_white = 0;
 //-------------------------------------
 
 //Function prototypes
+static uint8_t find_closest(RvR_color *pal, RvR_color color);
 //-------------------------------------
 
 //Function implementations
@@ -70,21 +75,53 @@ int main(int argc, char **argv)
       for(int x = 0;x<256;x++)
          tex->data[y*tex->width+x] = RvR_blend(x,y);
 
+   //Create palette texture
+
+   //Find colors
+   RvR_color *pal = RvR_palette();
+   color_white = find_closest(pal, (RvR_color){.r = 255, .g = 255, .b = 255});
+   color_black = find_closest(pal, (RvR_color){.r = 0, .g = 0, .b = 0});
+
    while(RvR_running())
    {
       RvR_update();
 
-      RvR_render_clear(1);
+      RvR_render_clear(color_black);
 
+      RvR_render_string(1,1,1,"Shade table",color_white);
+      RvR_render_rectangle(1,9,260,68,color_white);
       tex = RvR_texture_get(65535);
-      RvR_render_texture(tex,0,0);
+      RvR_render_texture(tex,3,11);
 
+      RvR_render_string(1,88,1,"Transparency table",color_white);
+      RvR_render_rectangle(1,96,260,260,color_white);
       tex = RvR_texture_get(65534);
-      RvR_render_texture(tex,0,96);
+      RvR_render_texture(tex,3,98);
 
       RvR_render_present();
    }
 
    return 0;
+}
+
+static uint8_t find_closest(RvR_color *pal, RvR_color color)
+{
+   int dist_min = INT_MAX;
+   uint8_t index_min = 0;
+
+   for(int i = 0; i<256; i++)
+   {
+      int dr = pal[i].r - color.r;
+      int dg = pal[i].g - color.g;
+      int db = pal[i].b - color.b;
+      int dist = dr * dr + dg * dg + db * db;
+      if(dist<dist_min)
+      {
+         dist_min = dist;
+         index_min = (uint8_t)i;
+      }
+   }
+
+   return index_min;
 }
 //-------------------------------------

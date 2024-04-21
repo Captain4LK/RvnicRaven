@@ -20,6 +20,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define CUTE_FILES_IMPLEMENTATION
 #include "cute_files.h"
 
+#define HLH_IMPLEMENTATION
+#include "../../libraries/HLH_gui/HLH.h"
+
 #include "RvR/RvR.h"
 #include "RvR/RvR_portal.h"
 //-------------------------------------
@@ -173,12 +176,12 @@ static void ui_construct()
       "Help",
    };
 
-   HLH_gui_group *group_root = HLH_gui_group_create(&win->e, HLH_GUI_EXPAND);
-   HLH_gui_menubar_create(&group_root->e, HLH_GUI_FILL_X, HLH_GUI_PACK_WEST | HLH_GUI_STYLE_01, menubar, menus, 3, NULL);
+   HLH_gui_group *group_root = HLH_gui_group_create(&win->e, HLH_GUI_FILL);
+   HLH_gui_menubar_create(&group_root->e, HLH_GUI_FILL_X, HLH_GUI_LAYOUT_HORIZONTAL | HLH_GUI_STYLE_01, menubar, menus, 3, NULL);
    HLH_gui_separator_create(&group_root->e, HLH_GUI_FILL_X, 0);
 
-   HLH_gui_group *group = HLH_gui_group_create(&group_root->e, HLH_GUI_EXPAND);
-   HLH_gui_rvr *rvr = HLH_gui_rvr_create(&group->e, HLH_GUI_EXPAND, main_loop);
+   HLH_gui_group *group = HLH_gui_group_create(&group_root->e, HLH_GUI_FILL);
+   HLH_gui_rvr *rvr = HLH_gui_rvr_create(&group->e, HLH_GUI_FILL, main_loop);
 }
 
 static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
@@ -251,18 +254,18 @@ static void ui_construct_ask_new()
 {
    HLH_gui_window *win = HLH_gui_window_create("Create new map", 300, 100, NULL);
    HLH_gui_window_block(window_root, win);
-   HLH_gui_group *group = HLH_gui_group_create(&win->e, HLH_GUI_EXPAND);
+   HLH_gui_group *group = HLH_gui_group_create(&win->e, HLH_GUI_FILL);
 
    HLH_gui_label_create(&group->e, 0, "Are you sure you want");
    HLH_gui_label_create(&group->e, 0, "to start a new map?");
-   group = HLH_gui_group_create(&group->e, HLH_GUI_PACK_SOUTH);
-   HLH_gui_button *button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Cancel", NULL);
+   group = HLH_gui_group_create(&group->e, 0);
+   HLH_gui_button *button = HLH_gui_button_create(&group->e, HLH_GUI_LAYOUT_HORIZONTAL | HLH_GUI_FILL_X, "Cancel", NULL);
    button->e.msg_usr = ask_new_msg;
    button->e.usr = 0;
-   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Save", NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_LAYOUT_HORIZONTAL | HLH_GUI_FILL_X, "Save", NULL);
    button->e.msg_usr = ask_new_msg;
    button->e.usr = 1;
-   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Confirm", NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_LAYOUT_HORIZONTAL | HLH_GUI_FILL_X, "Confirm", NULL);
    button->e.msg_usr = ask_new_msg;
    button->e.usr = 2;
 }
@@ -271,18 +274,18 @@ static void ui_construct_ask_load()
 {
    HLH_gui_window *win = HLH_gui_window_create("Load a map", 300, 100, NULL);
    HLH_gui_window_block(window_root, win);
-   HLH_gui_group *group = HLH_gui_group_create(&win->e, HLH_GUI_EXPAND);
+   HLH_gui_group *group = HLH_gui_group_create(&win->e, HLH_GUI_FILL);
 
    HLH_gui_label_create(&group->e, 0, "Are you sure you want");
    HLH_gui_label_create(&group->e, 0, "to load a map?");
-   group = HLH_gui_group_create(&group->e, HLH_GUI_PACK_SOUTH);
-   HLH_gui_button *button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Cancel", NULL);
+   group = HLH_gui_group_create(&group->e, 0);
+   HLH_gui_button *button = HLH_gui_button_create(&group->e, HLH_GUI_LAYOUT_HORIZONTAL | HLH_GUI_FILL_X, "Cancel", NULL);
    button->e.msg_usr = ask_load_msg;
    button->e.usr = 0;
-   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Save", NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_LAYOUT_HORIZONTAL | HLH_GUI_FILL_X, "Save", NULL);
    button->e.msg_usr = ask_load_msg;
    button->e.usr = 1;
-   button = HLH_gui_button_create(&group->e, HLH_GUI_PACK_WEST | HLH_GUI_MAX_X, "Confirm", NULL);
+   button = HLH_gui_button_create(&group->e, HLH_GUI_LAYOUT_HORIZONTAL | HLH_GUI_FILL_X, "Confirm", NULL);
    button->e.msg_usr = ask_load_msg;
    button->e.usr = 2;
 }
