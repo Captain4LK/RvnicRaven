@@ -1,7 +1,7 @@
 /*
 RvnicRaven - pak ressource managment
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -86,7 +86,7 @@ static void     rvr_pak_add_csv(const char *path);
 static void     rvr_pak_add_pak(const char *path);
 
 //cute_path
-static int rvr_pak_path_pop_ext(const char *path, char *out, char *ext);
+static size_t rvr_pak_path_pop_ext(const char *path, char *out, char *ext);
 static int rvr_pak_path_pop(const char *path, char *out, char *pop);
 static int rvr_pak_path_is_slash(char c);
 
@@ -227,12 +227,9 @@ RvR_err:
    return;
 }
 
-void *RvR_lump_get(const char *name, unsigned *size)
+void *RvR_lump_get(const char *name, size_t *size)
 {
    RvR_error_check(name!=NULL, "RvR_lump_get", "argument 'name' must be non-NULL\n");
-
-   char name8[8];
-   strncpy(name8, name, 8);
 
    for(uint32_t i = 0; i<rvr_pak_lumps.used; i++)
    {
@@ -271,14 +268,13 @@ void *RvR_lump_get(const char *name, unsigned *size)
          FILE *f = fopen(rvr_pak_paths.data[rvr_pak_lumps.data[i].path], "rb");
          RvR_error_check(f!=NULL, "RvR_lump_get", "failed to open '%s'\n", rvr_pak_paths.data[rvr_pak_lumps.data[i].path]);
          fseek(f, 0, SEEK_END);
-         //2 GiB limit, will break with larger files
-         int32_t fsize = (int32_t)ftell(f);
+         intptr_t fsize = ftell(f);
          RvR_error_check(fsize>=0, "RvR_lump_get", "ftell failed\n");
          if(size!=NULL)
-            *size = (uint32_t)fsize;
+            *size = fsize;
          fseek(f, 0, SEEK_SET);
 
-         if(rvr_lump_buffer==NULL||rvr_lump_buffer_size<fsize + 1)
+         if(rvr_lump_buffer==NULL||rvr_lump_buffer_size<(size_t)fsize + 1)
          {
             rvr_lump_buffer = RvR_realloc(rvr_lump_buffer, fsize + 1, "RvR_pak lump");
             rvr_lump_buffer_size = fsize + 1;
@@ -386,9 +382,9 @@ static void rvr_pak_add_csv(const char *path)
             break;
       }
 
-      char tmp[RVR_CUTE_PATH_MAX_PATH * 2] = "";
+      char tmp[RVR_CUTE_PATH_MAX_PATH * 3] = "";
       strcpy(tmp, base_path);
-      RvR_lump_add(lump_name, strncat(tmp, lump_path, 255));
+      RvR_lump_add(lump_name, strncat(tmp, lump_path, RVR_CUTE_PATH_MAX_PATH));
    }
 
 RvR_err:
@@ -479,7 +475,7 @@ RvR_err:
    return rvr_pak_paths.used - 1;
 }
 
-//pak_path_pop, pak_path_pop_ext, pak_path_is_slash
+//pak_path_pop, pak_path_is_slash
 //by RandyGaul (https://github.com/RandyGaul), cute_headers (https://github.com/RandyGaul/cute_headers/blob/master/cute_path.h)
 //Original license info:
 /*
@@ -580,56 +576,61 @@ static int rvr_pak_path_pop(const char* path, char* out, char* pop)
    }
 }
 
-static int rvr_pak_path_pop_ext(const char *path, char *out, char *ext)
-{
-   if(out!=NULL)
-      *out = '\0';
-   if (ext!=NULL)
-      *ext = '\0';
-
-   // skip leading dots
-   const char *p = path;
-   while(*p=='.')
-      ++p;
-
-   const char *last_slash = path;
-   const char *last_period = NULL;
-   while(*p!='\0')
-   {
-      if(rvr_pak_path_is_slash(*p))
-         last_slash = p;
-      else if(*p=='.')
-         last_period = p;
-      ++p;
-   }
-
-   if(last_period!=NULL&&last_period>last_slash)
-   {
-      if(ext!=NULL)
-         strncpy(ext, last_period + 1, RVR_CUTE_PATH_MAX_EXT);
-   }
-   else
-   {
-      last_period = p;
-   }
-
-   int len = (int)(last_period - path);
-   if(len>RVR_CUTE_PATH_MAX_PATH - 1) len = RVR_CUTE_PATH_MAX_PATH - 1;
-
-   if(out!=NULL)
-   {
-      strncpy(out, path, len);
-      out[len] = '\0';
-   }
-
-   return len;
-}
-
 static int rvr_pak_path_is_slash(char c)
 {
    return (c=='/') | (c=='\\');
 }
 //cute_path END
+
+static size_t rvr_pak_path_pop_ext(const char *path, char *out, char *ext)
+{
+   if(path==NULL)
+      return 0;
+
+   if(out!=NULL)
+      out[0] = '\0';
+   if(ext!=NULL)
+      ext[0] = '\0';
+
+   char *last_dot = strrchr(path,'.');
+
+   //No dot, or string is '.' or '..' --> no extension
+   if(last_dot==NULL||!strcmp(path,".")||!strcmp(path,".."))
+   {
+      if(out==NULL)
+         return 0;
+
+      strncpy(out,path,RVR_CUTE_PATH_MAX_PATH-1);
+      out[RVR_CUTE_PATH_MAX_PATH-1] = '\0';
+      return strlen(out);
+   }
+
+   //slash after dot --> no extension
+   if(last_dot[1]=='/'||last_dot[1]=='\\')
+   {
+      if(out==NULL)
+         return 0;
+
+      strncpy(out,path,RVR_CUTE_PATH_MAX_PATH-1);
+      out[RVR_CUTE_PATH_MAX_PATH-1] = '\0';
+      return strlen(out);
+   }
+
+   if(ext!=NULL)
+   {
+      strncpy(ext,last_dot+1,RVR_CUTE_PATH_MAX_EXT-1);
+      ext[RVR_CUTE_PATH_MAX_EXT-1] = '\0';
+   }
+
+   if(out==NULL)
+      return 0;
+   intptr_t len_copy = (intptr_t)(last_dot-path);
+#define min(a,b) ((a)<(b)?(a):(b))
+   strncpy(out,path,min(len_copy,RVR_CUTE_PATH_MAX_PATH-1));
+   out[min(len_copy,RVR_CUTE_PATH_MAX_PATH-1)] = '\0';
+#undef min
+   return strlen(out);
+}
 
 //pak_size, pak_count, pak_name, pak_close, pak_extract, pak_find, pak_open, pak_append_file
 //by r-lyeh(https://github.com/r-lyeh), stdarc.c (https://github.com/r-lyeh/stdarc.c/blob/master/src/pak.c)

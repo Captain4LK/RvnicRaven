@@ -762,7 +762,7 @@ static void port_collect_walls(uint16_t start)
          dw.u1 = RvR_fix22_sqrt(RvR_fix22_mul(w1->x-w0->x,w1->x-w0->x)+RvR_fix22_mul(w1->y-w0->y,w1->y-w0->y))*w0->x_units*4-1;
          if(w0->flags&RVR_PORT_WALL_FLIP_X)
          {
-            RvR_fix22 tmp = dw.u0;
+            tmp = dw.u0;
             dw.u0 = dw.u1;
             dw.u1 = tmp;
          }

@@ -43,7 +43,7 @@ static uint8_t rvr_pal_find_closest(int r, int g, int b);
 
 void RvR_palette_load(uint16_t id)
 {
-   unsigned size_in = 0;
+   size_t size_in = 0;
    uint8_t *mem_pak = NULL;
    RvR_rw rw = {0};
 

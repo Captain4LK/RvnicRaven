@@ -71,8 +71,8 @@ static void rvr_texture_load(uint16_t id)
    char tmp[64];
    sprintf(tmp, "TEX%05d", id);
 
-   unsigned size_in;
-   int32_t size_out;
+   size_t size_in;
+   size_t size_out;
    uint8_t *mem_pak = NULL;
    uint8_t *mem_decomp = NULL;
    mem_pak = RvR_lump_get(tmp, &size_in);

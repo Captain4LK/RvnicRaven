@@ -1,7 +1,7 @@
 /*
 RvnicRaven - data (de-)compression: crush
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -66,8 +66,8 @@ typedef struct
 {
    RvR_rw *inbuf;
    RvR_rw *outbuf;
-   unsigned bit_buf;
-   unsigned bit_count;
+   size_t bit_buf;
+   size_t bit_count;
 }rvr_comp_bits;
 //-------------------------------------
 
@@ -78,14 +78,14 @@ static size_t rvr_crush_buffer_size = 0;
 
 //Function prototypes
 static void     rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, size_t level);
-static void     rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen);
+static void     rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, size_t outlen);
 static int      rvr_comp_update_hash1(int h, int c);
 static int      rvr_comp_update_hash2(int h, int c);
-static int      rvr_comp_get_penalty(int a, int b);
+static int      rvr_comp_get_penalty(size_t a, size_t b);
 static void     rvr_comp_bits_init(rvr_comp_bits *b, RvR_rw *inbuf, RvR_rw *outbuf);
-static void     rvr_comp_bits_put(rvr_comp_bits *b, unsigned n, unsigned x);
+static void     rvr_comp_bits_put(rvr_comp_bits *b, size_t n, size_t x);
 static void     rvr_comp_bits_flush(rvr_comp_bits *b);
-static unsigned rvr_comp_bits_get(rvr_comp_bits *b, unsigned n);
+static size_t rvr_comp_bits_get(rvr_comp_bits *b, size_t n);
 //-------------------------------------
 
 //Function implementations
@@ -113,7 +113,7 @@ void RvR_crush_compress(RvR_rw *in, RvR_rw *out, unsigned level)
    RvR_free(buffer_in);
 }
 
-void *RvR_crush_decompress(RvR_rw *in, int32_t *length)
+void *RvR_crush_decompress(RvR_rw *in, size_t *length)
 {
    *length = RvR_rw_read_u32(in);
 
@@ -167,7 +167,7 @@ static void rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, 
    while (p<size)
    {
       int len = RVR_COMP_MIN_MATCH - 1;
-      int offset = RVR_COMP_W_SIZE;
+      size_t offset = RVR_COMP_W_SIZE;
 
       const int max_match = RvR_min((int)RVR_COMP_MAX_MATCH, (int)(size - p));
       const int limit = RvR_max((int)p - RVR_COMP_W_SIZE, 0);
@@ -219,7 +219,7 @@ static void rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, 
 
       if((level>=2)&&(len>=RVR_COMP_MIN_MATCH)&&(len<max_match))
       {
-         const int next_p = p + 1;
+         const size_t next_p = p + 1;
          const int max_lazy = RvR_min((int)len + 4, (int)max_match);
 
          int chain_len = max_chain[level];
@@ -283,7 +283,7 @@ static void rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, 
 
          offset--;
          int log = RVR_COMP_W_BITS - RVR_COMP_NUM_SLOTS;
-         while(offset>=(2 << log))
+         while(offset>=((size_t)2 << log))
             log++;
          rvr_comp_bits_put(&bits, RVR_COMP_SLOT_BITS, log - (RVR_COMP_W_BITS - RVR_COMP_NUM_SLOTS));
          if(log>(RVR_COMP_W_BITS - RVR_COMP_NUM_SLOTS))
@@ -300,9 +300,9 @@ static void rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, 
       //NOTE: the input buffer needs additional max(RVR_COMP_HASH1_LEN,RVR_COMP_HASH2_LEN) bytes
       while(len--!=0) //Insert new strings
       {
-         head[h1] = p;
+         head[h1] = (int)p;
          prev[p & RVR_COMP_W_MASK] = head[h2 + RVR_COMP_HASH1_SIZE];
-         head[h2 + RVR_COMP_HASH1_SIZE] = p;
+         head[h2 + RVR_COMP_HASH1_SIZE] = (int)p;
          p++;
          h1 = rvr_comp_update_hash1(h1, buf[p + (RVR_COMP_HASH1_LEN - 1)]);
          h2 = rvr_comp_update_hash2(h2, buf[p + (RVR_COMP_HASH2_LEN - 1)]);
@@ -312,10 +312,10 @@ static void rvr_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, 
    rvr_comp_bits_flush(&bits);
 }
 
-static void rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen)
+static void rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, size_t outlen)
 {
    unsigned p = 0;
-   int s = 0;
+   size_t s = 0;
    rvr_comp_bits bits;
    rvr_comp_bits_init(&bits, inbuf, NULL);
 
@@ -323,7 +323,7 @@ static void rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen
    {
       if(rvr_comp_bits_get(&bits, 1))
       {
-         unsigned len;
+         size_t len;
          if(rvr_comp_bits_get(&bits, 1)) len = rvr_comp_bits_get(&bits, RVR_COMP_A_BITS);
          else if(rvr_comp_bits_get(&bits, 1)) len = rvr_comp_bits_get(&bits, RVR_COMP_B_BITS) + RVR_COMP_A;
          else if(rvr_comp_bits_get(&bits, 1)) len = rvr_comp_bits_get(&bits, RVR_COMP_C_BITS) + RVR_COMP_B;
@@ -331,14 +331,14 @@ static void rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen
          else if(rvr_comp_bits_get(&bits, 1)) len = rvr_comp_bits_get(&bits, RVR_COMP_E_BITS) + RVR_COMP_D;
          else len = rvr_comp_bits_get(&bits, RVR_COMP_F_BITS) + RVR_COMP_E;
 
-         unsigned log = rvr_comp_bits_get(&bits, RVR_COMP_SLOT_BITS) + (RVR_COMP_W_BITS - RVR_COMP_NUM_SLOTS);
+         size_t log = rvr_comp_bits_get(&bits, RVR_COMP_SLOT_BITS) + (RVR_COMP_W_BITS - RVR_COMP_NUM_SLOTS);
          if(log>RVR_COMP_W_BITS - RVR_COMP_NUM_SLOTS)
             s = rvr_comp_bits_get(&bits, log) + (1 << log);
          else
             s = rvr_comp_bits_get(&bits, RVR_COMP_W_BITS - RVR_COMP_NUM_SLOTS + 1);
          s = ~s + p;
 
-         RvR_error_check(s>=0&&s + len + 3<=outlen, "RvR_dervr_compress", "corrupted stream (s=%d p=%d): s out of bounds\n", s, p);
+         RvR_error_check(s + len + 3<=outlen, "RvR_dervr_compress", "corrupted stream (s=%d p=%d): s out of bounds\n", s, p);
          RvR_error_check(p + len + 3<=outlen, "RvR_dervr_compress", "corrupted stream (s=%d p=%d): longer than specified by length\n", s, p);
 
          outbuf[p++] = outbuf[s++];
@@ -349,7 +349,7 @@ static void rvr_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen
       }
       else
       {
-         outbuf[p++] = rvr_comp_bits_get(&bits, 8);
+         outbuf[p++] = (uint8_t)rvr_comp_bits_get(&bits, 8);
          RvR_error_check(p<=outlen, "RvR_dervr_compress", "corrupted stream (s=%d p=%d): longer than specified by length\n", s, p);
       }
    }
@@ -368,7 +368,7 @@ static int rvr_comp_update_hash2(int h, int c)
    return ((h << RVR_COMP_HASH2_SHIFT) + c) & RVR_COMP_HASH2_MASK;
 }
 
-static int rvr_comp_get_penalty(int a, int b)
+static int rvr_comp_get_penalty(size_t a, size_t b)
 {
    int p = 0;
    while(a>b)
@@ -388,7 +388,7 @@ static void rvr_comp_bits_init(rvr_comp_bits *b, RvR_rw *inbuf, RvR_rw *outbuf)
 }
 
 //Write n bits of value x to stream
-static void rvr_comp_bits_put(rvr_comp_bits *b, unsigned n, unsigned x)
+static void rvr_comp_bits_put(rvr_comp_bits *b, size_t n, size_t x)
 {
    b->bit_buf |= x << b->bit_count;
    b->bit_count += n;
@@ -396,7 +396,7 @@ static void rvr_comp_bits_put(rvr_comp_bits *b, unsigned n, unsigned x)
    //Write filled bytes to output stream
    while(b->bit_count>=8)
    {
-      RvR_rw_write_u8(b->outbuf, b->bit_buf);
+      RvR_rw_write_u8(b->outbuf, (uint8_t)(b->bit_buf&255));
       b->bit_buf >>= 8;
       b->bit_count -= 8;
    }
@@ -410,7 +410,7 @@ static void rvr_comp_bits_flush(rvr_comp_bits *b)
 }
 
 //Read n bits from input stream
-static unsigned rvr_comp_bits_get(rvr_comp_bits *b, unsigned n)
+static size_t rvr_comp_bits_get(rvr_comp_bits *b, size_t n)
 {
    //Fill bit buffer from input stream
    while(b->bit_count<n)
@@ -419,7 +419,7 @@ static unsigned rvr_comp_bits_get(rvr_comp_bits *b, unsigned n)
       b->bit_count += 8;
    }
 
-   unsigned x = b->bit_buf & ((1 << n) - 1);
+   size_t x = b->bit_buf & ((1 << n) - 1);
    b->bit_buf >>= n;
    b->bit_count -= n;
 

@@ -51,7 +51,6 @@ static uint32_t rvr_core_frame = 0;
 static int rvr_core_frametimes[32] = {0};
 
 static SDL_Window *rvr_sdl_window;
-static SDL_Renderer *rvr_renderer;
 static SDL_Texture *rvr_layer_texture;
 static float rvr_pixel_scale;
 static int rvr_window_width;
@@ -60,7 +59,6 @@ static int rvr_view_x;
 static int rvr_view_y;
 static int rvr_view_width;
 static int rvr_view_height;
-static float rvr_delta;
 static uint8_t rvr_key_map[SDL_NUM_SCANCODES];
 static uint8_t rvr_mouse_map[6];
 static uint8_t rvr_gamepad_map[SDL_CONTROLLER_BUTTON_MAX];
@@ -80,19 +78,16 @@ static int rvr_key_repeat = 0;
 //Timing
 static uint64_t rvr_frametime;
 static uint64_t rvr_framedelay;
-static uint64_t rvr_framestart;
 
 static uint8_t *rvr_framebuffer = NULL;
 
 static void rvr_update_viewport();
-static int rvr_get_gamepad_index(int which);
 HLH_gui_rvr *gui_element;
 //-------------------------------------
 
 //Function prototypes
 
 static void rvr_update_viewport();
-static int rvr_get_gamepad_index(int which);
 
 static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 //-------------------------------------
@@ -285,7 +280,7 @@ static int rvr_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
 
       rvr_view_x = (width - rvr_view_width) / 2 + bounds.minx;
       rvr_view_y = (height - rvr_view_height) / 2 + bounds.miny;
-      rvr_pixel_scale = (float)rvr_view_height / RvR_yres();
+      rvr_pixel_scale = (float)rvr_view_height / (float)RvR_yres();
 
       SDL_Rect dst = {0};
       dst.x = rvr_view_x;
@@ -357,202 +352,8 @@ void RvR_quit()
 
 void RvR_init(char *title, int scale)
 {
-#if 0
-   Uint32 flags =
-#ifndef __EMSCRIPTEN__
-      SDL_INIT_VIDEO | SDL_INIT_EVENTS;
-#else
-      SDL_INIT_VIDEO | SDL_INIT_EVENTS;
-#endif
-
-   if(SDL_Init(flags)<0)
-   {
-      RvR_log_line("SDL_Init ", "%s\n", SDL_GetError());
-      exit(-1);
-   }
-
-   if(scale==0)
-   {
-      SDL_Rect max_size;
-
-      if(SDL_GetDisplayUsableBounds(0, &max_size)<0)
-      {
-         RvR_log_line("SDL_GetDisplayUsableBounds ", "%s\n", SDL_GetError());
-      }
-      else
-      {
-         int max_x, max_y;
-
-         max_x = max_size.w / RVR_XRES;
-         max_y = max_size.h / RVR_YRES;
-
-         scale = (max_x>max_y)?max_y:max_x;
-      }
-
-   }
-
-   if(scale<=0)
-      scale = 1;
-
-   rvr_sdl_window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RVR_XRES * scale, RVR_YRES * scale, SDL_WINDOW_RESIZABLE);
-   if(rvr_sdl_window==NULL)
-   {
-      RvR_log_line("SDL_CreateWindow ", "%s\n", SDL_GetError());
-      exit(-1);
-   }
-
-   rvr_renderer = SDL_CreateRenderer(rvr_sdl_window, -1, SDL_RENDERER_ACCELERATED);
-   if(rvr_renderer==NULL)
-   {
-      RvR_log_line("SDL_CreateRenderer ", "%s\n", SDL_GetError());
-      exit(-1);
-   }
-
-   if(SDL_SetRenderDrawColor(rvr_renderer, 0, 0, 0, 0)!=0)
-      RvR_log_line("SDL_SetRenderDrawColor ", "%s\n", SDL_GetError());
-
-   rvr_layer_texture = SDL_CreateTexture(rvr_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, RVR_XRES, RVR_YRES);
-   if(rvr_layer_texture==NULL)
-      RvR_log_line("SDL_CreateTexture ", "%s\n", SDL_GetError());
-
-   if(SDL_SetTextureBlendMode(rvr_layer_texture, SDL_BLENDMODE_BLEND)<0)
-      RvR_log_line("SDL_SetTextureBlendMode ", "%s\n", SDL_GetError());
-
-   rvr_update_viewport();
-
-   rvr_key_map[0x00] = RVR_KEY_NONE;
-   rvr_key_map[SDL_SCANCODE_A] = RVR_KEY_A;
-   rvr_key_map[SDL_SCANCODE_B] = RVR_KEY_B;
-   rvr_key_map[SDL_SCANCODE_C] = RVR_KEY_C;
-   rvr_key_map[SDL_SCANCODE_D] = RVR_KEY_D;
-   rvr_key_map[SDL_SCANCODE_E] = RVR_KEY_E;
-   rvr_key_map[SDL_SCANCODE_F] = RVR_KEY_F;
-   rvr_key_map[SDL_SCANCODE_G] = RVR_KEY_G;
-   rvr_key_map[SDL_SCANCODE_H] = RVR_KEY_H;
-   rvr_key_map[SDL_SCANCODE_I] = RVR_KEY_I;
-   rvr_key_map[SDL_SCANCODE_J] = RVR_KEY_J;
-   rvr_key_map[SDL_SCANCODE_K] = RVR_KEY_K;
-   rvr_key_map[SDL_SCANCODE_L] = RVR_KEY_L;
-   rvr_key_map[SDL_SCANCODE_M] = RVR_KEY_M;
-   rvr_key_map[SDL_SCANCODE_N] = RVR_KEY_N;
-   rvr_key_map[SDL_SCANCODE_O] = RVR_KEY_O;
-   rvr_key_map[SDL_SCANCODE_P] = RVR_KEY_P;
-   rvr_key_map[SDL_SCANCODE_Q] = RVR_KEY_Q;
-   rvr_key_map[SDL_SCANCODE_R] = RVR_KEY_R;
-   rvr_key_map[SDL_SCANCODE_S] = RVR_KEY_S;
-   rvr_key_map[SDL_SCANCODE_T] = RVR_KEY_T;
-   rvr_key_map[SDL_SCANCODE_U] = RVR_KEY_U;
-   rvr_key_map[SDL_SCANCODE_V] = RVR_KEY_V;
-   rvr_key_map[SDL_SCANCODE_W] = RVR_KEY_W;
-   rvr_key_map[SDL_SCANCODE_X] = RVR_KEY_X;
-   rvr_key_map[SDL_SCANCODE_Y] = RVR_KEY_Y;
-   rvr_key_map[SDL_SCANCODE_Z] = RVR_KEY_Z;
-
-   rvr_key_map[SDL_SCANCODE_F1] = RVR_KEY_F1;
-   rvr_key_map[SDL_SCANCODE_F2] = RVR_KEY_F2;
-   rvr_key_map[SDL_SCANCODE_F3] = RVR_KEY_F3;
-   rvr_key_map[SDL_SCANCODE_F4] = RVR_KEY_F4;
-   rvr_key_map[SDL_SCANCODE_F5] = RVR_KEY_F5;
-   rvr_key_map[SDL_SCANCODE_F6] = RVR_KEY_F6;
-   rvr_key_map[SDL_SCANCODE_F7] = RVR_KEY_F7;
-   rvr_key_map[SDL_SCANCODE_F8] = RVR_KEY_F8;
-   rvr_key_map[SDL_SCANCODE_F9] = RVR_KEY_F9;
-   rvr_key_map[SDL_SCANCODE_F10] = RVR_KEY_F10;
-   rvr_key_map[SDL_SCANCODE_F11] = RVR_KEY_F11;
-   rvr_key_map[SDL_SCANCODE_F12] = RVR_KEY_F12;
-
-   rvr_key_map[SDL_SCANCODE_DOWN] = RVR_KEY_DOWN;
-   rvr_key_map[SDL_SCANCODE_LEFT] = RVR_KEY_LEFT;
-   rvr_key_map[SDL_SCANCODE_RIGHT] = RVR_KEY_RIGHT;
-   rvr_key_map[SDL_SCANCODE_UP] = RVR_KEY_UP;
-   rvr_key_map[SDL_SCANCODE_RETURN] = RVR_KEY_ENTER;
-
-   rvr_key_map[SDL_SCANCODE_BACKSPACE] = RVR_KEY_BACK;
-   rvr_key_map[SDL_SCANCODE_ESCAPE] = RVR_KEY_ESCAPE;
-   rvr_key_map[SDL_SCANCODE_TAB] = RVR_KEY_TAB;
-   rvr_key_map[SDL_SCANCODE_DELETE] = RVR_KEY_DEL;
-   rvr_key_map[SDL_SCANCODE_HOME] = RVR_KEY_HOME;
-   rvr_key_map[SDL_SCANCODE_END] = RVR_KEY_END;
-   rvr_key_map[SDL_SCANCODE_PAGEUP] = RVR_KEY_PGUP;
-   rvr_key_map[SDL_SCANCODE_PAGEDOWN] = RVR_KEY_PGDN;
-   rvr_key_map[SDL_SCANCODE_INSERT] = RVR_KEY_INS;
-   rvr_key_map[SDL_SCANCODE_LSHIFT] = RVR_KEY_LSHIFT;
-   rvr_key_map[SDL_SCANCODE_RSHIFT] = RVR_KEY_RSHIFT;
-   rvr_key_map[SDL_SCANCODE_LCTRL] = RVR_KEY_LCTRL;
-   rvr_key_map[SDL_SCANCODE_RCTRL] = RVR_KEY_RCTRL;
-   rvr_key_map[SDL_SCANCODE_RALT] = RVR_KEY_RALT;
-   rvr_key_map[SDL_SCANCODE_LALT] = RVR_KEY_LALT;
-   rvr_key_map[SDL_SCANCODE_SPACE] = RVR_KEY_SPACE;
-
-   rvr_key_map[SDL_SCANCODE_0] = RVR_KEY_0;
-   rvr_key_map[SDL_SCANCODE_1] = RVR_KEY_1;
-   rvr_key_map[SDL_SCANCODE_2] = RVR_KEY_2;
-   rvr_key_map[SDL_SCANCODE_3] = RVR_KEY_3;
-   rvr_key_map[SDL_SCANCODE_4] = RVR_KEY_4;
-   rvr_key_map[SDL_SCANCODE_5] = RVR_KEY_5;
-   rvr_key_map[SDL_SCANCODE_6] = RVR_KEY_6;
-   rvr_key_map[SDL_SCANCODE_7] = RVR_KEY_7;
-   rvr_key_map[SDL_SCANCODE_8] = RVR_KEY_8;
-   rvr_key_map[SDL_SCANCODE_9] = RVR_KEY_9;
-
-   rvr_key_map[SDL_SCANCODE_COMMA] = RVR_KEY_COMMA;
-   rvr_key_map[SDL_SCANCODE_PERIOD] = RVR_KEY_PERIOD;
-
-   rvr_key_map[SDL_SCANCODE_KP_0] = RVR_KEY_NP0;
-   rvr_key_map[SDL_SCANCODE_KP_1] = RVR_KEY_NP1;
-   rvr_key_map[SDL_SCANCODE_KP_2] = RVR_KEY_NP2;
-   rvr_key_map[SDL_SCANCODE_KP_3] = RVR_KEY_NP3;
-   rvr_key_map[SDL_SCANCODE_KP_4] = RVR_KEY_NP4;
-   rvr_key_map[SDL_SCANCODE_KP_5] = RVR_KEY_NP5;
-   rvr_key_map[SDL_SCANCODE_KP_6] = RVR_KEY_NP6;
-   rvr_key_map[SDL_SCANCODE_KP_7] = RVR_KEY_NP7;
-   rvr_key_map[SDL_SCANCODE_KP_8] = RVR_KEY_NP8;
-   rvr_key_map[SDL_SCANCODE_KP_9] = RVR_KEY_NP9;
-   rvr_key_map[SDL_SCANCODE_KP_MULTIPLY] = RVR_KEY_NP_MUL;
-   rvr_key_map[SDL_SCANCODE_KP_PLUS] = RVR_KEY_NP_ADD;
-   rvr_key_map[SDL_SCANCODE_KP_DIVIDE] = RVR_KEY_NP_DIV;
-   rvr_key_map[SDL_SCANCODE_KP_MINUS] = RVR_KEY_NP_SUB;
-   rvr_key_map[SDL_SCANCODE_KP_PERIOD] = RVR_KEY_NP_DECIMAL;
-   rvr_key_map[SDL_SCANCODE_KP_ENTER] = RVR_KEY_NP_ENTER;
-
-   rvr_mouse_map[SDL_BUTTON_LEFT] = RVR_BUTTON_LEFT;
-   rvr_mouse_map[SDL_BUTTON_RIGHT] = RVR_BUTTON_RIGHT;
-   rvr_mouse_map[SDL_BUTTON_MIDDLE] = RVR_BUTTON_MIDDLE;
-   rvr_mouse_map[SDL_BUTTON_X1] = RVR_BUTTON_X1;
-   rvr_mouse_map[SDL_BUTTON_X2] = RVR_BUTTON_X2;
-
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_A] = RVR_PAD_A;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_B] = RVR_PAD_B;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_X] = RVR_PAD_X;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_Y] = RVR_PAD_Y;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_BACK] = RVR_PAD_BACK;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_GUIDE] = RVR_PAD_GUIDE;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_START] = RVR_PAD_START;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_LEFTSTICK] = RVR_PAD_LEFTSTICK;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_RIGHTSTICK] = RVR_PAD_RIGHTSTICK;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] = RVR_PAD_LEFTSHOULDER;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] = RVR_PAD_RIGHTSHOULDER;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_DPAD_UP] = RVR_PAD_UP;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_DPAD_DOWN] = RVR_PAD_DOWN;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = RVR_PAD_LEFT;
-   rvr_gamepad_map[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = RVR_PAD_RIGHT;
-
-   //Clear key states, just in case,
-   //should already be empty since known at compile time
-   memset(rvr_new_key_state, 0, sizeof(rvr_new_key_state));
-   memset(rvr_old_key_state, 0, sizeof(rvr_old_key_state));
-   for(int i = 0; i<4; i++)
-   {
-      memset(rvr_gamepads[i].new_button_state, 0, sizeof(rvr_gamepads[i].new_button_state));
-      memset(rvr_gamepads[i].old_button_state, 0, sizeof(rvr_gamepads[i].old_button_state));
-   }
-
-   int fps = RvR_max(1, RvR_min(1000, RVR_FPS));
-   rvr_framedelay = SDL_GetPerformanceFrequency() / fps;
-
-   rvr_framebuffer = RvR_malloc(RVR_XRES * RVR_YRES, "RvR framebuffer");
-   memset(rvr_framebuffer, 0, RVR_XRES * RVR_YRES);
-#endif
+   (void)title;
+   (void)scale;
 }
 
 void RvR_mouse_relative(int relative)
@@ -734,16 +535,6 @@ void RvR_render_present()
    if(SDL_RenderClear(gui_element->e.window->renderer)!=0)
       RvR_log_line("SDL_RenderClear ", "%s\n", SDL_GetError());
 
-   int width = rvr_view_width;
-   int height = rvr_view_height;
-   int x = rvr_view_x;
-   int y = rvr_view_y;
-   SDL_Rect dst_rect;
-   dst_rect.x = x;
-   dst_rect.y = y;
-   dst_rect.w = width;
-   dst_rect.h = height;
-
    void *data;
    int stride;
 
@@ -758,11 +549,6 @@ void RvR_render_present()
    SDL_UnlockTexture(rvr_layer_texture);
 
    HLH_gui_element_redraw(&gui_element->e);
-
-   //if(SDL_RenderCopy(rvr_renderer, rvr_layer_texture, NULL, &dst_rect)!=0)
-   //RvR_log_line("SDL_RenderCopy ", "%s\n", SDL_GetError());
-
-   //SDL_RenderPresent(rvr_renderer);
 }
 
 int RvR_key_down(RvR_key key)
@@ -896,14 +682,5 @@ static void rvr_update_viewport()
    rvr_view_y = (rvr_window_height - rvr_view_height) / 2;
 
    rvr_pixel_scale = (float)rvr_view_width / (float)RVR_XRES;
-}
-
-static int rvr_get_gamepad_index(int which)
-{
-   for(int i = 0; i<4; i++)
-      if(rvr_gamepads[i].connected&&rvr_gamepads[i].id==which)
-         return i;
-
-   return -1;
 }
 //-------------------------------------

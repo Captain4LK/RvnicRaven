@@ -18,7 +18,7 @@ void        RvR_pak_flush();
 void        RvR_lump_add(const char *name, const char *path);
 
 //Returns a TEMPORARY buffer tagged RVR_MALLOC_CACHE, copy the output to your own buffer
-void       *RvR_lump_get(const char *name, uint32_t *size);
+void       *RvR_lump_get(const char *name, size_t *size);
 const char *RvR_lump_get_path(const char *name);
 int         RvR_lump_exists(const char *name);
 

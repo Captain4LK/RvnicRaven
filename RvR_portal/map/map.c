@@ -137,8 +137,8 @@ RvR_port_map *RvR_port_map_load(uint16_t id)
    char tmp[64];
    sprintf(tmp, "MAP%05d", id);
 
-   unsigned size_in;
-   int32_t size_out;
+   size_t size_in;
+   size_t size_out;
    uint8_t *mem_pak, *mem_decomp;
    mem_pak = RvR_lump_get(tmp, &size_in);
    RvR_mem_tag_set(mem_pak, RVR_MALLOC_STATIC);
@@ -163,7 +163,7 @@ RvR_port_map *RvR_port_map_load_path(const char *path)
 {
    RvR_error_check(path!=NULL, "RvR_port_map_load_path", "argument 'path' must be non-NULL\n");
 
-   int32_t size = 0;
+   size_t size = 0;
    RvR_rw rw_decomp;
    RvR_rw_init_path(&rw_decomp, path, "rb");
    uint8_t *mem = RvR_crush_decompress(&rw_decomp, &size);

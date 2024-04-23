@@ -36,7 +36,7 @@ typedef struct
 void RvR_crush_compress(RvR_rw *in, RvR_rw *out, unsigned level);
 
 //Returns a TEMPORARY buffer tagged RVR_MALLOC_CACHE, copy the output to your own buffer
-void *RvR_crush_decompress(RvR_rw *in, int32_t *length);
+void *RvR_crush_decompress(RvR_rw *in, size_t *length);
 
 void RvR_ppp_compress_init(RvR_ppp_ccontext *c, RvR_rw *dst);
 void RvR_ppp_compress_push(RvR_ppp_ccontext *c, uint8_t byte);
