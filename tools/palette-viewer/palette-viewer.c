@@ -63,7 +63,7 @@ int main(int argc, char **argv)
    RvR_texture *tex = RvR_texture_get(65535);
    for(int y = 0;y<64;y++)
    {
-      uint8_t *table = RvR_shade_table(y);
+      uint8_t *table = RvR_shade_table((uint8_t)y);
       for(int x = 0;x<256;x++)
          tex->data[y*tex->width+x] = table[x];
    }
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
    tex = RvR_texture_get(65534);
    for(int y = 0;y<256;y++)
       for(int x = 0;x<256;x++)
-         tex->data[y*tex->width+x] = RvR_blend(x,y);
+         tex->data[y*tex->width+x] = RvR_blend((uint8_t)x,(uint8_t)y);
 
    //Create palette texture
 

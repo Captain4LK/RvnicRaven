@@ -32,7 +32,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define MIN(a, b) ((a)<(b)?(a):(b))
 //-------------------------------------
 
 //Typedefs
@@ -195,7 +194,7 @@ int main(int argc, char **argv)
    //Compress and write to file
    RvR_rw cin;
    RvR_rw cout;
-   int len = sizeof(uint8_t) * sp->width * sp->height + sizeof(int16_t) + 2 * sizeof(int8_t) + 2 * sizeof(int32_t);
+   size_t len = sizeof(uint8_t) * sp->width * sp->height + sizeof(int16_t) + 2 * sizeof(int8_t) + 2 * sizeof(int32_t);
    uint8_t *mem = RvR_malloc(len, "compression buffer");
    RvR_rw_init_mem(&cin, mem, len, len);
    RvR_rw_write_u16(&cin, 0);
@@ -265,7 +264,7 @@ static Sprite_pal *texture_load(const char *path, const char *path_pal, uint8_t 
    for(int i = 0; i<tex_in->width * tex_in->height; i++)
    {
       int min_dist = INT_MAX;
-      int min_index = 0;
+      uint8_t min_index = 0;
       Color color = tex_in->data[i];
       if(color.a<=128)
       {
@@ -283,7 +282,7 @@ static Sprite_pal *texture_load(const char *path, const char *path_pal, uint8_t 
          if(dist<min_dist)
          {
             min_dist = dist;
-            min_index = j;
+            min_index = (uint8_t)j;
          }
       }
       tex_out->data[i] = min_index;
@@ -311,7 +310,7 @@ static Palette *palette_png(FILE *f)
    Sprite_rgb *s = image_load(f);
    Palette *p = RvR_malloc(sizeof(*p), "Palette");
    memset(p, 0, sizeof(*p));
-   p->colors_used = MIN(256, s->width * s->height);
+   p->colors_used = RvR_min(256, s->width * s->height);
    for(int i = 0; i<p->colors_used; i++)
       p->colors[i] = s->data[i];
    sprite_rgb_destroy(s);
@@ -335,9 +334,9 @@ static Palette *palette_gpl(FILE *f)
          continue;
       if(sscanf(buffer, "%d %d %d", &r, &g, &b)==3)
       {
-         p->colors[c].r = r;
-         p->colors[c].g = g;
-         p->colors[c].b = b;
+         p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,r));
+         p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,g));
+         p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,b));
          p->colors[c].a = 255;
          c++;
       }
@@ -359,9 +358,9 @@ static Palette *palette_hex(FILE *f)
 
    while(fgets(buffer, 512, f))
    {
-      p->colors[c].r = chartoi(buffer[0]) * 16 + chartoi(buffer[1]);
-      p->colors[c].g = chartoi(buffer[2]) * 16 + chartoi(buffer[3]);
-      p->colors[c].b = chartoi(buffer[4]) * 16 + chartoi(buffer[5]);
+      p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
+      p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
+      p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
       p->colors[c].a = 255;
       c++;
    }

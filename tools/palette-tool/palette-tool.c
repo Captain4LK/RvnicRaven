@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2022,2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022,2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -32,7 +32,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define MIN(a, b) ((a)<(b)?(a):(b))
 //-------------------------------------
 
 //Typedefs
@@ -177,7 +176,7 @@ static Palette *palette_png(FILE *f)
    Sprite_rgb *s = image_load(f);
    Palette *p = RvR_malloc(sizeof(*p), "Palette");
    memset(p, 0, sizeof(*p));
-   p->colors_used = MIN(256, s->width * s->height);
+   p->colors_used = RvR_min(256, s->width * s->height);
    for(int i = 0; i<p->colors_used; i++)
       p->colors[i] = s->data[i];
    sprite_rgb_destroy(s);
@@ -201,9 +200,9 @@ static Palette *palette_gpl(FILE *f)
          continue;
       if(sscanf(buffer, "%d %d %d", &r, &g, &b)==3)
       {
-         p->colors[c].r = r;
-         p->colors[c].g = g;
-         p->colors[c].b = b;
+         p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,r));
+         p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,g));
+         p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,b));
          p->colors[c].a = 255;
          c++;
       }
@@ -225,9 +224,9 @@ static Palette *palette_hex(FILE *f)
 
    while(fgets(buffer, 512, f))
    {
-      p->colors[c].r = chartoi(buffer[0]) * 16 + chartoi(buffer[1]);
-      p->colors[c].g = chartoi(buffer[2]) * 16 + chartoi(buffer[3]);
-      p->colors[c].b = chartoi(buffer[4]) * 16 + chartoi(buffer[5]);
+      p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
+      p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
+      p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
       p->colors[c].a = 255;
       c++;
    }
