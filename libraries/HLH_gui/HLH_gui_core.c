@@ -223,6 +223,9 @@ int HLH_gui_message_loop(void)
 
          switch(event.window.event)
          {
+         case SDL_WINDOWEVENT_FOCUS_GAINED:
+         case SDL_WINDOWEVENT_FOCUS_LOST:
+         case SDL_WINDOWEVENT_SHOWN:
          case SDL_WINDOWEVENT_EXPOSED:
             if(SDL_SetRenderTarget(win->renderer, NULL)<0)
                fprintf(stderr, "SDL_SetRenderTarget(): %s\n", SDL_GetError());
@@ -416,9 +419,10 @@ int HLH_gui_message_loop(void)
 
       if(event.type==HLH_gui_timer_event)
       {
-         win = core_find_window(SDL_GetWindowFromID(event.user.windowID));
          //TODO(Captain4LK): what do we do if this takes longer than timer_interval?
-         HLH_gui_element_msg(event.user.data1, HLH_GUI_MSG_TIMER, 0, NULL);
+         win = core_find_window(SDL_GetWindowFromID(event.edit.windowID));
+         if(win!=NULL)
+            HLH_gui_element_msg(event.user.data1, HLH_GUI_MSG_TIMER, 0, NULL);
       }
 
       if(win!=NULL)
