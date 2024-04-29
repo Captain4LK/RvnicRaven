@@ -1,0 +1,44 @@
+Map tile:
+   - one of:
+      - floor, [north wall], [west wall]
+      - floor, wall north-west
+      - floor, wall south-west
+      - block
+      - slope
+      - steep slope
+
+Floor:
+   - 1 per file
+   - 32x32
+
+Wall:
+   - 4 directions per file (north, west, north-west, south-west)
+   - 32x32
+
+Block:
+   - 1 per file
+   - 32x32
+
+Slope:
+   - 4 directions per file
+   - 32x32
+   - ----
+     | /|
+     |/X|
+     ----
+
+Steep slope:
+   - two parts (upper, lower)
+   - 2*4 directions per file (upper, lower)
+   - 32x32
+   - ------
+     |   /|
+     |  /X|
+     ------
+     | /XX|
+     |/XXX|
+     ------
+
+Sprites:
+   - 32x64
+   - two tiles high, anchored AT TOP
