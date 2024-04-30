@@ -1,27 +1,36 @@
 Map tile:
    - one of:
-      - floor, [north wall], [west wall]
-      - floor, wall north-west
-      - floor, wall south-west
-      - block
-      - slope
-      - steep slope
+      - empty
+      - floor, [north wall], [west wall] --> 33 bits
+      - floor, wall north-west --> 22 bits
+      - floor, wall south-west --> 22 bits
+      - block --> 11 bits
+      - slope --> 11 bits
+      - steep slope --> 11 bits
+   - type --> 3 bits
+   - ideas:
+      - light level --> 5 bits
+   --> uint64_t
 
 Floor:
    - 1 per file
    - 32x32
+   - 2048
 
 Wall:
    - 4 directions per file (north, west, north-west, south-west)
    - 32x32
+   - 2048
 
 Block:
    - 1 per file
    - 32x32
+   - 2048
 
 Slope:
    - 4 directions per file
    - 32x32
+   - 2048
    - ----
      | /|
      |/X|
@@ -31,6 +40,7 @@ Steep slope:
    - two parts (upper, lower)
    - 2*4 directions per file (upper, lower)
    - 32x32
+   - 2048
    - ------
      |   /|
      |  /X|
@@ -40,5 +50,5 @@ Steep slope:
      ------
 
 Sprites:
-   - 32x64
-   - two tiles high, anchored AT TOP
+   - arbitrary dimensions
+   - anchored AT TOP
