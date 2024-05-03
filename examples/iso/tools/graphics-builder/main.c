@@ -32,13 +32,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-typedef enum
-{
-   SPRITE_NONE = 0,
-   SPRITE_WALL = 1,
-   SPRITE_SPRITE = 2,
-}Sprite_flag;
-
 typedef struct
 {
    uint8_t r, g, b, a;
@@ -63,6 +56,15 @@ typedef struct
    int height;
    uint8_t *data;
 }Sprite_pal;
+
+typedef struct
+{
+   uint16_t width;
+   uint16_t height;
+   uint32_t len;
+   uint32_t row_offsets[768];
+   uint8_t *data;
+}Sprite_graphics;
 //-------------------------------------
 
 //Variables
@@ -152,11 +154,127 @@ int main(int argc, char **argv)
 
    Sprite_pal *sp = texture_load(path_in, path_pal,0);
 
-   if(strcmp(type,"sprite")==0)
+   if(strcmp(type,"wall")==0)
    {
+      if(sp->width!=32||sp->height!=32*4)
+      {
+         RvR_log("error: wall dimensions must be 32x(32*4)\n");
+         return EXIT_FAILURE;
+      }
+   }
+   else if(strcmp(type,"floor")==0)
+   {
+      if(sp->width!=32||sp->height!=32)
+      {
+         RvR_log("error: floor dimensions must be 32x32\n");
+         return EXIT_FAILURE;
+      }
+   }
+   else if(strcmp(type,"slope")==0)
+   {
+      if(sp->width!=32||sp->height!=12*32)
+      {
+         RvR_log("error: slope dimensions must be 32x(12*32)\n");
+         return EXIT_FAILURE;
+      }
+   }
+   else if(strcmp(type,"sslope")==0)
+   {
+      if(sp->width!=32||sp->height!=24*32)
+      {
+         RvR_log("error: sslope dimensions must be 32x(24*32)\n");
+         return EXIT_FAILURE;
+      }
+   }
+   else if(strcmp(type,"block")==0)
+   {
+      if(sp->width!=32||sp->height!=32)
+      {
+         RvR_log("error: block dimensions must be 32x32\n");
+         return EXIT_FAILURE;
+      }
+   }
+   else if(strcmp(type,"sprite")==0)
+   {
+      if(sp->width>255||sp->height>255)
+      {
+         RvR_log("error: sprite dimensions must be less than 256x256\n");
+         return EXIT_FAILURE;
+      }
+   }
+   else
+   {
+      RvR_log("error: invalid type, must be one of [wall,floor,slope,sslope,block,sprite]\n");
+      return EXIT_FAILURE;
    }
 
+   //Build horizontal stripes
+   Sprite_graphics grp = {0};
+   grp.width = (uint16_t)sp->width;
+   grp.height = (uint16_t)sp->height;
+   uint32_t pos = 0;
+   for(int y = 0;y<sp->height;y++)
+   {
+      grp.row_offsets[y] = pos;
+
+      int start = 0;
+      int run = 0;
+      for(int x = 0;x<sp->width;x++)
+      {
+         //Skip transparent
+         if(sp->data[y*sp->width+x]==0)
+         {
+            if(run>0)
+            {
+               RvR_array_push(grp.data,(uint8_t)start);
+               RvR_array_push(grp.data,(uint8_t)run);
+               pos+=2+run;
+               for(int i = 0;i<run;i++)
+                  RvR_array_push(grp.data,sp->data[y*sp->width+start+i]);
+            }
+            run = 0;
+            start = x;
+            continue;
+         }
+
+         run++;
+      }
+
+      if(run>0)
+      {
+         RvR_array_push(grp.data,(uint8_t)start);
+         RvR_array_push(grp.data,(uint8_t)run);
+         pos+=2+run;
+         for(int i = 0;i<run;i++)
+            RvR_array_push(grp.data,sp->data[y*sp->width+start+i]);
+      }
+   }
+   grp.len = (uint32_t)RvR_array_length(grp.data);
+
    sprite_pal_destroy(sp);
+
+   //Compress and write to file
+   RvR_rw cin;
+   RvR_rw cout;
+   size_t len = 4+grp.len+2+4+4*grp.height;
+   int off_len = grp.height;
+   uint8_t *mem = RvR_malloc(len, "compression buffer");
+   RvR_rw_init_mem(&cin, mem, len, 0);
+   RvR_rw_write_u16(&cin, 0);
+   RvR_rw_write_u16(&cin, grp.width);
+   RvR_rw_write_u16(&cin, grp.height);
+   RvR_rw_write_u32(&cin, grp.len);
+   for(int i = 0;i<off_len;i++)
+      RvR_rw_write_u32(&cin, grp.row_offsets[i]);
+   for(int i = 0;i<grp.len;i++)
+      RvR_rw_write_u8(&cin,grp.data[i]);
+   RvR_rw_init_path(&cout, path_out, "wb");
+   RvR_crush_compress(&cin, &cout, 10);
+   RvR_rw_close(&cin);
+   RvR_rw_close(&cout);
+
+   RvR_free(mem);
+   RvR_array_free(grp.data);
 
    /*
    //Compress and write to file

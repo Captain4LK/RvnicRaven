@@ -16,29 +16,33 @@ Floor:
    - 1 per file
    - 32x32
    - 2048
+   - FLORdddd
 
 Wall:
    - 4 directions per file (north, west, north-west, south-west)
    - 32x32
    - 2048
+   - WALLdddd
 
 Block:
    - 1 per file
    - 32x32
    - 2048
+   - BLCKdddd
 
 Slope:
-   - 4 directions per file
+   - 12 directions per file
    - 32x32
    - 2048
    - ----
      | /|
      |/X|
      ----
+   - SLPEdddd
 
 Steep slope:
    - two parts (upper, lower)
-   - 2*4 directions per file (upper, lower)
+   - 2*12 directions per file (upper, lower)
    - 32x32
    - 2048
    - ------
@@ -48,7 +52,10 @@ Steep slope:
      | /XX|
      |/XXX|
      ------
+   - SSLPdddd
 
 Sprites:
-   - arbitrary dimensions
+   - arbitrary dimensions (max 255x255)
    - anchored AT TOP
+   - 8192
+   - SPRTdddd
