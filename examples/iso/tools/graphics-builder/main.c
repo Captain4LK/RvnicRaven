@@ -196,9 +196,9 @@ int main(int argc, char **argv)
    }
    else if(strcmp(type,"sprite")==0)
    {
-      if(sp->width>255||sp->height>255)
+      if(sp->width>128||sp->height>128)
       {
-         RvR_log("error: sprite dimensions must be less than 256x256\n");
+         RvR_log("error: sprite dimensions must be less than 128x128\n");
          return EXIT_FAILURE;
       }
    }
@@ -216,9 +216,13 @@ int main(int argc, char **argv)
    for(int y = 0;y<sp->height;y++)
    {
       grp.row_offsets[y] = pos;
+      int count_pos = pos;
+      RvR_array_push(grp.data,0);
+      pos++;
 
       int start = 0;
       int run = 0;
+      int count = 0;
       for(int x = 0;x<sp->width;x++)
       {
          //Skip transparent
@@ -231,9 +235,10 @@ int main(int argc, char **argv)
                pos+=2+run;
                for(int i = 0;i<run;i++)
                   RvR_array_push(grp.data,sp->data[y*sp->width+start+i]);
+               count++;
             }
             run = 0;
-            start = x;
+            start = x+1;
             continue;
          }
 
@@ -247,7 +252,10 @@ int main(int argc, char **argv)
          pos+=2+run;
          for(int i = 0;i<run;i++)
             RvR_array_push(grp.data,sp->data[y*sp->width+start+i]);
+         count++;
       }
+
+      grp.data[count_pos] = count;
    }
    grp.len = (uint32_t)RvR_array_length(grp.data);
 
@@ -275,29 +283,6 @@ int main(int argc, char **argv)
 
    RvR_free(mem);
    RvR_array_free(grp.data);
-
-   /*
-   //Compress and write to file
-   RvR_rw cin;
-   RvR_rw cout;
-   size_t len = sizeof(uint8_t) * sp->width * sp->height + sizeof(int16_t) + 2 * sizeof(int8_t) + 2 * sizeof(int32_t);
-   uint8_t *mem = RvR_malloc(len, "compression buffer");
-   RvR_rw_init_mem(&cin, mem, len, len);
-   RvR_rw_write_u16(&cin, 0);
-   RvR_rw_write_u32(&cin, sp->width);
-   RvR_rw_write_u32(&cin, sp->height);
-   RvR_rw_write_u8(&cin, anim_range);
-   RvR_rw_write_u8(&cin, anim_speed);
-   for(int i = 0; i<sp->width * sp->height; i++)
-      RvR_rw_write_u8(&cin, sp->data[i]);
-   RvR_rw_init_path(&cout, path_out, "wb");
-   RvR_crush_compress(&cin, &cout, 10);
-   RvR_rw_close(&cin);
-   RvR_rw_close(&cout);
-
-   sprite_pal_destroy(sp);
-   RvR_free(mem);
-   */
 
    return 0;
 }
