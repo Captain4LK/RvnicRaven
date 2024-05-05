@@ -355,9 +355,9 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
          if(rw->as.mem.pos + (long)size>rw->as.mem.size)
             return 1;
 
-         rw->as.mem.csize = RvR_max(rw->as.mem.csize, rw->as.mem.pos);
          memcpy(buff_out + rw->as.mem.pos, buff_in + (i * size), size);
          rw->as.mem.pos += size;
+			rw->as.mem.csize = RvR_max(rw->as.mem.csize, rw->as.mem.pos);
       }
 
       return count;

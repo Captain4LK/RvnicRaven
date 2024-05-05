@@ -16,7 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "state.h"
-#include "grp.h"
+#include "draw.h"
 //-------------------------------------
 
 //#defines
@@ -64,6 +64,10 @@ static void loop()
 {
    RvR_update();
 
+   draw_begin();
+   draw_map();
+   draw_end();
+   /*
    GRP_floor *grp = grp_floor_get(0);
    for(int i = 0;i<32;i++)
    {
@@ -76,14 +80,13 @@ static void loop()
          for(int l = 0;l<len;l++)
          {
             RvR_framebuffer()[(i+16)*RvR_xres()+start+l+16] = grp->data[pos++];
-            if(i==31)
-               printf("%d\n",grp->data[pos-1]);
          }
       }
       //if(grp->row_offsets[i]==UINT32_MAX)
          //continue;
    }
    //printf("%d %d\n",grp->data[0],grp->data[1]);
+   */
 
    RvR_render_present();
 }

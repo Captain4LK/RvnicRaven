@@ -106,6 +106,70 @@ RvR_err:
 
 GRP_block *grp_block_get(uint16_t id)
 {
+   uint8_t *mem_pak = NULL;
+   uint8_t *mem_decomp = NULL;
+   
+   RvR_error_check(id<2048,"grp_block_get","block grp id must be less than 2048\n");
+
+   if(block_grps==NULL)
+   {
+      block_grps = RvR_malloc(sizeof(*block_grps)*2048,"iso block grp array");
+      memset(block_grps,0,sizeof(*block_grps)*2048);
+   }
+
+   if(block_grps[id]==NULL)
+   {
+      char tmp[64];
+      sprintf(tmp, "BLCK%04d", id);
+
+      size_t size_in;
+      size_t size_out;
+      mem_pak = RvR_lump_get(tmp, &size_in);
+
+      RvR_error_check(size_in!=0, "grp_block_get", "BLCK%04d not found\n", id);
+
+      RvR_mem_tag_set(mem_pak, RVR_MALLOC_STATIC);
+      RvR_rw rw_decomp = {0};
+      RvR_rw_init_const_mem(&rw_decomp, mem_pak, size_in);
+      mem_decomp = RvR_crush_decompress(&rw_decomp, &size_out);
+      RvR_mem_tag_set(mem_decomp, RVR_MALLOC_STATIC);
+      RvR_rw_close(&rw_decomp);
+      RvR_mem_tag_set(mem_pak, RVR_MALLOC_CACHE);
+
+      RvR_rw rw = {0};
+      RvR_rw_init_const_mem(&rw, mem_decomp, size_out);
+
+      uint16_t version = RvR_rw_read_u16(&rw);
+      RvR_error_check(version==0, "grp_block_get", "'BLCK%04d' has invalid version %d, expected version 0\n", id, version);
+
+      uint16_t width = RvR_rw_read_u16(&rw);
+      RvR_error_check(width==32,"grp_block_get","'BLCK%04d' has invalid width, expected '32', got '%d'\n",id,width);
+      uint16_t height = RvR_rw_read_u16(&rw);
+      RvR_error_check(height==32,"grp_block_get","'BLCK%04d' has invalid height, expected '32', got '%d'\n",id,height);
+      uint32_t len = RvR_rw_read_u32(&rw);
+
+      block_grps[id] = RvR_malloc(sizeof(*block_grps[id])+sizeof(*block_grps[id]->data)*len,"block grp");
+      for(int i = 0;i<32;i++)
+         block_grps[id]->row_offsets[i] = RvR_rw_read_u32(&rw);
+      for(int i = 0;i<len;i++)
+         block_grps[id]->data[i] = RvR_rw_read_u8(&rw);
+         
+      RvR_rw_close(&rw);
+
+      RvR_mem_tag_set(mem_decomp, RVR_MALLOC_CACHE);
+   }
+
+   RvR_mem_tag_set(block_grps[id], RVR_MALLOC_CACHE);
+   RvR_mem_usr_set(block_grps[id], (void **)&block_grps[id]);
+   return block_grps[id];
+
+RvR_err:
+      if(mem_decomp!=NULL)
+      RvR_mem_tag_set(mem_decomp, RVR_MALLOC_CACHE);
+   if(mem_pak!=NULL)
+      RvR_mem_tag_set(mem_pak, RVR_MALLOC_CACHE);
+
+   return NULL;
 }
 
 GRP_wall  *grp_wall_get(uint16_t id)
