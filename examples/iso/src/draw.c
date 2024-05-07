@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include "RvR/RvR.h"
 //-------------------------------------
@@ -48,7 +49,7 @@ static int freed = 0;
 static Span *span_new();
 static void span_free(Span *s);
 static void span_add(Span **tree, Span *s, uint8_t *src, int y);
-static void span_draw(Span *s, uint8_t *src, int y);
+static void span_draw(int x0, int x1, uint8_t *src, int y);
 //-------------------------------------
 
 //Function implementations
@@ -73,8 +74,8 @@ void draw_end()
 
 void draw_map()
 {
-   srand(0);
-   for(int z = 0;z<32;z++)
+   srand(1);
+   for(int z = 0;z<2;z++)
    {
       for(int y = 32;y>=0;y--)
       {
@@ -83,6 +84,7 @@ void draw_map()
             if(rand()&1)
                continue;
             int sx = x*16+y*16;
+            //int sy = -8*x+8*y;
             int sy = z*12-8*x+8*y;
             GRP_block *grp = grp_block_get(0);
             RvR_mem_tag_set(grp, RVR_MALLOC_STATIC);
@@ -90,8 +92,8 @@ void draw_map()
 
             for(int i = 0;i<32;i++)
             {
-               //if(RvR_key_down(RVR_KEY_SPACE))
-                  //RvR_render_present();
+               if(RvR_key_down(RVR_KEY_SPACE))
+                  RvR_render_present();
 
                uint32_t pos = grp->row_offsets[i];
                int count = grp->data[pos++];
@@ -104,6 +106,9 @@ void draw_map()
                      pos+=len;
                      continue;
                   }
+
+                  int free_before = freed;
+                  int alloc_before = alloc;
 
                   //Clip to screen
                   uint8_t *src = grp->data+pos;
@@ -120,15 +125,29 @@ void draw_map()
                      s->x1 = RvR_xres();
                   }
 
-                  if(spans[sy+i]==NULL)
-                  {
-                     span_draw(s,src,sy+i);
-                     spans[sy+i] = s;
-                  }
-                  else
-                  {
-                     span_add(&spans[sy+i],s,src,sy+i);
-                  }
+                  //printf("%d\n",sy+i);
+
+                  //if(spans[sy+i]==NULL)
+                  //{
+                     //span_draw(s->x0,s->x1,src,sy+i);
+                     //spans[sy+i] = s;
+                  //}
+                  //else
+                  //{
+                  span_add(&spans[sy+i],s,src,sy+i);
+                     if(sy+i==32)
+                        printf("(%d %d) --> ",s->x0,s->x1);
+                     if(sy+i==32)
+                     {
+                        Span *cur = spans[sy+i];
+                        while(cur!=NULL)
+                        {
+                           printf("(%d %d) ",cur->x0,cur->x1);
+                           cur = cur->next;
+                        }
+                        printf("; allocated: %d, freed: %d\n",alloc-alloc_before,freed-free_before);
+                     }
+                  //}
 
                   pos+=len;
                   /*int len = grp->data[pos++];
@@ -167,14 +186,11 @@ static Span *span_new()
    return s;
 }
 
-#if 1
-
 static void span_free(Span *s)
 {
    if(s==NULL)
       return;
 
-   //Search rightmost
    freed++;
 
    Span *n = s->next;
@@ -183,16 +199,22 @@ static void span_free(Span *s)
    span_pool = s;
 
    span_free(n);
-   //span_free(r);
 }
 
 static void span_add(Span **tree, Span *s, uint8_t *src, int y)
 {
+   if(s->x0>=s->x1)
+   {
+      span_free(s);
+      return;
+   }
+
    if((*tree)==NULL)
    {
-      span_draw(s,src,y);
+      span_draw(s->x0,s->x1,src,y);
       *tree = s;
       s->prev_next = tree;
+      s->next = NULL;
       return;
    }
 
@@ -207,7 +229,7 @@ static void span_add(Span **tree, Span *s, uint8_t *src, int y)
    //At end
    if(s->x0>start->x1)
    {
-      span_draw(s,src,y);
+      span_draw(s->x0,s->x1,src,y);
       start->next = s;
       s->next = NULL;
       s->prev_next = &(start->next);
@@ -218,348 +240,91 @@ static void span_add(Span **tree, Span *s, uint8_t *src, int y)
    {
       if(s->x1<start->x0)
       {
-         span_draw(s,src,y);
+         span_draw(s->x0,s->x1,src,y);
+         Span **prev = start->prev_next;
+         *(start->prev_next) = s;
+         s->next = start;
+         s->prev_next = prev;
+         start->prev_next = &(s->next);
          return;
       }
    }
 
    //Merge s and start
+   span_draw(s->x0,start->x0,src,y);
+   start->x0 = RvR_min(s->x0,start->x0);
 
-   /*if(s->x0<=s->x1)
+   //All between start and end --> merge into start; draw in gaps
+   Span *cur = start->next;
+   int x0 = start->x1;
+   if(start!=end)
    {
+      while(cur!=NULL&&cur!=end&&cur->next!=end)
+      {
+         Span *next = cur->next;
+         start->x1 = cur->x1;
+         start->next = next;
+         span_draw(x0,cur->x0,src+(x0-s->x0),y);
+         x0 = cur->x1;
+         cur->next = NULL;
+         span_free(cur);
+         if(next!=NULL)
+            next->prev_next = &(start->next);
+
+         cur = next;
+      }
+   }
+
+   if(s->x1<end->x0)
+   {
+      span_draw(x0,s->x1,src+(x0-s->x0),y);
+      start->x1 = s->x1;
       span_free(s);
       return;
    }
-
-   Span *left = tree;
-   Span *right = tree;
-
-   if(s->x0>=tree->x0)
+   else if(s->x1<=end->x1)
    {
-      while(left->right!=NULL&&s->x0>=left->x1)
-         left = left->right;
-      
-      while(right->right!=NULL&&s->x1>=right->x1)
-         right = right->right;
-   }
-   else if(s->x1<=tree->x1)
-   {
-      while(right->left!=NULL&&s->x1<right->x0)
-         right = right->left;
-
-      while(left->left!=NULL&&s->x0<left->x0)
-         left = left->left;
-   }
-
-   if(s->x1<left->x0)
-   {
-      span_draw(s,src,y);
-      Span *l = left->left;
-      left->left = s;
-      s->left = l;
-
+      span_draw(x0,end->x0,src+(x0-s->x0),y);
+      start->x1 = end->x1;
+      span_free(s);
+      if(start!=end)
+      {
+         Span *next = end->next;
+         end->next = NULL;
+         span_free(end);
+         start->next = next;
+         if(next!=NULL)
+            next->prev_next = &(start->next);
+      }
       return;
    }
-   else if(s->x0>left->x1)
+   else
    {
-      span_draw(s,src,y);
+      span_draw(x0,end->x0,src+(x0-s->x0),y);
+      x0 = end->x1;
+      span_draw(x0,s->x1,src+(x0-s->x0),y);
+      start->x1 = s->x1;
+      span_free(s);
 
+      if(start!=end)
+      {
+         Span *next = end->next;
+         end->next = NULL;
+         span_free(end);
+         start->next = next;
+         if(next!=NULL)
+            next->prev_next = &(start->next);
+      }
       return;
-   }*/
-
-   /*if(s->x0<tree->x0)
-   {
-      while(left->left!=NULL&&s->x0<left->x0)
-         left = left->left;
-   }
-   else if(s->x0>tree->x1)
-   {
-   }*/
-
-   /*while(s->x0<s->x1)
-   {
-      if(s->x1<=tree->x0)
-      {
-         if(tree->left==NULL)
-         {
-            span_draw(s,src,y);
-
-            if(s->x1==tree->x0)
-            {
-               tree->x0 = s->x0;
-               span_free(s);
-            }
-            else
-            {
-               tree->left = s;
-            }
-
-            return;
-         }
-
-         tree = tree->left;
-      }
-      else if(s->x0>=tree->x1)
-      {
-         if(tree->right==NULL)
-         {
-            span_draw(s,src,y);
-
-            if(s->x0==tree->x1)
-            {
-               tree->x1 = s->x1;
-               span_free(s);
-            }
-            else
-            {
-               tree->right = s;
-            }
-
-            return;
-         }
-         tree = tree->right;
-      }
-      else if(s->x0>=tree->x0)
-      {
-         if(s->x1<=tree->x1)
-         {
-            span_free(s);
-            return;
-         }
-
-         if(s->x0<=tree->x1)
-         {
-            int diff = tree->x1-s->x0;
-            src+=diff;
-            s->x0 = tree->x1;
-
-            if(tree->right==NULL)
-            {
-               span_draw(s,src,y);
-               tree->x1 = s->x1;
-               span_free(s);
-               return;
-            }
-
-            tree = tree->right;
-         }
-      }
-      else if(s->x1>tree->x1)
-      {
-         Span *s0 = span_new();
-         *s0 = *s;
-         int diff = tree->x1-s0->x0;
-         s0->x0 = tree->x1;
-         if(tree->right==NULL)
-         {
-            span_draw(s0,src+diff,y);
-            tree->x1 = s->x1;
-            span_free(s0);
-         }
-         else
-         {
-            span_add(tree->right,s0,src+diff,y);
-         }
-
-         if(s->x0>=tree->x0)
-         {
-            span_free(s);
-            return;
-         }
-         
-         s->x1 = tree->x0;
-
-         if(tree->left==NULL)
-         {
-            span_draw(s,src,y);
-            tree->x0 = s->x0;
-            span_free(s);
-            return;
-         }
-
-         tree = tree->left;
-      }
-      else
-      {
-         if(s->x0>=tree->x0)
-         {
-            span_free(s);
-            return;
-         }
-
-         s->x1 = tree->x0;
-
-         if(tree->left==NULL)
-         {
-            span_draw(s,src,y);
-            tree->x0 = s->x0;
-            span_free(s);
-            return;
-         }
-
-         tree = tree->left;
-      }
    }
 
-   span_free(s);*/
 }
 
-#else
-
-static void span_free(Span *s)
+static void span_draw(int x0, int x1, uint8_t *src, int y)
 {
-   if(s==NULL)
+   if(x1-x0<=0)
       return;
 
-   freed++;
-
-   Span *l = s->left;
-   Span *r = s->right;
-
-   s->left = span_pool;
-   span_pool = s;
-
-   span_free(l);
-   span_free(r);
-}
-
-static void span_add(Span *tree, Span *s, uint8_t *src, int y)
-{
-   while(s->x0<s->x1)
-   {
-      if(s->x1<=tree->x0)
-      {
-         if(tree->left==NULL)
-         {
-            span_draw(s,src,y);
-
-            if(s->x1==tree->x0)
-            {
-               tree->x0 = s->x0;
-               span_free(s);
-            }
-            else
-            {
-               tree->left = s;
-            }
-
-            return;
-         }
-
-         tree = tree->left;
-      }
-      else if(s->x0>=tree->x1)
-      {
-         if(tree->right==NULL)
-         {
-            span_draw(s,src,y);
-
-            if(s->x0==tree->x1)
-            {
-               tree->x1 = s->x1;
-               span_free(s);
-            }
-            else
-            {
-               tree->right = s;
-            }
-
-            return;
-         }
-         tree = tree->right;
-      }
-      else if(s->x0>=tree->x0)
-      {
-         if(s->x1<=tree->x1)
-         {
-            span_free(s);
-            return;
-         }
-
-         if(s->x0<=tree->x1)
-         {
-            int diff = tree->x1-s->x0;
-            src+=diff;
-            s->x0 = tree->x1;
-
-            if(tree->right==NULL)
-            {
-               span_draw(s,src,y);
-               tree->x1 = s->x1;
-               span_free(s);
-               return;
-            }
-
-            tree = tree->right;
-         }
-      }
-      else if(s->x1>tree->x1)
-      {
-         Span *s0 = span_new();
-         *s0 = *s;
-         int diff = tree->x1-s0->x0;
-         s0->x0 = tree->x1;
-         if(tree->right==NULL)
-         {
-            span_draw(s0,src+diff,y);
-            tree->x1 = s->x1;
-            span_free(s0);
-         }
-         else
-         {
-            span_add(tree->right,s0,src+diff,y);
-         }
-
-         if(s->x0>=tree->x0)
-         {
-            span_free(s);
-            return;
-         }
-         
-         s->x1 = tree->x0;
-
-         if(tree->left==NULL)
-         {
-            span_draw(s,src,y);
-            tree->x0 = s->x0;
-            span_free(s);
-            return;
-         }
-
-         tree = tree->left;
-      }
-      else
-      {
-         if(s->x0>=tree->x0)
-         {
-            span_free(s);
-            return;
-         }
-
-         s->x1 = tree->x0;
-
-         if(tree->left==NULL)
-         {
-            span_draw(s,src,y);
-            tree->x0 = s->x0;
-            span_free(s);
-            return;
-         }
-
-         tree = tree->left;
-      }
-   }
-
-   span_free(s);
-}
-
-#endif
-
-static void span_draw(Span *s, uint8_t *src, int y)
-{
-   if(s->x1-s->x0<=0)
-      return;
-
-   memcpy(RvR_framebuffer()+y*RvR_xres()+s->x0,src,s->x1-s->x0);
+   memcpy(RvR_framebuffer()+y*RvR_xres()+x0,src,x1-x0);
 }
 //-------------------------------------
