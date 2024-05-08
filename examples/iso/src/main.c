@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "state.h"
 #include "draw.h"
+#include "map.h"
 //-------------------------------------
 
 //#defines
@@ -28,6 +29,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static uint8_t mem[MEM_SIZE];
+
+static Map *map;
 //-------------------------------------
 
 //Function prototypes
@@ -52,6 +55,8 @@ int main(int argc, char **argv)
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
 
+   map = map_create(16,16,16);
+
    while(RvR_running())
    {
       loop();
@@ -64,7 +69,7 @@ static void loop()
 {
    RvR_update();
 
-   draw_begin();
+   draw_begin(map);
    draw_map();
    draw_end();
    /*
