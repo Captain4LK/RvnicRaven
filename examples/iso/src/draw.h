@@ -13,8 +13,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _DRAW_H_
 
 #include "map.h"
+#include "camera.h"
 
-void draw_begin(Map *map);
+void draw_begin(Map *map, Camera *camera);
 void draw_end();
 void draw_map();
 

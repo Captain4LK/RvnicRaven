@@ -69,7 +69,8 @@ static void loop()
 {
    RvR_update();
 
-   draw_begin(map);
+   Camera cam = {0};
+   draw_begin(map,&cam);
    draw_map();
    draw_end();
    /*

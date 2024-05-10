@@ -46,7 +46,8 @@ static int freed = 0;
 
 static int row_done[RVR_YRES_MAX];
 
-static Map *draw_map;
+static Map *iso_map;
+static Camera *iso_cam;
 //-------------------------------------
 
 //Function prototypes
@@ -58,7 +59,7 @@ static void span_draw(int x0, int x1, uint8_t *src, int y);
 
 //Function implementations
 
-void draw_begin(Map *map)
+void draw_begin(Map *map, Camera *camera)
 {
    RvR_render_clear(0);
    for(int i = 0;i<RvR_yres();i++)
@@ -72,7 +73,8 @@ void draw_begin(Map *map)
    alloc = 0;
    freed = 0;
 
-   draw_map = map;
+   iso_map = map;
+   iso_cam = camera;
 }
 
 void draw_end()
@@ -81,7 +83,9 @@ void draw_end()
 
 void draw_map()
 {
-#if 1
+   int cx = 0;
+   int cy = 0;
+#if 0
    srand(1);
    for(int z = 0;z<32;z++)
    {
