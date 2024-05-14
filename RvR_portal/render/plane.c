@@ -333,8 +333,8 @@ static void port_plane_slope(rvr_port_plane *pl)
       RvR_fix22 sp_cos = RvR_fix22_div(wx1-wx0,len);
       RvR_fix22 sp_sin = -RvR_fix22_div(wy1-wy0,len);
 
-      RvR_fix22 cam_cos = RvR_fix22_cos(2048-port_cam->dir);
-      RvR_fix22 cam_sin = RvR_fix22_sin(2048-port_cam->dir);
+      RvR_fix22 cam_cos = RvR_fix22_cos(4096-port_cam->dir);
+      RvR_fix22 cam_sin = RvR_fix22_sin(4096-port_cam->dir);
 
       RvR_fix22 pcos = RvR_fix22_mul(sp_cos,cam_cos)+RvR_fix22_mul(sp_sin,cam_sin);
       RvR_fix22 psin = RvR_fix22_mul(-sp_sin,cam_cos)+RvR_fix22_mul(sp_cos,cam_sin);
@@ -355,14 +355,14 @@ static void port_plane_slope(rvr_port_plane *pl)
    {
       RvR_fix22 scale_x = (16*1024)/RvR_non_zero(port_map->sectors[pl->sector].x_units);
       RvR_fix22 scale_y = (16*1024)/RvR_non_zero(port_map->sectors[pl->sector].y_units);
-      mx = -RvR_fix22_cos(2048-port_cam->dir);
-      mz = RvR_fix22_sin(2048-port_cam->dir);
+      mx = -RvR_fix22_cos(4096-port_cam->dir);
+      mz = RvR_fix22_sin(4096-port_cam->dir);
       mx = RvR_fix22_mul(mx,scale_y);
       mz = RvR_fix22_mul(mz,scale_y);
       my = RvR_port_slope_height_at(&slope,port_cam->x,port_cam->y+scale_y)-height;
 
-      nx = -RvR_fix22_sin(2048-port_cam->dir);
-      nz = -RvR_fix22_cos(2048-port_cam->dir);
+      nx = -RvR_fix22_sin(4096-port_cam->dir);
+      nz = -RvR_fix22_cos(4096-port_cam->dir);
       nx = RvR_fix22_mul(nx,scale_x);
       nz = RvR_fix22_mul(nz,scale_x);
       ny = RvR_port_slope_height_at(&slope,port_cam->x+scale_x,port_cam->y)-height;
@@ -370,8 +370,8 @@ static void port_plane_slope(rvr_port_plane *pl)
 
    x0+=x_off;
    y0+=y_off;
-   RvR_fix22 px = -RvR_fix22_mul(port_cam->x-x0,RvR_fix22_cos(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_sin(3072-port_cam->dir));
-   RvR_fix22 pz = RvR_fix22_mul(port_cam->x-x0,RvR_fix22_sin(3072-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_cos(3072-port_cam->dir));
+   RvR_fix22 px = -RvR_fix22_mul(port_cam->x-x0,RvR_fix22_cos(6144-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_sin(6144-port_cam->dir));
+   RvR_fix22 pz = RvR_fix22_mul(port_cam->x-x0,RvR_fix22_sin(6144-port_cam->dir))+RvR_fix22_mul(port_cam->y-y0,RvR_fix22_cos(6144-port_cam->dir));
    RvR_fix22 py = RvR_port_slope_height_at(&slope,x0,y0)-port_cam->z;
 
    RvR_fix22 u0 = RvR_fix22_mul(py,mz)-RvR_fix22_mul(pz,my);

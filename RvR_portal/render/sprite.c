@@ -76,7 +76,7 @@ void RvR_port_draw_sprite(uint16_t sprite, void *ref)
       //Translate sprite to world space
       RvR_fix22 dirx = RvR_fix22_cos(s->dir);
       RvR_fix22 diry = RvR_fix22_sin(s->dir);
-      RvR_fix22 half_width = (tex->width * 1024) / (4 * 2*s->x_units);
+      RvR_fix22 half_width = (tex->width * 1024) / RvR_non_zero(4 * 2*s->x_units);
       //RvR_fix22 half_width = (tex->width * 1024) / (64 * 2);
       RvR_fix22 p0x = RvR_fix22_mul(-diry, half_width) + s->x;
       RvR_fix22 p0y = RvR_fix22_mul(dirx, half_width) + s->y;

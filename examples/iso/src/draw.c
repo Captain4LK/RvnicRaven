@@ -83,8 +83,17 @@ void draw_end()
 
 void draw_map()
 {
-   int cx = 0;
-   int cy = 0;
+   int cx = -1+(-2*RvR_yres()-2*iso_cam->y+iso_cam->x)/32;
+   int cy = (RvR_yres()+iso_cam->y)/8+cx;
+
+   for(int i = 0;i<4;i++)
+   {
+      int tx = cx;
+      int ty = cy;
+
+      cy--;
+      cx--;
+   }
 #if 0
    srand(1);
    for(int z = 0;z<32;z++)

@@ -59,7 +59,7 @@ void editor_init(void)
 {
    undo_init();
 
-   camera.fov = 1024;
+   camera.fov = 2048;
    camera.shear = 0;
    camera.x = 1024;
    camera.y = 1024;
