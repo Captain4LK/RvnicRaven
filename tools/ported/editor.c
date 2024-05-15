@@ -146,7 +146,7 @@ void camera_update()
       }
       else
       {
-         camera.dir -= 8 * 8;
+         camera.dir -= 16 * 8;
       }
    }
    else if(RvR_key_down(RVR_KEY_RIGHT))
@@ -158,7 +158,7 @@ void camera_update()
       }
       else
       {
-         camera.dir += 8 * 8;
+         camera.dir += 16 * 8;
       }
    }
    camera.dir &= 65535;

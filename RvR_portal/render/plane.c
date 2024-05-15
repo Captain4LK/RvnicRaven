@@ -565,6 +565,32 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+shade_off)));
    const uint8_t * restrict tex = texture->data;
 
+#if RVR_PORT_UNROLL
+
+   int count = x1-x0;
+   while(count>=2)
+   {
+      uint8_t c = tex[((tx>>y_log)&x_and)+((ty>>16)&y_and)];
+      *pix = col[c];
+      tx+=step_x;
+      ty+=step_y;
+      pix++;
+      c = tex[((tx>>y_log)&x_and)+((ty>>16)&y_and)];
+      *pix = col[c];
+      tx+=step_x;
+      ty+=step_y;
+      pix++;
+      count-=2;
+   }
+
+   if(count&1)
+   {
+      uint8_t c = tex[((tx>>y_log)&x_and)+((ty>>16)&y_and)];
+      *pix = col[c];
+   }
+
+#else
+
    for(int x = x0;x<x1;x++)
    {
       uint8_t c = tex[((tx>>y_log)&x_and)+((ty>>16)&y_and)];
@@ -578,6 +604,8 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
          RvR_render_present();
 #endif
    }
+
+#endif
 }
 
 static void port_span_slope(uint16_t sector, uint8_t where, int x0, int x1, int y, port_plane_ctx ctx)

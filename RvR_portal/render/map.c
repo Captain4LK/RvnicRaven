@@ -271,10 +271,33 @@ void RvR_port_draw_map(RvR_port_selection *select)
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
                const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
                uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
+               int stride = RvR_xres();
+
+#if RVR_PORT_UNROLL
+
+               int count = y1-y0+1;
+               while(count>=2)
+               {
+                  *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                  pix+=stride;
+                  texture_coord_scaled+=coord_step_scaled;
+                  *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                  pix+=stride;
+                  texture_coord_scaled+=coord_step_scaled;
+                  count-=2;
+               }
+
+               if(count&1)
+               {
+                  *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+               }
+
+#else
+
                for(int y = y0;y<=y1;y++)
                {
-                  *pix= col[tex[(texture_coord_scaled>>16)&y_and]];
-                  pix+=RvR_xres();
+                  *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                  pix+=stride;
                   texture_coord_scaled+=coord_step_scaled;
 
 #if RVR_PORT_PIXELBYPIXEL
@@ -282,6 +305,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
                      RvR_render_present();
 #endif
                }
+
+#endif
             }
 
             cy+=step_cy;
@@ -492,10 +517,33 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   const uint8_t * restrict tex = &texture_upper->data[(((uint32_t)u_upper)%texture_upper->width)*texture_upper->height];
                   uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
                   RvR_fix22 y_and = (1<<RvR_log2(texture_upper->height))-1;
+                  int stride = RvR_xres();
+
+#if RVR_PORT_UNROLL
+
+                  int count = mid-y0+1;
+                  while(count>=2)
+                  {
+                     *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                     pix+=stride;
+                     texture_coord_scaled+=coord_step_scaled;
+                     *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                     pix+=stride;
+                     texture_coord_scaled+=coord_step_scaled;
+                     count-=2;
+                  }
+
+                  if(count&1)
+                  {
+                     *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                  }
+
+#else
+
                   for(int y = y0;y<=mid;y++)
                   {
                      *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
-                     pix+=RvR_xres();
+                     pix+=stride;
                      texture_coord_scaled+=coord_step_scaled;
 
 #if RVR_PORT_PIXELBYPIXEL
@@ -503,6 +551,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
                         RvR_render_present();
 #endif
                   }
+
+#endif
                   port_ytop[x] = mid;
                }
                else
@@ -582,10 +632,33 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   RvR_fix22 y_and = (1<<RvR_log2(texture_lower->height))-1;
                   const uint8_t * restrict tex = &texture_lower->data[(((uint32_t)u_lower)%texture_lower->width)*texture_lower->height];
                   uint8_t * restrict pix = RvR_framebuffer()+(mid*RvR_xres()+x);
+                  int stride = RvR_xres();
+
+#if RVR_PORT_UNROLL
+
+                  int count = y1-mid+1;
+                  while(count>=2)
+                  {
+                     *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                     pix+=stride;
+                     texture_coord_scaled+=coord_step_scaled;
+                     *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                     pix+=stride;
+                     texture_coord_scaled+=coord_step_scaled;
+                     count-=2;
+                  }
+
+                  if(count&1)
+                  {
+                     *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
+                  }
+
+#else
+
                   for(int y = mid;y<=y1;y++)
                   {
                      *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
-                     pix+=RvR_xres();
+                     pix+=stride;
                      texture_coord_scaled+=coord_step_scaled;
 
 #if RVR_PORT_PIXELBYPIXEL
@@ -593,6 +666,8 @@ void RvR_port_draw_map(RvR_port_selection *select)
                         RvR_render_present();
 #endif
                   }
+
+#endif
                   port_ybot[x] = mid;
                }
                else

@@ -161,33 +161,121 @@ void port_sprite_draw_billboard(const RvR_port_map *map, const port_sprite *sp, 
          }
       }
 
+      int stride = RvR_xres();
+
+#if RVR_PORT_UNROLL
+      int count = ye-ys;
+      if(count<=0)
+      {
+         u += step_u;
+         continue;
+      }
+
       if(sp->flags & RVR_PORT_SPRITE_TRANS0)
       {
-         for(int y = ys; y<ye; y++, dst += RvR_xres())
+         uint8_t index;
+
+         while(count>=2)
          {
-            uint8_t index = tex[(v >> 16)];
+            index = tex[(v >> 16)];
             *dst = RvR_blend(col[index], *dst);
             v += step_v;
+            dst+=stride;
+            index = tex[(v >> 16)];
+            *dst = RvR_blend(col[index], *dst);
+            v += step_v;
+            dst+=stride;
+            count-=2;
+         }
+
+         if(count&1)
+         {
+            index = tex[(v >> 16)];
+            *dst = RvR_blend(col[index], *dst);
          }
       }
       else if(sp->flags & RVR_PORT_SPRITE_TRANS1)
       {
-         for(int y = ys; y<ye; y++, dst += RvR_xres())
+         uint8_t index;
+
+         while(count>=2)
          {
-            uint8_t index = tex[(v >> 16)];
+            index = tex[(v >> 16)];
             *dst = RvR_blend(*dst, col[index]);
             v += step_v;
+            dst+=stride;
+            index = tex[(v >> 16)];
+            *dst = RvR_blend(*dst, col[index]);
+            v += step_v;
+            dst+=stride;
+            count-=2;
+         }
+
+         if(count&1)
+         {
+            index = tex[(v >> 16)];
+            *dst = RvR_blend(*dst, col[index]);
          }
       }
       else
       {
-         for(int y = ys; y<ye; y++, dst += RvR_xres())
+         //TODO(Captain4LK): is unrolling a good idea width the branch per pixel?
+         uint8_t index;
+
+         while(count>=2)
+         {
+            index = tex[(v >> 16)];
+            *dst = index?col[index]:*dst;
+            v += step_v;
+            dst+=stride;
+            index = tex[(v >> 16)];
+            *dst = index?col[index]:*dst;
+            v += step_v;
+            dst+=stride;
+            count-=2;
+         }
+
+         if(count&1)
+         {
+            index = tex[(v >> 16)];
+            *dst = index?col[index]:*dst;
+         }
+      }
+
+#else
+
+      if(sp->flags & RVR_PORT_SPRITE_TRANS0)
+      {
+         for(int y = ys; y<ye; y++)
+         {
+            uint8_t index = tex[(v >> 16)];
+            *dst = RvR_blend(col[index], *dst);
+            v += step_v;
+            dst+=stride;
+         }
+      }
+      else if(sp->flags & RVR_PORT_SPRITE_TRANS1)
+      {
+         for(int y = ys; y<ye; y++)
+         {
+            uint8_t index = tex[(v >> 16)];
+            *dst = RvR_blend(*dst, col[index]);
+            v += step_v;
+            dst+=stride;
+         }
+      }
+      else
+      {
+         for(int y = ys; y<ye; y++)
          {
             uint8_t index = tex[(v >> 16)];
             *dst = index?col[index]:*dst;
             v += step_v;
+            dst+=stride;
          }
       }
+
+#endif
 
       u += step_u;
    }

@@ -15,7 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //If the RVR_PORT_PIXELKEY button is pressed, the renderer
 //redraws every framebuffer write, showing how the scene
 //is rendered pixel by pixel
-#define RVR_PORT_PIXELBYPIXEL 1
+#define RVR_PORT_PIXELBYPIXEL 0
 #define RVR_PORT_PIXELKEY RVR_KEY_M
 
 //Span length for sub-affine slope rendering
@@ -23,5 +23,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //(1<<Number) of slots in plane hashtable
 #define RVR_PORT_PLANE_SLOTS 8
+
+//Unroll some tight loops
+//Incompatible with PIXELBYPIXEL
+#define RVR_PORT_UNROLL 1
+
+#if RVR_PORT_PIXELBYPIXEL &&  RVR_PORT_UNROLL
+#error "RVR_PORT_UNROLL and RVR_PORT_PIXELBYPIXEL are incompatible"
+#endif
 
 #endif
