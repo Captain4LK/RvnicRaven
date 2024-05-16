@@ -181,13 +181,14 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
          }
       }
 
+      int stride = RvR_xres();
       if(sp->flags & RVR_PORT_SPRITE_TRANS0)
       {
          for(; wy<y_to; wy++)
          {
             uint8_t index = tex[(texture_coord_scaled >> 16)];
             *pix = RvR_blend(col[index], *pix);
-            pix += RvR_xres();
+            pix += stride;
             texture_coord_scaled += coord_step_scaled;
          }
       }
@@ -197,7 +198,7 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
          {
             uint8_t index = tex[(texture_coord_scaled >> 16)];
             *pix = RvR_blend(*pix, col[index]);
-            pix += RvR_xres();
+            pix += stride;
             texture_coord_scaled += coord_step_scaled;
          }
       }
@@ -207,7 +208,7 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
          {
             uint8_t index = tex[(texture_coord_scaled >> 16)];
             *pix = index?col[index]:*pix;
-            pix += RvR_xres();
+            pix += stride;
             texture_coord_scaled += coord_step_scaled;
          }
       }

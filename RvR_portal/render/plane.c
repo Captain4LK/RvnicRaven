@@ -236,12 +236,13 @@ static void port_plane_sky(rvr_port_plane *pl)
          tex_end = tex_start - 1;
       int solid_end = pl->end[x];
       RvR_fix16 texture_coord = (RvR_yres() - middle + pl->start[x]) * tex_step;
+      int stride = RvR_xres();
 
       for(int y = tex_start; y<tex_end + 1; y++)
       {
          *pix = tex[texture_coord/1024];
          texture_coord += tex_step;
-         pix += RvR_xres();
+         pix += stride;
 
 #if RVR_PORT_PIXELBYPIXEL
          if(RvR_key_pressed(RVR_PORT_PIXELKEY))
@@ -254,7 +255,7 @@ static void port_plane_sky(rvr_port_plane *pl)
       {
          *pix = col[tex[(texture_coord/1024) & mask]];
          texture_coord -= tex_step;
-         pix += RvR_xres();
+         pix += stride;
 
 #if RVR_PORT_PIXELBYPIXEL
          if(RvR_key_pressed(RVR_PORT_PIXELKEY))
