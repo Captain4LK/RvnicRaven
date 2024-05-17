@@ -502,7 +502,7 @@ static void e2d_draw_view(void)
    e2d_draw_base();
 
    char tmp[1024];
-   snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir);
+   snprintf(tmp, 1024, "x: %d y:%d z:%d ang:%d", camera.x, camera.y, camera.z, camera.dir);
    RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
 }
 
@@ -531,7 +531,7 @@ static void e2d_draw_view_scroll(void)
    e2d_draw_base();
 
    char tmp[1024];
-   snprintf(tmp, 1024, "x: %d y:%d ang:%d", camera.x, camera.y, camera.dir);
+   snprintf(tmp, 1024, "x: %d y:%d z:%d ang:%d", camera.x, camera.y, camera.z, camera.dir);
    RvR_render_string(5, RvR_yres() - 10, 1, tmp, color_white);
 }
 
