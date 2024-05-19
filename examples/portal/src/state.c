@@ -11,59 +11,22 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
-
-#include "RvR/RvR.h"
-#include "RvR/RvR_portal.h"
 //-------------------------------------
 
 //Internal includes
-#include "state.h"
 //-------------------------------------
 
 //#defines
-#define MEM_SIZE (1 << 27)
 //-------------------------------------
 
 //Typedefs
 //-------------------------------------
 
 //Variables
-static uint8_t mem[MEM_SIZE];
 //-------------------------------------
 
 //Function prototypes
 //-------------------------------------
 
 //Function implementations
-
-int main(int argc, char **argv)
-{
-   RvR_malloc_init(mem, MEM_SIZE);
-
-   RvR_init("RvnicRaven - portal", 0);
-   RvR_key_repeat(1);
-
-   RvR_pak_add("data/main.csv");
-
-   //User defined overwrites (used for modding)
-   for(int i = 1; i<argc; i++)
-      RvR_pak_add(argv[i]);
-
-   RvR_palette_load(0);
-   RvR_render_font_set(0xF000);
-
-   while(RvR_running())
-   {
-      RvR_update();
-
-
-
-      if(RvR_key_pressed(RVR_KEY_M))
-         RvR_malloc_report();
-
-      RvR_render_present();
-   }
-
-   return 0;
-}
 //-------------------------------------
