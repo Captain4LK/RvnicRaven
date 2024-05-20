@@ -8,20 +8,8 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _STATE_H_
+#ifndef _COLLISION_H_
 
-#define _STATE_H_
-
-typedef enum
-{
-   STATE_INVALID,
-   STATE_MENU,
-   STATE_GAME,
-}State;
-
-void state_set(State s);
-void state_init(State s);
-void state_update();
-void state_draw();
+#define _COLLISION_H_
 
 #endif

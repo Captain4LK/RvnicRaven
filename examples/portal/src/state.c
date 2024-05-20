@@ -14,6 +14,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "state.h"
+#include "game.h"
 //-------------------------------------
 
 //#defines
@@ -23,10 +25,51 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static State state = STATE_INVALID;
 //-------------------------------------
 
 //Function prototypes
 //-------------------------------------
 
 //Function implementations
+
+void state_set(State s)
+{
+   switch(s)
+   {
+   case STATE_INVALID: state = s; break;
+   case STATE_MENU: state = s; break;
+   case STATE_GAME: state = s; game_set(); break;
+   }
+}
+
+void state_init(State s)
+{
+   switch(s)
+   {
+   case STATE_INVALID: state = s; break;
+   case STATE_MENU: state = s; break;
+   case STATE_GAME: state = s; game_init(); break;
+   }
+}
+
+void state_update()
+{
+   switch(state)
+   {
+   case STATE_INVALID: break;
+   case STATE_MENU: break;
+   case STATE_GAME: game_update(); break;
+   }
+}
+
+void state_draw()
+{
+   switch(state)
+   {
+   case STATE_INVALID: break;
+   case STATE_MENU: break;
+   case STATE_GAME: game_draw(); break;
+   }
+}
 //-------------------------------------
