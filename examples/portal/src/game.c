@@ -18,6 +18,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "state.h"
 #include "game.h"
+#include "gamestate.h"
+#include "player.h"
 //-------------------------------------
 
 //#defines
@@ -27,6 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static Gamestate *gamestate = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -36,6 +39,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void game_set()
 {
+   gamestate_free(gamestate);
+   gamestate = gamestate_new();
+   player_create_new(gamestate);
+   gamestate_map(gamestate,0);
 }
 
 void game_init()
@@ -44,9 +51,15 @@ void game_init()
 
 void game_update()
 {
+   player_update(gamestate);
 }
 
 void game_draw()
 {
+   RvR_port_draw_begin(gamestate->map,&gamestate->cam);
+
+      RvR_port_draw_map(NULL);
+
+   RvR_port_draw_end(NULL);
 }
 //-------------------------------------

@@ -45,6 +45,7 @@ void RvR_port_map_save(const RvR_port_map *map, const char *path)
    size += 2; //version
    size += 2; //map->wall_count
    size += 2; //map->sector_count
+   size += 2; //map->sprite_count
    size+=map->wall_count*(4+4+4+2+2+2+2+2+2+1+2+2+1+1); //Walls
    size+=map->sector_count*(2+2+4+4+2+2+4+2+2+1+1+2+2+1+1); //Sectors
    size+=map->sprite_count*(4+4+4+4+2+2+4+1+1); //Sprites

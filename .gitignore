@@ -16,3 +16,6 @@ a.out
 
 *.bin
 *.map
+
+*.png
+*.prof

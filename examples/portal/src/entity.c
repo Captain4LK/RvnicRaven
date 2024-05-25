@@ -12,7 +12,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-
 #include "RvR/RvR.h"
 #include "RvR/RvR_portal.h"
 //-------------------------------------
@@ -29,6 +28,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static Entity *entity_pool = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -36,34 +36,66 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-Gamestate *gamestate_new()
+Entity *entity_new()
 {
-   Gamestate *state = RvR_malloc(sizeof(*state),"GameState");
-   memset(state,0,sizeof(*state));
+   if(entity_pool==NULL)
+   {
+      Entity *ne = RvR_malloc(sizeof(*ne) * 256, "Entity pool");
+      memset(ne, 0, sizeof(*ne) * 256);
 
-   return state;
+      for(int i = 0; i<256 - 1; i++)
+         ne[i].next = &ne[i + 1];
+      entity_pool = &ne[0];
+   }
+
+   Entity *n = entity_pool;
+   entity_pool = n->next;
+   n->next = NULL;
+   n->prev_next = NULL;
+
+   uint64_t gen = n->generation;
+   memset(n, 0, sizeof(*n));
+   n->generation = gen;
+
+   return n;
 }
 
-void gamestate_free(Gamestate *s)
+void entity_free(Entity *e)
 {
-   if(s==NULL)
+   if(e==NULL)
       return;
 
-   RvR_free(s);
+   //ai_free(e);
+   //if(e->cards!=NULL)
+      //RvR_free(e->cards);
+   //grid_entity_remove(e);
+
+   *e->prev_next = e->next;
+   if(e->next!=NULL)
+      e->next->prev_next = e->prev_next;
+
+   e->next = entity_pool;
+   entity_pool = e;
 }
 
-void gamestate_map(Gamestate *s, uint16_t id)
+void entity_add(Gamestate *state, Entity *e)
 {
-   if(s==NULL||s->player.entity==NULL)
+   if(e==NULL)
       return;
 
-   s->map = RvR_port_map_load(id);
-   s->cam.x = s->player.entity->x;
-   s->cam.y = s->player.entity->y;
-   s->cam.z = s->player.entity->z;
-   s->cam.shear = 0;
-   s->cam.fov = 2048;
-   s->cam.sector = RvR_port_sector_update(s->map,0,s->cam.x,s->cam.y);
-   entity_add(s,s->player.entity);
+   e->prev_next = &state->entities;
+   if(state->entities!=NULL)
+      state->entities->prev_next = &e->next;
+   e->next = state->entities;
+   state->entities = e;
+}
+
+void entity_remove(Entity *e)
+{
+   if(e==NULL)
+      return;
+
+   e->generation++;
+   e->removed = 1;
 }
 //-------------------------------------

@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "state.h"
 //-------------------------------------
 
@@ -42,6 +43,9 @@ int main(int argc, char **argv)
 
    RvR_init("RvnicRaven - portal", 0);
    RvR_key_repeat(1);
+   RvR_mouse_relative(1);
+
+   config_read("settings.ini");
 
    RvR_pak_add("data/main.csv");
 
@@ -67,6 +71,8 @@ int main(int argc, char **argv)
 
       RvR_render_present();
    }
+
+   config_write("settings.ini");
 
    return 0;
 }
