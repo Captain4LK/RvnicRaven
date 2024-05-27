@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "config.h"
 #include "player.h"
 #include "entity.h"
+#include "collision.h"
 //-------------------------------------
 
 //#defines
@@ -59,6 +60,10 @@ void player_update(Gamestate *state)
    int x, y;
    RvR_mouse_relative_pos(&x, &y);
 
+   //Mouse look: x-axis
+   if(x!=0)
+      state->player.entity->direction += (x * 128 * 2) / 32;
+
    RvR_fix22 dirx = RvR_fix22_cos(state->player.entity->direction);
    RvR_fix22 diry = RvR_fix22_sin(state->player.entity->direction);
 
@@ -84,10 +89,13 @@ void player_update(Gamestate *state)
       state->player.entity->vy+=dirx;
    }
 
-   //Mouse look: x-axis
-   if(x!=0)
-      state->player.entity->direction += (x * 128 * 2) / 32;
+   RvR_fix22 floor_height = 0;
+   RvR_fix22 ceiling_height = 0;
+   collision_move(state,state->player.entity,&floor_height,&ceiling_height);
 
    state->cam.dir = state->player.entity->direction;
+   state->cam.x = state->player.entity->x;
+   state->cam.y = state->player.entity->y;
+   state->cam.sector = state->player.entity->sector;
 }
 //-------------------------------------

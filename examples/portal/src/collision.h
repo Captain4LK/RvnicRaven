@@ -12,4 +12,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _COLLISION_H_
 
+#include "gamestate.h"
+#include "entity.h"
+
+void collision_move(Gamestate *state, Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height);
+
 #endif

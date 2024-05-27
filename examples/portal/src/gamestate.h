@@ -22,6 +22,7 @@ struct Entity
    //-------------------------------------
 
    //Collision
+   uint16_t sector;
    RvR_fix22 x;
    RvR_fix22 y;
    RvR_fix22 z;

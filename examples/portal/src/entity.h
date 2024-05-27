@@ -42,5 +42,6 @@ Entity *entity_new();
 void entity_free(Entity *e);
 void entity_add(Gamestate *state, Entity *e);
 void entity_remove(Entity *e);
+void entity_update_pos(Gamestate *state, Entity *e, RvR_fix22 nx, RvR_fix22 ny, RvR_fix22 nz);
 
 #endif
