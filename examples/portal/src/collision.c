@@ -47,7 +47,7 @@ void collision_move(Gamestate *state, Entity *e, RvR_fix22 *floor_height, RvR_fi
    RvR_fix22 nvx = vx;
    RvR_fix22 nvy = vy;
    RvR_fix22 mag_v = RvR_fix22_sqrt(RvR_fix22_mul(vx/48,vx/48)+RvR_fix22_mul(vy/48,vy/48));
-   printf("%d\n",mag_v);
+   printf("%d %d\n",vx,vy);
 
    RvR_fix22 tot_mag = 0;
    for(int i = 0;i<4;i++)
@@ -109,6 +109,8 @@ static void collision_movex(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix2
       {
          RvR_port_wall *wall = state->map->walls+state->map->sectors[sector].wall_first+j;
 
+         //TODO(Captain4LK): aabb for quick reject?
+
          RvR_fix22 p0[2];
          RvR_fix22 p1[2];
          p0[0] = wall->x;
@@ -119,16 +121,82 @@ static void collision_movex(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix2
          RvR_fix22 len2 = RvR_fix22_mul(p1[0]-p0[0],p1[0]-p0[0])+RvR_fix22_mul(p1[1]-p0[1],p1[1]-p0[1]);
          RvR_fix22 t = RvR_fix22_mul(np[0]-p0[0],p1[0]-p0[0])+RvR_fix22_mul(np[1]-p0[1],p1[1]-p0[1]);
          //RvR_fix22 t = (np[0]-p0[0])*(p1[0]-p0[0])+(np[1]-p0[1])*(p1[1]-p0[1]);
-         t = RvR_max(0,RvR_min(len2,t));
+         RvR_fix22 t_clipped = RvR_max(0,RvR_min(len2,t));
 
          RvR_fix22 proj[2];
-         proj[0] = p0[0]+RvR_fix22_div(RvR_fix22_mul(t,p1[0]-p0[0]),RvR_non_zero(len2));
-         proj[1] = p0[1]+RvR_fix22_div(RvR_fix22_mul(t,p1[1]-p0[1]),RvR_non_zero(len2));
+         proj[0] = p0[0]+RvR_fix22_div(RvR_fix22_mul(t_clipped,p1[0]-p0[0]),RvR_non_zero(len2));
+         proj[1] = p0[1]+RvR_fix22_div(RvR_fix22_mul(t_clipped,p1[1]-p0[1]),RvR_non_zero(len2));
          RvR_fix22 dist2 = RvR_fix22_mul(proj[0]-np[0],proj[0]-np[0])+RvR_fix22_mul(proj[1]-np[1],proj[1]-np[1]);
          if(dist2>RvR_fix22_mul(e->col_radius,e->col_radius))
             continue;
 
          //Intersection
+         if(wall->portal!=RVR_PORT_SECTOR_INVALID)
+         {
+            //Check if already added
+
+            //If stepable --> skip
+         }
+
+         RvR_fix22 rp[2];
+         proj[0] = p0[0]+RvR_fix22_div(RvR_fix22_mul(t,p1[0]-p0[0]),RvR_non_zero(len2));
+         proj[1] = p0[1]+RvR_fix22_div(RvR_fix22_mul(t,p1[1]-p0[1]),RvR_non_zero(len2));
+         dist2 = RvR_fix22_mul(proj[0]-np[0],proj[0]-np[0])+RvR_fix22_mul(proj[1]-np[1],proj[1]-np[1]);
+         if(e->vx>=0)
+         {
+            RvR_fix22 p10[2];
+            p10[0] = p1[0]-p0[0];
+            p10[1] = p1[1]-p0[1];
+            RvR_fix22 len = RvR_fix22_sqrt(len2);
+            RvR_fix22 rp_dist = e->col_radius-RvR_fix22_sqrt(dist2);
+
+            if(p0[0]<p1[0])
+            {
+               rp[0] = proj[0]-RvR_fix22_div(RvR_fix22_mul(p10[1],rp_dist),RvR_non_zero(len));
+               rp[1] = proj[1]+RvR_fix22_div(RvR_fix22_mul(p10[0],rp_dist),RvR_non_zero(len));
+               //puts("UP");
+            }
+            else
+            {
+               rp[0] = proj[0]+RvR_fix22_div(RvR_fix22_mul(p10[1],rp_dist),RvR_non_zero(len));
+               rp[1] = proj[1]-RvR_fix22_div(RvR_fix22_mul(p10[0],rp_dist),RvR_non_zero(len));
+               //puts("DOWN");
+            }
+         }
+         else
+         {
+            RvR_fix22 p10[2];
+            p10[0] = p1[0]-p0[0];
+            p10[1] = p1[1]-p0[1];
+            RvR_fix22 len = RvR_fix22_sqrt(len2);
+            RvR_fix22 rp_dist = e->col_radius-RvR_fix22_sqrt(dist2);
+
+            if(p0[1]>p1[1])
+            {
+               rp[0] = proj[0]+RvR_fix22_div(RvR_fix22_mul(p10[1],rp_dist),RvR_non_zero(len));
+               rp[1] = proj[1]-RvR_fix22_div(RvR_fix22_mul(p10[0],rp_dist),RvR_non_zero(len));
+            }
+            else
+            {
+               rp[0] = proj[0]-RvR_fix22_div(RvR_fix22_mul(p10[1],rp_dist),RvR_non_zero(len));
+               rp[1] = proj[1]+RvR_fix22_div(RvR_fix22_mul(p10[0],rp_dist),RvR_non_zero(len));
+            }
+         }
+
+         if((p1[1]-p0[1]>=0&&rp[1]-p0[1]<0)||
+            (p1[1]-p0[1]<0&&rp[1]-p0[1]>=0))
+         {
+            puts("P0");
+         }
+         else if((p1[1]-p0[1]>=0&&rp[1]-p0[1]>p1[1]-p0[1])||
+                 (p1[1]-p0[1]<0&&rp[1]-p0[1]<p1[1]-p0[1]))
+         {
+            puts("P1");
+         }
+         else
+         {
+            puts("MID");
+         }
       }
       //RvR_array_length_set(collision_sector_stack,RvR_array_length(collision_sector_stack)-1);
 
