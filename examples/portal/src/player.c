@@ -44,7 +44,7 @@ void player_create_new(Gamestate *state)
    state->player.entity = entity_new(state);
    state->player.entity->x = 0;
    state->player.entity->y = 0;
-   state->player.entity->z = 1536;
+   state->player.entity->z = 0;
    state->player.entity->vx = 0;
    state->player.entity->vy = 0;
    state->player.entity->vz = 0;
@@ -96,6 +96,7 @@ void player_update(Gamestate *state)
    state->cam.dir = state->player.entity->direction;
    state->cam.x = state->player.entity->x;
    state->cam.y = state->player.entity->y;
+   state->cam.z = state->player.entity->z+1536;
    state->cam.sector = state->player.entity->sector;
 }
 //-------------------------------------
