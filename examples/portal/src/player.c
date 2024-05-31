@@ -66,6 +66,8 @@ void player_update(Gamestate *state)
 
    RvR_fix22 dirx = RvR_fix22_cos(state->player.entity->direction);
    RvR_fix22 diry = RvR_fix22_sin(state->player.entity->direction);
+   dirx*=1;
+   diry*=1;
 
    if(RvR_key_down(config_move_forward))
    {

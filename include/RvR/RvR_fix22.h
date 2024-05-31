@@ -24,5 +24,6 @@ RvR_fix22 RvR_fix22_atan2(RvR_fix22 y, RvR_fix22 x);
 RvR_fix22 RvR_fix22_atan2_slow(RvR_fix22 y, RvR_fix22 x);
 
 RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a);
+RvR_fix22 RvR_fix22_sqrt64(int64_t a);
 
 #endif

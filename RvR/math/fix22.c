@@ -391,4 +391,24 @@ RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a)
 
    return result >> 11;
 }
+
+RvR_fix22 RvR_fix22_sqrt64(int64_t a)
+{
+   int64_t b = UINT64_C(1) << 62;
+   int64_t result = 0;
+
+   while(b>64)
+   {
+      int64_t t = result + b;
+      if(a>=t)
+      {
+         a -= t;
+         result = t + b;
+      }
+      a <<= 1;
+      b >>= 1;
+   }
+
+   return (RvR_fix22)(result >> 27);
+}
 //-------------------------------------
