@@ -313,6 +313,14 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             //RvR_fix22 root = RvR_fix22_sqrt(RvR_fix22_mul(e->col_radius,e->col_radius)-RvR_fix22_mul(cp[1]-p0[1],cp[1]-p0[1]));
             nx = p0[0]-root-1;
             printf("p0 %d (%d %d) (%d %d)\n",wall_id,p0[0],p0[1],p1[0],p1[1]);
+
+            //TODO(Captain4LK): maybe only do this projection if the closest point was p0/p1, not the resolving point
+            if(nx<=min_p[0])
+               collision_project(e->vx,e->vy,-(p0_org[1]-(e->y+RvR_fix22_div(RvR_fix22_mul(e->vy,nx),RvR_non_zero(mag)))),
+                     p0_org[0]-(e->x+RvR_fix22_div(RvR_fix22_mul(e->vx,nx),RvR_non_zero(mag))),&nv[0],&nv[1]);
+   //entity_update_pos(state,e,e->x+RvR_fix22_div(RvR_fix22_mul(e->vx,min_p[0]),RvR_non_zero(mag)),e->y+RvR_fix22_div(RvR_fix22_mul(e->vy,min_p[0]),RvR_non_zero(mag)),e->z);
+               //collision_project(e->vx,e->vy,-(p0[1]),p0[0]-nx,&nv[0],&nv[1]);
+               //collision_project(e->vx,e->vy,p1_org[0]-p0_org[0],p1_org[1]-p0_org[1],&nv[0],&nv[1]);
          }
          else if((p1[1]-p0[1]>=0&&rp[1]-p0[1]>p1[1]-p0[1])||
                  (p1[1]-p0[1]<0&&rp[1]-p0[1]<p1[1]-p0[1]))
@@ -321,6 +329,11 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             //RvR_fix22 root = RvR_fix22_sqrt(RvR_fix22_mul(e->col_radius,e->col_radius)-RvR_fix22_mul(cp[1]-p1[1],cp[1]-p1[1]));
             nx = p1[0]-root-1;
             printf("p1 %d (%d %d) (%d %d)\n",wall_id,p0[0],p0[1],p1[0],p1[1]);
+
+            if(nx<=min_p[0])
+               collision_project(e->vx,e->vy,-(p1_org[1]-(e->y+RvR_fix22_div(RvR_fix22_mul(e->vy,nx),RvR_non_zero(mag)))),
+                     p1_org[0]-(e->x+RvR_fix22_div(RvR_fix22_mul(e->vx,nx),RvR_non_zero(mag))),&nv[0],&nv[1]);
+               //collision_project(e->vx,e->vy,p1_org[0]-p0_org[0],p1_org[1]-p0_org[1],&nv[0],&nv[1]);
          }
          else
          {
@@ -328,10 +341,11 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             //RvR_fix22 x_resolv = p0[0]+RvR_fix22_div(RvR_fix22_mul(p1[0]-p0[0],rp[1]-p0[1]),RvR_non_zero(p1[1]-p0[1]));
             nx = cp[0]+(x_resolv-rp[0])-1;
             printf("mid %d (%d %d) (%d %d)\n",wall_id,p0[0],p0[1],p1[0],p1[1]);
+
+            if(nx<=min_p[0])
+               collision_project(e->vx,e->vy,p1_org[0]-p0_org[0],p1_org[1]-p0_org[1],&nv[0],&nv[1]);
          }
 
-         if(nx<=min_p[0])
-            collision_project(e->vx,e->vy,p1_org[0]-p0_org[0],p1_org[1]-p0_org[1],&nv[0],&nv[1]);
          min_p[0] = RvR_min(min_p[0],nx);
 
          printf("dist %d\n",collision_point_segment_dist2(min_p,p0,p1,proj));
