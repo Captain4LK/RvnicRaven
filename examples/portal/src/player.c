@@ -91,9 +91,7 @@ void player_update(Gamestate *state)
       state->player.entity->vy+=dirx;
    }
 
-   RvR_fix22 floor_height = 0;
-   RvR_fix22 ceiling_height = 0;
-   collision_move(state,state->player.entity,&floor_height,&ceiling_height);
+   collision_move(state,state->player.entity);
 
    state->cam.dir = state->player.entity->direction;
    state->cam.x = state->player.entity->x;

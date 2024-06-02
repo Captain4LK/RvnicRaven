@@ -14,6 +14,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 typedef struct Entity Entity;
 
+typedef struct
+{
+   RvR_fix22 pos[3];
+   RvR_fix22 vel[3];
+   RvR_fix22 dir;
+   int on_ground;
+}Collider;
+
 struct Entity
 {
    //Entity identification
