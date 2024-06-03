@@ -20,6 +20,7 @@ typedef struct
    RvR_fix22 vel[3];
    RvR_fix22 dir;
    int on_ground;
+   RvR_fix22 step_height;
 }Collider;
 
 struct Entity
@@ -57,6 +58,8 @@ struct Entity
 typedef struct
 {
    Entity *entity;
+
+   RvR_fix22 vis_off_vel;
 }Player;
 
 typedef struct

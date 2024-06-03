@@ -557,6 +557,32 @@ uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sect
    return map->sector_count-1;
 }
 
+RvR_fix22 RvR_port_sector_floor_at(const RvR_port_map *map, uint16_t sector, RvR_fix22 x, RvR_fix22 y)
+{
+   RvR_fix22 floor = map->sectors[sector].floor;
+   if(map->sectors[sector].slope_floor!=0)
+   {
+      RvR_port_slope slope;
+      RvR_port_slope_from_floor(map,sector,&slope);
+      floor = RvR_port_slope_height_at(&slope,x,y);
+   }
+
+   return floor;
+}
+
+RvR_fix22 RvR_port_sector_ceiling_at(const RvR_port_map *map, uint16_t sector, RvR_fix22 x, RvR_fix22 y)
+{
+   RvR_fix22 ceiling = map->sectors[sector].ceiling;
+   if(map->sectors[sector].slope_ceiling!=0)
+   {
+      RvR_port_slope slope;
+      RvR_port_slope_from_ceiling(map,sector,&slope);
+      ceiling = RvR_port_slope_height_at(&slope,x,y);
+   }
+
+   return ceiling;
+}
+
 static int port_point_on_line(RvR_fix22 x, RvR_fix22 y, RvR_fix22 x0, RvR_fix22 y0, RvR_fix22 x1, RvR_fix22 y1)
 {
    //If 2d cross product is zero, point is on line

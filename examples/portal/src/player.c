@@ -54,6 +54,7 @@ void player_create_new(Gamestate *state)
 
 void player_update(Gamestate *state)
 {
+   Player *player = &state->player;
    if(state==NULL)
       return;
 
@@ -91,12 +92,26 @@ void player_update(Gamestate *state)
       state->player.entity->vy+=dirx;
    }
 
+   if(RvR_key_pressed(config_jump)&&state->player.entity->on_ground)
+   {
+      state->player.entity->vz = 11946;
+   }
+   state->player.entity->vz -= 910;
+
+   int on_ground = state->player.entity->on_ground;
+   int vz = state->player.entity->vz;
    collision_move(state,state->player.entity);
+
+   player->vis_off_vel+=RvR_fix22_mul(player->entity->vz-player->vis_off_vel,450);
+   RvR_fix22 dz = player->entity->z+1536-state->cam.z;
+   player->vis_off_vel+=RvR_fix22_mul(dz*64,96);
+   state->cam.z+=player->vis_off_vel/64;
+   //if(!on_ground&&state->player.entity->on_ground)
 
    state->cam.dir = state->player.entity->direction;
    state->cam.x = state->player.entity->x;
    state->cam.y = state->player.entity->y;
-   state->cam.z = state->player.entity->z+1536;
+   //state->cam.z = state->player.entity->z+1536;
    state->cam.sector = state->player.entity->sector;
 }
 //-------------------------------------

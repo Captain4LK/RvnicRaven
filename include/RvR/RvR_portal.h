@@ -202,6 +202,8 @@ void          RvR_port_map_print_walls(const RvR_port_map *map);
 //-------------------------------------
 int     RvR_port_sector_inside(const RvR_port_map *map, uint16_t sector, RvR_fix22 x, RvR_fix22 y);
 uint16_t RvR_port_sector_update(const RvR_port_map *map, uint16_t sector_last, RvR_fix22 x, RvR_fix22 y);
+RvR_fix22 RvR_port_sector_floor_at(const RvR_port_map *map, uint16_t sector, RvR_fix22 x, RvR_fix22 y);
+RvR_fix22 RvR_port_sector_ceiling_at(const RvR_port_map *map, uint16_t sector, RvR_fix22 x, RvR_fix22 y);
 
 //Map manipulation
 //TODO(Captain4LK): should we keep these here, or should they be only in the editor?

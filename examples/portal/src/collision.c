@@ -335,13 +335,15 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
 {
    RvR_fix22 vz = e->vz;
 
-   //TODO(Captain4LK): if we want to do the pushing out thing, we can't skip collision in this case
-   if(vz/48==0)
-      return;
-
    RvR_fix22 nz = e->z+vz/48;
+   RvR_fix22 p[2];
+   p[0] = e->x;
+   p[1] = e->y;
 
    RvR_fix22 min_z = nz;
+
+   RvR_fix22 floor = RvR_port_sector_floor_at(state->map,e->sector,e->x,e->y);
+   RvR_fix22 ceiling = RvR_port_sector_ceiling_at(state->map,e->sector,e->x,e->y);
 
    //TODO(Captain4LK): don't remove from stack, so that we can check if already added
    //should be faster than using up to 8KB bitmap
@@ -362,7 +364,48 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
          p0[1] = wall->y;
          p1[0] = state->map->walls[wall->p2].x;
          p1[1] = state->map->walls[wall->p2].y;
+
+         RvR_fix22 proj[2];
+         RvR_fix22 dist2 = collision_point_segment_dist2(p,p0,p1,proj);
+         if(dist2>=RvR_fix22_mul(e->col_radius,e->col_radius))
+            continue;
+
+         if(wall->portal!=RVR_PORT_SECTOR_INVALID)
+         {
+            //Check if already added
+            int found;
+            for(int s = 0;s<RvR_array_length(collision_sector_stack);s++)
+            {
+               if(collision_sector_stack[s]==wall->portal)
+               {
+                  found = 1;
+                  break;
+               }
+            }
+            if(!found)
+               RvR_array_push(collision_sector_stack,wall->portal);
+
+            floor = RvR_max(floor,RvR_port_sector_floor_at(state->map,wall->portal,proj[0],proj[1]));
+            ceiling = RvR_min(ceiling,RvR_port_sector_ceiling_at(state->map,wall->portal,proj[0],proj[1]));
+         }
       }
+   }
+
+   e->z = RvR_min(ceiling-e->col_height,RvR_max(e->z+e->vz/64,floor));
+
+   if(e->z+e->col_height>=ceiling)
+   {
+      e->vz = 0;
+   }
+
+   if(e->z==floor)
+   {
+      e->on_ground = 1;
+      e->vz = 0;
+   }
+   else
+   {
+      e->on_ground = 0;
    }
 }
 
