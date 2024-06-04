@@ -20,7 +20,10 @@ typedef struct
    RvR_fix22 vel[3];
    RvR_fix22 dir;
    int on_ground;
+   uint16_t sector;
    RvR_fix22 step_height;
+   RvR_fix22 height;
+   RvR_fix22 radius; //No collider --> radius = 0
 }Collider;
 
 struct Entity
@@ -31,19 +34,16 @@ struct Entity
    //-------------------------------------
 
    //Collision
+   RvR_fix22 pos[3];
+   RvR_fix22 vel[3];
+   RvR_fix22 dir;
+   int on_ground;
    uint16_t sector;
-   RvR_fix22 x;
-   RvR_fix22 y;
-   RvR_fix22 z;
-   RvR_fix22 vx;
-   RvR_fix22 vy;
-   RvR_fix22 vz;
+   RvR_fix22 step_height;
+   RvR_fix22 radius;
+   RvR_fix22 height;
    RvR_fix22 px;
    RvR_fix22 py;
-   int on_ground;
-   RvR_fix22 direction;
-   RvR_fix22 col_height;
-   RvR_fix22 col_radius; //col_radius==0 --> no collider
 
    //bit0: shootable
    uint32_t col_flags;

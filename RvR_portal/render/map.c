@@ -172,7 +172,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
          int64_t num = (int64_t)RvR_yres()*4*((int64_t)(cz0-port_cam->z)*wall->zw1-(int64_t)(cz1-port_cam->z)*wall->zw0);
          int64_t den = (((int64_t)wall->xw1*wall->zw0)-((int64_t)wall->xw0*wall->zw1))*(int64_t)fovy*RvR_xres();
          //printf("%d %ld\n",step_cy,(num*1024)/RvR_non_zero(den/1024));
-         step_cy = (num*1024)/RvR_non_zero(den/1024);
+         //step_cy = (num*1024)/RvR_non_zero(den/1024);
          //RvR_fix22 step_cy = ((int64_t)RvR_yres()*4*((int64_t)(cz0-port_cam->z)*wall->zw1-(int64_t)(cz1-port_cam->z)*wall->zw0))/RvR_non_zero(
          //printf("%d %d\n",wall->x1-wall->x0,RvR_fix22_div(RvR_fix22_mul(wall->xw1*RvR_xres()/2,wall->zw0)-RvR_fix22_mul(wall->xw0*RvR_xres()/2,wall->zw1),RvR_non_zero(RvR_fix22_mul(wall->zw0,wall->zw1))));
          //printf("%d %d\n",cy1-cy0,RvR_fix22_div(RvR_fix22_mul(cz0-port_cam->z,wall->zw1*RvR_yres()*2)-RvR_fix22_mul(cz1-port_cam->z,wall->zw0*RvR_yres()*2),RvR_non_zero(RvR_fix22_mul(RvR_fix22_mul(fovy,wall->zw0),wall->zw1))));
@@ -187,7 +187,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
          RvR_fix22 fy = fy0;
          num = (int64_t)RvR_yres()*4*((int64_t)(fz0-port_cam->z)*wall->zw1-(int64_t)(fz1-port_cam->z)*wall->zw0);
          den = (((int64_t)wall->xw1*wall->zw0)-((int64_t)wall->xw0*wall->zw1))*(int64_t)fovy*RvR_xres();
-         step_fy = (num*1024)/RvR_non_zero(den/1024);
+         //step_fy = (num*1024)/RvR_non_zero(den/1024);
 
          //normalize texture coordinates, prevent overflows during interpolation
          //u0 will always be smaller than u1 and at least zero

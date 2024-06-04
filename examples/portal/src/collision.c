@@ -46,8 +46,8 @@ void collision_move(Gamestate *state, Entity *e)
    if(e==NULL||e->removed)
       return;
 
-   RvR_fix22 vx = e->vx;
-   RvR_fix22 vy = e->vy;
+   RvR_fix22 vx = e->vel[0];
+   RvR_fix22 vy = e->vel[1];
    RvR_fix22 nvx = vx;
    RvR_fix22 nvy = vy;
    RvR_fix22 mag_v = RvR_fix22_sqrt(RvR_fix22_mul(vx/48,vx/48)+RvR_fix22_mul(vy/48,vy/48));
@@ -55,11 +55,11 @@ void collision_move(Gamestate *state, Entity *e)
    RvR_fix22 tot_mag = 0;
    for(int i = 0;i<2;i++)
    {
-      RvR_fix22 ox = e->x;
-      RvR_fix22 oy = e->y;
+      RvR_fix22 ox = e->pos[0];
+      RvR_fix22 oy = e->pos[1];
 
-      nvx = e->vx;
-      nvy = e->vy;
+      nvx = e->vel[0];
+      nvy = e->vel[1];
       collision_movexy(state,e,&nvx,&nvy);
       if(i==0)
       {
@@ -67,8 +67,8 @@ void collision_move(Gamestate *state, Entity *e)
          vy = nvy;
       }
 
-      RvR_fix22 dx = e->x-ox;
-      RvR_fix22 dy = e->y-oy;
+      RvR_fix22 dx = e->pos[0]-ox;
+      RvR_fix22 dy = e->pos[1]-oy;
       tot_mag+=RvR_fix22_sqrt(RvR_fix22_mul(dx,dx)+RvR_fix22_mul(dy,dy));
       if(tot_mag>=mag_v)
          break;
@@ -83,28 +83,28 @@ void collision_move(Gamestate *state, Entity *e)
          nvy = RvR_fix22_mul(nvy,scale);
       }
 
-      e->vx = nvx;
-      e->vy = nvy;
+      e->vel[0] = nvx;
+      e->vel[1] = nvy;
    }
 
    RvR_fix22 floor_height = 0;
    RvR_fix22 ceiling_height = 0;
    collision_movez(state,e,&floor_height,&ceiling_height);
-   e->vx = vx;
-   e->vy = vy;
+   e->vel[0] = vx;
+   e->vel[1] = vy;
 
-   e->vx = RvR_fix22_mul(e->vx,856);
-   e->vy = RvR_fix22_mul(e->vy,856);
+   e->vel[0] = RvR_fix22_mul(e->vel[0],856);
+   e->vel[1] = RvR_fix22_mul(e->vel[1],856);
 }
 
 static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix22 *vy)
 {
    RvR_fix22 v[2];
-   v[0] = e->vx;
-   v[1] = e->vy;
+   v[0] = e->vel[0];
+   v[1] = e->vel[1];
 
    //NOTE(Captain4LK): all this 64 bit math is needed to stay accurate
-   RvR_fix22 mag = RvR_fix22_sqrt64((int64_t)(e->vx)*(int64_t)(e->vx)+(int64_t)(e->vy)*(int64_t)(e->vy))/32;
+   RvR_fix22 mag = RvR_fix22_sqrt64((int64_t)(e->vel[0])*(int64_t)(e->vel[0])+(int64_t)(e->vel[1])*(int64_t)(e->vel[1]))/32;
 
    //TODO(Captain4LK): if we want to do the pushing out thing, we can't skip collision in this case
    if(mag/48==0)
@@ -114,8 +114,8 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
    np[0] = mag/48;
    np[1] = 0;
    RvR_fix22 nv[2];
-   nv[0] = e->vx;
-   nv[1] = e->vy;
+   nv[0] = e->vel[0];
+   nv[1] = e->vel[1];
 
    RvR_fix22 min_p[2];
    min_p[0] = np[0];
@@ -146,10 +146,10 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
          p1_org[1] = p1[1] = state->map->walls[wall->p2].y;
 
          //Translate --> (e->x,e->y) is origin
-         p0[0]-=e->x;
-         p0[1]-=e->y;
-         p1[0]-=e->x;
-         p1[1]-=e->y;
+         p0[0]-=e->pos[0];
+         p0[1]-=e->pos[1];
+         p1[0]-=e->pos[0];
+         p1[1]-=e->pos[1];
 
          //Rotate --> (e->vx,e->vy) is positive x-axis
          RvR_fix22 tmp = p0[0];
@@ -201,7 +201,7 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
                dist_min = dist;
             }
 
-            if(dist_min>=RvR_fix22_mul(e->col_radius,e->col_radius))
+            if(dist_min>=RvR_fix22_mul(e->radius,e->radius))
                continue;
 
             if(min_i==0)
@@ -247,7 +247,7 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             //TODO(Captain4LK): stepping
             RvR_fix22 floor = state->map->sectors[wall->portal].floor;
             RvR_fix22 ceiling = state->map->sectors[wall->portal].ceiling;
-            if(e->z>=floor&&e->z+e->col_height<=ceiling)
+            if(e->pos[2]>=floor&&e->pos[2]+e->height<=ceiling)
                continue;
          }
 
@@ -268,7 +268,7 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             RvR_fix22 p10[2];
             p10[0] = p1[0]-p0[0];
             p10[1] = p1[1]-p0[1];
-            RvR_fix22 rp_dist = e->col_radius-dist;
+            RvR_fix22 rp_dist = e->radius-dist;
 
             if(p0[1]<p1[1])
             {
@@ -286,23 +286,23 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
          if((p1[1]-p0[1]>=0&&rp[1]-p0[1]<0)||
             (p1[1]-p0[1]<0&&rp[1]-p0[1]>0))
          {
-            RvR_fix22 root = RvR_fix22_sqrt64(((int64_t)e->col_radius*e->col_radius)-(int64_t)(cp[1]-p0[1])*(int64_t)(cp[1]-p0[1]))/32;
+            RvR_fix22 root = RvR_fix22_sqrt64(((int64_t)e->radius*e->radius)-(int64_t)(cp[1]-p0[1])*(int64_t)(cp[1]-p0[1]))/32;
             nx = p0[0]-root-1;
 
             //TODO(Captain4LK): maybe only do this projection if the closest point was p0/p1, not the resolving point
             if(nx<=min_p[0])
-               collision_project(e->vx,e->vy,-(p0_org[1]-(e->y+RvR_fix22_div(RvR_fix22_mul(e->vy,nx),RvR_non_zero(mag)))),
-                     p0_org[0]-(e->x+RvR_fix22_div(RvR_fix22_mul(e->vx,nx),RvR_non_zero(mag))),&nv[0],&nv[1]);
+               collision_project(e->vel[0],e->vel[1],-(p0_org[1]-(e->pos[1]+RvR_fix22_div(RvR_fix22_mul(e->vel[1],nx),RvR_non_zero(mag)))),
+                     p0_org[0]-(e->pos[0]+RvR_fix22_div(RvR_fix22_mul(e->vel[0],nx),RvR_non_zero(mag))),&nv[0],&nv[1]);
          }
          else if((p1[1]-p0[1]>=0&&rp[1]-p0[1]>p1[1]-p0[1])||
                  (p1[1]-p0[1]<0&&rp[1]-p0[1]<p1[1]-p0[1]))
          {
-            RvR_fix22 root = RvR_fix22_sqrt64((int64_t)e->col_radius*(int64_t)e->col_radius-(int64_t)(cp[1]-p1[1])*(int64_t)(cp[1]-p1[1]))/32;
+            RvR_fix22 root = RvR_fix22_sqrt64((int64_t)e->radius*(int64_t)e->radius-(int64_t)(cp[1]-p1[1])*(int64_t)(cp[1]-p1[1]))/32;
             nx = p1[0]-root-1;
 
             if(nx<=min_p[0])
-               collision_project(e->vx,e->vy,-(p1_org[1]-(e->y+RvR_fix22_div(RvR_fix22_mul(e->vy,nx),RvR_non_zero(mag)))),
-                     p1_org[0]-(e->x+RvR_fix22_div(RvR_fix22_mul(e->vx,nx),RvR_non_zero(mag))),&nv[0],&nv[1]);
+               collision_project(e->vel[0],e->vel[1],-(p1_org[1]-(e->pos[1]+RvR_fix22_div(RvR_fix22_mul(e->vel[1],nx),RvR_non_zero(mag)))),
+                     p1_org[0]-(e->pos[0]+RvR_fix22_div(RvR_fix22_mul(e->vel[0],nx),RvR_non_zero(mag))),&nv[0],&nv[1]);
          }
          else
          {
@@ -310,7 +310,7 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             nx = cp[0]+(x_resolv-rp[0])-1;
 
             if(nx<=min_p[0])
-               collision_project(e->vx,e->vy,p1_org[0]-p0_org[0],p1_org[1]-p0_org[1],&nv[0],&nv[1]);
+               collision_project(e->vel[0],e->vel[1],p1_org[0]-p0_org[0],p1_org[1]-p0_org[1],&nv[0],&nv[1]);
          }
 
          min_p[0] = RvR_min(min_p[0],nx);
@@ -328,22 +328,22 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
       //printf("%d\n",min_p[0]);
    }
    min_p[0] = RvR_max(min_p[0],0);
-   entity_update_pos(state,e,e->x+RvR_fix22_div(RvR_fix22_mul(e->vx,min_p[0]),RvR_non_zero(mag)),e->y+RvR_fix22_div(RvR_fix22_mul(e->vy,min_p[0]),RvR_non_zero(mag)),e->z);
+   entity_update_pos(state,e,e->pos[0]+RvR_fix22_div(RvR_fix22_mul(e->vel[0],min_p[0]),RvR_non_zero(mag)),e->pos[1]+RvR_fix22_div(RvR_fix22_mul(e->vel[1],min_p[0]),RvR_non_zero(mag)),e->pos[2]);
 }
 
 static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
 {
-   RvR_fix22 vz = e->vz;
+   RvR_fix22 vz = e->vel[2];
 
-   RvR_fix22 nz = e->z+vz/48;
+   RvR_fix22 nz = e->pos[2]+vz/64;
    RvR_fix22 p[2];
-   p[0] = e->x;
-   p[1] = e->y;
+   p[0] = e->pos[0];
+   p[1] = e->pos[1];
 
    RvR_fix22 min_z = nz;
 
-   RvR_fix22 floor = RvR_port_sector_floor_at(state->map,e->sector,e->x,e->y);
-   RvR_fix22 ceiling = RvR_port_sector_ceiling_at(state->map,e->sector,e->x,e->y);
+   RvR_fix22 floor = RvR_port_sector_floor_at(state->map,e->sector,e->pos[0],e->pos[1]);
+   RvR_fix22 ceiling = RvR_port_sector_ceiling_at(state->map,e->sector,e->pos[0],e->pos[1]);
 
    //TODO(Captain4LK): don't remove from stack, so that we can check if already added
    //should be faster than using up to 8KB bitmap
@@ -367,7 +367,7 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
 
          RvR_fix22 proj[2];
          RvR_fix22 dist2 = collision_point_segment_dist2(p,p0,p1,proj);
-         if(dist2>=RvR_fix22_mul(e->col_radius,e->col_radius))
+         if(dist2>=RvR_fix22_mul(e->radius,e->radius))
             continue;
 
          if(wall->portal!=RVR_PORT_SECTOR_INVALID)
@@ -391,17 +391,17 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
       }
    }
 
-   e->z = RvR_min(ceiling-e->col_height,RvR_max(e->z+e->vz/64,floor));
+   e->pos[2] = RvR_min(ceiling-e->height,RvR_max(e->pos[2]+e->vel[2]/64,floor));
 
-   if(e->z+e->col_height>=ceiling)
+   if(e->pos[2]+e->height>=ceiling)
    {
-      e->vz = 0;
+      e->vel[2] = 0;
    }
 
-   if(e->z==floor)
+   if(e->pos[2]==floor)
    {
       e->on_ground = 1;
-      e->vz = 0;
+      e->vel[2] = 0;
    }
    else
    {

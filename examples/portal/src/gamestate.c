@@ -58,9 +58,9 @@ void gamestate_map(Gamestate *s, uint16_t id)
       return;
 
    s->map = RvR_port_map_load(id);
-   s->cam.x = s->player.entity->x;
-   s->cam.y = s->player.entity->y;
-   s->cam.z = s->player.entity->z;
+   s->cam.x = s->player.entity->pos[0];
+   s->cam.y = s->player.entity->pos[1];
+   s->cam.z = s->player.entity->pos[2];
    s->cam.shear = 0;
    s->cam.fov = 2048;
    s->cam.sector = RvR_port_sector_update(s->map,0,s->cam.x,s->cam.y);
