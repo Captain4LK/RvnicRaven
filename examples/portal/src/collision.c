@@ -243,11 +243,15 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
                RvR_array_push(collision_sector_stack,wall->portal);
 
             //If stepable --> skip
-            //TODO(Captain4LK): slopes
-            //TODO(Captain4LK): stepping
-            RvR_fix22 floor = state->map->sectors[wall->portal].floor;
-            RvR_fix22 ceiling = state->map->sectors[wall->portal].ceiling;
-            if(e->pos[2]>=floor&&e->pos[2]+e->height<=ceiling)
+            //We need to real coordinates of the collision point (cp) here,
+            //so we need to inverse the transformation from before
+            RvR_fix22 cp_inv[2];
+            cp_inv[0] = ((int64_t)cp[0]*v[0]-(int64_t)cp[1]*v[1])/RvR_non_zero(mag)+e->pos[0];
+            cp_inv[1] = ((int64_t)cp[0]*v[1]+(int64_t)cp[1]*v[0])/RvR_non_zero(mag)+e->pos[1];
+            RvR_fix22 floor = RvR_port_sector_floor_at(state->map,wall->portal,cp_inv[0],cp_inv[1]);
+            RvR_fix22 ceiling = RvR_port_sector_ceiling_at(state->map,wall->portal,cp_inv[0],cp_inv[1]);
+
+            if(e->pos[2]+e->step_height>=floor&&e->pos[2]+e->height<=ceiling&&ceiling-floor>=e->height)
                continue;
          }
 

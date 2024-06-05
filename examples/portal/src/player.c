@@ -50,6 +50,7 @@ void player_create_new(Gamestate *state)
    state->player.entity->vel[2] = 0;
    state->player.entity->height = 1792;
    state->player.entity->radius = 256;
+   state->player.entity->step_height = 256;
 }
 
 void player_update(Gamestate *state)
@@ -98,20 +99,16 @@ void player_update(Gamestate *state)
    }
    state->player.entity->vel[2] -= 910;
 
-   int on_ground = state->player.entity->on_ground;
-   int vz = state->player.entity->vel[2];
    collision_move(state,state->player.entity);
 
    player->vis_off_vel+=RvR_fix22_mul(player->entity->vel[2]-player->vis_off_vel,450);
    RvR_fix22 dz = player->entity->pos[2]+1536-state->cam.z;
    player->vis_off_vel+=RvR_fix22_mul(dz*64,96);
    state->cam.z+=player->vis_off_vel/64;
-   //if(!on_ground&&state->player.entity->on_ground)
 
    state->cam.dir = state->player.entity->dir;
    state->cam.x = state->player.entity->pos[0];
    state->cam.y = state->player.entity->pos[1];
-   //state->cam.z = state->player.entity->z+1536;
    state->cam.sector = state->player.entity->sector;
 }
 //-------------------------------------
