@@ -89,6 +89,7 @@ void collision_move(Gamestate *state, Entity *e)
 
    RvR_fix22 floor_height = 0;
    RvR_fix22 ceiling_height = 0;
+   if(!RvR_key_down(RVR_KEY_P))
    collision_movez(state,e,&floor_height,&ceiling_height);
    e->vel[0] = vx;
    e->vel[1] = vy;
@@ -230,7 +231,7 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
          if(wall->portal!=RVR_PORT_SECTOR_INVALID)
          {
             //Check if already added
-            int found;
+            int found = 0;
             for(int s = 0;s<RvR_array_length(collision_sector_stack);s++)
             {
                if(collision_sector_stack[s]==wall->portal)
@@ -252,7 +253,9 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             RvR_fix22 ceiling = RvR_port_sector_ceiling_at(state->map,wall->portal,cp_inv[0],cp_inv[1]);
 
             if(e->pos[2]+e->step_height>=floor&&e->pos[2]+e->height<=ceiling&&ceiling-floor>=e->height)
+            {
                continue;
+            }
          }
 
          RvR_fix22 rp[2];
@@ -291,7 +294,7 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             (p1[1]-p0[1]<0&&rp[1]-p0[1]>0))
          {
             RvR_fix22 root = RvR_fix22_sqrt64(((int64_t)e->radius*e->radius)-(int64_t)(cp[1]-p0[1])*(int64_t)(cp[1]-p0[1]))/32;
-            nx = p0[0]-root-1;
+            nx = p0[0]-root-2;
 
             //TODO(Captain4LK): maybe only do this projection if the closest point was p0/p1, not the resolving point
             if(nx<=min_p[0])
@@ -302,7 +305,7 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
                  (p1[1]-p0[1]<0&&rp[1]-p0[1]<p1[1]-p0[1]))
          {
             RvR_fix22 root = RvR_fix22_sqrt64((int64_t)e->radius*(int64_t)e->radius-(int64_t)(cp[1]-p1[1])*(int64_t)(cp[1]-p1[1]))/32;
-            nx = p1[0]-root-1;
+            nx = p1[0]-root-2;
 
             if(nx<=min_p[0])
                collision_project(e->vel[0],e->vel[1],-(p1_org[1]-(e->pos[1]+RvR_fix22_div(RvR_fix22_mul(e->vel[1],nx),RvR_non_zero(mag)))),
@@ -311,13 +314,13 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
          else
          {
             RvR_fix22 x_resolv = (RvR_fix22)(p0[0]+((int64_t)(p1[0]-p0[0])*(int64_t)(rp[1]-p0[1]))/RvR_non_zero(p1[1]-p0[1]));
-            nx = cp[0]+(x_resolv-rp[0])-1;
+            nx = cp[0]+(x_resolv-rp[0])-2;
 
             if(nx<=min_p[0])
                collision_project(e->vel[0],e->vel[1],p1_org[0]-p0_org[0],p1_org[1]-p0_org[1],&nv[0],&nv[1]);
          }
 
-         min_p[0] = RvR_min(min_p[0],nx);
+         min_p[0] = RvR_max(0,RvR_min(min_p[0],nx));
       }
    }
 
@@ -332,7 +335,11 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
       //printf("%d\n",min_p[0]);
    }
    min_p[0] = RvR_max(min_p[0],0);
-   entity_update_pos(state,e,e->pos[0]+RvR_fix22_div(RvR_fix22_mul(e->vel[0],min_p[0]),RvR_non_zero(mag)),e->pos[1]+RvR_fix22_div(RvR_fix22_mul(e->vel[1],min_p[0]),RvR_non_zero(mag)),e->pos[2]);
+
+   entity_update_pos(state,e,
+                     (RvR_fix22)(e->pos[0]+((int64_t)e->vel[0]*min_p[0])/RvR_non_zero(mag)),
+                     (RvR_fix22)(e->pos[1]+((int64_t)e->vel[1]*min_p[0])/RvR_non_zero(mag)),
+                     e->pos[2]);
 }
 
 static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
@@ -377,7 +384,7 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
          if(wall->portal!=RVR_PORT_SECTOR_INVALID)
          {
             //Check if already added
-            int found;
+            int found = 0;
             for(int s = 0;s<RvR_array_length(collision_sector_stack);s++)
             {
                if(collision_sector_stack[s]==wall->portal)
@@ -389,8 +396,14 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
             if(!found)
                RvR_array_push(collision_sector_stack,wall->portal);
 
-            floor = RvR_max(floor,RvR_port_sector_floor_at(state->map,wall->portal,proj[0],proj[1]));
-            ceiling = RvR_min(ceiling,RvR_port_sector_ceiling_at(state->map,wall->portal,proj[0],proj[1]));
+            //TODO(Captain4LK): sometimes we still end up inside of walls here, so we only allow steppable surfaces here
+            RvR_fix22 sfloor = RvR_port_sector_floor_at(state->map,wall->portal,proj[0],proj[1]);
+            RvR_fix22 sceiling = RvR_port_sector_ceiling_at(state->map,wall->portal,proj[0],proj[1]);
+            if(e->pos[2]+e->step_height>=sfloor&&e->pos[2]+e->height<=sceiling&&sceiling-sfloor>=e->height)
+            {
+               floor = RvR_max(floor,sfloor);
+               ceiling = RvR_min(ceiling,sceiling);
+            }
          }
       }
    }
