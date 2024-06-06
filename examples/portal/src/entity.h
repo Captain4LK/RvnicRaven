@@ -23,8 +23,13 @@ typedef struct
 inline Gendex gendex_get(Entity *e)
 {
    if(e==NULL)
-      return (Gendex){.generation = 0, .index = NULL};
-   return (Gendex){.generation = e->generation, .index = e};
+      return (Gendex){
+                .generation = 0, .index = NULL
+      }
+   ;
+   return (Gendex){
+             .generation = e->generation, .index = e
+   };
 }
 
 inline Entity *gendex_try(Gendex gen)

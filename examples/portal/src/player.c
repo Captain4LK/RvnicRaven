@@ -64,33 +64,33 @@ void player_update(Gamestate *state)
 
    //Mouse look: x-axis
    if(x!=0)
-      state->player.entity->dir+= (x * 128 * 2) / 32;
+      state->player.entity->dir += (x * 128 * 2) / 32;
 
    RvR_fix22 dirx = RvR_fix22_cos(state->player.entity->dir);
    RvR_fix22 diry = RvR_fix22_sin(state->player.entity->dir);
-   dirx*=1;
-   diry*=1;
+   dirx *= 1;
+   diry *= 1;
 
    if(RvR_key_down(config_move_forward))
    {
-      state->player.entity->vel[0]+=dirx;
-      state->player.entity->vel[1]+=diry;
+      state->player.entity->vel[0] += dirx;
+      state->player.entity->vel[1] += diry;
    }
    else if(RvR_key_down(config_move_backward))
    {
-      state->player.entity->vel[0]-=dirx;
-      state->player.entity->vel[1]-=diry;
+      state->player.entity->vel[0] -= dirx;
+      state->player.entity->vel[1] -= diry;
    }
 
    if(RvR_key_down(config_strafe_left))
    {
-      state->player.entity->vel[0]+=diry;
-      state->player.entity->vel[1]-=dirx;
+      state->player.entity->vel[0] += diry;
+      state->player.entity->vel[1] -= dirx;
    }
    else if(RvR_key_down(config_strafe_right))
    {
-      state->player.entity->vel[0]-=diry;
-      state->player.entity->vel[1]+=dirx;
+      state->player.entity->vel[0] -= diry;
+      state->player.entity->vel[1] += dirx;
    }
 
    if(RvR_key_pressed(config_jump)&&state->player.entity->on_ground)
@@ -99,12 +99,12 @@ void player_update(Gamestate *state)
    }
    state->player.entity->vel[2] -= 910;
 
-   collision_move(state,state->player.entity);
+   collision_move(state, state->player.entity);
 
-   player->vis_off_vel+=RvR_fix22_mul(player->entity->vel[2]-player->vis_off_vel,450);
-   RvR_fix22 dz = player->entity->pos[2]+1536-state->cam.z;
-   player->vis_off_vel+=RvR_fix22_mul(dz*64,96);
-   state->cam.z+=player->vis_off_vel/64;
+   player->vis_off_vel += RvR_fix22_mul(player->entity->vel[2] - player->vis_off_vel, 450);
+   RvR_fix22 dz = player->entity->pos[2] + 1536 - state->cam.z;
+   player->vis_off_vel += RvR_fix22_mul(dz * 64, 96);
+   state->cam.z += player->vis_off_vel / 64;
 
    state->cam.dir = state->player.entity->dir;
    state->cam.x = state->player.entity->pos[0];

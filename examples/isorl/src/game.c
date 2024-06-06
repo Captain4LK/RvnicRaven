@@ -186,7 +186,7 @@ void game_draw()
    for(Entity *e = area->entities; e!=NULL; e = e->next)
    {
       //if(e->removed)
-         //continue;
+      //continue;
       area_draw_entity(e, e->pos);
    }
 
@@ -195,7 +195,7 @@ void game_draw()
    for(; it!=NULL; it = it->next)
    {
       //if(it->removed)
-         //continue;
+      //continue;
       area_draw_item(it, it->pos);
    }
 

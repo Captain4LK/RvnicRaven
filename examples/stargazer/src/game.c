@@ -100,7 +100,7 @@ void game_draw()
    if(fade_timer==FADE_TIME)
       memcpy(RvR_texture_get(65535)->data, RvR_framebuffer(), RvR_xres() * RvR_yres());
 
-   RvR_ray_draw_begin(&player.cam,map_current());
+   RvR_ray_draw_begin(&player.cam, map_current());
    sprite_draw_begin();
 
    //Draw entities

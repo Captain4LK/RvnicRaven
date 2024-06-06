@@ -55,7 +55,7 @@ int main(int argc, char **argv)
    RvR_palette_load(0);
    RvR_render_font_set(0xF000);
 
-   map = map_create(16,16,16);
+   map = map_create(16, 16, 16);
 
    while(RvR_running())
    {
@@ -70,7 +70,7 @@ static void loop()
    RvR_update();
 
    Camera cam = {0};
-   draw_begin(map,&cam);
+   draw_begin(map, &cam);
    draw_map();
    draw_end();
    /*

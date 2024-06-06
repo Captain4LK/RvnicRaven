@@ -361,7 +361,7 @@ void RvR_ray_draw_map(RvR_ray_selection *select)
          }
       }
 
-      ray_draw_column(hits, hit_count, x, r,select);
+      ray_draw_column(hits, hit_count, x, r, select);
 
    }
 

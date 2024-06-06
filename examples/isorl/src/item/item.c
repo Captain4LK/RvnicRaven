@@ -157,7 +157,7 @@ void item_sprite_create(Item *it)
    it->sprite = sprite_new(it);
    sprite_clear(it->sprite, 255);
 
-   sprite_draw_sprite_remap(it->sprite,it->def->sprite,0, 0, 0, 0, 32, 36,it->material.def->remap0,it->material.def->remap1,it->material.def->remap2,it->material.def->remap3);
+   sprite_draw_sprite_remap(it->sprite, it->def->sprite, 0, 0, 0, 0, 32, 36, it->material.def->remap0, it->material.def->remap1, it->material.def->remap2, it->material.def->remap3);
 }
 
 void item_set_material(Item *it, const MaterialDef *def)
@@ -168,7 +168,7 @@ void item_set_material(Item *it, const MaterialDef *def)
 void item_from_def(Item *it, const ItemDef *def)
 {
    it->def = def;
-   if(def->tags&DEF_ITEM_SLOT_CONTAINER)
+   if(def->tags & DEF_ITEM_SLOT_CONTAINER)
    {
       it->container.type = ITEM_SLOT_CONTAINER;
    }
@@ -181,8 +181,8 @@ Item *item_duplicate(World *w, const Item *i)
    ni->pos = i->pos;
    ni->sprite = i->sprite;
    ni->container = i->container;
-   item_set_material(ni,i->material.def);
-   item_from_def(ni,i->def);
+   item_set_material(ni, i->material.def);
+   item_from_def(ni, i->def);
 
    return ni;
 }
@@ -192,7 +192,7 @@ const char *item_name(Item *it)
    if(it==NULL)
       return NULL;
 
-   snprintf(item_name_buffer,512,"%s %s",it->material.def->adjective,it->def->name);
+   snprintf(item_name_buffer, 512, "%s %s", it->material.def->adjective, it->def->name);
 
    return item_name_buffer;
 }

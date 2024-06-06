@@ -336,17 +336,17 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it)
    //-------------------------------------
 
    //Grasp
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP&&
             e->body.parts[i].slots[j].it==NULL)
          {
-            Item *inv = item_duplicate(w,it);
+            Item *inv = item_duplicate(w, it);
             item_free(it);
 
             inv->prev_next = &e->body.parts[i].slots[j].it;
@@ -359,20 +359,20 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it)
    }
 
    //Container slots in equipment
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          Item *cur = e->body.parts[i].slots[j].it;
-         for(;cur!=NULL;cur = cur->next)
+         for(; cur!=NULL; cur = cur->next)
          {
-            if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
+            if(!(cur->def->tags & DEF_ITEM_SLOT_CONTAINER))
                continue;
 
-            Item *inv = item_duplicate(w,it);
+            Item *inv = item_duplicate(w, it);
             item_free(it);
 
             inv->prev_next = &cur->container.it;
@@ -395,34 +395,34 @@ int entity_can_equip(World *w, Area *a, Entity *e, Item *it, int check_space)
    if(e==NULL)
       return 0;
 
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(check_space&&e->body.parts[i].slots[j].it!=NULL)
             continue;
 
          //Check slot type
          if(!(
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_UPPER&&it->def->tags&DEF_ITEM_EQUIP_UPPER)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_LOWER&&it->def->tags&DEF_ITEM_EQUIP_LOWER)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_HEAD&&it->def->tags&DEF_ITEM_EQUIP_HEAD)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_HAND&&it->def->tags&DEF_ITEM_EQUIP_HAND)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_FOOT&&it->def->tags&DEF_ITEM_EQUIP_FOOT)
-         ))
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_UPPER&&it->def->tags & DEF_ITEM_EQUIP_UPPER)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_LOWER&&it->def->tags & DEF_ITEM_EQUIP_LOWER)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_HEAD&&it->def->tags & DEF_ITEM_EQUIP_HEAD)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_HAND&&it->def->tags & DEF_ITEM_EQUIP_HAND)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_FOOT&&it->def->tags & DEF_ITEM_EQUIP_FOOT)
+               ))
             continue;
 
 
          //Check slot layer
          if(!(
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_UNDER&&it->def->tags&DEF_ITEM_LAYER_UNDER)||
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_OVER&&it->def->tags&DEF_ITEM_LAYER_OVER)||
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_ARMOR&&it->def->tags&DEF_ITEM_LAYER_ARMOR)||
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_BACK&&it->def->tags&DEF_ITEM_LAYER_BACK)
-         ))
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_UNDER&&it->def->tags & DEF_ITEM_LAYER_UNDER)||
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_OVER&&it->def->tags & DEF_ITEM_LAYER_OVER)||
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_ARMOR&&it->def->tags & DEF_ITEM_LAYER_ARMOR)||
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_BACK&&it->def->tags & DEF_ITEM_LAYER_BACK)
+               ))
             continue;
 
          //All passed --> can equip
@@ -438,44 +438,44 @@ void entity_equip(World *w, Area *a, Entity *e, Item *it)
    if(e==NULL)
       return;
 
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(e->body.parts[i].slots[j].it!=NULL)
             continue;
 
          //Check slot type
          if(!(
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_UPPER&&it->def->tags&DEF_ITEM_EQUIP_UPPER)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_LOWER&&it->def->tags&DEF_ITEM_EQUIP_LOWER)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_HEAD&&it->def->tags&DEF_ITEM_EQUIP_HEAD)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_HAND&&it->def->tags&DEF_ITEM_EQUIP_HAND)||
-            (e->body.parts[i].slots[j].type==ITEM_SLOT_FOOT&&it->def->tags&DEF_ITEM_EQUIP_FOOT)
-         ))
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_UPPER&&it->def->tags & DEF_ITEM_EQUIP_UPPER)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_LOWER&&it->def->tags & DEF_ITEM_EQUIP_LOWER)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_HEAD&&it->def->tags & DEF_ITEM_EQUIP_HEAD)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_HAND&&it->def->tags & DEF_ITEM_EQUIP_HAND)||
+               (e->body.parts[i].slots[j].type==ITEM_SLOT_FOOT&&it->def->tags & DEF_ITEM_EQUIP_FOOT)
+               ))
             continue;
 
 
          //Check slot layer
          if(!(
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_UNDER&&it->def->tags&DEF_ITEM_LAYER_UNDER)||
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_OVER&&it->def->tags&DEF_ITEM_LAYER_OVER)||
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_ARMOR&&it->def->tags&DEF_ITEM_LAYER_ARMOR)||
-            (e->body.parts[i].slots[j].layer==ITEM_SLOT_BACK&&it->def->tags&DEF_ITEM_LAYER_BACK)
-         ))
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_UNDER&&it->def->tags & DEF_ITEM_LAYER_UNDER)||
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_OVER&&it->def->tags & DEF_ITEM_LAYER_OVER)||
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_ARMOR&&it->def->tags & DEF_ITEM_LAYER_ARMOR)||
+               (e->body.parts[i].slots[j].layer==ITEM_SLOT_BACK&&it->def->tags & DEF_ITEM_LAYER_BACK)
+               ))
             continue;
 
          //All passed --> can equip
-         Item *inv = item_duplicate(w,it);
+         Item *inv = item_duplicate(w, it);
          item_free(it);
 
          inv->prev_next = &e->body.parts[i].slots[j].it;
          inv->next = e->body.parts[i].slots[j].it;
          e->body.parts[i].slots[j].it = inv;
-         
+
          return;
       }
    }
@@ -487,12 +487,12 @@ void entity_remove(World *w, Area *a, Entity *e, Item *it)
    Item_slot *hand = NULL;
    int min = INT_MAX;
 
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(e->body.parts[i].slots[j].type!=ITEM_SLOT_GRASP)
             continue;
@@ -511,22 +511,22 @@ void entity_remove(World *w, Area *a, Entity *e, Item *it)
       return;
 
    //Check if item accessible
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
             continue;
 
-         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         for(Item *cur = e->body.parts[i].slots[j].it; cur!=NULL; cur = cur->next)
          {
             if(cur!=it)
                continue;
 
-            Item *inv = item_duplicate(w,it);
+            Item *inv = item_duplicate(w, it);
             item_free(it);
 
             inv->prev_next = &hand->it;
@@ -546,7 +546,7 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
    if(it==NULL||container==NULL)
       return;
 
-   if(!(container->def->tags&DEF_ITEM_SLOT_CONTAINER))
+   if(!(container->def->tags & DEF_ITEM_SLOT_CONTAINER))
       return;
 
    if(it==container)
@@ -554,22 +554,22 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
 
    //Check if container accessible
    Item_slot *contain = NULL;
-   int gx = e->pos.x/8;
-   int gy = e->pos.y/8;
-   int gz = e->pos.z/8;
+   int gx = e->pos.x / 8;
+   int gy = e->pos.y / 8;
+   int gz = e->pos.z / 8;
 
-   for(Item *cur = a->item_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx]; cur!=NULL; cur = cur->g_next)
+   for(Item *cur = a->item_grid[gz * a->dimy * 4 * a->dimx * 4 + gy * a->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
       if(point_equal(cur->pos, e->pos)&&cur==container)
          contain = &container->container;
 
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
-         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         for(Item *cur = e->body.parts[i].slots[j].it; cur!=NULL; cur = cur->next)
          {
             if(cur==container)
                contain = &container->container;
@@ -581,15 +581,15 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
       return;
 
    //Check if item accessible
-   gx = e->pos.x/8;
-   gy = e->pos.y/8;
-   gz = e->pos.z/8;
-   for(Item *cur = a->item_grid[gz*a->dimy*4*a->dimx*4+gy*a->dimx*4+gx]; cur!=NULL; cur = cur->g_next)
+   gx = e->pos.x / 8;
+   gy = e->pos.y / 8;
+   gz = e->pos.z / 8;
+   for(Item *cur = a->item_grid[gz * a->dimy * 4 * a->dimx * 4 + gy * a->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
    {
       if(!(point_equal(cur->pos, e->pos)&&cur!=container))
          continue;
 
-      Item *inv = item_duplicate(w,it);
+      Item *inv = item_duplicate(w, it);
       item_free(it);
 
       inv->prev_next = &contain->it;
@@ -601,21 +601,21 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
       return;
    }
 
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
          {
             Item *cur = e->body.parts[i].slots[j].it;
-            for(;cur!=NULL;cur = cur->next)
+            for(; cur!=NULL; cur = cur->next)
             {
                if(cur==it)
                {
-                  Item *inv = item_duplicate(w,it);
+                  Item *inv = item_duplicate(w, it);
                   item_free(it);
 
                   inv->prev_next = &contain->it;
@@ -629,16 +629,16 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
             }
          }
 
-         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         for(Item *cur = e->body.parts[i].slots[j].it; cur!=NULL; cur = cur->next)
          {
-            if(!(cur->def->tags&DEF_ITEM_SLOT_CONTAINER))
+            if(!(cur->def->tags & DEF_ITEM_SLOT_CONTAINER))
                continue;
 
-            for(Item *con = cur->container.it;con!=NULL;con = con->next)
+            for(Item *con = cur->container.it; con!=NULL; con = con->next)
             {
                if(con==it)
                {
-                  Item *inv = item_duplicate(w,it);
+                  Item *inv = item_duplicate(w, it);
                   item_free(it);
 
                   inv->prev_next = &contain->it;

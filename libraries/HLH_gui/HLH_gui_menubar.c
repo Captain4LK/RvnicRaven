@@ -36,7 +36,7 @@ HLH_gui_group *HLH_gui_menubar_create(HLH_gui_element *parent, uint64_t flags, u
    HLH_gui_group *group = HLH_gui_group_create(parent, flags);
 
    uint64_t side = 0;
-   uint64_t layout = cflags&HLH_GUI_LAYOUT;
+   uint64_t layout = cflags & HLH_GUI_LAYOUT;
    if(layout==HLH_GUI_LAYOUT_VERTICAL)
       side = HLH_GUI_LAYOUT_HORIZONTAL;
    else if(layout==HLH_GUI_LAYOUT_HORIZONTAL)
@@ -69,8 +69,8 @@ void HLH_gui_menubar_label_set(HLH_gui_group *bar, const char *label, int which)
    HLH_gui_dropdown *drop = (HLH_gui_dropdown *)bar->e.children[which];
    free(drop->text);
    drop->text_len = strlen(label);
-   drop->text = malloc(drop->text_len+1);
-   strcpy(drop->text,label);
+   drop->text = malloc(drop->text_len + 1);
+   strcpy(drop->text, label);
 
    HLH_gui_element_layout(&drop->e.window->e, drop->e.window->e.bounds);
    HLH_gui_element_redraw(&drop->e.window->e);
@@ -110,15 +110,15 @@ static int dropdown_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
             {
                bounds.minx = drop->e.bounds.minx;
                bounds.miny = drop->e.bounds.maxy;
-               HLH_gui_flag_set(drop->drop->flags,HLH_GUI_NO_CENTER_X,1);
-               HLH_gui_flag_set(drop->drop->flags,HLH_GUI_NO_CENTER_Y,1);
+               HLH_gui_flag_set(drop->drop->flags, HLH_GUI_NO_CENTER_X, 1);
+               HLH_gui_flag_set(drop->drop->flags, HLH_GUI_NO_CENTER_Y, 1);
             }
             else if(drop->side==HLH_GUI_LAYOUT_HORIZONTAL)
             {
                bounds.minx = drop->e.bounds.maxx;
                bounds.miny = drop->e.bounds.miny;
-               HLH_gui_flag_set(drop->drop->flags,HLH_GUI_NO_CENTER_X,1);
-               HLH_gui_flag_set(drop->drop->flags,HLH_GUI_NO_CENTER_Y,1);
+               HLH_gui_flag_set(drop->drop->flags, HLH_GUI_NO_CENTER_X, 1);
+               HLH_gui_flag_set(drop->drop->flags, HLH_GUI_NO_CENTER_Y, 1);
             }
 
             HLH_gui_element_invisible(drop->drop, 0);

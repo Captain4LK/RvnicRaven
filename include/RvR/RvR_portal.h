@@ -165,7 +165,7 @@ typedef struct
 //-------------------------------------
 #define RVR_PORT_WALL_FLIP_X                     UINT32_C(0x1)
 #define RVR_PORT_WALL_FLIP_Y                     UINT32_C(0x2)
-#define RVR_PORT_WALL                            (RVR_PORT_WALL_FLIP_X|RVR_PORT_WALL_FLIP_Y)
+#define RVR_PORT_WALL                            (RVR_PORT_WALL_FLIP_X | RVR_PORT_WALL_FLIP_Y)
 //-------------------------------------
 
 //Sprite flags

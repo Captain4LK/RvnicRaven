@@ -40,12 +40,12 @@ uint64_t tile_empty()
 uint64_t tile_block(uint16_t id)
 {
    uint64_t type = TILE_NONE;
-   uint64_t bid = id&2047;
-   return type|(bid<<3);
+   uint64_t bid = id & 2047;
+   return type | (bid << 3);
 }
 
 Tile_type tile_type(uint64_t tile)
 {
-   return (Tile_type)(tile&7);
+   return (Tile_type)(tile & 7);
 }
 //-------------------------------------

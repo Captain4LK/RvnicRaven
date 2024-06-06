@@ -59,21 +59,21 @@ int main(int argc, char **argv)
    RvR_render_font_set(0xF000);
 
    //Create colormap texture
-   RvR_texture_create(65535,256,64);
+   RvR_texture_create(65535, 256, 64);
    RvR_texture *tex = RvR_texture_get(65535);
-   for(int y = 0;y<64;y++)
+   for(int y = 0; y<64; y++)
    {
       uint8_t *table = RvR_shade_table((uint8_t)y);
-      for(int x = 0;x<256;x++)
-         tex->data[y*tex->width+x] = table[x];
+      for(int x = 0; x<256; x++)
+         tex->data[y * tex->width + x] = table[x];
    }
 
    //Create transparancy texture
-   RvR_texture_create(65534,256,256);
+   RvR_texture_create(65534, 256, 256);
    tex = RvR_texture_get(65534);
-   for(int y = 0;y<256;y++)
-      for(int x = 0;x<256;x++)
-         tex->data[y*tex->width+x] = RvR_blend((uint8_t)x,(uint8_t)y);
+   for(int y = 0; y<256; y++)
+      for(int x = 0; x<256; x++)
+         tex->data[y * tex->width + x] = RvR_blend((uint8_t)x, (uint8_t)y);
 
    //Create palette texture
 
@@ -88,15 +88,15 @@ int main(int argc, char **argv)
 
       RvR_render_clear(color_black);
 
-      RvR_render_string(1,1,1,"Shade table",color_white);
-      RvR_render_rectangle(1,9,260,68,color_white);
+      RvR_render_string(1, 1, 1, "Shade table", color_white);
+      RvR_render_rectangle(1, 9, 260, 68, color_white);
       tex = RvR_texture_get(65535);
-      RvR_render_texture(tex,3,11);
+      RvR_render_texture(tex, 3, 11);
 
-      RvR_render_string(1,88,1,"Transparency table",color_white);
-      RvR_render_rectangle(1,96,260,260,color_white);
+      RvR_render_string(1, 88, 1, "Transparency table", color_white);
+      RvR_render_rectangle(1, 96, 260, 260, color_white);
       tex = RvR_texture_get(65534);
-      RvR_render_texture(tex,3,98);
+      RvR_render_texture(tex, 3, 98);
 
       RvR_render_present();
    }

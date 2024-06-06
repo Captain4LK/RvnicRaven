@@ -152,17 +152,17 @@ int main(int argc, char **argv)
       return 0;
    }
 
-   Sprite_pal *sp = texture_load(path_in, path_pal,0);
+   Sprite_pal *sp = texture_load(path_in, path_pal, 0);
 
-   if(strcmp(type,"wall")==0)
+   if(strcmp(type, "wall")==0)
    {
-      if(sp->width!=32||sp->height!=32*4)
+      if(sp->width!=32||sp->height!=32 * 4)
       {
          RvR_log("error: wall dimensions must be 32x(32*4)\n");
          return EXIT_FAILURE;
       }
    }
-   else if(strcmp(type,"floor")==0)
+   else if(strcmp(type, "floor")==0)
    {
       if(sp->width!=32||sp->height!=32)
       {
@@ -170,23 +170,23 @@ int main(int argc, char **argv)
          return EXIT_FAILURE;
       }
    }
-   else if(strcmp(type,"slope")==0)
+   else if(strcmp(type, "slope")==0)
    {
-      if(sp->width!=32||sp->height!=12*32)
+      if(sp->width!=32||sp->height!=12 * 32)
       {
          RvR_log("error: slope dimensions must be 32x(12*32)\n");
          return EXIT_FAILURE;
       }
    }
-   else if(strcmp(type,"sslope")==0)
+   else if(strcmp(type, "sslope")==0)
    {
-      if(sp->width!=32||sp->height!=24*32)
+      if(sp->width!=32||sp->height!=24 * 32)
       {
          RvR_log("error: sslope dimensions must be 32x(24*32)\n");
          return EXIT_FAILURE;
       }
    }
-   else if(strcmp(type,"block")==0)
+   else if(strcmp(type, "block")==0)
    {
       if(sp->width!=32||sp->height!=32)
       {
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
          return EXIT_FAILURE;
       }
    }
-   else if(strcmp(type,"sprite")==0)
+   else if(strcmp(type, "sprite")==0)
    {
       if(sp->width>128||sp->height>128)
       {
@@ -213,32 +213,32 @@ int main(int argc, char **argv)
    grp.width = (uint16_t)sp->width;
    grp.height = (uint16_t)sp->height;
    uint32_t pos = 0;
-   for(int y = 0;y<sp->height;y++)
+   for(int y = 0; y<sp->height; y++)
    {
       grp.row_offsets[y] = pos;
       int count_pos = pos;
-      RvR_array_push(grp.data,0);
+      RvR_array_push(grp.data, 0);
       pos++;
 
       int start = 0;
       int run = 0;
       int count = 0;
-      for(int x = 0;x<sp->width;x++)
+      for(int x = 0; x<sp->width; x++)
       {
          //Skip transparent
-         if(sp->data[y*sp->width+x]==0)
+         if(sp->data[y * sp->width + x]==0)
          {
             if(run>0)
             {
-               RvR_array_push(grp.data,(uint8_t)start);
-               RvR_array_push(grp.data,(uint8_t)run);
-               pos+=2+run;
-               for(int i = 0;i<run;i++)
-                  RvR_array_push(grp.data,sp->data[y*sp->width+start+i]);
+               RvR_array_push(grp.data, (uint8_t)start);
+               RvR_array_push(grp.data, (uint8_t)run);
+               pos += 2 + run;
+               for(int i = 0; i<run; i++)
+                  RvR_array_push(grp.data, sp->data[y * sp->width + start + i]);
                count++;
             }
             run = 0;
-            start = x+1;
+            start = x + 1;
             continue;
          }
 
@@ -247,11 +247,11 @@ int main(int argc, char **argv)
 
       if(run>0)
       {
-         RvR_array_push(grp.data,(uint8_t)start);
-         RvR_array_push(grp.data,(uint8_t)run);
-         pos+=2+run;
-         for(int i = 0;i<run;i++)
-            RvR_array_push(grp.data,sp->data[y*sp->width+start+i]);
+         RvR_array_push(grp.data, (uint8_t)start);
+         RvR_array_push(grp.data, (uint8_t)run);
+         pos += 2 + run;
+         for(int i = 0; i<run; i++)
+            RvR_array_push(grp.data, sp->data[y * sp->width + start + i]);
          count++;
       }
 
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
    //Compress and write to file
    RvR_rw cin;
    RvR_rw cout;
-   size_t len = 4+grp.len+2+4+4*grp.height;
+   size_t len = 4 + grp.len + 2 + 4 + 4 * grp.height;
    int off_len = grp.height;
    uint8_t *mem = RvR_malloc(len, "compression buffer");
    RvR_rw_init_mem(&cin, mem, len, 0);
@@ -272,10 +272,10 @@ int main(int argc, char **argv)
    RvR_rw_write_u16(&cin, grp.width);
    RvR_rw_write_u16(&cin, grp.height);
    RvR_rw_write_u32(&cin, grp.len);
-   for(int i = 0;i<off_len;i++)
+   for(int i = 0; i<off_len; i++)
       RvR_rw_write_u32(&cin, grp.row_offsets[i]);
-   for(int i = 0;i<grp.len;i++)
-      RvR_rw_write_u8(&cin,grp.data[i]);
+   for(int i = 0; i<grp.len; i++)
+      RvR_rw_write_u8(&cin, grp.data[i]);
    RvR_rw_init_path(&cout, path_out, "wb");
    RvR_crush_compress(&cin, &cout, 10);
    RvR_rw_close(&cin);
@@ -402,9 +402,9 @@ static Palette *palette_gpl(FILE *f)
          continue;
       if(sscanf(buffer, "%d %d %d", &r, &g, &b)==3)
       {
-         p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,r));
-         p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,g));
-         p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,b));
+         p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, r));
+         p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, g));
+         p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, b));
          p->colors[c].a = 255;
          c++;
       }
@@ -426,9 +426,9 @@ static Palette *palette_hex(FILE *f)
 
    while(fgets(buffer, 512, f))
    {
-      p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
-      p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
-      p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
+      p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
+      p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
+      p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
       p->colors[c].a = 255;
       c++;
    }
@@ -518,17 +518,17 @@ static void path_ext(const char *path, char ext[64])
 
    ext[0] = '\0';
 
-   char *last_dot = strrchr(path,'.');
+   char *last_dot = strrchr(path, '.');
 
    //No dot, or string is '.' or '..' --> no extension
-   if(last_dot==NULL||!strcmp(path,".")||!strcmp(path,".."))
+   if(last_dot==NULL||!strcmp(path, ".")||!strcmp(path, ".."))
       return;
 
    //slash after dot --> no extension
    if(last_dot[1]=='/'||last_dot[1]=='\\')
       return;
 
-   strncpy(ext,last_dot+1,63);
+   strncpy(ext, last_dot + 1, 63);
    ext[63] = '\0';
 }
 //-------------------------------------

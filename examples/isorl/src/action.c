@@ -383,10 +383,10 @@ static int action_pickup(World *w, Area *a, Entity *e)
    if(it==NULL)
       return ACTION_FINISHED;
 
-   if(!point_equal(it->pos,e->pos))
+   if(!point_equal(it->pos, e->pos))
       return ACTION_FINISHED;
 
-   entity_store_item(w,a,e,it);
+   entity_store_item(w, a, e, it);
 
    return ACTION_FINISHED;
 }
@@ -402,24 +402,24 @@ static int action_drop(World *w, Area *a, Entity *e)
       return ACTION_FINISHED;
 
    //Check if eligible
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
          {
             Item *cur = e->body.parts[i].slots[j].it;
-            for(;cur!=NULL;cur = cur->next)
+            for(; cur!=NULL; cur = cur->next)
             {
                if(cur==it)
                {
-                  Item *ni = item_duplicate(w,it);
+                  Item *ni = item_duplicate(w, it);
                   ni->pos = e->pos;
-                  item_add(a,ni);
-                  item_grid_add(a,ni);
+                  item_add(a, ni);
+                  item_grid_add(a, ni);
 
                   item_free(it);
 
@@ -428,18 +428,18 @@ static int action_drop(World *w, Area *a, Entity *e)
             }
          }
 
-         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         for(Item *cur = e->body.parts[i].slots[j].it; cur!=NULL; cur = cur->next)
          {
-            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+            if(cur->def->tags & DEF_ITEM_SLOT_CONTAINER)
             {
-               for(Item *con = cur->container.it;con!=NULL;con = con->next)
+               for(Item *con = cur->container.it; con!=NULL; con = con->next)
                {
                   if(con==it)
                   {
-                     Item *ni = item_duplicate(w,it);
+                     Item *ni = item_duplicate(w, it);
                      ni->pos = e->pos;
-                     item_add(a,ni);
-                     item_grid_add(a,ni);
+                     item_add(a, ni);
+                     item_grid_add(a, ni);
 
                      item_free(it);
 
@@ -464,25 +464,25 @@ static int action_equip(World *w, Area *a, Entity *e)
    if(it==NULL)
       return ACTION_FINISHED;
 
-   if(!entity_can_equip(w,a,e,it,1))
+   if(!entity_can_equip(w, a, e, it, 1))
       return ACTION_FINISHED;
 
    //Check if eligible
-   for(int i = 0;i<e->body.part_count;i++)
+   for(int i = 0; i<e->body.part_count; i++)
    {
       if(e->body.parts[i].hp<=0)
          continue;
 
-      for(int j = 0;j<e->body.parts[i].slot_count;j++)
+      for(int j = 0; j<e->body.parts[i].slot_count; j++)
       {
          if(e->body.parts[i].slots[j].type==ITEM_SLOT_GRASP)
          {
             Item *cur = e->body.parts[i].slots[j].it;
-            for(;cur!=NULL;cur = cur->next)
+            for(; cur!=NULL; cur = cur->next)
             {
                if(cur==it)
                {
-                  entity_equip(w,a,e,it);
+                  entity_equip(w, a, e, it);
                   //Item *inv = item_duplicate(w,it);
                   //item_free(it);
                   //inv->prev_next = &e->body.parts[i].slots[j].it;
@@ -494,15 +494,15 @@ static int action_equip(World *w, Area *a, Entity *e)
             }
          }
 
-         for(Item *cur = e->body.parts[i].slots[j].it;cur!=NULL;cur = cur->next)
+         for(Item *cur = e->body.parts[i].slots[j].it; cur!=NULL; cur = cur->next)
          {
-            if(cur->def->tags&DEF_ITEM_SLOT_CONTAINER)
+            if(cur->def->tags & DEF_ITEM_SLOT_CONTAINER)
             {
-               for(Item *con = cur->container.it;con!=NULL;con = con->next)
+               for(Item *con = cur->container.it; con!=NULL; con = con->next)
                {
                   if(con==it)
                   {
-                     entity_equip(w,a,e,it);
+                     entity_equip(w, a, e, it);
                      return ACTION_FINISHED;
                   }
                }
@@ -521,7 +521,7 @@ static int action_remove(World *w, Area *a, Entity *e)
 
    Item *it = item_index_try(act->as.remove.item);
 
-   entity_remove(w,a,e,it);
+   entity_remove(w, a, e, it);
 
    return ACTION_FINISHED;
 }
@@ -534,7 +534,7 @@ static int action_put(World *w, Area *a, Entity *e)
    Item *it = item_index_try(act->as.put.item);
    Item *con = item_index_try(act->as.put.container);
 
-   entity_put(w,a,e,it,con);
+   entity_put(w, a, e, it, con);
 
    return ACTION_FINISHED;
 }

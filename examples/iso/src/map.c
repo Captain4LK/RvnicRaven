@@ -36,22 +36,22 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 Map *map_create(int dim_x, int dim_y, int dim_z)
 {
-   Map *map = RvR_malloc(sizeof(*map)+sizeof(*map->tiles)*dim_x*dim_y*dim_z,"iso map");
+   Map *map = RvR_malloc(sizeof(*map) + sizeof(*map->tiles) * dim_x * dim_y * dim_z, "iso map");
    map->dim_x = dim_x;
    map->dim_y = dim_y;
    map->dim_z = dim_z;
 
    srand(0);
-   for(int z = 0;z<dim_z;z++)
+   for(int z = 0; z<dim_z; z++)
    {
-      for(int y = 0;y<dim_y;y++)
+      for(int y = 0; y<dim_y; y++)
       {
-         for(int x = 0;x<dim_x;x++)
+         for(int x = 0; x<dim_x; x++)
          {
-            if(rand()&1)
-               map->tiles[z*dim_y*dim_x+y*dim_x+x] = tile_empty();
+            if(rand() & 1)
+               map->tiles[z * dim_y * dim_x + y * dim_x + x] = tile_empty();
             else
-               map->tiles[z*dim_y*dim_x+y*dim_x+x] = tile_block(0);
+               map->tiles[z * dim_y * dim_x + y * dim_x + x] = tile_block(0);
          }
       }
    }

@@ -52,14 +52,14 @@ void world_gen(World *w, uint32_t seed)
 
    uint16_t *temperature = RvR_malloc(sizeof(*temperature) * stride * stride, "Map Gen temperature");
    uint16_t *wetness = RvR_malloc(sizeof(*wetness) * stride * stride, "Map Gen wetness");
-   uint16_t *sky_top = RvR_malloc(sizeof(*sky_top)*stride*stride,"Map Gen sky top");
-   uint16_t *srf_top = RvR_malloc(sizeof(*srf_top)*stride*stride,"Map Gen surface top");
-   uint16_t *cv0_top = RvR_malloc(sizeof(*cv0_top)*stride*stride,"Map Gen cavern0 top");
-   uint16_t *cv0_bot = RvR_malloc(sizeof(*cv0_bot)*stride*stride,"Map Gen cavern0 bot");
-   uint16_t *cv1_top = RvR_malloc(sizeof(*cv1_top)*stride*stride,"Map Gen cavern1 top");
-   uint16_t *cv1_bot = RvR_malloc(sizeof(*cv1_bot)*stride*stride,"Map Gen cavern1 bot");
-   uint16_t *cv2_top = RvR_malloc(sizeof(*cv2_top)*stride*stride,"Map Gen cavern2 top");
-   uint16_t *cv2_bot = RvR_malloc(sizeof(*cv2_bot)*stride*stride,"Map Gen cavern2 bot");
+   uint16_t *sky_top = RvR_malloc(sizeof(*sky_top) * stride * stride, "Map Gen sky top");
+   uint16_t *srf_top = RvR_malloc(sizeof(*srf_top) * stride * stride, "Map Gen surface top");
+   uint16_t *cv0_top = RvR_malloc(sizeof(*cv0_top) * stride * stride, "Map Gen cavern0 top");
+   uint16_t *cv0_bot = RvR_malloc(sizeof(*cv0_bot) * stride * stride, "Map Gen cavern0 bot");
+   uint16_t *cv1_top = RvR_malloc(sizeof(*cv1_top) * stride * stride, "Map Gen cavern1 top");
+   uint16_t *cv1_bot = RvR_malloc(sizeof(*cv1_bot) * stride * stride, "Map Gen cavern1 bot");
+   uint16_t *cv2_top = RvR_malloc(sizeof(*cv2_top) * stride * stride, "Map Gen cavern2 top");
+   uint16_t *cv2_bot = RvR_malloc(sizeof(*cv2_bot) * stride * stride, "Map Gen cavern2 bot");
 
    //int32_t *elevation = RvR_malloc(sizeof(*elevation) * stride * stride, "Map Gen elevation");
    //int32_t *temperature = RvR_malloc(sizeof(*temperature) * stride * stride, "Map Gen temperature");
@@ -134,45 +134,45 @@ void world_gen(World *w, uint32_t seed)
    //Edges are below sea level
    for(int i = 0; i<stride; i++)
    {
-      srf_top[i] = 64*256;
-      srf_top[(stride-1)*stride+i] = 64*256;
-      srf_top[i*stride] = 64*256;
-      srf_top[i*stride+stride-1] = 64*256;
+      srf_top[i] = 64 * 256;
+      srf_top[(stride - 1) * stride + i] = 64 * 256;
+      srf_top[i * stride] = 64 * 256;
+      srf_top[i * stride + stride - 1] = 64 * 256;
 
-      sky_top[i] = 64*256;
-      sky_top[(stride-1)*stride+i] = 64*256;
-      sky_top[i*stride] = 64*256;
-      sky_top[i*stride+stride-1] = 64*256;
+      sky_top[i] = 64 * 256;
+      sky_top[(stride - 1) * stride + i] = 64 * 256;
+      sky_top[i * stride] = 64 * 256;
+      sky_top[i * stride + stride - 1] = 64 * 256;
 
-      cv0_top[i] = 64*256;
-      cv0_top[(stride-1)*stride+i] = 64*256;
-      cv0_top[i*stride] = 64*256;
-      cv0_top[i*stride+stride-1] = 64*256;
+      cv0_top[i] = 64 * 256;
+      cv0_top[(stride - 1) * stride + i] = 64 * 256;
+      cv0_top[i * stride] = 64 * 256;
+      cv0_top[i * stride + stride - 1] = 64 * 256;
 
-      cv0_bot[i] = 64*256;
-      cv0_bot[(stride-1)*stride+i] = 64*256;
-      cv0_bot[i*stride] = 64*256;
-      cv0_bot[i*stride+stride-1] = 64*256;
+      cv0_bot[i] = 64 * 256;
+      cv0_bot[(stride - 1) * stride + i] = 64 * 256;
+      cv0_bot[i * stride] = 64 * 256;
+      cv0_bot[i * stride + stride - 1] = 64 * 256;
 
-      cv1_top[i] = 64*256;
-      cv1_top[(stride-1)*stride+i] = 64*256;
-      cv1_top[i*stride] = 64*256;
-      cv1_top[i*stride+stride-1] = 64*256;
+      cv1_top[i] = 64 * 256;
+      cv1_top[(stride - 1) * stride + i] = 64 * 256;
+      cv1_top[i * stride] = 64 * 256;
+      cv1_top[i * stride + stride - 1] = 64 * 256;
 
-      cv1_bot[i] = 64*256;
-      cv1_bot[(stride-1)*stride+i] = 64*256;
-      cv1_bot[i*stride] = 64*256;
-      cv1_bot[i*stride+stride-1] = 64*256;
+      cv1_bot[i] = 64 * 256;
+      cv1_bot[(stride - 1) * stride + i] = 64 * 256;
+      cv1_bot[i * stride] = 64 * 256;
+      cv1_bot[i * stride + stride - 1] = 64 * 256;
 
-      cv2_top[i] = 64*256;
-      cv2_top[(stride-1)*stride+i] = 64*256;
-      cv2_top[i*stride] = 64*256;
-      cv2_top[i*stride+stride-1] = 64*256;
+      cv2_top[i] = 64 * 256;
+      cv2_top[(stride - 1) * stride + i] = 64 * 256;
+      cv2_top[i * stride] = 64 * 256;
+      cv2_top[i * stride + stride - 1] = 64 * 256;
 
-      cv2_bot[i] = 64*256;
-      cv2_bot[(stride-1)*stride+i] = 64*256;
-      cv2_bot[i*stride] = 64*256;
-      cv2_bot[i*stride+stride-1] = 64*256;
+      cv2_bot[i] = 64 * 256;
+      cv2_bot[(stride - 1) * stride + i] = 64 * 256;
+      cv2_bot[i * stride] = 64 * 256;
+      cv2_bot[i * stride + stride - 1] = 64 * 256;
       /*
       elevation[i] = 64 * 1024;
       elevation[(stride - 1) * stride + i] = 64 * 1024;
@@ -234,34 +234,34 @@ void world_gen(World *w, uint32_t seed)
       if(l>=0) dim_rest = 32 >> l;
       else dim_rest = 32 << (-l);
 
-#define diamond(ar,pre) \
-      { \
-         int32_t e0 = ar[(y)*dim_rest*stride+(x)*dim_rest];\
-         int32_t e1 = ar[(y)*dim_rest*stride+(x+1)*dim_rest];\
-         int32_t e2 = ar[(y+1)*dim_rest*stride+(x)*dim_rest];\
-         int32_t e3 = ar[(y+1)*dim_rest*stride+(x+1)*dim_rest];\
-         if(ar[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2]==UINT16_MAX)\
-         {\
-            int32_t e = (e0+e1+e2+e3)/4+rand_offset(&rand,l,w->preset.pre);\
-            ar[(y*dim_rest+dim_rest/2)*stride+x*dim_rest+dim_rest/2] = (uint16_t)RvR_max(0,RvR_min(e,UINT16_MAX-1));\
-         }\
-      }
+#define diamond(ar, pre) \
+        { \
+           int32_t e0 = ar[(y) * dim_rest * stride + (x) * dim_rest]; \
+           int32_t e1 = ar[(y) * dim_rest * stride + (x + 1) * dim_rest]; \
+           int32_t e2 = ar[(y + 1) * dim_rest * stride + (x) * dim_rest]; \
+           int32_t e3 = ar[(y + 1) * dim_rest * stride + (x + 1) * dim_rest]; \
+           if(ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest + dim_rest / 2]==UINT16_MAX) \
+           { \
+              int32_t e = (e0 + e1 + e2 + e3) / 4 + rand_offset(&rand, l, w->preset.pre); \
+              ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest + dim_rest / 2] = (uint16_t)RvR_max(0, RvR_min(e, UINT16_MAX - 1)); \
+           } \
+        }
 
       //Diamond
       for(int y = 0; y<dim_level; y++)
       {
          for(int x = 0; x<dim_level; x++)
          {
-            diamond(wetness,var_rainfall);
-            diamond(temperature,var_temperature);
-            diamond(srf_top,var_elevation);
-            diamond(sky_top,var_elevation);
-            diamond(cv0_top,var_elevation);
-            diamond(cv0_bot,var_elevation);
-            diamond(cv1_top,var_elevation);
-            diamond(cv1_bot,var_elevation);
-            diamond(cv2_top,var_elevation);
-            diamond(cv2_bot,var_elevation);
+            diamond(wetness, var_rainfall);
+            diamond(temperature, var_temperature);
+            diamond(srf_top, var_elevation);
+            diamond(sky_top, var_elevation);
+            diamond(cv0_top, var_elevation);
+            diamond(cv0_bot, var_elevation);
+            diamond(cv1_top, var_elevation);
+            diamond(cv1_bot, var_elevation);
+            diamond(cv2_top, var_elevation);
+            diamond(cv2_bot, var_elevation);
             /*
             int32_t e0 = elevation[(y) * dim_rest * stride + (x) * dim_rest];
             int32_t e1 = elevation[(y) * dim_rest * stride + (x + 1) * dim_rest];
@@ -290,56 +290,56 @@ void world_gen(World *w, uint32_t seed)
       }
 #undef diamond
 
-#define square(ar,pre)\
-      {\
-         int32_t e0 = ar[(y) * dim_rest * stride + (x) * dim_rest];\
-         int32_t e1 = ar[(y) * dim_rest * stride + (x + 1) * dim_rest];\
-         int32_t e2 = ar[(y + 1) * dim_rest * stride + (x) * dim_rest];\
-         int32_t e3 = ar[(y + 1) * dim_rest * stride + (x + 1) * dim_rest];\
-         int32_t e4 = ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest + dim_rest / 2];\
-         int32_t e5 = (e0 + e3 + e4) / 3;\
-         int32_t e6 = (e0 + e1 + e4) / 3;\
-         if(x>0)\
-            e5 = ar[(y * dim_rest + dim_rest / 2) * stride + (x - 1) * dim_rest + dim_rest / 2];\
-         if(y>0)\
-            e6 = ar[((y - 1) * dim_rest + dim_rest / 2) * stride + x * dim_rest + dim_rest / 2];\
-         if(ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest]==UINT16_MAX)\
-         {\
-            int32_t e = (e0 + e3 + e5 + e4) / 4 + rand_offset(&rand, l, w->preset.pre);\
-            ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX-1,e));\
-         }\
-         if(ar[(y * dim_rest) * stride + x * dim_rest + dim_rest / 2]==UINT16_MAX)\
-         {\
-            int32_t e = (e0 + e1 + e6 + e4) / 4 + rand_offset(&rand, l, w->preset.pre);\
-            ar[(y * dim_rest) * stride + x * dim_rest + dim_rest / 2] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX-1,e));\
-         }\
-         if(x==dim_level - 1&&ar[(y * dim_rest + dim_rest / 2) * stride + (x + 1) * dim_rest]==UINT16_MAX)\
-         {\
-            int32_t e = (e1 + e2 + e4) / 3 + rand_offset(&rand, l, w->preset.pre);\
-            ar[(y * dim_rest + dim_rest / 2) * stride + (x + 1) * dim_rest] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX-1,e));\
-         }\
-         if(y==dim_level - 1&&ar[((y + 1) * dim_rest) * stride + x * dim_rest + dim_rest / 2]==UINT16_MAX)\
-         {\
-            int32_t e = (e2 + e3 + e4) / 3 + rand_offset(&rand, l, w->preset.pre);\
-            ar[((y + 1) * dim_rest) * stride + x * dim_rest + dim_rest / 2] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX-1,e));\
-         }\
-      }
+#define square(ar, pre) \
+        { \
+           int32_t e0 = ar[(y) * dim_rest * stride + (x) * dim_rest]; \
+           int32_t e1 = ar[(y) * dim_rest * stride + (x + 1) * dim_rest]; \
+           int32_t e2 = ar[(y + 1) * dim_rest * stride + (x) * dim_rest]; \
+           int32_t e3 = ar[(y + 1) * dim_rest * stride + (x + 1) * dim_rest]; \
+           int32_t e4 = ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest + dim_rest / 2]; \
+           int32_t e5 = (e0 + e3 + e4) / 3; \
+           int32_t e6 = (e0 + e1 + e4) / 3; \
+           if(x>0) \
+           e5 = ar[(y * dim_rest + dim_rest / 2) * stride + (x - 1) * dim_rest + dim_rest / 2]; \
+           if(y>0) \
+           e6 = ar[((y - 1) * dim_rest + dim_rest / 2) * stride + x * dim_rest + dim_rest / 2]; \
+           if(ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest]==UINT16_MAX) \
+           { \
+              int32_t e = (e0 + e3 + e5 + e4) / 4 + rand_offset(&rand, l, w->preset.pre); \
+              ar[(y * dim_rest + dim_rest / 2) * stride + x * dim_rest] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX - 1, e)); \
+           } \
+           if(ar[(y * dim_rest) * stride + x * dim_rest + dim_rest / 2]==UINT16_MAX) \
+           { \
+              int32_t e = (e0 + e1 + e6 + e4) / 4 + rand_offset(&rand, l, w->preset.pre); \
+              ar[(y * dim_rest) * stride + x * dim_rest + dim_rest / 2] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX - 1, e)); \
+           } \
+           if(x==dim_level - 1&&ar[(y * dim_rest + dim_rest / 2) * stride + (x + 1) * dim_rest]==UINT16_MAX) \
+           { \
+              int32_t e = (e1 + e2 + e4) / 3 + rand_offset(&rand, l, w->preset.pre); \
+              ar[(y * dim_rest + dim_rest / 2) * stride + (x + 1) * dim_rest] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX - 1, e)); \
+           } \
+           if(y==dim_level - 1&&ar[((y + 1) * dim_rest) * stride + x * dim_rest + dim_rest / 2]==UINT16_MAX) \
+           { \
+              int32_t e = (e2 + e3 + e4) / 3 + rand_offset(&rand, l, w->preset.pre); \
+              ar[((y + 1) * dim_rest) * stride + x * dim_rest + dim_rest / 2] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX - 1, e)); \
+           } \
+        }
 
       //Square
       for(int y = 0; y<dim_level; y++)
       {
          for(int x = 0; x<dim_level; x++)
          {
-            square(wetness,var_rainfall);
-            square(temperature,var_temperature);
-            square(srf_top,var_elevation);
-            square(sky_top,var_elevation);
-            square(cv0_top,var_elevation);
-            square(cv0_bot,var_elevation);
-            square(cv1_top,var_elevation);
-            square(cv1_bot,var_elevation);
-            square(cv2_top,var_elevation);
-            square(cv2_bot,var_elevation);
+            square(wetness, var_rainfall);
+            square(temperature, var_temperature);
+            square(srf_top, var_elevation);
+            square(sky_top, var_elevation);
+            square(cv0_top, var_elevation);
+            square(cv0_bot, var_elevation);
+            square(cv1_top, var_elevation);
+            square(cv1_bot, var_elevation);
+            square(cv2_top, var_elevation);
+            square(cv2_bot, var_elevation);
             /*
             int32_t e0 = elevation[(y) * dim_rest * stride + (x) * dim_rest];
             int32_t e1 = elevation[(y) * dim_rest * stride + (x + 1) * dim_rest];
@@ -421,17 +421,17 @@ void world_gen(World *w, uint32_t seed)
 
 #undef square
 
-#define resquare(ar,pre)\
-      {\
-         int32_t sum = 0;\
-         int32_t count = 0;\
-         if(x - 1>=0) {sum += ar[(y) * dim_rest * stride + (x) * dim_rest - dim_rest / 2]; count++;}\
-         if(x + 1<dim_level) {sum += ar[(y) * dim_rest * stride + (x) * dim_rest + dim_rest / 2]; count++;}\
-         if(y - 1>=0) {sum += ar[((y) * dim_rest - dim_rest / 2) * stride + (x) * dim_rest]; count++;}\
-         if(y + 1<dim_level) {sum += ar[((y) * dim_rest + dim_rest / 2) * stride + (x) * dim_rest]; count++;}\
+#define resquare(ar, pre) \
+        { \
+           int32_t sum = 0; \
+           int32_t count = 0; \
+           if(x - 1>=0) {sum += ar[(y) * dim_rest * stride + (x) * dim_rest - dim_rest / 2]; count++;} \
+           if(x + 1<dim_level) {sum += ar[(y) * dim_rest * stride + (x) * dim_rest + dim_rest / 2]; count++;} \
+           if(y - 1>=0) {sum += ar[((y) * dim_rest - dim_rest / 2) * stride + (x) * dim_rest]; count++;} \
+           if(y + 1<dim_level) {sum += ar[((y) * dim_rest + dim_rest / 2) * stride + (x) * dim_rest]; count++;} \
          \
-         ar[y * dim_rest * stride + x * dim_rest] = (uint16_t)RvR_max(0,RvR_min(UINT16_MAX-1,sum / count + rand_offset(&rand, l, w->preset.pre)));\
-      }
+           ar[y * dim_rest * stride + x * dim_rest] = (uint16_t)RvR_max(0, RvR_min(UINT16_MAX - 1, sum / count + rand_offset(&rand, l, w->preset.pre))); \
+        }
 
       //Recalculate squares
       for(int y = 0; y<dim_level; y++)
@@ -441,14 +441,14 @@ void world_gen(World *w, uint32_t seed)
             if((x * dim_rest) % (scale * 32)==0&&(y * dim_rest) % (scale * 32)==0&&l!=4)
                continue;
 
-            resquare(srf_top,var_elevation);
-            resquare(sky_top,var_elevation);
-            resquare(cv0_top,var_elevation);
-            resquare(cv0_bot,var_elevation);
-            resquare(cv1_top,var_elevation);
-            resquare(cv1_bot,var_elevation);
-            resquare(cv2_top,var_elevation);
-            resquare(cv2_bot,var_elevation);
+            resquare(srf_top, var_elevation);
+            resquare(sky_top, var_elevation);
+            resquare(cv0_top, var_elevation);
+            resquare(cv0_bot, var_elevation);
+            resquare(cv1_top, var_elevation);
+            resquare(cv1_bot, var_elevation);
+            resquare(cv2_top, var_elevation);
+            resquare(cv2_bot, var_elevation);
             /*
             int32_t sum = 0;
             int32_t count = 0;

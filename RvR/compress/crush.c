@@ -396,7 +396,7 @@ static void rvr_comp_bits_put(rvr_comp_bits *b, size_t n, size_t x)
    //Write filled bytes to output stream
    while(b->bit_count>=8)
    {
-      RvR_rw_write_u8(b->outbuf, (uint8_t)(b->bit_buf&255));
+      RvR_rw_write_u8(b->outbuf, (uint8_t)(b->bit_buf & 255));
       b->bit_buf >>= 8;
       b->bit_count -= 8;
    }

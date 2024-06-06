@@ -141,7 +141,7 @@ int main(int argc, char **argv)
          path_pal = options.optarg;
          break;
       case 't':
-         trans_index = (uint8_t)strtol(options.optarg,NULL,10);
+         trans_index = (uint8_t)strtol(options.optarg, NULL, 10);
          break;
       case '?':
          fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
       return 0;
    }
 
-   Sprite_pal *sp = texture_load(path_in, path_pal,trans_index);
+   Sprite_pal *sp = texture_load(path_in, path_pal, trans_index);
 
    if(flags & SPRITE_WALL)
    {
@@ -334,9 +334,9 @@ static Palette *palette_gpl(FILE *f)
          continue;
       if(sscanf(buffer, "%d %d %d", &r, &g, &b)==3)
       {
-         p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,r));
-         p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,g));
-         p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,b));
+         p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, r));
+         p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, g));
+         p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, b));
          p->colors[c].a = 255;
          c++;
       }
@@ -358,9 +358,9 @@ static Palette *palette_hex(FILE *f)
 
    while(fgets(buffer, 512, f))
    {
-      p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
-      p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
-      p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
+      p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
+      p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
+      p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
       p->colors[c].a = 255;
       c++;
    }

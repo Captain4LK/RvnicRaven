@@ -56,7 +56,15 @@ void entity_equip(World *w, Area *a, Entity *e, Item *it);
 void entity_remove(World *w, Area *a, Entity *e, Item *it);
 void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container);
 
-inline Entity_index entity_index_get(Entity *e) { if(e==NULL) return (Entity_index){.id = 0, .index = NULL}; return (Entity_index){.id = e->id,.index = e}; }
+inline Entity_index entity_index_get(Entity *e) {
+   if(e==NULL)
+      return (Entity_index){
+                .id = 0, .index = NULL
+      }
+   ; return (Entity_index){
+             .id = e->id, .index = e
+   };
+}
 inline Entity *entity_index_try(Entity_index index) { if(index.index==NULL) return NULL; if(index.index->id==index.id) return index.index; return NULL; }
 inline int entity_list_length(const Entity *e) { int len = 0; for(const Entity *cur = e; cur!=NULL; cur = cur->next) len++; return len; }
 

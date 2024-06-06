@@ -102,7 +102,7 @@ typedef enum
 #define HLH_GUI_DESTROY         (UINT64_C(0x20))
 #define HLH_GUI_FILL_X          (UINT64_C(0x100))
 #define HLH_GUI_FILL_Y          (UINT64_C(0x200))
-#define HLH_GUI_FILL            (HLH_GUI_FILL_X|HLH_GUI_FILL_Y)
+#define HLH_GUI_FILL            (HLH_GUI_FILL_X | HLH_GUI_FILL_Y)
 #define HLH_GUI_CAPTURE_MOUSE   (UINT64_C(0x400))
 
 #define HLH_GUI_STYLE           (UINT64_C(0x3c0000))
@@ -127,7 +127,7 @@ typedef enum
 #define HLH_GUI_OVERLAY         (UINT64_C(0x800000))
 //-------------------------------------
 
-#define HLH_gui_flag_set(var,flag,value) do { uint64_t val = (!!value)*flag; var&=~(uint64_t)flag; var|=val; } while(0)
+#define HLH_gui_flag_set(var, flag, value) do { uint64_t val = (!!value) * flag; var &= ~(uint64_t)flag; var |= val; } while(0)
 
 typedef int (*HLH_gui_msg_handler)(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp);
 

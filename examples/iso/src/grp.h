@@ -32,7 +32,7 @@ typedef struct
 {
    //width = 32
    //height = 32*4
-   uint32_t row_offsets[32*4];
+   uint32_t row_offsets[32 * 4];
    uint8_t data[];
 }GRP_wall;
 

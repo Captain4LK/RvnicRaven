@@ -341,7 +341,7 @@ int HLH_gui_message_loop(void)
                HLH_gui_textinput in = {0};
                in.type = 1;
                in.keycode = event.key.keysym.sym;
-               HLH_gui_element_msg(win->keyboard,HLH_GUI_MSG_TEXTINPUT,0,&in);
+               HLH_gui_element_msg(win->keyboard, HLH_GUI_MSG_TEXTINPUT, 0, &in);
                continue;
             }
 
@@ -400,12 +400,12 @@ int HLH_gui_message_loop(void)
          if(win==NULL||win->keyboard==NULL)
             continue;
 
-         for(int i = 0;i<strlen(event.text.text);i++)
+         for(int i = 0; i<strlen(event.text.text); i++)
          {
             HLH_gui_textinput in = {0};
             in.type = 0;
             in.ch = event.text.text[i];
-            HLH_gui_element_msg(win->keyboard,HLH_GUI_MSG_TEXTINPUT,0,&in);
+            HLH_gui_element_msg(win->keyboard, HLH_GUI_MSG_TEXTINPUT, 0, &in);
          }
 
          break;
@@ -432,12 +432,12 @@ int HLH_gui_message_loop(void)
             if(SDL_SetRenderTarget(win->renderer, win->target)<0)
                fprintf(stderr, "SDL_SetRenderTarget(): %s\n", SDL_GetError());
 
-            for(int i = 0;i<HLH_array_length(win->redraw);i++)
+            for(int i = 0; i<HLH_array_length(win->redraw); i++)
             {
                if(win->redraw[i]->needs_redraw)
                   HLH_gui_element_redraw_msg(win->redraw[i]);
             }
-            HLH_array_length_set(win->redraw,0);
+            HLH_array_length_set(win->redraw, 0);
 
             if(SDL_SetRenderTarget(win->renderer, NULL)<0)
                fprintf(stderr, "SDL_SetRenderTarget(): %s\n", SDL_GetError());
@@ -475,13 +475,13 @@ void HLH_gui_handle_mouse(HLH_gui_element *e, HLH_gui_mouse m)
    {
       click = HLH_gui_element_by_point(e, m.pos);
       if(e->last_mouse!=NULL&&e->last_mouse!=click)
-         HLH_gui_element_msg(e->last_mouse, HLH_GUI_MSG_MOUSE_LEAVE, 0,NULL);
+         HLH_gui_element_msg(e->last_mouse, HLH_GUI_MSG_MOUSE_LEAVE, 0, NULL);
    }
 
    if(click!=NULL)
    {
       int capture = HLH_gui_element_msg(click, HLH_GUI_MSG_MOUSE, 0, &m);
-      HLH_gui_flag_set(e->flags,HLH_GUI_CAPTURE_MOUSE,capture);
+      HLH_gui_flag_set(e->flags, HLH_GUI_CAPTURE_MOUSE, capture);
       e->last_mouse = click;
    }
 }
@@ -544,7 +544,7 @@ void HLH_gui_textinput_stop(HLH_gui_window *w)
 
    if(w->keyboard!=NULL)
    {
-      HLH_gui_element_msg(w->keyboard,HLH_GUI_MSG_TEXTINPUT_END,0,NULL);
+      HLH_gui_element_msg(w->keyboard, HLH_GUI_MSG_TEXTINPUT_END, 0, NULL);
       w->keyboard = NULL;
       textinput_count--;
       if(textinput_count<=0)
@@ -576,16 +576,16 @@ void HLH_gui_image_save(FILE *fp, uint32_t *data, int width, int height, const c
 {
    if(fp==NULL||data==NULL||width<=0||height<=0)
       return;
-   if(strcmp(ext,"bmp")==0)
-      stbi_write_bmp_to_func(image_write_func,fp,width,height,4,data);
-   else if(strcmp(ext,"tga")==0)
-      stbi_write_tga_to_func(image_write_func,fp,width,height,4,data);
-   else if(strcmp(ext,"jpg")==0||strcmp(ext,"JPG")==0)
-      stbi_write_jpg_to_func(image_write_func,fp,width,height,4,data,96);
+   if(strcmp(ext, "bmp")==0)
+      stbi_write_bmp_to_func(image_write_func, fp, width, height, 4, data);
+   else if(strcmp(ext, "tga")==0)
+      stbi_write_tga_to_func(image_write_func, fp, width, height, 4, data);
+   else if(strcmp(ext, "jpg")==0||strcmp(ext, "JPG")==0)
+      stbi_write_jpg_to_func(image_write_func, fp, width, height, 4, data, 96);
    //Save as png if unknown
    //Could error out here, but better to save something
    else
-      stbi_write_png_to_func(image_write_func,fp,width,height,4,data,width*4);
+      stbi_write_png_to_func(image_write_func, fp, width, height, 4, data, width * 4);
 }
 
 SDL_Texture *HLH_gui_texture_load(HLH_gui_window *win, const char *path, int *width, int *height)
@@ -668,6 +668,6 @@ HLH_gui_window *core_find_window(SDL_Window *win)
 
 static void image_write_func(void *context, void *data, int size)
 {
-   fwrite(data,size,1,(FILE *)context);
+   fwrite(data, size, 1, (FILE *)context);
 }
 //-------------------------------------

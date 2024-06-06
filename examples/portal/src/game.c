@@ -42,7 +42,7 @@ void game_set()
    gamestate_free(gamestate);
    gamestate = gamestate_new();
    player_create_new(gamestate);
-   gamestate_map(gamestate,0);
+   gamestate_map(gamestate, 0);
 }
 
 void game_init()
@@ -56,9 +56,9 @@ void game_update()
 
 void game_draw()
 {
-   RvR_port_draw_begin(gamestate->map,&gamestate->cam);
+   RvR_port_draw_begin(gamestate->map, &gamestate->cam);
 
-      RvR_port_draw_map(NULL);
+   RvR_port_draw_map(NULL);
 
    RvR_port_draw_end(NULL);
 }

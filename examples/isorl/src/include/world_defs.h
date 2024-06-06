@@ -28,7 +28,7 @@ typedef struct
    uint16_t x;
    uint16_t y;
    uint16_t z;
-   uint32_t tiles[32*32*32];
+   uint32_t tiles[32 * 32 * 32];
 }Chunk;
 
 typedef struct
@@ -55,19 +55,19 @@ typedef struct
 typedef struct
 {
    uint16_t tiles[32 * 32];
-   uint16_t wetness[33*33];
-   uint16_t temperature[33*33];
+   uint16_t wetness[33 * 33];
+   uint16_t temperature[33 * 33];
 
    //Sky -- ???
    struct
    {
-      uint16_t top[33*33];
+      uint16_t top[33 * 33];
    }sky;
 
    //Surface
    struct
    {
-      uint16_t top[33*33];
+      uint16_t top[33 * 33];
    }srf;
 
    //Surface
@@ -80,22 +80,22 @@ typedef struct
    //Cavern 0 -- ???
    struct
    {
-      uint16_t top[33*33];
-      uint16_t bot[33*33];
+      uint16_t top[33 * 33];
+      uint16_t bot[33 * 33];
    }cv0;
 
    //Cavern 1 -- ???
    struct
    {
-      uint16_t top[33*33];
-      uint16_t bot[33*33];
+      uint16_t top[33 * 33];
+      uint16_t bot[33 * 33];
    }cv1;
 
    //Cavern 2 -- Hell
    struct
    {
-      uint16_t top[33*33];
-      uint16_t bot[33*33];
+      uint16_t top[33 * 33];
+      uint16_t bot[33 * 33];
    }cv2;
 }Region;
 

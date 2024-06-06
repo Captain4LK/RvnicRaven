@@ -67,7 +67,7 @@ void entity_free(Entity *e)
 
    //ai_free(e);
    //if(e->cards!=NULL)
-      //RvR_free(e->cards);
+   //RvR_free(e->cards);
    //grid_entity_remove(e);
 
    *e->prev_next = e->next;
@@ -88,7 +88,7 @@ void entity_add(Gamestate *state, Entity *e)
       state->entities->prev_next = &e->next;
    e->next = state->entities;
    state->entities = e;
-   e->sector = RvR_port_sector_update(state->map,0,e->pos[0],e->pos[1]);
+   e->sector = RvR_port_sector_update(state->map, 0, e->pos[0], e->pos[1]);
 }
 
 void entity_remove(Entity *e)
@@ -108,6 +108,6 @@ void entity_update_pos(Gamestate *state, Entity *e, RvR_fix22 nx, RvR_fix22 ny, 
    e->pos[0] = nx;
    e->pos[1] = ny;
    e->pos[2] = nz;
-   e->sector = RvR_port_sector_update(state->map,e->sector,nx,ny);
+   e->sector = RvR_port_sector_update(state->map, e->sector, nx, ny);
 }
 //-------------------------------------

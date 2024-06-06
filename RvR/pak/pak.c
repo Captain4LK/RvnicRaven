@@ -592,16 +592,16 @@ static size_t rvr_pak_path_pop_ext(const char *path, char *out, char *ext)
    if(ext!=NULL)
       ext[0] = '\0';
 
-   char *last_dot = strrchr(path,'.');
+   char *last_dot = strrchr(path, '.');
 
    //No dot, or string is '.' or '..' --> no extension
-   if(last_dot==NULL||!strcmp(path,".")||!strcmp(path,".."))
+   if(last_dot==NULL||!strcmp(path, ".")||!strcmp(path, ".."))
    {
       if(out==NULL)
          return 0;
 
-      strncpy(out,path,RVR_CUTE_PATH_MAX_PATH-1);
-      out[RVR_CUTE_PATH_MAX_PATH-1] = '\0';
+      strncpy(out, path, RVR_CUTE_PATH_MAX_PATH - 1);
+      out[RVR_CUTE_PATH_MAX_PATH - 1] = '\0';
       return strlen(out);
    }
 
@@ -611,23 +611,23 @@ static size_t rvr_pak_path_pop_ext(const char *path, char *out, char *ext)
       if(out==NULL)
          return 0;
 
-      strncpy(out,path,RVR_CUTE_PATH_MAX_PATH-1);
-      out[RVR_CUTE_PATH_MAX_PATH-1] = '\0';
+      strncpy(out, path, RVR_CUTE_PATH_MAX_PATH - 1);
+      out[RVR_CUTE_PATH_MAX_PATH - 1] = '\0';
       return strlen(out);
    }
 
    if(ext!=NULL)
    {
-      strncpy(ext,last_dot+1,RVR_CUTE_PATH_MAX_EXT-1);
-      ext[RVR_CUTE_PATH_MAX_EXT-1] = '\0';
+      strncpy(ext, last_dot + 1, RVR_CUTE_PATH_MAX_EXT - 1);
+      ext[RVR_CUTE_PATH_MAX_EXT - 1] = '\0';
    }
 
    if(out==NULL)
       return 0;
-   intptr_t len_copy = (intptr_t)(last_dot-path);
-#define min(a,b) ((a)<(b)?(a):(b))
-   strncpy(out,path,min(len_copy,RVR_CUTE_PATH_MAX_PATH-1));
-   out[min(len_copy,RVR_CUTE_PATH_MAX_PATH-1)] = '\0';
+   intptr_t len_copy = (intptr_t)(last_dot - path);
+#define min(a, b) ((a)<(b)?(a):(b))
+   strncpy(out, path, min(len_copy, RVR_CUTE_PATH_MAX_PATH - 1));
+   out[min(len_copy, RVR_CUTE_PATH_MAX_PATH - 1)] = '\0';
 #undef min
    return strlen(out);
 }

@@ -51,7 +51,7 @@ void HLH_gui_slider_set(HLH_gui_slider *slider, int value, int range, int trigge
 
    if(slider->value!=value||slider->range!=range)
    {
-      slider->value = hlh_gui_max(0,hlh_gui_min(range,value));
+      slider->value = hlh_gui_max(0, hlh_gui_min(range, value));
       slider->range = range;
 
       if(trigger_msg)

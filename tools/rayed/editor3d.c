@@ -1107,12 +1107,12 @@ static void e3d_draw_view(void)
    }
    //-------------------------------------
 
-   RvR_ray_draw_begin(&camera,map);
+   RvR_ray_draw_begin(&camera, map);
    Map_sprite *s = map_sprites;
    while(s!=NULL)
    {
       //TODO
-      RvR_ray_draw_sprite(s->x, s->y, s->z, s->direction, s->texture, s->flags,s);
+      RvR_ray_draw_sprite(s->x, s->y, s->z, s->direction, s->texture, s->flags, s);
       s = s->next;
    }
 

@@ -129,7 +129,7 @@ void RvR_ray_draw_sprite(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, u
 
       //p0
       //-------------------------------------
-      sp.as.wall.x0 = RvR_min(RvR_xres() * 32768+ RvR_fix16_div(x0* (RvR_xres() / 2), RvR_non_zero(y0)), RvR_xres() * 65536);
+      sp.as.wall.x0 = RvR_min(RvR_xres() * 32768 + RvR_fix16_div(x0 * (RvR_xres() / 2), RvR_non_zero(y0)), RvR_xres() * 65536);
       sp.as.wall.z0 = y0;
 
       //Left point left of fov --> needs clipping
@@ -138,24 +138,24 @@ void RvR_ray_draw_sprite(RvR_fix16 x, RvR_fix16 y, RvR_fix16 z, RvR_fix16 dir, u
          sp.as.wall.x0 = 0;
          RvR_fix16 dx0 = x1 - x0;
          RvR_fix16 dx1 = x0 + y0;
-         sp.as.wall.z0 = RvR_fix16_div(RvR_fix16_mul(dx0, dx1), y1 - y0+ x1 - x0) - x0;
-         sp.as.wall.u0 = sp.as.wall.u0 + RvR_fix16_div(RvR_fix16_mul(-x0- y0, sp.as.wall.u1 - sp.as.wall.u0), RvR_non_zero(x1- x0+ y1- y0));
+         sp.as.wall.z0 = RvR_fix16_div(RvR_fix16_mul(dx0, dx1), y1 - y0 + x1 - x0) - x0;
+         sp.as.wall.u0 = sp.as.wall.u0 + RvR_fix16_div(RvR_fix16_mul(-x0 - y0, sp.as.wall.u1 - sp.as.wall.u0), RvR_non_zero(x1 - x0 + y1 - y0));
       }
       //-------------------------------------
 
       //p1
       //-------------------------------------
-      sp.as.wall.x1 = RvR_min(RvR_xres() * 32768+ RvR_fix16_div(x1* (RvR_xres() / 2), RvR_non_zero(y1)), RvR_xres() * 65536);
+      sp.as.wall.x1 = RvR_min(RvR_xres() * 32768 + RvR_fix16_div(x1 * (RvR_xres() / 2), RvR_non_zero(y1)), RvR_xres() * 65536);
       sp.as.wall.z1 = y1;
 
       //Right point right of fov --> needs clipping
       if(x1>y1)
       {
          RvR_fix16 dx0 = x1 - x0;
-         RvR_fix16 dx1 = y0- x0;
+         RvR_fix16 dx1 = y0 - x0;
          sp.as.wall.x1 = RvR_xres() * 65536;
-         sp.as.wall.z1 = x0- RvR_fix16_div(RvR_fix16_mul(dx0, dx1), y1- y0- x1+ x0);
-         sp.as.wall.u1 = RvR_fix16_div(RvR_fix16_mul(dx1, sp.as.wall.u1), RvR_non_zero(-y1+ y0+ x1- x0));
+         sp.as.wall.z1 = x0 - RvR_fix16_div(RvR_fix16_mul(dx0, dx1), y1 - y0 - x1 + x0);
+         sp.as.wall.u1 = RvR_fix16_div(RvR_fix16_mul(dx1, sp.as.wall.u1), RvR_non_zero(-y1 + y0 + x1 - x0));
       }
       //-------------------------------------
 

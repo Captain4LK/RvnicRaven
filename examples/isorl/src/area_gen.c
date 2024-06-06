@@ -63,8 +63,8 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
    {
       for(int x = 0; x<stridex; x++)
       {
-         uint32_t buf[3] = {seed,ax+x,ay+y};
-         RvR_rand_pcg_seed(&pcg[y*stridex+y],RvR_fnv32a_buf(buf,sizeof(buf),RVR_HASH_FNV32_INIT));
+         uint32_t buf[3] = {seed, ax + x, ay + y};
+         RvR_rand_pcg_seed(&pcg[y * stridex + y], RvR_fnv32a_buf(buf, sizeof(buf), RVR_HASH_FNV32_INIT));
       }
    }
 
@@ -97,7 +97,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
             int32_t e1 = elevation[(y) * dimy_rest * stride + (x + 1) * dimx_rest];
             int32_t e2 = elevation[(y + 1) * dimy_rest * stride + (x) * dimx_rest];
             int32_t e3 = elevation[(y + 1) * dimy_rest * stride + (x + 1) * dimx_rest];
-            size_t index = (y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest+dimx_rest/2;
+            size_t index = (y * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest + dimx_rest / 2;
 
             if(elevation[index]==-1)
                elevation[index] = (e0 + e1 + e2 + e3) / 4 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
@@ -126,19 +126,19 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
                e6 = elevation[((y - 1) * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest + dimx_rest / 2];
             }
 
-            size_t index = (y*dimy_rest+dimy_rest/2)*stride+x*dimx_rest;
+            size_t index = (y * dimy_rest + dimy_rest / 2) * stride + x * dimx_rest;
             if(elevation[index]==-1)
                elevation[index] = (e0 + e3 + e5 + e4) / 4 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
 
-            index = (y*dimy_rest)*stride+x*dimx_rest+dimx_rest/2;
+            index = (y * dimy_rest) * stride + x * dimx_rest + dimx_rest / 2;
             if(elevation[index]==-1)
                elevation[index] = (e0 + e1 + e6 + e4) / 4 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
 
-            index = (y*dimy_rest+dimy_rest/2)*stride+(x+1)*dimx_rest;
+            index = (y * dimy_rest + dimy_rest / 2) * stride + (x + 1) * dimx_rest;
             if(x==dimx_level - 1&&elevation[index]==-1)
                elevation[index] = (e1 + e2 + e4) / 3 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
 
-            index = ((y+1)*dimy_rest)*stride+x*dimx_rest+dimx_rest/2;
+            index = ((y + 1) * dimy_rest) * stride + x * dimx_rest + dimx_rest / 2;
             if(y==dimy_level - 1&&elevation[index]==-1)
                elevation[index] = (e2 + e3 + e4) / 3 + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
          }
@@ -160,7 +160,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
             if(y - 1>=0) {sum += elevation[((y) * dimy_rest - dimy_rest / 2) * stride + (x) * dimx_rest]; count++;}
             if(y + 1<dimy_level) {sum += elevation[((y) * dimy_rest + dimy_rest / 2) * stride + (x) * dimx_rest]; count++;}
 
-            size_t index = y*dimy_rest*stride+x*dimx_rest;
+            size_t index = y * dimy_rest * stride + x * dimx_rest;
             elevation[index] = sum / count + rand_offset(&pcg[index], 5 + l, w->preset.var_elevation);
          }
       }

@@ -38,8 +38,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 Gamestate *gamestate_new()
 {
-   Gamestate *state = RvR_malloc(sizeof(*state),"GameState");
-   memset(state,0,sizeof(*state));
+   Gamestate *state = RvR_malloc(sizeof(*state), "GameState");
+   memset(state, 0, sizeof(*state));
 
    return state;
 }
@@ -63,7 +63,7 @@ void gamestate_map(Gamestate *s, uint16_t id)
    s->cam.z = s->player.entity->pos[2];
    s->cam.shear = 0;
    s->cam.fov = 2048;
-   s->cam.sector = RvR_port_sector_update(s->map,0,s->cam.x,s->cam.y);
-   entity_add(s,s->player.entity);
+   s->cam.sector = RvR_port_sector_update(s->map, 0, s->cam.x, s->cam.y);
+   entity_add(s, s->player.entity);
 }
 //-------------------------------------

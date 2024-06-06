@@ -186,29 +186,29 @@ static void e3d_update_view(void)
       if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
       {
          uint16_t wall = world_selection.as.wall;
-         uint32_t wflags = map->walls[wall].flags&RVR_PORT_WALL;
-         uint32_t one = RVR_PORT_WALL&(-(int32_t)RVR_PORT_WALL);
-         map->walls[wall].flags = map->walls[wall].flags&(~RVR_PORT_WALL);
-         wflags = (wflags+one)&RVR_PORT_WALL;
-         map->walls[wall].flags|=wflags;
+         uint32_t wflags = map->walls[wall].flags & RVR_PORT_WALL;
+         uint32_t one = RVR_PORT_WALL & (-(int32_t)RVR_PORT_WALL);
+         map->walls[wall].flags = map->walls[wall].flags & (~RVR_PORT_WALL);
+         wflags = (wflags + one) & RVR_PORT_WALL;
+         map->walls[wall].flags |= wflags;
       }
       else if(world_selection.type==RVR_PORT_SFLOOR)
       {
          uint16_t sector = world_selection.as.sector;
-         uint32_t fflags = map->sectors[sector].flags&RVR_PORT_SECTOR_FLOOR;
-         uint32_t one = RVR_PORT_SECTOR_FLOOR&(-(int32_t)RVR_PORT_SECTOR_FLOOR);
-         map->sectors[sector].flags = map->sectors[sector].flags&(~RVR_PORT_SECTOR_FLOOR);
-         fflags = (fflags+one)&RVR_PORT_SECTOR_FLOOR;
-         map->sectors[sector].flags|=fflags;
+         uint32_t fflags = map->sectors[sector].flags & RVR_PORT_SECTOR_FLOOR;
+         uint32_t one = RVR_PORT_SECTOR_FLOOR & (-(int32_t)RVR_PORT_SECTOR_FLOOR);
+         map->sectors[sector].flags = map->sectors[sector].flags & (~RVR_PORT_SECTOR_FLOOR);
+         fflags = (fflags + one) & RVR_PORT_SECTOR_FLOOR;
+         map->sectors[sector].flags |= fflags;
       }
       else if(world_selection.type==RVR_PORT_SCEILING)
       {
          uint16_t sector = world_selection.as.sector;
-         uint32_t cflags = map->sectors[sector].flags&RVR_PORT_SECTOR_CEILING;
-         uint32_t one = RVR_PORT_SECTOR_CEILING&(-(int32_t)RVR_PORT_SECTOR_CEILING);
-         map->sectors[sector].flags = map->sectors[sector].flags&(~RVR_PORT_SECTOR_CEILING);
-         cflags = (cflags+one)&RVR_PORT_SECTOR_CEILING;
-         map->sectors[sector].flags|=cflags;
+         uint32_t cflags = map->sectors[sector].flags & RVR_PORT_SECTOR_CEILING;
+         uint32_t one = RVR_PORT_SECTOR_CEILING & (-(int32_t)RVR_PORT_SECTOR_CEILING);
+         map->sectors[sector].flags = map->sectors[sector].flags & (~RVR_PORT_SECTOR_CEILING);
+         cflags = (cflags + one) & RVR_PORT_SECTOR_CEILING;
+         map->sectors[sector].flags |= cflags;
       }
    }
 

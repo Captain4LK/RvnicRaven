@@ -200,9 +200,9 @@ static Palette *palette_gpl(FILE *f)
          continue;
       if(sscanf(buffer, "%d %d %d", &r, &g, &b)==3)
       {
-         p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,r));
-         p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,g));
-         p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,b));
+         p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, r));
+         p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, g));
+         p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, b));
          p->colors[c].a = 255;
          c++;
       }
@@ -224,9 +224,9 @@ static Palette *palette_hex(FILE *f)
 
    while(fgets(buffer, 512, f))
    {
-      p->colors[c].r = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
-      p->colors[c].g = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
-      p->colors[c].b = (uint8_t)RvR_max(0,RvR_min(255,chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
+      p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
+      p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
+      p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
       p->colors[c].a = 255;
       c++;
    }

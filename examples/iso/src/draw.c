@@ -62,14 +62,14 @@ static void span_draw(int x0, int x1, uint8_t *src, int y);
 void draw_begin(Map *map, Camera *camera)
 {
    RvR_render_clear(0);
-   for(int i = 0;i<RvR_yres();i++)
+   for(int i = 0; i<RvR_yres(); i++)
    {
       span_free(spans[i]);
       spans[i] = NULL;
       row_done[i] = 0;
    }
 
-   printf("Allocated: %d; Freed: %d\n",alloc,freed);
+   printf("Allocated: %d; Freed: %d\n", alloc, freed);
    alloc = 0;
    freed = 0;
 
@@ -83,10 +83,10 @@ void draw_end()
 
 void draw_map()
 {
-   int cx = -1+(-2*RvR_yres()-2*iso_cam->y+iso_cam->x)/32;
-   int cy = (RvR_yres()+iso_cam->y)/8+cx;
+   int cx = -1 + (-2 * RvR_yres() - 2 * iso_cam->y + iso_cam->x) / 32;
+   int cy = (RvR_yres() + iso_cam->y) / 8 + cx;
 
-   for(int i = 0;i<4;i++)
+   for(int i = 0; i<4; i++)
    {
       int tx = cx;
       int ty = cy;
@@ -96,46 +96,46 @@ void draw_map()
    }
 #if 0
    srand(1);
-   for(int z = 0;z<32;z++)
+   for(int z = 0; z<32; z++)
    {
-      for(int y = 32;y>=0;y--)
+      for(int y = 32; y>=0; y--)
       {
-         for(int x = 0;x<32;x++)
+         for(int x = 0; x<32; x++)
          {
             //if(rand()&1)
-               //continue;
-            int sx = x*16+y*16-128;
+            //continue;
+            int sx = x * 16 + y * 16 - 128;
             //int sy = -8*x+8*y;
-            int sy = z*12-8*x+8*y+64;
+            int sy = z * 12 - 8 * x + 8 * y + 64;
             GRP_block *grp = grp_block_get(0);
 
-            if(sx>=RvR_xres()||sx+32<0||sy>=RvR_yres()||sy+32<0)
+            if(sx>=RvR_xres()||sx + 32<0||sy>=RvR_yres()||sy + 32<0)
                continue;
 
             RvR_mem_tag_set(grp, RVR_MALLOC_STATIC);
 
-            for(int i = 0;i<32;i++)
+            for(int i = 0; i<32; i++)
             {
                //if(RvR_key_down(RVR_KEY_SPACE))
-                  //RvR_render_present();
+               //RvR_render_present();
 
-               if(sy+i<0||sy+i>=RvR_yres()||row_done[sy+i])
+               if(sy + i<0||sy + i>=RvR_yres()||row_done[sy + i])
                   continue;
 
                uint32_t pos = grp->row_offsets[i];
                int count = grp->data[pos++];
-               for(int j = 0;j<count;j++)
+               for(int j = 0; j<count; j++)
                {
-                  int start = grp->data[pos++]+sx;
+                  int start = grp->data[pos++] + sx;
                   int len = grp->data[pos++];
 
                   //Clip to screen
-                  uint8_t *src = grp->data+pos;
+                  uint8_t *src = grp->data + pos;
                   int x0 = start;
-                  int x1 = start+len;
+                  int x1 = start + len;
                   if(x0<0)
                   {
-                     src+=-x0;
+                     src += -x0;
                      x0 = 0;
                   }
                   if(x1>=RvR_xres())
@@ -143,11 +143,11 @@ void draw_map()
                      x1 = RvR_xres();
                   }
 
-                  span_add(&spans[sy+i],x0,x1,src,sy+i);
-                  if(spans[sy+i]!=NULL&&spans[sy+i]->x0==0&&spans[sy+i]->x1==RvR_xres())
-                     row_done[sy+i] = 1;
+                  span_add(&spans[sy + i], x0, x1, src, sy + i);
+                  if(spans[sy + i]!=NULL&&spans[sy + i]->x0==0&&spans[sy + i]->x1==RvR_xres())
+                     row_done[sy + i] = 1;
 
-                  pos+=len;
+                  pos += len;
                }
             }
 
@@ -162,16 +162,16 @@ static Span *span_new()
 {
    if(span_pool== NULL)
    {
-      Span *s = RvR_malloc(sizeof(*s)*256,"iso spans");
-      memset(s,0,sizeof(*s)*256);
-      for(int i = 0;i<255;i++)
-         s[i].next = &s[i+1];
+      Span *s = RvR_malloc(sizeof(*s) * 256, "iso spans");
+      memset(s, 0, sizeof(*s) * 256);
+      for(int i = 0; i<255; i++)
+         s[i].next = &s[i + 1];
       span_pool = s;
    }
 
    Span *s = span_pool;
    span_pool = s->next;
-   memset(s,0,sizeof(*s));
+   memset(s, 0, sizeof(*s));
 
    alloc++;
 
@@ -200,7 +200,7 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
 
    if((*tree)==NULL)
    {
-      span_draw(x0,x1,src,y);
+      span_draw(x0, x1, src, y);
       Span *s = span_new();
       s->x0 = x0;
       s->x1 = x1;
@@ -224,7 +224,7 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
    //At end
    if(x0>start->x1)
    {
-      span_draw(x0,x1,src,y);
+      span_draw(x0, x1, src, y);
       Span *s = span_new();
       s->x0 = x0;
       s->x1 = x1;
@@ -238,7 +238,7 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
    {
       if(x1<start->x0)
       {
-         span_draw(x0,x1,src,y);
+         span_draw(x0, x1, src, y);
          Span **prev = start->prev_next;
          Span *s = span_new();
          s->x0 = x0;
@@ -252,8 +252,8 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
    }
 
    //Merge s and start
-   span_draw(x0,start->x0,src,y);
-   start->x0 = RvR_min(x0,start->x0);
+   span_draw(x0, start->x0, src, y);
+   start->x0 = RvR_min(x0, start->x0);
 
    //All between start and end --> merge into start; draw in gaps
    Span *cur = start->next;
@@ -265,7 +265,7 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
          Span *next = cur->next;
          start->x1 = cur->x1;
          start->next = next;
-         span_draw(cx0,cur->x0,src+(cx0-x0),y);
+         span_draw(cx0, cur->x0, src + (cx0 - x0), y);
          cx0 = cur->x1;
          cur->next = NULL;
          span_free(cur);
@@ -278,13 +278,13 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
 
    if(x1<end->x0)
    {
-      span_draw(cx0,x1,src+(cx0-x0),y);
+      span_draw(cx0, x1, src + (cx0 - x0), y);
       start->x1 = x1;
       return;
    }
    else if(x1<=end->x1)
    {
-      span_draw(cx0,end->x0,src+(cx0-x0),y);
+      span_draw(cx0, end->x0, src + (cx0 - x0), y);
       start->x1 = end->x1;
       if(start!=end)
       {
@@ -299,9 +299,9 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
    }
    else
    {
-      span_draw(cx0,end->x0,src+(cx0-x0),y);
+      span_draw(cx0, end->x0, src + (cx0 - x0), y);
       cx0 = end->x1;
-      span_draw(cx0,x1,src+(cx0-x0),y);
+      span_draw(cx0, x1, src + (cx0 - x0), y);
       start->x1 = x1;
 
       if(start!=end)
@@ -320,9 +320,9 @@ static void span_add(Span **tree, int x0, int x1, uint8_t *src, int y)
 
 static void span_draw(int x0, int x1, uint8_t *src, int y)
 {
-   if(x1-x0<=0)
+   if(x1 - x0<=0)
       return;
 
-   memcpy(RvR_framebuffer()+y*RvR_xres()+x0,src,x1-x0);
+   memcpy(RvR_framebuffer() + y * RvR_xres() + x0, src, x1 - x0);
 }
 //-------------------------------------

@@ -59,12 +59,12 @@ void config_read(const char *path)
       return;
    }
 
-   ini_read(ini,&config_move_forward,CONFIG_KEY,"forward");
-   ini_read(ini,&config_move_backward,CONFIG_KEY,"backward");
-   ini_read(ini,&config_strafe_left,CONFIG_KEY,"strafe_left");
-   ini_read(ini,&config_strafe_right,CONFIG_KEY,"strafe_right");
-   ini_read(ini,&config_jump,CONFIG_KEY,"jump");
-   ini_read(ini,&config_use,CONFIG_KEY,"use");
+   ini_read(ini, &config_move_forward, CONFIG_KEY, "forward");
+   ini_read(ini, &config_move_backward, CONFIG_KEY, "backward");
+   ini_read(ini, &config_strafe_left, CONFIG_KEY, "strafe_left");
+   ini_read(ini, &config_strafe_right, CONFIG_KEY, "strafe_right");
+   ini_read(ini, &config_jump, CONFIG_KEY, "jump");
+   ini_read(ini, &config_use, CONFIG_KEY, "use");
 
    RvR_free(ini);
 }
@@ -72,17 +72,17 @@ void config_read(const char *path)
 void config_write(const char *path)
 {
    RvR_rw rw = {0};
-   RvR_rw_init_path(&rw,path,"w");
+   RvR_rw_init_path(&rw, path, "w");
    if(!RvR_rw_valid(&rw))
       return;
 
-   RvR_rw_printf(&rw,";Action\n");
-   RvR_rw_printf(&rw,"forward=%s\n",config_keytostr(config_move_forward));
-   RvR_rw_printf(&rw,"backward=%s\n",config_keytostr(config_move_backward));
-   RvR_rw_printf(&rw,"strafe_left=%s\n",config_keytostr(config_strafe_left));
-   RvR_rw_printf(&rw,"strafe_right=%s\n",config_keytostr(config_strafe_right));
-   RvR_rw_printf(&rw,"jump=%s\n",config_keytostr(config_jump));
-   RvR_rw_printf(&rw,"use=%s\n",config_keytostr(config_use));
+   RvR_rw_printf(&rw, ";Action\n");
+   RvR_rw_printf(&rw, "forward=%s\n", config_keytostr(config_move_forward));
+   RvR_rw_printf(&rw, "backward=%s\n", config_keytostr(config_move_backward));
+   RvR_rw_printf(&rw, "strafe_left=%s\n", config_keytostr(config_strafe_left));
+   RvR_rw_printf(&rw, "strafe_right=%s\n", config_keytostr(config_strafe_right));
+   RvR_rw_printf(&rw, "jump=%s\n", config_keytostr(config_jump));
+   RvR_rw_printf(&rw, "use=%s\n", config_keytostr(config_use));
 
    RvR_rw_close(&rw);
 }
@@ -90,18 +90,18 @@ void config_write(const char *path)
 static char *config_ini_parse(const char *path)
 {
    RvR_rw rw = {0};
-   RvR_rw_init_path(&rw,path,"r");
+   RvR_rw_init_path(&rw, path, "r");
 
    if(!RvR_rw_valid(&rw))
    {
       return NULL;
    }
 
-   RvR_rw_seek(&rw,0,SEEK_END);
+   RvR_rw_seek(&rw, 0, SEEK_END);
    long size = RvR_rw_tell(&rw);
-   RvR_rw_seek(&rw,0,SEEK_SET);
-   char *buffer_in = RvR_malloc(sizeof(*buffer_in)*(size+1),"config_read file string");
-   RvR_rw_read(&rw,buffer_in,sizeof(*buffer_in)*size,1);
+   RvR_rw_seek(&rw, 0, SEEK_SET);
+   char *buffer_in = RvR_malloc(sizeof(*buffer_in) * (size + 1), "config_read file string");
+   RvR_rw_read(&rw, buffer_in, sizeof(*buffer_in) * size, 1);
    buffer_in[size] = '\0';
    RvR_rw_close(&rw);
 
@@ -113,17 +113,17 @@ static char *config_ini_parse(const char *path)
 
 static void ini_read(char *config, void *dst, Config_type type, const char *ident)
 {
-   RvR_error_check(config!=NULL,"ini_read","argument 'config' must be non-NULL\n");
-   RvR_error_check(dst!=NULL,"ini_read","argument 'dst' must be non-NULL\n");
-   RvR_error_check(ident!=NULL,"ini_read","argument 'ident' must be non-NULL\n");
+   RvR_error_check(config!=NULL, "ini_read", "argument 'config' must be non-NULL\n");
+   RvR_error_check(dst!=NULL, "ini_read", "argument 'dst' must be non-NULL\n");
+   RvR_error_check(ident!=NULL, "ini_read", "argument 'ident' must be non-NULL\n");
 
    char *iter = NULL;
-   for(iter = config;iter[0];)
+   for(iter = config; iter[0];)
    {
-      if(strcmp(ident,iter)==0)
+      if(strcmp(ident, iter)==0)
       {
          while(*iter++);
-         
+
          switch(type)
          {
          case CONFIG_INT: *((int *)dst) = atoi(iter); break;
@@ -137,7 +137,7 @@ static void ini_read(char *config, void *dst, Config_type type, const char *iden
       while(*iter++);
    }
 
-   RvR_error_fail("ini_read","identifier '%s' not found in ini\n",ident);
+   RvR_error_fail("ini_read", "identifier '%s' not found in ini\n", ident);
 
 RvR_err:
    return;
@@ -149,111 +149,112 @@ static RvR_key config_strtokey(const char *ident)
    {
       const char *ident;
       RvR_key key;
-   }keys[] = {
-      {"a",RVR_KEY_A},
-      {"b",RVR_KEY_B},
-      {"c",RVR_KEY_C},
-      {"d",RVR_KEY_D},
-      {"e",RVR_KEY_E},
-      {"f",RVR_KEY_F},
-      {"g",RVR_KEY_G},
-      {"h",RVR_KEY_H},
-      {"i",RVR_KEY_I},
-      {"j",RVR_KEY_J},
-      {"k",RVR_KEY_K},
-      {"l",RVR_KEY_L},
-      {"m",RVR_KEY_M},
-      {"n",RVR_KEY_N},
-      {"o",RVR_KEY_O},
-      {"p",RVR_KEY_P},
-      {"q",RVR_KEY_Q},
-      {"r",RVR_KEY_R},
-      {"s",RVR_KEY_S},
-      {"t",RVR_KEY_T},
-      {"u",RVR_KEY_U},
-      {"v",RVR_KEY_V},
-      {"w",RVR_KEY_W},
-      {"x",RVR_KEY_X},
-      {"y",RVR_KEY_Y},
-      {"z",RVR_KEY_Z},
+   } keys[] =
+   {
+      {"a", RVR_KEY_A},
+      {"b", RVR_KEY_B},
+      {"c", RVR_KEY_C},
+      {"d", RVR_KEY_D},
+      {"e", RVR_KEY_E},
+      {"f", RVR_KEY_F},
+      {"g", RVR_KEY_G},
+      {"h", RVR_KEY_H},
+      {"i", RVR_KEY_I},
+      {"j", RVR_KEY_J},
+      {"k", RVR_KEY_K},
+      {"l", RVR_KEY_L},
+      {"m", RVR_KEY_M},
+      {"n", RVR_KEY_N},
+      {"o", RVR_KEY_O},
+      {"p", RVR_KEY_P},
+      {"q", RVR_KEY_Q},
+      {"r", RVR_KEY_R},
+      {"s", RVR_KEY_S},
+      {"t", RVR_KEY_T},
+      {"u", RVR_KEY_U},
+      {"v", RVR_KEY_V},
+      {"w", RVR_KEY_W},
+      {"x", RVR_KEY_X},
+      {"y", RVR_KEY_Y},
+      {"z", RVR_KEY_Z},
 
-      {"f1",RVR_KEY_F1},
-      {"f2",RVR_KEY_F2},
-      {"f3",RVR_KEY_F3},
-      {"f4",RVR_KEY_F4},
-      {"f5",RVR_KEY_F5},
-      {"f6",RVR_KEY_F6},
-      {"f7",RVR_KEY_F7},
-      {"f8",RVR_KEY_F8},
-      {"f9",RVR_KEY_F9},
-      {"f10",RVR_KEY_F10},
-      {"f11",RVR_KEY_F11},
-      {"f12",RVR_KEY_F12},
+      {"f1", RVR_KEY_F1},
+      {"f2", RVR_KEY_F2},
+      {"f3", RVR_KEY_F3},
+      {"f4", RVR_KEY_F4},
+      {"f5", RVR_KEY_F5},
+      {"f6", RVR_KEY_F6},
+      {"f7", RVR_KEY_F7},
+      {"f8", RVR_KEY_F8},
+      {"f9", RVR_KEY_F9},
+      {"f10", RVR_KEY_F10},
+      {"f11", RVR_KEY_F11},
+      {"f12", RVR_KEY_F12},
 
-      {"0",RVR_KEY_0},
-      {"1",RVR_KEY_1},
-      {"2",RVR_KEY_2},
-      {"3",RVR_KEY_3},
-      {"4",RVR_KEY_4},
-      {"5",RVR_KEY_5},
-      {"6",RVR_KEY_6},
-      {"7",RVR_KEY_7},
-      {"8",RVR_KEY_8},
-      {"9",RVR_KEY_9},
+      {"0", RVR_KEY_0},
+      {"1", RVR_KEY_1},
+      {"2", RVR_KEY_2},
+      {"3", RVR_KEY_3},
+      {"4", RVR_KEY_4},
+      {"5", RVR_KEY_5},
+      {"6", RVR_KEY_6},
+      {"7", RVR_KEY_7},
+      {"8", RVR_KEY_8},
+      {"9", RVR_KEY_9},
 
-      {"up",RVR_KEY_UP},
-      {"down",RVR_KEY_DOWN},
-      {"left",RVR_KEY_LEFT},
-      {"right",RVR_KEY_RIGHT},
+      {"up", RVR_KEY_UP},
+      {"down", RVR_KEY_DOWN},
+      {"left", RVR_KEY_LEFT},
+      {"right", RVR_KEY_RIGHT},
 
-      {"comma",RVR_KEY_COMMA},
-      {"period",RVR_KEY_PERIOD},
-      {"space",RVR_KEY_SPACE},
-      {"tab",RVR_KEY_TAB},
-      {"lshift",RVR_KEY_LSHIFT},
-      {"rshift",RVR_KEY_RSHIFT},
-      {"lctrl",RVR_KEY_LCTRL},
-      {"rctrl",RVR_KEY_RCTRL},
-      {"lalt",RVR_KEY_LALT},
-      {"ralt",RVR_KEY_RALT},
-      {"insert",RVR_KEY_INS},
-      {"delete",RVR_KEY_DEL},
-      {"home",RVR_KEY_HOME},
-      {"end",RVR_KEY_END},
-      {"pgup",RVR_KEY_PGUP},
-      {"pgdn",RVR_KEY_PGDN},
-      {"back",RVR_KEY_BACK},
-      {"escape",RVR_KEY_ESCAPE},
-      {"return",RVR_KEY_RETURN},
-      {"enter",RVR_KEY_ENTER},
-      {"pause",RVR_KEY_PAUSE},
-      {"scroll",RVR_KEY_SCROLL},
-      {"np0",RVR_KEY_NP0},
-      {"np1",RVR_KEY_NP1},
-      {"np2",RVR_KEY_NP2},
-      {"np3",RVR_KEY_NP3},
-      {"np4",RVR_KEY_NP4},
-      {"np5",RVR_KEY_NP5},
-      {"np6",RVR_KEY_NP6},
-      {"np7",RVR_KEY_NP7},
-      {"np8",RVR_KEY_NP8},
-      {"np9",RVR_KEY_NP9},
-      {"npmul",RVR_KEY_NP_MUL},
-      {"npdiv",RVR_KEY_NP_DIV},
-      {"npadd",RVR_KEY_NP_ADD},
-      {"npsub",RVR_KEY_NP_SUB},
-      {"npdec",RVR_KEY_NP_DECIMAL},
-      {"npenter",RVR_KEY_NP_ENTER},
-      {"mleft",RVR_BUTTON_LEFT},
-      {"mright",RVR_BUTTON_RIGHT},
-      {"mmiddle",RVR_BUTTON_MIDDLE},
-      {"mx1",RVR_BUTTON_X1},
-      {"mx2",RVR_BUTTON_X2},
+      {"comma", RVR_KEY_COMMA},
+      {"period", RVR_KEY_PERIOD},
+      {"space", RVR_KEY_SPACE},
+      {"tab", RVR_KEY_TAB},
+      {"lshift", RVR_KEY_LSHIFT},
+      {"rshift", RVR_KEY_RSHIFT},
+      {"lctrl", RVR_KEY_LCTRL},
+      {"rctrl", RVR_KEY_RCTRL},
+      {"lalt", RVR_KEY_LALT},
+      {"ralt", RVR_KEY_RALT},
+      {"insert", RVR_KEY_INS},
+      {"delete", RVR_KEY_DEL},
+      {"home", RVR_KEY_HOME},
+      {"end", RVR_KEY_END},
+      {"pgup", RVR_KEY_PGUP},
+      {"pgdn", RVR_KEY_PGDN},
+      {"back", RVR_KEY_BACK},
+      {"escape", RVR_KEY_ESCAPE},
+      {"return", RVR_KEY_RETURN},
+      {"enter", RVR_KEY_ENTER},
+      {"pause", RVR_KEY_PAUSE},
+      {"scroll", RVR_KEY_SCROLL},
+      {"np0", RVR_KEY_NP0},
+      {"np1", RVR_KEY_NP1},
+      {"np2", RVR_KEY_NP2},
+      {"np3", RVR_KEY_NP3},
+      {"np4", RVR_KEY_NP4},
+      {"np5", RVR_KEY_NP5},
+      {"np6", RVR_KEY_NP6},
+      {"np7", RVR_KEY_NP7},
+      {"np8", RVR_KEY_NP8},
+      {"np9", RVR_KEY_NP9},
+      {"npmul", RVR_KEY_NP_MUL},
+      {"npdiv", RVR_KEY_NP_DIV},
+      {"npadd", RVR_KEY_NP_ADD},
+      {"npsub", RVR_KEY_NP_SUB},
+      {"npdec", RVR_KEY_NP_DECIMAL},
+      {"npenter", RVR_KEY_NP_ENTER},
+      {"mleft", RVR_BUTTON_LEFT},
+      {"mright", RVR_BUTTON_RIGHT},
+      {"mmiddle", RVR_BUTTON_MIDDLE},
+      {"mx1", RVR_BUTTON_X1},
+      {"mx2", RVR_BUTTON_X2},
    };
 
-   for(int i = 0;i<sizeof(keys)/sizeof(keys[0]);i++)
+   for(int i = 0; i<sizeof(keys) / sizeof(keys[0]); i++)
    {
-      if(strcmp(ident,keys[i].ident)==0)
+      if(strcmp(ident, keys[i].ident)==0)
          return keys[i].key;
    }
 
@@ -366,7 +367,7 @@ static const char *config_keytostr(RvR_key key)
 
 //Ini parser by r-lyeh: https://github.com/r-lyeh/tinybits
 //Original header:
-// ini+, extended ini format 
+// ini+, extended ini format
 // - rlyeh, public domain
 //
 // # spec
@@ -390,10 +391,10 @@ static char *config_ini(const char *s)
    char *map = NULL;
    int mapcap = 0;
    int maplen = 0;
-   enum 
-   { 
-      DEL, REM, TAG, KEY, SUB, VAL 
-   }fsm = DEL;
+   enum
+   {
+      DEL, REM, TAG, KEY, SUB, VAL
+   } fsm = DEL;
    const char *cut[6] = {0};
    const char *end[6] = {0};
 
@@ -422,13 +423,13 @@ static char *config_ini(const char *s)
          end[fsm] = s;
          while(end[fsm][-1]==' ') --end[fsm];
          key = buf;
-         if(end[TAG]-cut[TAG]) key+=sprintf(key,"%.*s.", (int)(end[TAG]-cut[TAG]),cut[TAG]);
-         if(end[KEY]-cut[KEY]) key+=sprintf(key,"%.*s", (int)(end[KEY]-cut[KEY]),cut[KEY]);
-         if(end[SUB]-cut[SUB]) key+=sprintf(key,".%.*s", (int)(end[SUB]-cut[SUB]),cut[SUB]);
-         reqlen = (key-buf)+1+(end[VAL]-cut[VAL])+1+1;
-         if((reqlen+maplen)>=mapcap) { map = RvR_realloc(map,(mapcap+=reqlen+512),"config_ini map"); }
-         sprintf(map+maplen,"%.*s%c%.*s%c%c",(int)(key-buf),buf,0,(int)(end[VAL]-cut[VAL]),cut[VAL],0,0);
-         maplen+=reqlen-1;
+         if(end[TAG] - cut[TAG])key += sprintf(key, "%.*s.", (int)(end[TAG] - cut[TAG]), cut[TAG]);
+         if(end[KEY] - cut[KEY])key += sprintf(key, "%.*s", (int)(end[KEY] - cut[KEY]), cut[KEY]);
+         if(end[SUB] - cut[SUB])key += sprintf(key, ".%.*s", (int)(end[SUB] - cut[SUB]), cut[SUB]);
+         reqlen = (key - buf) + 1 + (end[VAL] - cut[VAL]) + 1 + 1;
+         if((reqlen + maplen)>=mapcap) { map = RvR_realloc(map, (mapcap += reqlen + 512), "config_ini map"); }
+         sprintf(map + maplen, "%.*s%c%.*s%c%c", (int)(key - buf), buf, 0, (int)(end[VAL] - cut[VAL]), cut[VAL], 0, 0);
+         maplen += reqlen - 1;
       }
    }
 
