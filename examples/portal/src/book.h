@@ -8,21 +8,24 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#ifndef _CONFIG_H_
+#ifndef _BOOK_H_
 
-#define _CONFIG_H_
+#define _BOOK_H_
 
-#define BOOKCASE_COUNT 24
-#define BOOK_INVALID (UINT16_MAX)
+typedef struct
+{
+   char title[64];
+   char author[64];
+   char date[16];
+   //char quote[512];
+   uint32_t words;
 
-extern RvR_key config_move_forward;
-extern RvR_key config_move_backward;
-extern RvR_key config_strafe_left;
-extern RvR_key config_strafe_right;
-extern RvR_key config_jump;
-extern RvR_key config_use;
+   //For identifier, not forced
+   uint8_t bcase;
+   uint8_t shelf;
+   uint8_t slot;
+}Book;
 
-void config_read(const char *path);
-void config_write(const char *path);
+Book *book_get(uint16_t id);
 
 #endif
