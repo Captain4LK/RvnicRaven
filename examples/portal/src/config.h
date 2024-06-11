@@ -12,6 +12,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _CONFIG_H_
 
+#define BOOKCASE_COUNT 24
+#define BOOK_INVALID (UINT16_MAX)
+
 extern RvR_key config_move_forward;
 extern RvR_key config_move_backward;
 extern RvR_key config_strafe_left;
