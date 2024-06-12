@@ -107,21 +107,32 @@ int main(int argc, char **argv)
 
       if(strcmp(ident,"title")==0)
          snprintf(book_title,64,"%s",iter);
-      else if(strcmp(iter,"author")==0)
+      else if(strcmp(ident,"author")==0)
          snprintf(book_author,64,"%s",iter);
-      else if(strcmp(iter,"date")==0)
+      else if(strcmp(ident,"date")==0)
          snprintf(book_date,16,"%s",iter);
-      else if(strcmp(iter,"words")==0)
+      else if(strcmp(ident,"words")==0)
          book_words = (uint32_t)strtol(iter,NULL,10);
-      else if(strcmp(iter,"case")==0)
+      else if(strcmp(ident,"case")==0)
          book_case = (uint8_t)strtol(iter,NULL,10);
-      else if(strcmp(iter,"shelf")==0)
+      else if(strcmp(ident,"shelf")==0)
          book_shelf = (uint8_t)strtol(iter,NULL,10);
-      else if(strcmp(iter,"slot")==0)
+      else if(strcmp(ident,"slot")==0)
          book_slot = (uint8_t)strtol(iter,NULL,10);
 
       while(*iter++);
    }
+
+   RvR_rw rw = {0};
+   RvR_rw_init_path(&rw,path_out,"wb");
+   RvR_rw_write(&rw,book_title,1,64);
+   RvR_rw_write(&rw,book_author,1,64);
+   RvR_rw_write(&rw,book_date,1,16);
+   RvR_rw_write_u32(&rw,book_words);
+   RvR_rw_write_u8(&rw,book_case);
+   RvR_rw_write_u8(&rw,book_shelf);
+   RvR_rw_write_u8(&rw,book_slot);
+   RvR_rw_close(&rw);
 
    return 0;
 }

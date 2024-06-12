@@ -27,6 +27,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static Book *books = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -36,6 +37,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 Book *book_get(uint16_t id)
 {
+   if(books==NULL)
+   {
+   }
+
    return NULL;
 }
 //-------------------------------------
