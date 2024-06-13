@@ -163,10 +163,13 @@ void RvR_port_draw_map(RvR_port_selection *select)
          //-------------------------------------
 
          //Top of wall
+         int middle_row = RvR_yres()/2+port_cam->shear;
          RvR_fix22 cy0 = RvR_fix22_div(2*RvR_yres()*(cz0-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z0,fovy)));
          RvR_fix22 cy1 = RvR_fix22_div(2*RvR_yres()*(cz1-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z1,fovy)));
-         cy0 = 4*RvR_yres()*512-cy0;
-         cy1 = 4*RvR_yres()*512-cy1;
+         cy0 = 4*1024*middle_row-cy0;
+         cy1 = 4*1024*middle_row-cy1;
+         //cy0 = 4*RvR_yres()*512-cy0;
+         //y1 = 4*RvR_yres()*512-cy1;
          RvR_fix22 step_cy = RvR_fix22_div(cy1-cy0,RvR_non_zero(wall->x1-wall->x0));
          //TODO(Captain4LK): I'm not sure if this is worth it, the error is very small anyway
          int64_t num = (int64_t)RvR_yres()*4*((int64_t)(cz0-port_cam->z)*wall->zw1-(int64_t)(cz1-port_cam->z)*wall->zw0);
@@ -181,8 +184,10 @@ void RvR_port_draw_map(RvR_port_selection *select)
          //Bottom of wall
          RvR_fix22 fy0 = RvR_fix22_div(2*RvR_yres()*(fz0-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z0,fovy)));
          RvR_fix22 fy1 = RvR_fix22_div(2*RvR_yres()*(fz1-port_cam->z),RvR_non_zero(RvR_fix22_mul(wall->z1,fovy)));
-         fy0 = 4*RvR_yres()*512-fy0;
-         fy1 = 4*RvR_yres()*512-fy1;
+         fy0 = 4*1024*middle_row-fy0;
+         fy1 = 4*1024*middle_row-fy1;
+         //fy0 = 4*RvR_yres()*512-fy0;
+         //fy1 = 4*RvR_yres()*512-fy1;
          RvR_fix22 step_fy = RvR_fix22_div(fy1-fy0,RvR_non_zero(wall->x1-wall->x0));
          RvR_fix22 fy = fy0;
          num = (int64_t)RvR_yres()*4*((int64_t)(fz0-port_cam->z)*wall->zw1-(int64_t)(fz1-port_cam->z)*wall->zw0);
@@ -270,7 +275,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
                RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
-               RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-RvR_yres()/2)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+               RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
 
                if(port_map->walls[wall->wall].flags&RVR_PORT_WALL_FLIP_Y)
                {
@@ -383,33 +388,40 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
          //depth values go much lower here (since you can be on the border between sectors)
          //so we use i64 here
+         int middle_row = RvR_yres()/2+port_cam->shear;
          int64_t cy0 = ((int64_t)512*RvR_yres()*(cz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
          int64_t cy1 = ((int64_t)512*RvR_yres()*(cz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
          //int64_t cy0 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
          //int64_t cy1 = ((int64_t)512*RvR_yres()*(port_map->sectors[sector].ceiling-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
-         cy0 = RvR_yres()*512-cy0;
-         cy1 = RvR_yres()*512-cy1;
+         cy0 = middle_row*1024-cy0;
+         cy1 = middle_row*1024-cy1;
          int64_t step_cy = ((cy1-cy0)*1024)/RvR_non_zero(wall->x1-wall->x0);
          int64_t cy = cy0;
 
          int64_t cph0 = ((int64_t)512*RvR_yres()*(cpz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
          int64_t cph1 = ((int64_t)512*RvR_yres()*(cpz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
-         cph0 = RvR_yres()*512-cph0;
-         cph1 = RvR_yres()*512-cph1;
+         cph0 = middle_row*1024-cph0;
+         cph1 = middle_row*1024-cph1;
+         //cph0 = RvR_yres()*512-cph0;
+         //cph1 = RvR_yres()*512-cph1;
          int64_t step_cph = ((cph1-cph0)*1024)/RvR_non_zero(wall->x1-wall->x0);
          int64_t cph = cph0;
 
          int64_t fy0 = ((int64_t)512*RvR_yres()*(fz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
          int64_t fy1 = ((int64_t)512*RvR_yres()*(fz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
-         fy0 = RvR_yres()*512-fy0;
-         fy1 = RvR_yres()*512-fy1;
+         fy0 = middle_row*1024-fy0;
+         fy1 = middle_row*1024-fy1;
+         //fy0 = RvR_yres()*512-fy0;
+         //fy1 = RvR_yres()*512-fy1;
          int64_t step_fy = ((fy1-fy0)*1024)/RvR_non_zero(wall->x1-wall->x0);
          int64_t fy = fy0;
 
          int64_t fph0 = ((int64_t)512*RvR_yres()*(fpz0-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z0,fovy));
          int64_t fph1 = ((int64_t)512*RvR_yres()*(fpz1-port_cam->z))/RvR_non_zero(RvR_fix22_mul(wall->z1,fovy));
-         fph0 = RvR_yres()*512-fph0;
-         fph1 = RvR_yres()*512-fph1;
+         fph0 = middle_row*1024-fph0;
+         fph1 = middle_row*1024-fph1;
+         //fph0 = RvR_yres()*512-fph0;
+         //fph1 = RvR_yres()*512-fph1;
          int64_t step_fph = ((fph1-fph0)*1024)/RvR_non_zero(wall->x1-wall->x0);
          int64_t fph = fph0;
 
@@ -524,7 +536,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
                   RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
                   RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
-                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-RvR_yres()/2)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
                   const uint8_t * restrict tex = &texture_upper->data[(((uint32_t)u_upper)%texture_upper->width)*texture_upper->height];
                   uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
                   RvR_fix22 y_and = (1<<RvR_log2(texture_upper->height))-1;
@@ -639,7 +651,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
                   RvR_fix22 height = port_map->sectors[portal].floor-port_cam->z;
                   RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
-                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(mid-RvR_yres()/2)*coord_step_scaled+coord_step_scaled/2+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(mid-middle_row)*coord_step_scaled+coord_step_scaled/2+((int32_t)port_map->walls[wall->wall].y_off)*65536;
                   RvR_fix22 y_and = (1<<RvR_log2(texture_lower->height))-1;
                   const uint8_t * restrict tex = &texture_lower->data[(((uint32_t)u_lower)%texture_lower->width)*texture_lower->height];
                   uint8_t * restrict pix = RvR_framebuffer()+(mid*RvR_xres()+x);
@@ -795,11 +807,15 @@ static void port_collect_walls(uint16_t start)
          //Rotate to camera space
          //y0 and y1 are depth afterwards
          RvR_fix22 tmp = x0;
-         x0 = RvR_fix22_mul(-x0,sin)+RvR_fix22_mul(y0,cos);
-         y0 = RvR_fix22_mul(tmp,cos_fov)+RvR_fix22_mul(y0,sin_fov);
+         x0 = (RvR_fix22)(((int64_t)-x0*sin+(int64_t)y0*cos)/1024);
+         y0 = (RvR_fix22)(((int64_t)tmp*cos_fov+(int64_t)y0*sin_fov)/1024);
+         //x0 = RvR_fix22_mul(-x0,sin)+RvR_fix22_mul(y0,cos);
+         //y0 = RvR_fix22_mul(tmp,cos_fov)+RvR_fix22_mul(y0,sin_fov);
          tmp = x1;
-         x1 = RvR_fix22_mul(-x1,sin)+RvR_fix22_mul(y1,cos);
-         y1 = RvR_fix22_mul(tmp,cos_fov)+RvR_fix22_mul(y1,sin_fov);
+         x1 = (RvR_fix22)(((int64_t)-x1*sin+(int64_t)y1*cos)/1024);
+         y1 = (RvR_fix22)(((int64_t)tmp*cos_fov+(int64_t)y1*sin_fov)/1024);
+         //x1 = RvR_fix22_mul(-x1,sin)+RvR_fix22_mul(y1,cos);
+         //y1 = RvR_fix22_mul(tmp,cos_fov)+RvR_fix22_mul(y1,sin_fov);
          dw.xw0 = x0;
          dw.xw1 = x1;
          dw.zw0 = y0;

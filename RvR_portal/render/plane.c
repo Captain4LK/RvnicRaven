@@ -426,13 +426,15 @@ static void port_plane_slope(rvr_port_plane *pl)
 
 static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y)
 {
+
    //Shouldn't happen
    if(x0>=x1)
       return;
 
    //TODO: investigate this further
    //Happens when a floor plane gets drawn at the horizon (should this happen?)
-   if(y==RvR_yres()/2)
+   int middle_row = RvR_yres()/2+port_cam->shear;
+   if(y==middle_row)
       return;
 
    RvR_texture *texture = NULL;
@@ -463,7 +465,7 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    RvR_fix22 fovy = RvR_fix22_div(RvR_yres()*fovx,RvR_xres()*1024);
 
    RvR_fix22 span_height = (height-port_cam->z);
-   RvR_fix22 fdy = RvR_abs(RvR_yres()/2-y)*1024;
+   RvR_fix22 fdy = RvR_abs(middle_row-y)*1024;
 
    int64_t slope = RvR_abs((span_height*(INT64_C(1)<<30))/RvR_non_zero(fdy));
    RvR_fix22 depth = RvR_fix22_div((RvR_yres()/2)*span_height,RvR_non_zero(RvR_fix22_mul(fovy,fdy)));
@@ -630,12 +632,13 @@ static void port_span_slope(uint16_t sector, uint8_t where, int x0, int x1, int 
    if(texture==NULL)
       return;
 
+   int middle_row = RvR_yres()/2+port_cam->shear;
    RvR_fix22 step_x = ctx.u0;
    RvR_fix22 step_y = ctx.v0;
-   RvR_fix22 tx = ctx.u2+ctx.u1*(RvR_yres()/2-y)+ctx.u0*(x0-RvR_xres()/2);
-   RvR_fix22 ty = ctx.v2+ctx.v1*(RvR_yres()/2-y)+ctx.v0*(x0-RvR_xres()/2);
+   RvR_fix22 tx = ctx.u2+ctx.u1*(middle_row-y)+ctx.u0*(x0-RvR_xres()/2);
+   RvR_fix22 ty = ctx.v2+ctx.v1*(middle_row-y)+ctx.v0*(x0-RvR_xres()/2);
 
-   RvR_fix22 z = ctx.z2+ctx.z1*(RvR_yres()/2-y)+ctx.z0*(x0-RvR_xres()/2);
+   RvR_fix22 z = ctx.z2+ctx.z1*(middle_row-y)+ctx.z0*(x0-RvR_xres()/2);
    RvR_fix22 step_z = ctx.z0;
 
    RvR_fix22 x_log = RvR_log2(texture->width);

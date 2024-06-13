@@ -66,6 +66,22 @@ void player_update(Gamestate *state)
    if(x!=0)
       state->player.entity->dir += (x * 128 * 2) / 32;
 
+   //Shearing (fake looking up/down)
+   //Drift back to 0
+   if(!state->player.shearing&&state->cam.shear!=0)
+   {
+      int shear_step = ((RvR_yres() * 3) / (RvR_fps() * 4));
+      state->cam.shear = (state->cam.shear>0)?(RvR_max(0, state->cam.shear - shear_step)):(RvR_min(0, state->cam.shear + shear_step));
+   }
+
+   //Enable freelook
+   if(RvR_key_pressed(RVR_KEY_F))
+      state->player.shearing = !state->player.shearing;
+
+   //Mouse look: y-axis
+   if(y!=0&&state->player.shearing)
+      state->cam.shear = RvR_max(RvR_min(state->cam.shear - (y * 128) / 64, RvR_yres()/4), -RvR_yres()/4);
+
    RvR_fix22 dirx = RvR_fix22_cos(state->player.entity->dir);
    RvR_fix22 diry = RvR_fix22_sin(state->player.entity->dir);
    dirx *= 1;

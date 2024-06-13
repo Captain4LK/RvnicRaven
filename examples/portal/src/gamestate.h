@@ -59,6 +59,7 @@ typedef struct
 {
    Entity *entity;
 
+   int shearing;
    RvR_fix22 vis_off_vel;
 }Player;
 
