@@ -58,8 +58,14 @@ void game_draw()
 {
    RvR_port_draw_begin(gamestate->map, &gamestate->cam);
 
-   RvR_port_draw_map(NULL);
+   RvR_port_selection select = {0};
+   select.x = RvR_xres()/2;
+   select.y = RvR_yres()/2;
+   RvR_port_draw_map(&select);
+   printf("%d %d\n",select.tx,select.ty);
 
    RvR_port_draw_end(NULL);
+
+   RvR_render_rectangle_fill(RvR_xres()/2-1,RvR_yres()/2-1,2,2,1);
 }
 //-------------------------------------

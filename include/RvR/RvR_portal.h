@@ -108,6 +108,11 @@ typedef struct
    int y;
    RvR_fix22 depth;
    RvR_port_select type;
+
+   //Texture coordinates
+   int tx;
+   int ty;
+
    union
    {
       int16_t wall;

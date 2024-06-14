@@ -266,16 +266,19 @@ void RvR_port_draw_map(RvR_port_selection *select)
 
             if(y0<=y1)
             {
+               RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
+               RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
+               RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+               RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
+
                if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=y1&&select->depth>depth)
                {
                   select->type = RVR_PORT_SWALL_BOT;
                   select->as.wall = wall->wall;
                   select->depth = depth;
+                  select->tx = u%texture->width;
+                  select->ty = (((select->y-y0)*coord_step_scaled+texture_coord_scaled)>>16)&y_and;
                }
-
-               RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
-               RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
-               RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
 
                if(port_map->walls[wall->wall].flags&RVR_PORT_WALL_FLIP_Y)
                {
@@ -283,7 +286,6 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   texture_coord_scaled = -height*256*port_map->walls[wall->wall].y_units+(y0-RvR_yres()/2)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
                }
 
-               RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
                const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
                uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
@@ -527,19 +529,22 @@ void RvR_port_draw_map(RvR_port_selection *select)
                const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
                if(mid>=y0)
                {
+                  RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
+                  RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
+                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+                  RvR_fix22 y_and = (1<<RvR_log2(texture_upper->height))-1;
+
                   if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=mid&&select->depth>depth)
                   {
                      select->type = RVR_PORT_SWALL_TOP;
                      select->as.wall = wall->wall;
                      select->depth = depth;
+                     select->tx = u_upper%texture_upper->width;
+                     select->ty = (((select->y-y0)*coord_step_scaled+texture_coord_scaled)>>16)&y_and;
                   }
 
-                  RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
-                  RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
-                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
                   const uint8_t * restrict tex = &texture_upper->data[(((uint32_t)u_upper)%texture_upper->width)*texture_upper->height];
                   uint8_t * restrict pix = RvR_framebuffer()+(y0*RvR_xres()+x);
-                  RvR_fix22 y_and = (1<<RvR_log2(texture_upper->height))-1;
                   int stride = RvR_xres();
 
 #if RVR_PORT_UNROLL
@@ -642,17 +647,20 @@ void RvR_port_draw_map(RvR_port_selection *select)
                const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
                if(mid<=y1)
                {
+                  RvR_fix22 height = port_map->sectors[portal].floor-port_cam->z;
+                  RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
+                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(mid-middle_row)*coord_step_scaled+coord_step_scaled/2+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+                  RvR_fix22 y_and = (1<<RvR_log2(texture_lower->height))-1;
+
                   if(select!=NULL&&select->x==x&&select->y>=mid&&select->y<=y1&&select->depth>depth)
                   {
                      select->type = RVR_PORT_SWALL_BOT;
                      select->as.wall = wall->wall;
                      select->depth = depth;
+                     select->tx = u_lower%texture_lower->width;
+                     select->ty = (((select->y-y0)*coord_step_scaled+texture_coord_scaled)>>16)&y_and;
                   }
 
-                  RvR_fix22 height = port_map->sectors[portal].floor-port_cam->z;
-                  RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
-                  RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(mid-middle_row)*coord_step_scaled+coord_step_scaled/2+((int32_t)port_map->walls[wall->wall].y_off)*65536;
-                  RvR_fix22 y_and = (1<<RvR_log2(texture_lower->height))-1;
                   const uint8_t * restrict tex = &texture_lower->data[(((uint32_t)u_lower)%texture_lower->width)*texture_lower->height];
                   uint8_t * restrict pix = RvR_framebuffer()+(mid*RvR_xres()+x);
                   int stride = RvR_xres();
