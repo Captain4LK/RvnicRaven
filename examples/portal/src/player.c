@@ -48,7 +48,7 @@ void player_create_new(Gamestate *state)
    state->player.entity->vel[0] = 0;
    state->player.entity->vel[1] = 0;
    state->player.entity->vel[2] = 0;
-   state->player.entity->height = 1792;
+   state->player.entity->height = 1636;
    state->player.entity->radius = 256;
    state->player.entity->step_height = 256;
 }
@@ -118,7 +118,7 @@ void player_update(Gamestate *state)
    collision_move(state, state->player.entity);
 
    player->vis_off_vel += RvR_fix22_mul(player->entity->vel[2] - player->vis_off_vel, 450);
-   RvR_fix22 dz = player->entity->pos[2] + 1536 - state->cam.z;
+   RvR_fix22 dz = player->entity->pos[2] + 1436 - state->cam.z;
    player->vis_off_vel += RvR_fix22_mul(dz * 64, 96);
    state->cam.z += player->vis_off_vel / 64;
 

@@ -111,6 +111,7 @@ int main(int argc, char **argv)
    uint8_t anim_range = 0;
    uint8_t anim_speed = 0;
    uint8_t trans_index = 0;
+   uint32_t sflags = 0;
 
    int option;
    struct optparse options;
@@ -127,6 +128,7 @@ int main(int argc, char **argv)
          break;
       case 'a':
          sscanf(options.optarg, "%" SCNu8 ",%" SCNu8, &anim_range, &anim_speed);
+         sflags|=RVR_TEXTURE_ANIM;
          break;
       case 'h':
          print_help(argv);
@@ -168,11 +170,13 @@ int main(int argc, char **argv)
 
    Sprite_pal *sp = texture_load(path_in, path_pal, trans_index);
 
+   int transposed = 0;
    if(flags & SPRITE_WALL)
    {
       Sprite_pal *csp = sprite_pal_create(sp->width, sp->height);
       memcpy(csp->data, sp->data, sizeof(*sp->data) * sp->width * sp->height);
 
+      transposed = 1;
       for(int x = 0; x<sp->width; x++)
          for(int y = 0; y<sp->height; y++)
             sp->data[x * sp->height + y] = csp->data[y * csp->width + x];
@@ -181,6 +185,7 @@ int main(int argc, char **argv)
    }
    else if(flags & SPRITE_SPRITE)
    {
+      transposed = 1;
       Sprite_pal *csp = sprite_pal_create(sp->width, sp->height);
       memcpy(csp->data, sp->data, sizeof(*sp->data) * sp->width * sp->height);
 
@@ -191,23 +196,159 @@ int main(int argc, char **argv)
       sprite_pal_destroy(csp);
    }
 
+   uint32_t data_size = sp->width*sp->height;
+   if((((unsigned)sp->width)&((unsigned)sp->width-1))==0&&
+      (((unsigned)sp->height)&((unsigned)sp->height-1))==0)
+   {
+      sflags|=RVR_TEXTURE_MIPMAP;
+      data_size+=data_size/3;
+   }
+
+   char ext[33] = {0};
+   path_pop_ext(path_pal, NULL, ext);
+   Palette *pal = NULL;
+   FILE *fpal = fopen(path_pal, "r");
+   if(fpal!=NULL)
+   {
+      if(strncmp(ext, "pal", 32)==0)
+         pal = palette_pal(fpal);
+      else if(strncmp(ext, "png", 32)==0)
+         pal = palette_png(fpal);
+      else if(strncmp(ext, "gpl", 32)==0)
+         pal = palette_gpl(fpal);
+      else if(strncmp(ext, "hex", 32)==0)
+         pal = palette_hex(fpal);
+      fclose(fpal);
+   }
+
    //Compress and write to file
    RvR_rw cin;
    RvR_rw cout;
-   size_t len = sizeof(uint8_t) * sp->width * sp->height + sizeof(int16_t) + 2 * sizeof(int8_t) + 2 * sizeof(int32_t);
+   size_t len = sizeof(uint8_t) * data_size + sizeof(int16_t) + 2 * sizeof(int8_t) + 3 * sizeof(int32_t);
    uint8_t *mem = RvR_malloc(len, "compression buffer");
    RvR_rw_init_mem(&cin, mem, len, len);
-   RvR_rw_write_u16(&cin, 0);
+   RvR_rw_write_u16(&cin, 1);
    RvR_rw_write_u32(&cin, sp->width);
    RvR_rw_write_u32(&cin, sp->height);
-   RvR_rw_write_u8(&cin, anim_range);
+   RvR_rw_write_u32(&cin, sflags);
    RvR_rw_write_u8(&cin, anim_speed);
+   RvR_rw_write_u8(&cin, anim_range);
    for(int i = 0; i<sp->width * sp->height; i++)
       RvR_rw_write_u8(&cin, sp->data[i]);
+   if(sflags&RVR_TEXTURE_MIPMAP)
+   {
+      unsigned mwidth = sp->width/2;
+      unsigned mheight = sp->height/2;
+      while(mwidth>=1&&mheight>=1)
+      {
+         if(transposed)
+         {
+            for(int x = 0;x<mwidth;x++)
+            {
+               for(int y = 0;y<mheight;y++)
+               {
+                  uint8_t c0,c1,c2,c3;
+                  if(transposed)
+                  {
+                     c0 = sp->data[(x*2)*mheight*2+(y*2)];
+                     c1 = sp->data[(x*2+1)*mheight*2+(y*2)];
+                     c2 = sp->data[(x*2)*mheight*2+(y*2+1)];
+                     c3 = sp->data[(x*2+1)*mheight*2+(y*2+1)];
+                  }
+                  else
+                  {
+                     c0 = sp->data[(y*2)*mwidth*2+(x*2)];
+                     c1 = sp->data[(y*2+1)*mwidth*2+(x*2)];
+                     c2 = sp->data[(y*2)*mwidth*2+(x*2+1)];
+                     c3 = sp->data[(y*2+1)*mwidth*2+(x*2+1)];
+                  }
+                  uint32_t r = (pal->colors[c0].r+pal->colors[c1].r+pal->colors[c2].r+pal->colors[c3].r)/4;
+                  uint32_t g = (pal->colors[c0].g+pal->colors[c1].g+pal->colors[c2].g+pal->colors[c3].g)/4;
+                  uint32_t b = (pal->colors[c0].b+pal->colors[c1].b+pal->colors[c2].b+pal->colors[c3].b)/4;
+
+                  int min_dist = INT_MAX;
+                  uint8_t min_index = 0;
+                  for(int j = 0; j<pal->colors_used; j++)
+                  {
+                     Color pal_color = pal->colors[j];
+                     int dist_r = pal_color.r - r;
+                     int dist_g = pal_color.g - g;
+                     int dist_b = pal_color.b - b;
+                     int dist = dist_r * dist_r + dist_g * dist_g + dist_b * dist_b;
+                     if(dist<min_dist)
+                     {
+                        min_dist = dist;
+                        min_index = (uint8_t)j;
+                     }
+                  }
+                  if(transposed)
+                     sp->data[x*mheight+y] = min_index;
+                  else
+                     sp->data[y*mwidth+x] = min_index;
+               }
+            }
+         }
+         else
+         {
+            for(int y = 0;y<mheight;y++)
+            {
+               for(int x = 0;x<mwidth;x++)
+               {
+                  uint8_t c0,c1,c2,c3;
+                  if(transposed)
+                  {
+                     c0 = sp->data[(x*2)*mheight*2+(y*2)];
+                     c1 = sp->data[(x*2+1)*mheight*2+(y*2)];
+                     c2 = sp->data[(x*2)*mheight*2+(y*2+1)];
+                     c3 = sp->data[(x*2+1)*mheight*2+(y*2+1)];
+                  }
+                  else
+                  {
+                     c0 = sp->data[(y*2)*mwidth*2+(x*2)];
+                     c1 = sp->data[(y*2+1)*mwidth*2+(x*2)];
+                     c2 = sp->data[(y*2)*mwidth*2+(x*2+1)];
+                     c3 = sp->data[(y*2+1)*mwidth*2+(x*2+1)];
+                  }
+                  uint32_t r = (pal->colors[c0].r+pal->colors[c1].r+pal->colors[c2].r+pal->colors[c3].r)/4;
+                  uint32_t g = (pal->colors[c0].g+pal->colors[c1].g+pal->colors[c2].g+pal->colors[c3].g)/4;
+                  uint32_t b = (pal->colors[c0].b+pal->colors[c1].b+pal->colors[c2].b+pal->colors[c3].b)/4;
+
+                  int min_dist = INT_MAX;
+                  uint8_t min_index = 0;
+                  for(int j = 0; j<pal->colors_used; j++)
+                  {
+                     Color pal_color = pal->colors[j];
+                     int dist_r = pal_color.r - r;
+                     int dist_g = pal_color.g - g;
+                     int dist_b = pal_color.b - b;
+                     int dist = dist_r * dist_r + dist_g * dist_g + dist_b * dist_b;
+                     if(dist<min_dist)
+                     {
+                        min_dist = dist;
+                        min_index = (uint8_t)j;
+                     }
+                  }
+                  if(transposed)
+                     sp->data[x*mheight+y] = min_index;
+                  else
+                     sp->data[y*mwidth+x] = min_index;
+               }
+            }
+         }
+
+         for(int i = 0;i<mwidth*mheight;i++)
+            RvR_rw_write_u8(&cin,sp->data[i]);
+
+         mwidth/=2;
+         mheight/=2;
+      }
+   }
    RvR_rw_init_path(&cout, path_out, "wb");
    RvR_crush_compress(&cin, &cout, 10);
    RvR_rw_close(&cin);
    RvR_rw_close(&cout);
+
+   //TODO(Captain4LK): generate mipmaps
 
    sprite_pal_destroy(sp);
    RvR_free(mem);

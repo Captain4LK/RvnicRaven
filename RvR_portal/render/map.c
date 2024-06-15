@@ -269,7 +269,11 @@ void RvR_port_draw_map(RvR_port_selection *select)
                RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
                RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(RvR_yres()*2);
                RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+               texture = RvR_texture_get_mipmap(port_map->walls[wall->wall].tex_lower,coord_step_scaled>>17);
+               coord_step_scaled>>=texture->exp;
+               texture_coord_scaled>>=texture->exp;
                RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
+               u>>=texture->exp;
 
                if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=y1&&select->depth>depth)
                {

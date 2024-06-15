@@ -62,10 +62,18 @@ void game_draw()
    select.x = RvR_xres()/2;
    select.y = RvR_yres()/2;
    RvR_port_draw_map(&select);
-   printf("%d %d\n",select.tx,select.ty);
+   //printf("%d %d\n",select.tx,select.ty);
 
    RvR_port_draw_end(NULL);
 
    RvR_render_rectangle_fill(RvR_xres()/2-1,RvR_yres()/2-1,2,2,1);
+
+   /*RvR_render_texture(RvR_texture_get_mipmap(0,0),4,4);
+   RvR_render_texture(RvR_texture_get_mipmap(0,1),72,4);
+   RvR_render_texture(RvR_texture_get_mipmap(0,2),108,4);
+   RvR_render_texture(RvR_texture_get_mipmap(0,3),128,4);
+   RvR_render_texture(RvR_texture_get_mipmap(0,4),140,4);
+   RvR_render_texture(RvR_texture_get_mipmap(0,5),148,4);
+   RvR_render_texture(RvR_texture_get_mipmap(0,6),153,4);*/
 }
 //-------------------------------------

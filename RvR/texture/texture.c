@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "RvR_config.h"
 #include "RvR/RvR_log.h"
+#include "RvR/RvR_math.h"
 #include "RvR/RvR_app.h"
 #include "RvR/RvR_rw.h"
 #include "RvR/RvR_malloc.h"
@@ -29,7 +30,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-static RvR_texture **rvr_textures = NULL;
+static RvR_itexture **rvr_textures = NULL;
 //-------------------------------------
 
 //Variables
@@ -43,17 +44,80 @@ static void rvr_texture_load(uint16_t id);
 
 RvR_texture *RvR_texture_get(uint16_t id)
 {
+   RvR_itexture *itex = RvR_itexture_get(id);
+
+   if((itex->flags&RVR_TEXTURE_MULTI)==RVR_TEXTURE_ANIM)
+   {
+      int offset = (RvR_frame() / itex->anim_speed) % itex->anim_frames;
+
+      itex->tex.width = itex->width;
+      itex->tex.height = itex->height;
+      itex->tex.exp = 0;
+      uint32_t data_per = 0;
+      if(itex->flags&RVR_TEXTURE_MIPMAP)
+         data_per = itex->width*itex->height+(itex->width*itex->height)/3;
+      else
+         data_per = itex->width*itex->height;
+      itex->tex.data = itex->data+data_per*offset;
+
+      return &itex->tex;
+   }
+   else
+   {
+      //Mipmaping doesn't matter here
+      itex->tex.width = itex->width;
+      itex->tex.height = itex->height;
+      itex->tex.exp = 0;
+      itex->tex.data = itex->data;
+      return &itex->tex;
+   }
+}
+
+RvR_texture *RvR_texture_get_mipmap(uint16_t id, uint32_t level)
+{
+   RvR_itexture *itex = RvR_itexture_get(id);
+   if(level==0||!(itex->flags&RVR_TEXTURE_MIPMAP))
+      return RvR_texture_get(id);
+
+   //uint32_t mwidth = itex->width/(1<<level);
+   //uint32_t mheight = itex->height/(1<<level);
+   level = RvR_min(level,itex->miplevels);
+   //TODO(Captain4LK): get this in a closed form somehow
+   size_t off = (itex->width*itex->height*(int64_t)(1-(((int64_t)1)<<(2*level))))/((((int64_t)1)<<(2*level-2))*-3);
+   //for(int i = 0;i<(int)level-1;i++)
+    //  off+=(itex->width*itex->height)/4;
+   //printf("%d %d\n",level,off);
+
+   if((itex->flags&RVR_TEXTURE_MULTI)==RVR_TEXTURE_ANIM)
+   {
+      int offset = (RvR_frame() / itex->anim_speed) % itex->anim_frames;
+
+      itex->tex.width = itex->width/(1<<level);
+      itex->tex.height = itex->height/(1<<level);
+      itex->tex.exp = level;
+      uint32_t data_per = 0;
+      if(itex->flags&RVR_TEXTURE_MIPMAP)
+         data_per = itex->width*itex->height+(itex->width*itex->height)/3;
+      else
+         data_per = itex->width*itex->height;
+      itex->tex.data = itex->data+data_per*offset+off;
+
+      return &itex->tex;
+   }
+   else
+   {
+      itex->tex.width = itex->width/(1<<level);
+      itex->tex.height = itex->height/(1<<level);
+      itex->tex.exp = level;
+      itex->tex.data = itex->data+off;
+      return &itex->tex;
+   }
+}
+
+RvR_itexture *RvR_itexture_get(uint16_t id)
+{
    if(rvr_textures==NULL||rvr_textures[id]==NULL)
       rvr_texture_load(id);
-
-   //Animated texture
-   if(rvr_textures[id]->anim_range!=0)
-   {
-      uint16_t tex = (uint16_t)(id + (RvR_frame() / rvr_textures[id]->anim_speed) % rvr_textures[id]->anim_range);
-      if(rvr_textures[tex]==NULL)
-         rvr_texture_load(tex);
-      return rvr_textures[tex];
-   }
 
    return rvr_textures[id];
 }
@@ -91,20 +155,39 @@ static void rvr_texture_load(uint16_t id)
    RvR_rw_init_const_mem(&rw, mem_decomp, size_out);
 
    uint16_t version = RvR_rw_read_u16(&rw);
-   RvR_error_check(version==0, "RvR_texture_get", "'TEX%05d' has invalid version %d, expected version 0\n", id, version);
+   RvR_error_check(version==1, "RvR_texture_get", "'TEX%05d' has invalid version %d, expected version 1\n", id, version);
 
    int32_t width = RvR_rw_read_u32(&rw);
    int32_t height = RvR_rw_read_u32(&rw);
+   uint32_t flags = RvR_rw_read_u32(&rw);
+   uint8_t anim_speed = RvR_rw_read_u8(&rw);
+   uint8_t anim_frames = RvR_rw_read_u8(&rw);
 
-   rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height, "RvR texture");
+   size_t data_size = width*height;
+   if(flags&RVR_TEXTURE_MIPMAP)
+      data_size+=data_size/3;
+   switch(flags&RVR_TEXTURE_MULTI)
+   {
+   case RVR_TEXTURE_ANIM: data_size*=anim_frames; break;
+   case RVR_TEXTURE_ROT4: data_size*=4; break;
+   case RVR_TEXTURE_ROT8: data_size*=8; break;
+   case RVR_TEXTURE_ROT16: data_size*=16; break;
+   default: break;
+   }
+
+   rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * data_size, "RvR texture");
    rvr_textures[id]->width = width;
    rvr_textures[id]->height = height;
-   rvr_textures[id]->anim_range = RvR_rw_read_u8(&rw);
-   rvr_textures[id]->anim_speed = RvR_rw_read_u8(&rw);
-   for(int i = 0; i<rvr_textures[id]->width * rvr_textures[id]->height; i++)
+   rvr_textures[id]->flags = flags;
+   rvr_textures[id]->miplevels = 0;
+   rvr_textures[id]->anim_frames = anim_frames;
+   rvr_textures[id]->anim_speed = anim_speed;
+   for(size_t i = 0; i<data_size; i++)
       rvr_textures[id]->data[i] = RvR_rw_read_u8(&rw);
    RvR_mem_tag_set(rvr_textures[id], RVR_MALLOC_CACHE);
    RvR_mem_usr_set(rvr_textures[id], (void **)&rvr_textures[id]);
+   if(flags&RVR_TEXTURE_MIPMAP)
+      rvr_textures[id]->miplevels = RvR_min(RvR_log2(width),RvR_log2(height));
 
    RvR_rw_close(&rw);
 
@@ -122,7 +205,8 @@ RvR_err:
    rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data), "RvR texture");
    rvr_textures[id]->width = 1;
    rvr_textures[id]->height = 1;
-   rvr_textures[id]->anim_range = 0;
+   rvr_textures[id]->flags = 0;
+   rvr_textures[id]->anim_frames = 0;
    rvr_textures[id]->anim_speed = 0;
    rvr_textures[id]->data[0] = 0;
 
@@ -144,7 +228,8 @@ void RvR_texture_create(uint16_t id, int width, int height)
    rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height, "RvR texture");
    rvr_textures[id]->width = width;
    rvr_textures[id]->height = height;
-   rvr_textures[id]->anim_range = 0;
+   rvr_textures[id]->flags = 0;
+   rvr_textures[id]->anim_frames = 0;
    rvr_textures[id]->anim_speed = 0;
 }
 
