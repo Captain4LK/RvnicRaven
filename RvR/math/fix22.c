@@ -289,16 +289,6 @@ static const RvR_fix22 fix22_cos_table[8192] =
 
 //Function implementations
 
-RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b)
-{
-   return (RvR_fix22)(((int64_t)a * b) / 1024);
-}
-
-RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b)
-{
-   return (RvR_fix22)(((int64_t)a * 1024) / b);
-}
-
 RvR_fix22 RvR_fix22_cos(RvR_fix22 a)
 {
    return fix22_cos_table[a & 8191];

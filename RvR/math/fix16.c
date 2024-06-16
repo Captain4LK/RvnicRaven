@@ -289,17 +289,6 @@ static const RvR_fix16 fix16_cos_table[8192] =
 
 //Function implementations
 
-RvR_fix16 RvR_fix16_mul(RvR_fix16 a, RvR_fix16 b)
-{
-   return (RvR_fix16)(((int64_t)a * b) >> 16);
-}
-
-RvR_fix16 RvR_fix16_div(RvR_fix16 a, RvR_fix16 b)
-{
-   //Doing a shift here is undefined behaviour for negative numbers
-   return (RvR_fix16)(((int64_t)a * 65536) / b);
-}
-
 RvR_fix16 RvR_fix16_cos(RvR_fix16 a)
 {
    return fix16_cos_table[(a >> 3) & 8191];

@@ -11,7 +11,7 @@ add_to_obj()
    done
 }
 
-CFLAGS="-Wall -Wextra -Wshadow -Wconversion -Wno-sign-conversion -std=c99 -pedantic -O3 -g -I./ -I../include/ -I./include/"
+CFLAGS="-Wall -Wextra -Wshadow -Wconversion -Wno-sign-conversion -std=c99 -pedantic -O3 -g -I./ -I../include/ -I./include/ -fno-omit-frame-pointer"
 printf "
 .POSIX:
 CC      = gcc

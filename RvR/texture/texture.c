@@ -76,7 +76,7 @@ RvR_texture *RvR_texture_get(uint16_t id)
 RvR_texture *RvR_texture_get_mipmap(uint16_t id, uint32_t level)
 {
    RvR_itexture *itex = RvR_itexture_get(id);
-   if(level==0||!(itex->flags&RVR_TEXTURE_MIPMAP))
+   if(level==0||!(itex->flags&RVR_TEXTURE_MIPMAP)||itex->miplevels==0||RvR_key_down(RVR_KEY_T))
       return RvR_texture_get(id);
 
    //uint32_t mwidth = itex->width/(1<<level);

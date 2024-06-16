@@ -1,7 +1,7 @@
 /*
 RvnicRaven - 22.10 fixed point math
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -14,8 +14,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 typedef int32_t RvR_fix22;
 
-RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b);
-RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b);
+inline RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b) { return (RvR_fix22)(((int64_t)a * b) / 1024); }
+inline RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b) { return (RvR_fix22)(((int64_t)a * 1024) / b); }
 
 RvR_fix22 RvR_fix22_cos(RvR_fix22 a);
 RvR_fix22 RvR_fix22_sin(RvR_fix22 a);

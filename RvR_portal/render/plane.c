@@ -557,12 +557,24 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
       step_y = -step_y;
    }
 
+   int mip = RvR_max(RvR_log2(RvR_abs(step_x/(1<<15))),RvR_log2(RvR_abs(step_y/(1<<15))));
+   //if(mip>=4)
+      //printf("%d\n",RvR_max(step_x>>15,step_y>>15));
+   if(where==0)
+      texture = RvR_texture_get_mipmap(port_map->sectors[sector].ceiling_tex,mip);
+   else if(where==1)
+      texture = RvR_texture_get_mipmap(port_map->sectors[sector].floor_tex,mip);
+
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);
    RvR_fix22 x_and = (1<<x_log)-1;
    RvR_fix22 y_and = (1<<y_log)-1;
    y_log = RvR_max(0,16-y_log);
    x_and<<=(16-y_log);
+   tx>>=texture->exp;
+   ty>>=texture->exp;
+   step_x>>=texture->exp;
+   step_y>>=texture->exp;
 
    uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
    const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+shade_off)));
