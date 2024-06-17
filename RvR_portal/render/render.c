@@ -47,7 +47,8 @@ RvR_port_depth_buffer port_depth_buffer = {0};
 void RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam)
 {
    //Clear depth buffer
-   for(int i = 0; i<RvR_xres(); i++)
+   int xres = RvR_xres();
+   for(int i = 0; i<xres; i++)
    {
       port_depth_buffer_entry_free(port_depth_buffer.floor[i]);
       port_depth_buffer_entry_free(port_depth_buffer.ceiling[i]);

@@ -28,6 +28,7 @@ inline uint32_t RvR_log2(uint32_t a)
    //Use builtin if availible
    //x86 has bsr instruction for this
 #if defined __has_builtin && __has_builtin (__builtin_clz)
+   if(a==0) return 0;
    return 31-__builtin_clz(a);
 #else
    uint32_t n = 1;

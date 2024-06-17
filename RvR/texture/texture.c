@@ -48,6 +48,7 @@ RvR_texture *RvR_texture_get(uint16_t id)
 
    if((itex->flags&RVR_TEXTURE_MULTI)==RVR_TEXTURE_ANIM)
    {
+      //TODO(Captain4LK): we could do the same caching here, but we would need to check if we crossed a animation frame boundary
       int offset = (RvR_frame() / itex->anim_speed) % itex->anim_frames;
 
       itex->tex.width = itex->width;
@@ -79,17 +80,12 @@ RvR_texture *RvR_texture_get_mipmap(uint16_t id, uint32_t level)
    if(level==0||!(itex->flags&RVR_TEXTURE_MIPMAP)||itex->miplevels==0||RvR_key_down(RVR_KEY_T))
       return RvR_texture_get(id);
 
-   //uint32_t mwidth = itex->width/(1<<level);
-   //uint32_t mheight = itex->height/(1<<level);
    level = RvR_min(level,itex->miplevels);
-   //TODO(Captain4LK): get this in a closed form somehow
-   size_t off = (itex->width*itex->height*(int64_t)(1-(((int64_t)1)<<(2*level))))/((((int64_t)1)<<(2*level-2))*-3);
-   //for(int i = 0;i<(int)level-1;i++)
-    //  off+=(itex->width*itex->height)/4;
-   //printf("%d %d\n",level,off);
 
    if((itex->flags&RVR_TEXTURE_MULTI)==RVR_TEXTURE_ANIM)
    {
+      //TODO(Captain4LK): we could do the same caching here, but we would need to check if we crossed a animation frame boundary
+      size_t off = (itex->width*itex->height*(int64_t)(1-(((int64_t)1)<<(2*level))))/((((int64_t)1)<<(2*level-2))*-3);
       int offset = (RvR_frame() / itex->anim_speed) % itex->anim_frames;
 
       itex->tex.width = itex->width/(1<<level);
@@ -106,6 +102,10 @@ RvR_texture *RvR_texture_get_mipmap(uint16_t id, uint32_t level)
    }
    else
    {
+      if(itex->tex.exp==level)
+         return &itex->tex;
+
+      size_t off = (itex->width*itex->height*(int64_t)(1-(((int64_t)1)<<(2*level))))/((((int64_t)1)<<(2*level-2))*-3);
       itex->tex.width = itex->width/(1<<level);
       itex->tex.height = itex->height/(1<<level);
       itex->tex.exp = level;
@@ -180,6 +180,7 @@ static void rvr_texture_load(uint16_t id)
    rvr_textures[id]->height = height;
    rvr_textures[id]->flags = flags;
    rvr_textures[id]->miplevels = 0;
+   rvr_textures[id]->tex.exp = UINT32_MAX;
    rvr_textures[id]->anim_frames = anim_frames;
    rvr_textures[id]->anim_speed = anim_speed;
    for(size_t i = 0; i<data_size; i++)
@@ -208,6 +209,7 @@ RvR_err:
    rvr_textures[id]->flags = 0;
    rvr_textures[id]->anim_frames = 0;
    rvr_textures[id]->anim_speed = 0;
+   rvr_textures[id]->tex.exp = UINT32_MAX;
    rvr_textures[id]->data[0] = 0;
 
    RvR_mem_tag_set(rvr_textures[id], RVR_MALLOC_CACHE);

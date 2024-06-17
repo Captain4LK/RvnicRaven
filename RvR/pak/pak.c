@@ -382,7 +382,7 @@ static void rvr_pak_add_csv(const char *path)
             break;
       }
 
-      char tmp[RVR_CUTE_PATH_MAX_PATH * 3] = "";
+      char tmp[RVR_CUTE_PATH_MAX_PATH * 3];
       strcpy(tmp, base_path);
       RvR_lump_add(lump_name, strncat(tmp, lump_path, RVR_CUTE_PATH_MAX_PATH));
    }

@@ -199,7 +199,10 @@ static void port_plane_free(rvr_port_plane *pl)
 
 static void port_plane_sky(rvr_port_plane *pl)
 {
-   RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
+   int xres = RvR_xres();
+   int yres = RvR_yres();
+
+   RvR_fix22 middle_row = (yres / 2) + port_cam->shear;
    RvR_texture *texture = NULL;
    if(pl->where==1)
       texture = RvR_texture_get(port_map->sectors[pl->sector].floor_tex);
@@ -210,8 +213,8 @@ static void port_plane_sky(rvr_port_plane *pl)
    int skyh = 1 << RvR_log2(texture->height);
    int mask = skyh - 1;
 
-   RvR_fix16 angle_step = (skyw * 1024) / RvR_xres();
-   RvR_fix16 tex_step = (1024 * skyh - 1) / RvR_yres();
+   RvR_fix16 angle_step = (skyw * 1024) / xres;
+   RvR_fix16 tex_step = (1024 * skyh - 1) / yres;
 
    //TODO(Captain4LK): include fov in calculation
    RvR_fix22 angle = port_cam->dir*texture->width;
@@ -220,12 +223,12 @@ static void port_plane_sky(rvr_port_plane *pl)
    for(int x = pl->min; x<pl->max + 1; x++)
    {
       //Sky is rendered fullbright, no lut needed
-      uint8_t * restrict pix = &RvR_framebuffer()[(pl->start[x]) * RvR_xres() + x - 1];
+      uint8_t * restrict pix = &RvR_framebuffer()[(pl->start[x]) * xres + x - 1];
       const uint8_t * restrict tex = &texture->data[((angle/1024) & (skyw - 1)) * skyh];
       const uint8_t * restrict col = RvR_shade_table(32);
 
       //Split in two parts: above and below horizon
-      int middle = RvR_max(0, RvR_min(RvR_yres(), middle_row + RvR_yres() / 32));
+      int middle = RvR_max(0, RvR_min(yres, middle_row + yres / 32));
       int tex_start = pl->start[x];
       int tex_end = middle;
       if(tex_end>pl->end[x])
@@ -235,8 +238,8 @@ static void port_plane_sky(rvr_port_plane *pl)
       if(tex_start>middle)
          tex_end = tex_start - 1;
       int solid_end = pl->end[x];
-      RvR_fix16 texture_coord = (RvR_yres() - middle + pl->start[x]) * tex_step;
-      int stride = RvR_xres();
+      RvR_fix16 texture_coord = (yres - middle + pl->start[x]) * tex_step;
+      int stride = xres;
 
       for(int y = tex_start; y<tex_end + 1; y++)
       {
@@ -249,7 +252,7 @@ static void port_plane_sky(rvr_port_plane *pl)
             RvR_render_present();
 #endif
       }
-      RvR_fix16 tex_coord = (RvR_yres()) * tex_step - 1;
+      RvR_fix16 tex_coord = (yres) * tex_step - 1;
       texture_coord = RvR_min(tex_coord, tex_coord - tex_step * (tex_end - middle));
       for(int y = tex_end + 1; y<solid_end + 1; y++)
       {
@@ -296,6 +299,8 @@ static void port_plane_flat(rvr_port_plane *pl)
 
 static void port_plane_slope(rvr_port_plane *pl)
 {
+   int xres = RvR_xres();
+
    RvR_port_slope slope;
    if(pl->where==0)
       RvR_port_slope_from_ceiling(port_map,pl->sector,&slope);
@@ -391,13 +396,13 @@ static void port_plane_slope(rvr_port_plane *pl)
    port_plane_ctx ctx;
    ctx.u0 = u0;
    ctx.u1 = u1;
-   ctx.u2 = u2*(RvR_xres()/2);
+   ctx.u2 = u2*(xres/2);
    ctx.v0 = -v0;
    ctx.v1 = -v1;
-   ctx.v2 = -v2*(RvR_xres()/2);
+   ctx.v2 = -v2*(xres/2);
    ctx.z0 = z0;
    ctx.z1 = z1;
-   ctx.z2 = z2*(RvR_xres()/2);
+   ctx.z2 = z2*(xres/2);
 
    for(int x = pl->min;x<pl->max+2;x++)
    {
@@ -426,6 +431,8 @@ static void port_plane_slope(rvr_port_plane *pl)
 
 static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y)
 {
+   int xres = RvR_xres();
+   int yres = RvR_yres();
 
    //Shouldn't happen
    if(x0>=x1)
@@ -433,7 +440,7 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
 
    //TODO: investigate this further
    //Happens when a floor plane gets drawn at the horizon (should this happen?)
-   int middle_row = RvR_yres()/2+port_cam->shear;
+   int middle_row = yres/2+port_cam->shear;
    if(y==middle_row)
       return;
 
@@ -462,13 +469,13 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    RvR_fix22 view_sin = RvR_fix22_sin(port_cam->dir);
    RvR_fix22 view_cos = RvR_fix22_cos(port_cam->dir);
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov/2);
-   RvR_fix22 fovy = RvR_fix22_div(RvR_yres()*fovx,RvR_xres()*1024);
+   RvR_fix22 fovy = RvR_fix22_div(yres*fovx,xres*1024);
 
    RvR_fix22 span_height = (height-port_cam->z);
    RvR_fix22 fdy = RvR_abs(middle_row-y)*1024;
 
    int64_t slope = RvR_abs((span_height*(INT64_C(1)<<30))/RvR_non_zero(fdy));
-   RvR_fix22 depth = RvR_fix22_div((RvR_yres()/2)*span_height,RvR_non_zero(RvR_fix22_mul(fovy,fdy)));
+   RvR_fix22 depth = RvR_fix22_div((yres/2)*span_height,RvR_non_zero(RvR_fix22_mul(fovy,fdy)));
    depth = RvR_abs(depth);
 
    RvR_fix22 step_x = (RvR_fix22)(((int64_t)view_sin*slope*port_map->sectors[sector].x_units)/(1<<22));
@@ -484,8 +491,8 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    {
       RvR_fix22 wx0 =port_map->walls[port_map->sectors[sector].wall_first].x;
       RvR_fix22 wy0 = port_map->walls[port_map->sectors[sector].wall_first].y;
-      tx = -(port_cam->x-wx0)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-RvR_xres()/2)*step_x;;
-      ty = (port_cam->y-wy0)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-RvR_xres()/2)*step_y;;
+      tx = -(port_cam->x-wx0)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-xres/2)*step_x;;
+      ty = (port_cam->y-wy0)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-xres/2)*step_y;;
 
       //For fixed 16 units
       //tx = -(port_cam->x-wx0)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
@@ -495,8 +502,8 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    {
       int x_wrap = RvR_non_zero(16*4096/RvR_non_zero(port_map->sectors[sector].x_units));
       int y_wrap = RvR_non_zero(16*4096/RvR_non_zero(port_map->sectors[sector].y_units));
-      tx = -(port_cam->x%x_wrap)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-RvR_xres()/2)*step_x;;
-      ty = (port_cam->y%y_wrap)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-RvR_xres()/2)*step_y;;
+      tx = -(port_cam->x%x_wrap)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-xres/2)*step_x;;
+      ty = (port_cam->y%y_wrap)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-xres/2)*step_y;;
 
       //For fixed 16 units
       //tx = -(port_cam->x&4095)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
@@ -576,7 +583,7 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    step_x>>=texture->exp;
    step_y>>=texture->exp;
 
-   uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
+   uint8_t * restrict pix = RvR_framebuffer()+y*xres+x0;
    const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+shade_off)));
    const uint8_t * restrict tex = texture->data;
 
@@ -625,6 +632,9 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
 
 static void port_span_slope(uint16_t sector, uint8_t where, int x0, int x1, int y, port_plane_ctx ctx)
 {
+   int xres = RvR_xres();
+   int yres = RvR_yres();
+
    //Shouldn't happen
    if(x0>=x1)
       return;
@@ -644,13 +654,13 @@ static void port_span_slope(uint16_t sector, uint8_t where, int x0, int x1, int 
    if(texture==NULL)
       return;
 
-   int middle_row = RvR_yres()/2+port_cam->shear;
+   int middle_row = yres/2+port_cam->shear;
    RvR_fix22 step_x = ctx.u0;
    RvR_fix22 step_y = ctx.v0;
-   RvR_fix22 tx = ctx.u2+ctx.u1*(middle_row-y)+ctx.u0*(x0-RvR_xres()/2);
-   RvR_fix22 ty = ctx.v2+ctx.v1*(middle_row-y)+ctx.v0*(x0-RvR_xres()/2);
+   RvR_fix22 tx = ctx.u2+ctx.u1*(middle_row-y)+ctx.u0*(x0-xres/2);
+   RvR_fix22 ty = ctx.v2+ctx.v1*(middle_row-y)+ctx.v0*(x0-xres/2);
 
-   RvR_fix22 z = ctx.z2+ctx.z1*(middle_row-y)+ctx.z0*(x0-RvR_xres()/2);
+   RvR_fix22 z = ctx.z2+ctx.z1*(middle_row-y)+ctx.z0*(x0-xres/2);
    RvR_fix22 step_z = ctx.z0;
 
    RvR_fix22 x_log = RvR_log2(texture->width);
@@ -660,7 +670,7 @@ static void port_span_slope(uint16_t sector, uint8_t where, int x0, int x1, int 
    y_log = RvR_max(0,10-y_log);
    x_and<<=(10-y_log);
 
-   uint8_t * restrict pix = RvR_framebuffer()+y*RvR_xres()+x0;
+   uint8_t * restrict pix = RvR_framebuffer()+y*xres+x0;
    const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(0>>12)+shade_off)));
    const uint8_t * restrict tex = texture->data;
 
