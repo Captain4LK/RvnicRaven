@@ -28,4 +28,54 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function implementations
+
+int RvR_clz8_gen(uint8_t a)
+{
+   int n = 1;
+   if(a==0) return 8;
+   if((a>>4)==0) { n+=4; a<<=4; }
+   if((a>>6)==0) { n+=2; a<<=2; }
+   n = n-(a>>7);
+
+   return n;
+}
+
+int RvR_clz16_gen(uint16_t a)
+{
+   int n = 1;
+   if(a==0) return 16;
+   if((a>>8)==0)  { n+=8; a<<=8; }
+   if((a>>12)==0) { n+=4; a<<=4; }
+   if((a>>14)==0) { n+=2; a<<=2; }
+   n = n-(a>>15);
+
+   return n;
+}
+
+int RvR_clz32_gen(uint32_t a)
+{
+   int n = 1;
+   if(a==0) return 32;
+   if((a>>16)==0) { n+=16; a<<=16; }
+   if((a>>24)==0) { n+=8;  a<<=8; }
+   if((a>>28)==0) { n+=4;  a<<=4; }
+   if((a>>30)==0) { n+=2;  a<<=2; }
+   n = n-(a>>31);
+
+   return n;
+}
+
+int RvR_clz64_gen(uint64_t a)
+{
+   int n = 1;
+   if(a==0) return 64;
+   if((a>>32)==0) { n+=32; a<<=32; }
+   if((a>>48)==0) { n+=16; a<<=16; }
+   if((a>>56)==0) { n+=8; a<<=8; }
+   if((a>>60)==0) { n+=4; a<<=4; }
+   if((a>>62)==0) { n+=2; a<<=2; }
+   n = n-(int)(a>>63);
+
+   return n;
+}
 //-------------------------------------

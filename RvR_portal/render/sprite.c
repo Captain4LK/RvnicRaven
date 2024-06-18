@@ -48,6 +48,9 @@ void RvR_port_draw_sprite(uint16_t sprite, void *ref)
    if(!port_map->sectors[s->sector].visited)
       return;
 
+   int xres = RvR_xres();
+   int yres = RvR_yres();
+
    port_sprite sp = {0};
    sp.flags = s->flags;
    sp.texture = s->tex;
@@ -65,10 +68,10 @@ void RvR_port_draw_sprite(uint16_t sprite, void *ref)
    RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
    RvR_fix22 cos = RvR_fix22_cos(port_cam->dir);
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov / 2);
-   RvR_fix22 fovy = RvR_fix22_div(RvR_yres() * fovx, RvR_xres()*1024);
+   RvR_fix22 fovy = RvR_fix22_div(yres * fovx, xres*1024);
    RvR_fix22 sin_fov = RvR_fix22_mul(sin, fovx);
    RvR_fix22 cos_fov = RvR_fix22_mul(cos, fovx);
-   RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
+   RvR_fix22 middle_row = (yres / 2) + port_cam->shear;
 
    //Wall aligned
    if(s->flags & RVR_PORT_SPRITE_WALL)
@@ -137,7 +140,7 @@ void RvR_port_draw_sprite(uint16_t sprite, void *ref)
 
       //p0
       //-------------------------------------
-      sp.as.wall.x0 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(x0* (RvR_xres() / 2), RvR_non_zero(y0)), RvR_xres() * 1024);
+      sp.as.wall.x0 = RvR_min(xres * 512+ RvR_fix22_div(x0* (xres / 2), RvR_non_zero(y0)), xres * 1024);
       sp.as.wall.z0 = y0;
 
       //Left point left of fov --> needs clipping
@@ -153,7 +156,7 @@ void RvR_port_draw_sprite(uint16_t sprite, void *ref)
 
       //p1
       //-------------------------------------
-      sp.as.wall.x1 = RvR_min(RvR_xres() * 512+ RvR_fix22_div(x1* (RvR_xres() / 2), RvR_non_zero(y1)), RvR_xres() * 1024);
+      sp.as.wall.x1 = RvR_min(xres * 512+ RvR_fix22_div(x1* (xres / 2), RvR_non_zero(y1)), xres * 1024);
       sp.as.wall.z1 = y1;
 
       //Right point right of fov --> needs clipping
@@ -161,7 +164,7 @@ void RvR_port_draw_sprite(uint16_t sprite, void *ref)
       {
          RvR_fix22 dx0 = x1 - x0;
          RvR_fix22 dx1 = y0- x0;
-         sp.as.wall.x1 = RvR_xres() * 1024;
+         sp.as.wall.x1 = xres * 1024;
          sp.as.wall.z1 = x0- RvR_fix22_div(RvR_fix22_mul(dx0, dx1), y1- y0- x1+ x0);
          sp.as.wall.u1 = RvR_fix22_div(RvR_fix22_mul(dx1, sp.as.wall.u1), RvR_non_zero(-y1+ y0+ x1- x0));
       }
@@ -266,28 +269,22 @@ void RvR_port_draw_sprite(uint16_t sprite, void *ref)
    if(s->flags&RVR_PORT_SPRITE_CENTER)
    {
       //Above screen
-      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-(16*8*tex->height)/RvR_non_zero(s->y_units)))
+      if(middle_row * RvR_fix22_mul(depth, fovy)<(yres/2) * (s->z - port_cam->z-(16*8*tex->height)/RvR_non_zero(s->y_units)))
          return;
-      //if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z-tex->height*8))
-         //return;
 
       //Below screen
-      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (16*8*tex->height)/RvR_non_zero(s->y_units)))
+      if((middle_row - yres) * RvR_fix22_mul(depth, fovy)>(yres/2) * (s->z - port_cam->z + (16*8*tex->height)/RvR_non_zero(s->y_units)))
          return;
-      //if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 8))
-         //return;
    }
    else
    {
       //Above screen
-      if(middle_row * RvR_fix22_mul(depth, fovy)<(RvR_yres()/2) * (s->z - port_cam->z))
+      if(middle_row * RvR_fix22_mul(depth, fovy)<(yres/2) * (s->z - port_cam->z))
          return;
 
       //Below screen
-      if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + (16*16*tex->height)/RvR_non_zero(s->y_units)))
+      if((middle_row - yres) * RvR_fix22_mul(depth, fovy)>(yres/2) * (s->z - port_cam->z + (16*16*tex->height)/RvR_non_zero(s->y_units)))
          return;
-      //if((middle_row - RvR_yres()) * RvR_fix22_mul(depth, fovy)>(RvR_yres()/2) * (s->z - port_cam->z + tex->height * 16))
-         //return;
    }
 
    RvR_array_push(port_sprites, sp);

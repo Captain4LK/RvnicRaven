@@ -42,9 +42,10 @@ void player_create_new(Gamestate *state)
       return;
 
    state->player.entity = entity_new(state);
-   state->player.entity->pos[0] = -48431;
-   state->player.entity->pos[1] = -9752;
-   state->player.entity->pos[2] = 0;
+   state->player.entity->pos[0] = 13230;
+   state->player.entity->pos[1] = -37173;
+   state->player.entity->pos[2] = -8128;
+   state->player.entity->dir = -10176;
    state->player.entity->vel[0] = 0;
    state->player.entity->vel[1] = 0;
    state->player.entity->vel[2] = 0;
@@ -126,5 +127,7 @@ void player_update(Gamestate *state)
    state->cam.x = state->player.entity->pos[0];
    state->cam.y = state->player.entity->pos[1];
    state->cam.sector = state->player.entity->sector;
+
+   //printf("%d %d %d %d\n", state->player.entity->pos[0], state->player.entity->pos[1], state->player.entity->pos[2],state->player.entity->dir);
 }
 //-------------------------------------

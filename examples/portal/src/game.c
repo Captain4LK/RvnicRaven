@@ -62,6 +62,11 @@ void game_draw()
    select.x = RvR_xres()/2;
    select.y = RvR_yres()/2;
    RvR_port_draw_map(&select);
+
+   for(int i = 0;i<gamestate->map->sprite_count;i++)
+   {
+      RvR_port_draw_sprite(i,NULL);
+   }
    //printf("%d %d\n",select.tx,select.ty);
 
    RvR_port_draw_end(NULL);

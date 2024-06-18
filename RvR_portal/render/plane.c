@@ -495,8 +495,8 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
       ty = (port_cam->y-wy0)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-xres/2)*step_y;;
 
       //For fixed 16 units
-      //tx = -(port_cam->x-wx0)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
-      //ty = (port_cam->y-wy0)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+      //tx = -(port_cam->x-wx0)*1024*4-4*view_cos*depth+(x0-xres/2)*step_x;;
+      //ty = (port_cam->y-wy0)*1024*4+4*view_sin*depth+(x0-xres/2)*step_y;;
    }
    else
    {
@@ -506,8 +506,8 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
       ty = (port_cam->y%y_wrap)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-xres/2)*step_y;;
 
       //For fixed 16 units
-      //tx = -(port_cam->x&4095)*1024*4-4*view_cos*depth+(x0-RvR_xres()/2)*step_x;;
-      //ty = (port_cam->y&4095)*1024*4+4*view_sin*depth+(x0-RvR_xres()/2)*step_y;;
+      //tx = -(port_cam->x&4095)*1024*4-4*view_cos*depth+(x0-xres/2)*step_x;;
+      //ty = (port_cam->y&4095)*1024*4+4*view_sin*depth+(x0-xres/2)*step_y;;
    }
 
    tx*=-1;

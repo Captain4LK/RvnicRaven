@@ -473,6 +473,15 @@ void RvR_port_draw_map(RvR_port_selection *select)
             int y1 = (int)(fy/1024);
             int can_write = !(port_ytop[x]>port_ybot[x]);
 
+            if(!can_write)
+            {
+               cy+=step_cy;
+               cph+=step_cph;
+               fy+=step_fy;
+               fph+=step_fph;
+               continue;
+            }
+
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
 

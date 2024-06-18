@@ -38,29 +38,32 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
 
 void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
 {
+   int xres = RvR_xres();
+   int yres = RvR_yres();
+
    //After clipping we will never have more than 8 vertices
    RvR_fix22 verts[8][3];
    RvR_fix22 verts2[8][3];
    int verts_count = 4;
    int verts2_count = 0;
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov / 2);
-   RvR_fix22 fovy = RvR_fix22_div(RvR_yres() * fovx, RvR_xres()*1024);
+   RvR_fix22 fovy = RvR_fix22_div(yres * fovx, xres*1024);
    RvR_texture *texture = RvR_texture_get(sp->texture);
-   RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
-   RvR_fix22 middle_row2 = (RvR_yres() / 2) - port_cam->shear;
+   RvR_fix22 middle_row = (yres / 2) + port_cam->shear;
+   RvR_fix22 middle_row2 = (yres / 2) - port_cam->shear;
 
    verts[0][0] = sp->as.floor.x0;
    verts[0][1] = sp->as.floor.z0;
-   verts[0][2] = (sp->z - port_cam->z) * (RvR_yres()/2);
+   verts[0][2] = (sp->z - port_cam->z) * (yres/2);
    verts[1][0] = sp->as.floor.x1;
    verts[1][1] = sp->as.floor.z1;
-   verts[1][2] = (sp->z - port_cam->z) * (RvR_yres()/2);
+   verts[1][2] = (sp->z - port_cam->z) * (yres/2);
    verts[2][0] = sp->as.floor.x2;
    verts[2][1] = sp->as.floor.z2;
-   verts[2][2] = (sp->z - port_cam->z) * (RvR_yres()/2);
+   verts[2][2] = (sp->z - port_cam->z) * (yres/2);
    verts[3][0] = sp->as.floor.x3;
    verts[3][1] = sp->as.floor.z3;
-   verts[3][2] = (sp->z - port_cam->z) * (RvR_yres()/2);
+   verts[3][2] = (sp->z - port_cam->z) * (yres/2);
 
    //Clip to view
    //-------------------------------
@@ -151,11 +154,11 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
 
    //Clip top
    verts_count = 0;
-   RvR_fix22 up = verts2[0][2] + RvR_fix22_mul(verts2[0][1], fovy) * (middle_row2 - RvR_yres());
+   RvR_fix22 up = verts2[0][2] + RvR_fix22_mul(verts2[0][1], fovy) * (middle_row2 - yres);
    for(int i = 0; i<verts2_count; i++)
    {
       int p2 = (i + 1) % verts2_count;
-      RvR_fix22 upn = verts2[p2][2] + RvR_fix22_mul(verts2[p2][1], fovy) * (middle_row2 - RvR_yres());
+      RvR_fix22 upn = verts2[p2][2] + RvR_fix22_mul(verts2[p2][1], fovy) * (middle_row2 - yres);
 
       if(up<=0)
       {
@@ -181,15 +184,15 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
    //Project to screen
    for(int i = 0; i<verts_count; i++)
    {
-      verts[i][0] = RvR_max(0, RvR_min(RvR_xres() * 1024- 1, RvR_xres() * 512+ RvR_fix22_div(verts[i][0] * (RvR_xres() / 2), RvR_non_zero(verts[i][1]))));
-      verts[i][2] = RvR_max(0, RvR_min(RvR_yres() * 1024- 1, middle_row * 1024- RvR_fix22_div(verts[i][2], RvR_non_zero(RvR_fix22_mul(verts[i][1], fovy)))));
+      verts[i][0] = RvR_max(0, RvR_min(xres * 1024- 1, xres * 512+ RvR_fix22_div(verts[i][0] * (xres / 2), RvR_non_zero(verts[i][1]))));
+      verts[i][2] = RvR_max(0, RvR_min(yres * 1024- 1, middle_row * 1024- RvR_fix22_div(verts[i][2], RvR_non_zero(RvR_fix22_mul(verts[i][1], fovy)))));
    }
    //-------------------------------
 
    //Rasterize
    //-------------------------------
    int index_minl = 0;
-   RvR_fix22 xmin = RvR_xres() * 1024;
+   RvR_fix22 xmin = xres * 1024;
    for(int i = 0; i<verts_count; i++)
    {
       if(verts[i][0]<xmin)
@@ -210,7 +213,7 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
 
    int x = (xmin + 1023) / 1024;
 
-   int prev_start = RvR_yres();
+   int prev_start = yres;
    int prev_end = 0;
    for(;;)
    {
@@ -252,8 +255,8 @@ void port_sprite_draw_floor(const port_sprite *sp, RvR_port_selection *select)
 
       while(width-->0)
       {
-         int start = RvR_max(0, RvR_min(RvR_yres() - 1, (le_y + 1023) / 1024));
-         int end = RvR_max(0, RvR_min(RvR_yres() - 1, (re_y + 1023) / 1024));
+         int start = RvR_max(0, RvR_min(yres - 1, (le_y + 1023) / 1024));
+         int end = RvR_max(0, RvR_min(yres - 1, (re_y + 1023) / 1024));
          if(start>end)
          {
             int tmp = start;
@@ -338,30 +341,25 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
    if(texture==NULL)
       return;
 
+   int xres = RvR_xres();
+   int yres = RvR_yres();
+
    RvR_fix22 view_sin = RvR_fix22_sin(port_cam->dir);
    RvR_fix22 view_cos = RvR_fix22_cos(port_cam->dir);
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov / 2);
-   RvR_fix22 fovy = RvR_fix22_div(RvR_yres() * fovx, RvR_xres()*1024);
-   RvR_fix22 middle_row = (RvR_yres() / 2) + port_cam->shear;
+   RvR_fix22 fovy = RvR_fix22_div(yres * fovx, xres*1024);
+   RvR_fix22 middle_row = (yres / 2) + port_cam->shear;
 
    RvR_fix22 dy = middle_row - y;
    RvR_fix22 depth = RvR_fix22_div(RvR_abs(port_cam->z - sp->z), RvR_non_zero(fovy));
-   depth = RvR_fix22_div(depth * (RvR_yres()/2), RvR_non_zero(RvR_abs(dy)*1024)); //TODO
+   depth = RvR_fix22_div(depth * (yres/2), RvR_non_zero(RvR_abs(dy)*1024)); //TODO
 
    RvR_fix22 x_log = RvR_log2(texture->width);
    RvR_fix22 y_log = RvR_log2(texture->height);
    RvR_fix22 step_x = ((sp->y_units*view_sin*(port_cam->z-sp->z))/RvR_non_zero(16*dy));
    RvR_fix22 step_y = ((sp->x_units*view_cos*(port_cam->z-sp->z))/RvR_non_zero(16*dy));
-   //RvR_fix22 step_x = (RvR_fix22)(((int64_t)view_sin*slope*port_map->sectors[sector].x_units)/(1<<22));
-   //RvR_fix22 step_y = (RvR_fix22)(((int64_t)view_cos*slope*port_map->sectors[sector].y_units)/(1<<22));
-   //RvR_fix22 step_x = ((view_sin*(port_cam->z-sp->z))/RvR_non_zero(dy));
-   //RvR_fix22 step_y = ((view_cos*(port_cam->z-sp->z))/RvR_non_zero(dy));
-   RvR_fix22 tx = (port_cam->x-sp->x)*64*sp->y_units+(sp->y_units*view_cos*depth)/16+(x0-RvR_xres()/2)*step_x;
-   RvR_fix22 ty = -(port_cam->y-sp->y)*64*sp->x_units-(sp->x_units*view_sin*depth)/16+(x0-RvR_xres()/2)*step_y;
-   //tx = -(port_cam->x%x_wrap)*256*port_map->sectors[sector].x_units-(port_map->sectors[sector].x_units*view_cos*depth)/4+(x0-RvR_xres()/2)*step_x;;
-   //ty = (port_cam->y%y_wrap)*256*port_map->sectors[sector].y_units+(port_map->sectors[sector].y_units*view_sin*depth)/4+(x0-RvR_xres()/2)*step_y;;
-   //RvR_fix22 tx = (port_cam->x-sp->x)*1024+(view_cos*depth)+(x0-RvR_xres()/2)*step_x;
-   //RvR_fix22 ty = -(port_cam->y-sp->y)*1024-(view_sin*depth)+(x0-RvR_xres()/2)*step_y;
+   RvR_fix22 tx = (port_cam->x-sp->x)*64*sp->y_units+(sp->y_units*view_cos*depth)/16+(x0-xres/2)*step_x;
+   RvR_fix22 ty = -(port_cam->y-sp->y)*64*sp->x_units-(sp->x_units*view_sin*depth)/16+(x0-xres/2)*step_y;
    RvR_fix22 x_and = (1 << x_log) - 1;
    RvR_fix22 y_and = (1 << y_log) - 1;
 
@@ -380,7 +378,7 @@ static void port_floor_span_draw(const port_sprite *sp, int x0, int x1, int y, c
    tx += texture->width * 8192;
    ty += texture->height * 8192;
 
-   uint8_t * restrict pix = RvR_framebuffer() + y * RvR_xres() + x0;
+   uint8_t * restrict pix = RvR_framebuffer() + y * xres + x0;
    const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0, RvR_min(63, (depth >> 12))));
    const uint8_t * restrict tex = texture->data;
 

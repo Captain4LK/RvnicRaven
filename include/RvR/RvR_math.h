@@ -23,24 +23,26 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RvR_sign(a) ((a)>=0?1:-1)
 #define RvR_sign_equal(a, b) (RvR_sign(a)==RvR_sign(b))
 
-inline uint32_t RvR_log2(uint32_t a)
-{
-   //Use builtin if availible
-   //x86 has bsr instruction for this
-#if defined __has_builtin && __has_builtin (__builtin_clz)
-   if(a==0) return 0;
-   return 31-__builtin_clz(a);
+//count leading zeros
+//clz(0) = bitwidth
+//TODO(Captain4LK): generic versions are fairly new, try to fallback on non generic ones?
+#if defined has__builtin && __has_builtin (__builtin_clzg)
+#define RvR_clz8(a) (__builtin_clzg((uint8_t)(a),8))
+#define RvR_clz16(a) (__builtin_clzg((uint16_t)(a),16))
+#define RvR_clz32(a) (__builtin_clzg((uint32_t)(a),32))
+#define RvR_clz64(a) (__builtin_clzg((uint64_t)(a),64))
 #else
-   uint32_t n = 1;
-   if(a==0) return 0; //this is technically incorrect, but doing this would invoke ub in a bunch of places (often: 1<<RvR_log(2))
-   if((a>>16)==0) { n+=16; a<<=16; }
-   if((a>>24)==0) { n+=8;  a<<=8; }
-   if((a>>28)==0) { n+=4;  a<<=4; }
-   if((a>>30)==0) { n+=2;  a<<=2; }
-   n = n-(a>>31);
-
-   return 31-n;
+#define RvR_clz8(a) RvR_clz8_gen(a);
+#define RvR_clz16(a) RvR_clz16_gen(a);
+#define RvR_clz32(a) RvR_clz32_gen(a);
+#define RvR_clz64(a) RvR_clz64_gen(a);
 #endif
-}
+
+int RvR_clz8_gen(uint8_t a);
+int RvR_clz16_gen(uint16_t a);
+int RvR_clz32_gen(uint32_t a);
+int RvR_clz64_gen(uint64_t a);
+
+inline uint32_t RvR_log2(uint32_t a) { if(a==0) return 0; return 31-RvR_clz32(a); }
 
 #endif
