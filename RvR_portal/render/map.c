@@ -298,7 +298,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                }
 
                const uint8_t * restrict tex = &texture->data[(((uint32_t)u)%texture->width)*texture->height];
-               const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
+               const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>13)+port_map->walls[wall->wall].shade_offset)));
                uint8_t * restrict pix = RvR_framebuffer()+(y0*xres+x);
                int stride = xres;
 
@@ -485,6 +485,9 @@ void RvR_port_draw_map(RvR_port_selection *select)
             RvR_fix22 nz = num_z+RvR_fix22_div(num_step_z*(x-x0),RvR_non_zero(wall->x1-wall->x0));
             RvR_fix22 depth = RvR_fix22_div(denom,RvR_non_zero(nz));
 
+            int ytop = port_ytop[x];
+            int ybot = port_ybot[x];
+
             int top = port_ytop[x]+1;
             int bottom = port_ybot[x];
 
@@ -536,7 +539,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   rvr_port_plane_add(wall->sector,0,x,top,bottom);
                }
 
-               const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
+               const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>13)+port_map->walls[wall->wall].shade_offset)));
                if(mid>=y0)
                {
                   int64_t nu_upper = num_u_upper+((num_step_u_upper*(x-x0))*1024/RvR_non_zero(wall->x1-wall->x0));
@@ -663,7 +666,7 @@ void RvR_port_draw_map(RvR_port_selection *select)
                   rvr_port_plane_add(wall->sector,1,x,top,bottom);
                }
 
-               const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+port_map->walls[wall->wall].shade_offset)));
+               const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>13)+port_map->walls[wall->wall].shade_offset)));
                if(mid<=y1)
                {
                   int64_t nu_lower = num_u_lower+((num_step_u_lower*(x-x0))*1024/RvR_non_zero(wall->x1-wall->x0));
@@ -736,18 +739,24 @@ void RvR_port_draw_map(RvR_port_selection *select)
             }
 
             //Depth buffer ceiling
-            RvR_port_depth_buffer_entry *entry = port_depth_buffer_entry_new();
-            entry->depth = depth;
-            entry->limit = port_ytop[x];
-            entry->next = port_depth_buffer.ceiling[x];
-            port_depth_buffer.ceiling[x] = entry;
+            if(ytop<port_ytop[x])
+            {
+               RvR_port_depth_buffer_entry *entry = port_depth_buffer_entry_new();
+               entry->depth = depth;
+               entry->limit = port_ytop[x];
+               entry->next = port_depth_buffer.ceiling[x];
+               port_depth_buffer.ceiling[x] = entry;
+            }
 
             //Depth buffer floor
-            entry = port_depth_buffer_entry_new();
-            entry->depth = depth;
-            entry->limit = port_ybot[x];
-            entry->next = port_depth_buffer.floor[x];
-            port_depth_buffer.floor[x] = entry;
+            if(ybot>port_ybot[x])
+            {
+               RvR_port_depth_buffer_entry *entry = port_depth_buffer_entry_new();
+               entry->depth = depth;
+               entry->limit = port_ybot[x];
+               entry->next = port_depth_buffer.floor[x];
+               port_depth_buffer.floor[x] = entry;
+            }
 
             if(can_write&&port_ytop[x]>port_ybot[x])
                columns_left--;

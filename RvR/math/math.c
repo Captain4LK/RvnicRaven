@@ -35,7 +35,7 @@ int RvR_clz8_gen(uint8_t a)
    if(a==0) return 8;
    if((a>>4)==0) { n+=4; a<<=4; }
    if((a>>6)==0) { n+=2; a<<=2; }
-   n = n-(a>>7);
+   n = n-(int)(a>>7);
 
    return n;
 }
@@ -47,7 +47,7 @@ int RvR_clz16_gen(uint16_t a)
    if((a>>8)==0)  { n+=8; a<<=8; }
    if((a>>12)==0) { n+=4; a<<=4; }
    if((a>>14)==0) { n+=2; a<<=2; }
-   n = n-(a>>15);
+   n = n-(int)(a>>15);
 
    return n;
 }
@@ -60,7 +60,7 @@ int RvR_clz32_gen(uint32_t a)
    if((a>>24)==0) { n+=8;  a<<=8; }
    if((a>>28)==0) { n+=4;  a<<=4; }
    if((a>>30)==0) { n+=2;  a<<=2; }
-   n = n-(a>>31);
+   n = n-(int)(a>>31);
 
    return n;
 }

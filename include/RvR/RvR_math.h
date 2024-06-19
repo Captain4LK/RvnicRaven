@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //count leading zeros
 //clz(0) = bitwidth
 //TODO(Captain4LK): generic versions are fairly new, try to fallback on non generic ones?
-#if defined has__builtin && __has_builtin (__builtin_clzg)
+#if defined __has_builtin && __has_builtin (__builtin_clzg)
 #define RvR_clz8(a) (__builtin_clzg((uint8_t)(a),8))
 #define RvR_clz16(a) (__builtin_clzg((uint16_t)(a),16))
 #define RvR_clz32(a) (__builtin_clzg((uint32_t)(a),32))

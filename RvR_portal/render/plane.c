@@ -584,7 +584,7 @@ static void port_span_flat(uint16_t sector, uint8_t where, int x0, int x1, int y
    step_y>>=texture->exp;
 
    uint8_t * restrict pix = RvR_framebuffer()+y*xres+x0;
-   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>12)+shade_off)));
+   const uint8_t * restrict col = RvR_shade_table((uint8_t)RvR_max(0,RvR_min(63,(depth>>13)+shade_off)));
    const uint8_t * restrict tex = texture->data;
 
 #if RVR_PORT_UNROLL
