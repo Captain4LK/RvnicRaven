@@ -364,6 +364,22 @@ RvR_fix22 RvR_fix22_atan2_slow(RvR_fix22 x, RvR_fix22 y)
 
 RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a)
 {
+   if(a<=1)
+      return a;
+   int32_t s = 16-RvR_clz32(a-1)/2;
+   int32_t g0 = 1<<s;
+   int32_t g1 = (g0+(a>>s))/2;
+
+   while(g1<g0)
+   {
+      g0 = g1;
+      g1 = (g0+(a/g0))/2;
+   }
+
+   return g0*32;
+
+   //Old version, for reference purposes
+   /*
    RvR_fix22 b = 1 << 30;
    RvR_fix22 result = 0;
 
@@ -380,11 +396,28 @@ RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a)
    }
 
    return result >> 11;
+   */
 }
 
 RvR_fix22 RvR_fix22_sqrt64(int64_t a)
 {
-   int64_t b = UINT64_C(1) << 62;
+   //TODO(Captain4LK): I'm not sure if this properly extends to 64 bits
+   if(a<=1)
+      return (RvR_fix22)a;
+   int64_t s = 32-RvR_clz64(a-1)/2;
+   int64_t g0 = 1<<s;
+   int64_t g1 = (g0+(a>>s))/2;
+
+   while(g1<g0)
+   {
+      g0 = g1;
+      g1 = (g0+(a/g0))/2;
+   }
+
+   return (RvR_fix22)g0*32;
+
+   //Old version, for reference purposes
+   /*int64_t b = UINT64_C(1) << 62;
    int64_t result = 0;
 
    while(b>64)
@@ -399,6 +432,6 @@ RvR_fix22 RvR_fix22_sqrt64(int64_t a)
       b >>= 1;
    }
 
-   return (RvR_fix22)(result >> 27);
+   return (RvR_fix22)(result >> 27);*/
 }
 //-------------------------------------

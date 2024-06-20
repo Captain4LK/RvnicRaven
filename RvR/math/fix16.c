@@ -1,7 +1,7 @@
 /*
 RvnicRaven - 16.16 fixed point math
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -356,6 +356,21 @@ RvR_fix16 RvR_fix16_atan2_slow(RvR_fix16 y, RvR_fix16 x)
 
 RvR_fix16 RvR_fix16_sqrt(RvR_fix16 a)
 {
+   if(a<=1)
+      return a;
+   int32_t s = 16-RvR_clz32(a-1)/2;
+   int32_t g0 = 1<<s;
+   int32_t g1 = (g0+(a>>s))/2;
+
+   while(g1<g0)
+   {
+      g0 = g1;
+      g1 = (g0+(a/g0))/2;
+   }
+
+   return g0*256;
+   //Old version, for reference purposes
+   /*
    RvR_fix16 b = 1 << 30;
    RvR_fix16 result = 0;
 
@@ -372,5 +387,6 @@ RvR_fix16 RvR_fix16_sqrt(RvR_fix16 a)
    }
 
    return result >> 8;
+   */
 }
 //-------------------------------------
