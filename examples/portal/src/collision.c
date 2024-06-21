@@ -125,7 +125,8 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
    //TODO(Captain4LK): don't remove from stack, so that we can check if already added
    //should be faster than using up to 8KB bitmap
    RvR_array_length_set(collision_sector_stack, 0);
-   RvR_array_push(collision_sector_stack, e->sector);
+   if(!RvR_key_down(RVR_KEY_C))
+      RvR_array_push(collision_sector_stack, e->sector);
    for(int i = 0; i<RvR_array_length(collision_sector_stack); i++)
    {
       uint16_t sector = collision_sector_stack[i];
@@ -298,8 +299,12 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
 
             //TODO(Captain4LK): maybe only do this projection if the closest point was p0/p1, not the resolving point
             if(nx<=min_p[0])
-               collision_project(e->vel[0], e->vel[1], -(p0_org[1] - (e->pos[1] + RvR_fix22_div(RvR_fix22_mul(e->vel[1], nx), RvR_non_zero(mag)))),
-                                 p0_org[0] - (e->pos[0] + RvR_fix22_div(RvR_fix22_mul(e->vel[0], nx), RvR_non_zero(mag))), &nv[0], &nv[1]);
+               collision_project(e->vel[0], e->vel[1], -(p0_org[1] - (e->pos[1] + ((int64_t)e->vel[1]*nx)/RvR_non_zero(mag))),
+                                 p0_org[0] - (e->pos[0] + ((int64_t)e->vel[0]*nx)/RvR_non_zero(mag)), &nv[0], &nv[1]);
+               //collision_project(e->vel[0], e->vel[1], -(p0_org[1] - (e->pos[1] + RvR_fix22_div(RvR_fix22_mul(e->vel[1], nx), RvR_non_zero(mag)))),
+                                 //p0_org[0] - (e->pos[0] + RvR_fix22_div(RvR_fix22_mul(e->vel[0], nx), RvR_non_zero(mag))), &nv[0], &nv[1]);
+                     //(RvR_fix22)(e->pos[0] + ((int64_t)e->vel[0] * min_p[0]) / RvR_non_zero(mag)),
+                     //(RvR_fix22)(e->pos[1] + ((int64_t)e->vel[1] * min_p[0]) / RvR_non_zero(mag)),
          }
          else if((p1[1] - p0[1]>=0&&rp[1] - p0[1]>p1[1] - p0[1])||
                  (p1[1] - p0[1]<0&&rp[1] - p0[1]<p1[1] - p0[1]))
@@ -428,11 +433,15 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
 
 static void collision_project(RvR_fix22 vx, RvR_fix22 vy, RvR_fix22 bx, RvR_fix22 by, RvR_fix22 *ox, RvR_fix22 *oy)
 {
-   RvR_fix22 b2 = RvR_fix22_mul(bx, bx) + RvR_fix22_mul(by, by);
-   RvR_fix22 ab = RvR_fix22_mul(vx, bx) + RvR_fix22_mul(vy, by);
+   int64_t b2 = (int64_t)bx*bx+(int64_t)by*by;
+   int64_t ab = (int64_t)vx*bx+(int64_t)vy*by;
+   //RvR_fix22 b2 = RvR_fix22_mul(bx, bx) + RvR_fix22_mul(by, by);
+   //RvR_fix22 ab = RvR_fix22_mul(vx, bx) + RvR_fix22_mul(vy, by);
 
-   *ox = RvR_fix22_div(RvR_fix22_mul(bx, ab), RvR_non_zero(b2));
-   *oy = RvR_fix22_div(RvR_fix22_mul(by, ab), RvR_non_zero(b2));
+   *ox = (bx*ab)/RvR_non_zero(b2);
+   *oy = (by*ab)/RvR_non_zero(b2);
+   //*ox = RvR_fix22_div(RvR_fix22_mul(bx, ab), RvR_non_zero(b2));
+   //*oy = RvR_fix22_div(RvR_fix22_mul(by, ab), RvR_non_zero(b2));
 }
 
 static RvR_fix22 collision_point_segment_dist2(const RvR_fix22 p[2], const RvR_fix22 a[2], const RvR_fix22 b[2], RvR_fix22 proj[2])

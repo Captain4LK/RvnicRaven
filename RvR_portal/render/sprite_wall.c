@@ -155,7 +155,7 @@ void port_sprite_draw_wall(const port_sprite *sp, RvR_port_selection *select)
       else
          height = sp->z + scale_vertical - port_cam->z;
       RvR_fix22 coord_step_scaled = (sp->y_units*fovy*depth)/(yres*2);
-      RvR_fix22 texture_coord_scaled = height*256*sp->y_units+(wy-yres/2+1)*coord_step_scaled;
+      RvR_fix22 texture_coord_scaled = height*256*sp->y_units+(wy-middle_row+1)*coord_step_scaled;
       //Vertical flip
       if(sp->flags & RVR_PORT_SPRITE_YFLIP)
       {

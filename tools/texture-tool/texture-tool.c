@@ -239,6 +239,7 @@ int main(int argc, char **argv)
    {
       unsigned mwidth = sp->width/2;
       unsigned mheight = sp->height/2;
+      unsigned block = 2;
       while(mwidth>=1&&mheight>=1)
       {
          if(transposed)
@@ -247,21 +248,56 @@ int main(int argc, char **argv)
             {
                for(int y = 0;y<mheight;y++)
                {
-                  uint8_t c0,c1,c2,c3;
-                  if(transposed)
+                  int count = 0;
+                  int sum_r = 0;
+                  int sum_g = 0;
+                  int sum_b = 0;
+                  for(int ix = 0;ix<block;ix++)
                   {
-                     c0 = sp->data[(x*2)*mheight*2+(y*2)];
-                     c1 = sp->data[(x*2+1)*mheight*2+(y*2)];
-                     c2 = sp->data[(x*2)*mheight*2+(y*2+1)];
-                     c3 = sp->data[(x*2+1)*mheight*2+(y*2+1)];
+                     for(int iy = 0;iy<block;iy++)
+                     {
+                        uint8_t c = sp->data[(x*block+ix)*mheight*block+(y*block+iy)];
+                        if(c==0)
+                           continue;
+                        sum_r+=pal->colors[c].r;
+                        sum_g+=pal->colors[c].g;
+                        sum_b+=pal->colors[c].b;
+                        count++;
+                     }
                   }
-                  else
+
+                  if(count<=(block*block)/2)
                   {
-                     c0 = sp->data[(y*2)*mwidth*2+(x*2)];
-                     c1 = sp->data[(y*2+1)*mwidth*2+(x*2)];
-                     c2 = sp->data[(y*2)*mwidth*2+(x*2+1)];
-                     c3 = sp->data[(y*2+1)*mwidth*2+(x*2+1)];
+                     RvR_rw_write_u8(&cin,0);
+                     continue;
                   }
+
+                  sum_r/=count;
+                  sum_g/=count;
+                  sum_b/=count;
+                  int min_dist = INT_MAX;
+                  uint8_t min_index = 0;
+                  for(int j = 0; j<pal->colors_used; j++)
+                  {
+                     Color pal_color = pal->colors[j];
+                     int dist_r = pal_color.r - sum_r;
+                     int dist_g = pal_color.g - sum_g;
+                     int dist_b = pal_color.b - sum_b;
+                     int dist = dist_r * dist_r + dist_g * dist_g + dist_b * dist_b;
+                     if(dist<min_dist)
+                     {
+                        min_dist = dist;
+                        min_index = (uint8_t)j;
+                     }
+                  }
+                  RvR_rw_write_u8(&cin,min_index);
+
+                  /*uint8_t c0,c1,c2,c3;
+                  c0 = sp->data[(x*2)*mheight*2+(y*2)];
+                  c1 = sp->data[(x*2+1)*mheight*2+(y*2)];
+                  c2 = sp->data[(x*2)*mheight*2+(y*2+1)];
+                  c3 = sp->data[(x*2+1)*mheight*2+(y*2+1)];
+
                   uint32_t r = (pal->colors[c0].r+pal->colors[c1].r+pal->colors[c2].r+pal->colors[c3].r)/4;
                   uint32_t g = (pal->colors[c0].g+pal->colors[c1].g+pal->colors[c2].g+pal->colors[c3].g)/4;
                   uint32_t b = (pal->colors[c0].b+pal->colors[c1].b+pal->colors[c2].b+pal->colors[c3].b)/4;
@@ -281,10 +317,8 @@ int main(int argc, char **argv)
                         min_index = (uint8_t)j;
                      }
                   }
-                  if(transposed)
-                     sp->data[x*mheight+y] = min_index;
-                  else
-                     sp->data[y*mwidth+x] = min_index;
+                  sp->data[x*mheight+y] = min_index;
+                  */
                }
             }
          }
@@ -294,21 +328,55 @@ int main(int argc, char **argv)
             {
                for(int x = 0;x<mwidth;x++)
                {
-                  uint8_t c0,c1,c2,c3;
-                  if(transposed)
+                  int count = 0;
+                  int sum_r = 0;
+                  int sum_g = 0;
+                  int sum_b = 0;
+                  for(int ix = 0;ix<block;ix++)
                   {
-                     c0 = sp->data[(x*2)*mheight*2+(y*2)];
-                     c1 = sp->data[(x*2+1)*mheight*2+(y*2)];
-                     c2 = sp->data[(x*2)*mheight*2+(y*2+1)];
-                     c3 = sp->data[(x*2+1)*mheight*2+(y*2+1)];
+                     for(int iy = 0;iy<block;iy++)
+                     {
+                        uint8_t c = sp->data[(y*block+iy)*mwidth*block+(x*block+ix)];
+                        if(c==0)
+                           continue;
+                        sum_r+=pal->colors[c].r;
+                        sum_g+=pal->colors[c].g;
+                        sum_b+=pal->colors[c].b;
+                        count++;
+                     }
                   }
-                  else
+
+                  if(count<=(block*block)/2)
                   {
-                     c0 = sp->data[(y*2)*mwidth*2+(x*2)];
-                     c1 = sp->data[(y*2+1)*mwidth*2+(x*2)];
-                     c2 = sp->data[(y*2)*mwidth*2+(x*2+1)];
-                     c3 = sp->data[(y*2+1)*mwidth*2+(x*2+1)];
+                     RvR_rw_write_u8(&cin,0);
+                     continue;
                   }
+
+                  sum_r/=count;
+                  sum_g/=count;
+                  sum_b/=count;
+                  int min_dist = INT_MAX;
+                  uint8_t min_index = 0;
+                  for(int j = 0; j<pal->colors_used; j++)
+                  {
+                     Color pal_color = pal->colors[j];
+                     int dist_r = pal_color.r - sum_r;
+                     int dist_g = pal_color.g - sum_g;
+                     int dist_b = pal_color.b - sum_b;
+                     int dist = dist_r * dist_r + dist_g * dist_g + dist_b * dist_b;
+                     if(dist<min_dist)
+                     {
+                        min_dist = dist;
+                        min_index = (uint8_t)j;
+                     }
+                  }
+                  RvR_rw_write_u8(&cin,min_index);
+                  /*uint8_t c0,c1,c2,c3;
+                  c0 = sp->data[(y*2)*mwidth*2+(x*2)];
+                  c1 = sp->data[(y*2+1)*mwidth*2+(x*2)];
+                  c2 = sp->data[(y*2)*mwidth*2+(x*2+1)];
+                  c3 = sp->data[(y*2+1)*mwidth*2+(x*2+1)];
+
                   uint32_t r = (pal->colors[c0].r+pal->colors[c1].r+pal->colors[c2].r+pal->colors[c3].r)/4;
                   uint32_t g = (pal->colors[c0].g+pal->colors[c1].g+pal->colors[c2].g+pal->colors[c3].g)/4;
                   uint32_t b = (pal->colors[c0].b+pal->colors[c1].b+pal->colors[c2].b+pal->colors[c3].b)/4;
@@ -328,19 +396,18 @@ int main(int argc, char **argv)
                         min_index = (uint8_t)j;
                      }
                   }
-                  if(transposed)
-                     sp->data[x*mheight+y] = min_index;
-                  else
-                     sp->data[y*mwidth+x] = min_index;
+                  sp->data[y*mwidth+x] = min_index;
+                  */
                }
             }
          }
 
-         for(int i = 0;i<mwidth*mheight;i++)
-            RvR_rw_write_u8(&cin,sp->data[i]);
+         //for(int i = 0;i<mwidth*mheight;i++)
+            //RvR_rw_write_u8(&cin,sp->data[i]);
 
          mwidth/=2;
          mheight/=2;
+         block*=2;
       }
    }
    RvR_rw_init_path(&cout, path_out, "wb");
