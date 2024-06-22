@@ -33,7 +33,7 @@ static uint16_t *collision_sector_stack = NULL;
 //Function prototypes
 static void collision_project(RvR_fix22 vx, RvR_fix22 vy, RvR_fix22 bx, RvR_fix22 by, RvR_fix22 *ox, RvR_fix22 *oy);
 static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix22 *vy);
-static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height);
+static void collision_movez(Gamestate *state, Entity *e);
 
 static RvR_fix22 collision_point_segment_dist2(const RvR_fix22 p[2], const RvR_fix22 a[2], const RvR_fix22 b[2], RvR_fix22 proj[2]);
 static int collision_intersection_segment(const RvR_fix22 a[2], RvR_fix22 b[2], RvR_fix22 c[2], RvR_fix22 d[2], RvR_fix22 inter[2]);
@@ -50,7 +50,7 @@ void collision_move(Gamestate *state, Entity *e)
    RvR_fix22 vy = e->vel[1];
    RvR_fix22 nvx = vx;
    RvR_fix22 nvy = vy;
-   RvR_fix22 mag_v = RvR_fix22_sqrt(RvR_fix22_mul(vx / 48, vx / 48) + RvR_fix22_mul(vy / 48, vy / 48));
+   RvR_fix22 mag_v = RvR_fix22_sqrt64((int64_t)vx*vx+(int64_t)vy*vy)/32;
 
    RvR_fix22 tot_mag = 0;
    for(int i = 0; i<2; i++)
@@ -69,28 +69,25 @@ void collision_move(Gamestate *state, Entity *e)
 
       RvR_fix22 dx = e->pos[0] - ox;
       RvR_fix22 dy = e->pos[1] - oy;
-      tot_mag += RvR_fix22_sqrt(RvR_fix22_mul(dx, dx) + RvR_fix22_mul(dy, dy));
-      if(tot_mag>=mag_v)
+      tot_mag += RvR_fix22_sqrt64((int64_t)dx*dx+(int64_t)dy*dy)/32;
+      if(tot_mag*48>=mag_v)
          break;
 
-      RvR_fix22 mag_n = RvR_fix22_sqrt(RvR_fix22_mul(nvx, nvx) + RvR_fix22_mul(nvy, nvy));
+      RvR_fix22 mag_n = RvR_fix22_sqrt64((int64_t)nvx*nvx+(int64_t)nvy*nvy)/32;
       if(mag_n==0)
          break;
-      if(mag_n / 48 + tot_mag>mag_v)
+      if(mag_n + tot_mag*48>mag_v)
       {
-         RvR_fix22 scale = RvR_fix22_div((mag_v - tot_mag) * 48, RvR_non_zero(mag_n));
-         nvx = RvR_fix22_mul(nvx, scale);
-         nvy = RvR_fix22_mul(nvy, scale);
+         nvx = (nvx*(mag_v-tot_mag*48))/RvR_non_zero(mag_n);
+         nvy = (nvy*(mag_v-tot_mag*48))/RvR_non_zero(mag_n);
       }
 
       e->vel[0] = nvx;
       e->vel[1] = nvy;
    }
 
-   RvR_fix22 floor_height = 0;
-   RvR_fix22 ceiling_height = 0;
    if(!RvR_key_down(RVR_KEY_P))
-      collision_movez(state, e, &floor_height, &ceiling_height);
+      collision_movez(state, e);
    e->vel[0] = vx;
    e->vel[1] = vy;
 
@@ -134,7 +131,6 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
       for(int j = 0; j<state->map->sectors[sector].wall_count; j++)
       {
          RvR_port_wall *wall = state->map->walls + state->map->sectors[sector].wall_first + j;
-         uint16_t wall_id = state->map->sectors[sector].wall_first + j;
 
          //TODO(Captain4LK): aabb for quick reject?
 
@@ -155,11 +151,11 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
 
          //Rotate --> (e->vx,e->vy) is positive x-axis
          RvR_fix22 tmp = p0[0];
-         p0[0] = ((int64_t)p0[0] * v[0] + (int64_t)p0[1] * v[1]) / (int64_t)RvR_non_zero(mag);
-         p0[1] = ((int64_t)-tmp * v[1] + (int64_t)p0[1] * v[0]) / (int64_t)RvR_non_zero(mag);
+         p0[0] = (RvR_fix22)(((int64_t)p0[0] * v[0] + (int64_t)p0[1] * v[1]) / (int64_t)RvR_non_zero(mag));
+         p0[1] = (RvR_fix22)(((int64_t)-tmp * v[1] + (int64_t)p0[1] * v[0]) / (int64_t)RvR_non_zero(mag));
          tmp = p1[0];
-         p1[0] = ((int64_t)p1[0] * v[0] + (int64_t)p1[1] * v[1]) / (int64_t)RvR_non_zero(mag);
-         p1[1] = ((int64_t)-tmp * v[1] + (int64_t)p1[1] * v[0]) / (int64_t)RvR_non_zero(mag);
+         p1[0] = (RvR_fix22)(((int64_t)p1[0] * v[0] + (int64_t)p1[1] * v[1]) / (int64_t)RvR_non_zero(mag));
+         p1[1] = (RvR_fix22)(((int64_t)-tmp * v[1] + (int64_t)p1[1] * v[0]) / (int64_t)RvR_non_zero(mag));
 
          //Back facing walls are non solid
          //Prevents clipping out of bounds by sliding
@@ -248,8 +244,8 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             //We need to real coordinates of the collision point (cp) here,
             //so we need to inverse the transformation from before
             RvR_fix22 cp_inv[2];
-            cp_inv[0] = ((int64_t)cp[0] * v[0] - (int64_t)cp[1] * v[1]) / RvR_non_zero(mag) + e->pos[0];
-            cp_inv[1] = ((int64_t)cp[0] * v[1] + (int64_t)cp[1] * v[0]) / RvR_non_zero(mag) + e->pos[1];
+            cp_inv[0] = (RvR_fix22)(((int64_t)cp[0] * v[0] - (int64_t)cp[1] * v[1]) / RvR_non_zero(mag) + e->pos[0]);
+            cp_inv[1] = (RvR_fix22)(((int64_t)cp[0] * v[1] + (int64_t)cp[1] * v[0]) / RvR_non_zero(mag) + e->pos[1]);
             RvR_fix22 floor = RvR_port_sector_floor_at(state->map, wall->portal, cp_inv[0], cp_inv[1]);
             RvR_fix22 ceiling = RvR_port_sector_ceiling_at(state->map, wall->portal, cp_inv[0], cp_inv[1]);
 
@@ -299,12 +295,8 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
 
             //TODO(Captain4LK): maybe only do this projection if the closest point was p0/p1, not the resolving point
             if(nx<=min_p[0])
-               collision_project(e->vel[0], e->vel[1], -(p0_org[1] - (e->pos[1] + ((int64_t)e->vel[1]*nx)/RvR_non_zero(mag))),
-                                 p0_org[0] - (e->pos[0] + ((int64_t)e->vel[0]*nx)/RvR_non_zero(mag)), &nv[0], &nv[1]);
-               //collision_project(e->vel[0], e->vel[1], -(p0_org[1] - (e->pos[1] + RvR_fix22_div(RvR_fix22_mul(e->vel[1], nx), RvR_non_zero(mag)))),
-                                 //p0_org[0] - (e->pos[0] + RvR_fix22_div(RvR_fix22_mul(e->vel[0], nx), RvR_non_zero(mag))), &nv[0], &nv[1]);
-                     //(RvR_fix22)(e->pos[0] + ((int64_t)e->vel[0] * min_p[0]) / RvR_non_zero(mag)),
-                     //(RvR_fix22)(e->pos[1] + ((int64_t)e->vel[1] * min_p[0]) / RvR_non_zero(mag)),
+               collision_project(e->vel[0], e->vel[1], (RvR_fix22)(-(p0_org[1] - (e->pos[1] + ((int64_t)e->vel[1]*nx)/RvR_non_zero(mag)))),
+                                 (RvR_fix22)(p0_org[0] - (e->pos[0] + ((int64_t)e->vel[0]*nx)/RvR_non_zero(mag))), &nv[0], &nv[1]);
          }
          else if((p1[1] - p0[1]>=0&&rp[1] - p0[1]>p1[1] - p0[1])||
                  (p1[1] - p0[1]<0&&rp[1] - p0[1]<p1[1] - p0[1]))
@@ -313,8 +305,8 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
             nx = p1[0] - root - 2;
 
             if(nx<=min_p[0])
-               collision_project(e->vel[0], e->vel[1], -(p1_org[1] - (e->pos[1] + RvR_fix22_div(RvR_fix22_mul(e->vel[1], nx), RvR_non_zero(mag)))),
-                                 p1_org[0] - (e->pos[0] + RvR_fix22_div(RvR_fix22_mul(e->vel[0], nx), RvR_non_zero(mag))), &nv[0], &nv[1]);
+               collision_project(e->vel[0], e->vel[1], (RvR_fix22)(-(p1_org[1] - (e->pos[1] + ((int64_t)e->vel[1]*nx)/RvR_non_zero(mag)))),
+                                 (RvR_fix22)(p1_org[0] - (e->pos[0] + ((int64_t)e->vel[0]*nx)/RvR_non_zero(mag))), &nv[0], &nv[1]);
          }
          else
          {
@@ -347,16 +339,11 @@ static void collision_movexy(Gamestate *state, Entity *e, RvR_fix22 *vx, RvR_fix
                      e->pos[2]);
 }
 
-static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
+static void collision_movez(Gamestate *state, Entity *e)
 {
-   RvR_fix22 vz = e->vel[2];
-
-   RvR_fix22 nz = e->pos[2] + vz / 64;
    RvR_fix22 p[2];
    p[0] = e->pos[0];
    p[1] = e->pos[1];
-
-   RvR_fix22 min_z = nz;
 
    RvR_fix22 floor = RvR_port_sector_floor_at(state->map, e->sector, e->pos[0], e->pos[1]);
    RvR_fix22 ceiling = RvR_port_sector_ceiling_at(state->map, e->sector, e->pos[0], e->pos[1]);
@@ -372,7 +359,6 @@ static void collision_movez(Gamestate *state, Entity *e, RvR_fix22 *floor_height
       for(int j = 0; j<state->map->sectors[sector].wall_count; j++)
       {
          RvR_port_wall *wall = state->map->walls + state->map->sectors[sector].wall_first + j;
-         uint16_t wall_id = state->map->sectors[sector].wall_first + j;
 
          RvR_fix22 p0[2];
          RvR_fix22 p1[2];
@@ -435,13 +421,9 @@ static void collision_project(RvR_fix22 vx, RvR_fix22 vy, RvR_fix22 bx, RvR_fix2
 {
    int64_t b2 = (int64_t)bx*bx+(int64_t)by*by;
    int64_t ab = (int64_t)vx*bx+(int64_t)vy*by;
-   //RvR_fix22 b2 = RvR_fix22_mul(bx, bx) + RvR_fix22_mul(by, by);
-   //RvR_fix22 ab = RvR_fix22_mul(vx, bx) + RvR_fix22_mul(vy, by);
 
-   *ox = (bx*ab)/RvR_non_zero(b2);
-   *oy = (by*ab)/RvR_non_zero(b2);
-   //*ox = RvR_fix22_div(RvR_fix22_mul(bx, ab), RvR_non_zero(b2));
-   //*oy = RvR_fix22_div(RvR_fix22_mul(by, ab), RvR_non_zero(b2));
+   *ox = (RvR_fix22)((bx*ab)/RvR_non_zero(b2));
+   *oy = (RvR_fix22)((by*ab)/RvR_non_zero(b2));
 }
 
 static RvR_fix22 collision_point_segment_dist2(const RvR_fix22 p[2], const RvR_fix22 a[2], const RvR_fix22 b[2], RvR_fix22 proj[2])
@@ -526,8 +508,8 @@ static int collision_intersection_segment(const RvR_fix22 a[2], RvR_fix22 b[2], 
          return 0;
    }
 
-   inter[0] = a[0] + ((b[0] - a[0]) * num0) / denom;
-   inter[1] = a[1] + ((b[1] - a[1]) * num0) / denom;
+   inter[0] = (RvR_fix22)(a[0] + ((b[0] - a[0]) * num0) / denom);
+   inter[1] = (RvR_fix22)(a[1] + ((b[1] - a[1]) * num0) / denom);
 
    return 1;
 }
