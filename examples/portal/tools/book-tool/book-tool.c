@@ -13,10 +13,17 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #define OPTPARSE_IMPLEMENTATION
 #define OPTPARSE_API static
 #include "optparse.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#define CUTE_PATH_IMPLEMENTATION
+#include "cute_path.h"
 
 #include "RvR/RvR.h"
 //-------------------------------------
@@ -28,6 +35,23 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
+typedef struct
+{
+   uint8_t r, g, b, a;
+}Color;
+
+typedef struct
+{
+   int colors_used;
+   Color colors[256];
+}Palette;
+
+typedef struct
+{
+   int width;
+   int height;
+   Color *data;
+}Sprite_rgb;
 //-------------------------------------
 
 //Variables
@@ -38,6 +62,15 @@ static void print_help(char **argv);
 
 static char *config_ini_parse(const char *path);
 static char *config_ini(const char *s);
+static Palette *palette_pal(FILE *f);
+static Palette *palette_png(FILE *f);
+static Palette *palette_gpl(FILE *f);
+static Palette *palette_hex(FILE *f);
+static Sprite_rgb *image_load(FILE *f);
+static int chartoi(char in);
+
+static Sprite_rgb *sprite_rgb_create(int width, int height);
+static void sprite_rgb_destroy(Sprite_rgb *s);
 //-------------------------------------
 
 //Function implementations
@@ -48,12 +81,14 @@ int main(int argc, char **argv)
    {
       {"in", 'i', OPTPARSE_REQUIRED},
       {"out", 'o', OPTPARSE_REQUIRED},
+      {"palette", 'p', OPTPARSE_REQUIRED},
       {"help", 'h', OPTPARSE_NONE},
       {0},
    };
 
    const char *path_in = NULL;
    const char *path_out = NULL;
+   const char *path_palette = NULL;
 
    int option;
    struct optparse options;
@@ -71,6 +106,9 @@ int main(int argc, char **argv)
       case 'o':
          path_out = options.optarg;
          break;
+      case 'p':
+         path_palette = options.optarg;
+         break;
       case '?':
          fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
          exit(EXIT_FAILURE);
@@ -87,6 +125,41 @@ int main(int argc, char **argv)
    if(path_out==NULL)
    {
       RvR_log("output definition not specified, try %s -h\n",argv[0]);
+      return EXIT_FAILURE;
+   }
+
+   if(path_palette==NULL)
+   {
+      RvR_log("palette not specified, try %s -h\n",argv[0]);
+      return EXIT_FAILURE;
+   }
+
+   char ext[33] = {0};
+   path_pop_ext(path_palette, NULL, ext);
+   Palette *pal = NULL;
+   FILE *fpal = fopen(path_palette, "r");
+   if(fpal!=NULL)
+   {
+      if(strncmp(ext, "pal", 32)==0)
+         pal = palette_pal(fpal);
+      else if(strncmp(ext, "png", 32)==0)
+         pal = palette_png(fpal);
+      else if(strncmp(ext, "gpl", 32)==0)
+         pal = palette_gpl(fpal);
+      else if(strncmp(ext, "hex", 32)==0)
+         pal = palette_hex(fpal);
+      fclose(fpal);
+   }
+
+   char path_tex[512];
+   path_pop_ext(path_in, path_tex, NULL);
+   strcat(path_tex,".png");
+   FILE *f = fopen(path_tex,"rb");
+   Sprite_rgb *tex_book = image_load(f);
+   fclose(f);
+   if(tex_book->width!=4||tex_book->height!=16)
+   {
+      RvR_log("invalid book texture dimension, must be 4x16\n");
       return EXIT_FAILURE;
    }
 
@@ -132,6 +205,33 @@ int main(int argc, char **argv)
    RvR_rw_write_u8(&rw,book_case);
    RvR_rw_write_u8(&rw,book_shelf);
    RvR_rw_write_u8(&rw,book_slot);
+   for(int i = 0;i<4*16;i++)
+   {
+      int min_dist = INT_MAX;
+      uint8_t min_index = 0;
+      Color color = tex_book->data[i];
+      //if(color.a<=128)
+      //{
+         //tex_out->data[i] = trans_index;
+         //continue;
+      //}
+
+      for(int j = 0; j<pal->colors_used; j++)
+      {
+         Color pal_color = pal->colors[j];
+         int dist_r = pal_color.r - color.r;
+         int dist_g = pal_color.g - color.g;
+         int dist_b = pal_color.b - color.b;
+         int dist = dist_r * dist_r + dist_g * dist_g + dist_b * dist_b;
+         if(dist<min_dist)
+         {
+            min_dist = dist;
+            min_index = (uint8_t)j;
+         }
+      }
+
+      RvR_rw_write_u8(&rw,min_index);
+   }
    RvR_rw_close(&rw);
 
    return 0;
@@ -142,7 +242,8 @@ static void print_help(char **argv)
    RvR_log("%s usage:\n"
            "%s --in filename --out filename\n"
            "   -i, --in          input book definition path\n"
-           "   -o, --out         output book path\n",
+           "   -o, --out         output book path\n"
+           "   -p, --palette     palette for book sprite\n",
            argv[0], argv[0]);
 }
 
@@ -239,5 +340,134 @@ static char *config_ini(const char *s)
    }
 
    return map;
+}
+
+static Palette *palette_pal(FILE *f)
+{
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
+
+   fscanf(f, "JASC-PAL\n0100\n%d\n", &p->colors_used);
+   char buffer[512];
+   for(int i = 0; fgets(buffer, 512, f); i++)
+      sscanf(buffer, "%" SCNu8 "%" SCNu8 "%" SCNu8 "\n", &p->colors[i].r, &p->colors[i].g, &p->colors[i].b);
+   return p;
+}
+
+static Palette *palette_png(FILE *f)
+{
+   Sprite_rgb *s = image_load(f);
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
+   memset(p, 0, sizeof(*p));
+   p->colors_used = RvR_min(256, s->width * s->height);
+   for(int i = 0; i<p->colors_used; i++)
+      p->colors[i] = s->data[i];
+   sprite_rgb_destroy(s);
+
+   return p;
+}
+
+static Palette *palette_gpl(FILE *f)
+{
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
+   if(!p)
+      return NULL;
+   memset(p, 0, sizeof(*p));
+   char buffer[512];
+   int c = 0;
+   int r, g, b;
+
+   while(fgets(buffer, 512, f))
+   {
+      if(buffer[0]=='#')
+         continue;
+      if(sscanf(buffer, "%d %d %d", &r, &g, &b)==3)
+      {
+         p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, r));
+         p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, g));
+         p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, b));
+         p->colors[c].a = 255;
+         c++;
+      }
+   }
+   p->colors_used = c;
+
+   return p;
+}
+
+static Palette *palette_hex(FILE *f)
+{
+
+   Palette *p = RvR_malloc(sizeof(*p), "Palette");
+   if(!p)
+      return NULL;
+   memset(p, 0, sizeof(*p));
+   char buffer[512];
+   int c = 0;
+
+   while(fgets(buffer, 512, f))
+   {
+      p->colors[c].r = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[0]) * 16 + chartoi(buffer[1])));
+      p->colors[c].g = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[2]) * 16 + chartoi(buffer[3])));
+      p->colors[c].b = (uint8_t)RvR_max(0, RvR_min(255, chartoi(buffer[4]) * 16 + chartoi(buffer[5])));
+      p->colors[c].a = 255;
+      c++;
+   }
+   p->colors_used = c;
+
+   return p;
+}
+
+static void sprite_rgb_destroy(Sprite_rgb *s)
+{
+   if(s==NULL)
+      return;
+
+   if(s->data!=NULL)
+      RvR_free(s->data);
+   RvR_free(s);
+}
+
+static Sprite_rgb *image_load(FILE *f)
+{
+   unsigned char *data = NULL;
+   int width = 1;
+   int height = 1;
+   Sprite_rgb *out;
+
+   data = stbi_load_from_file(f, &width, &height, NULL, 4);
+   if(data==NULL)
+   {
+      RvR_log("Failed to load image\n");
+      return sprite_rgb_create(1, 1);
+   }
+
+   out = sprite_rgb_create(width, height);
+   memcpy(out->data, data, width * height * sizeof(*out->data));
+
+   stbi_image_free(data);
+
+   return out;
+}
+
+//Helper function for palette_hex
+static int chartoi(char in)
+{
+   if(in>='0'&&in<='9')
+      return in - '0';
+   if(in>='a'&&in<='f')
+      return in - 'a' + 10;
+   if(in>='A'&&in<='F')
+      return in - 'A' + 10;
+   return 0;
+}
+
+static Sprite_rgb *sprite_rgb_create(int width, int height)
+{
+   Sprite_rgb *s = RvR_malloc(sizeof(*s), "RGB sprite");
+   s->width = width;
+   s->height = height;
+   s->data = RvR_malloc(sizeof(*s->data) * s->width * s->height, "RGB sprite pixel data");
+
+   return s;
 }
 //-------------------------------------

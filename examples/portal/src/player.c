@@ -42,10 +42,10 @@ void player_create_new(Gamestate *state)
       return;
 
    state->player.entity = entity_new(state);
-   state->player.entity->pos[0] = 13230;
-   state->player.entity->pos[1] = -37173;
-   state->player.entity->pos[2] = -8128;
-   state->player.entity->dir = -10176;
+   state->player.entity->pos[0] = 0;
+   state->player.entity->pos[1] = 0;
+   state->player.entity->pos[2] = 0;
+   state->player.entity->dir = 0;
    state->player.entity->vel[0] = 0;
    state->player.entity->vel[1] = 0;
    state->player.entity->vel[2] = 0;

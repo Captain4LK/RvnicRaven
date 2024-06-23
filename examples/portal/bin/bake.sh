@@ -18,6 +18,6 @@ done
 
 # Books
 for f in ../assets/books/*.ini; do
-   ../tools/book-tool/book-tool --in $f --out data/bok`basename $f .ini`.bok;
+   ../tools/book-tool/book-tool --in $f --out data/bok`basename $f .ini`.bok -p ../assets/palette.png;
    echo \"bok`basename $f .ini`.bok\",\"BOK`basename $f .ini`\" >> data/main.csv;
 done

@@ -51,6 +51,6 @@ RvR_texture *RvR_texture_get(uint16_t id); //Returned data is marked cache, to s
 RvR_texture *RvR_texture_get_mipmap(uint16_t id, uint32_t level); //Same as RvR_texture_get(), but tries to find specified mipmap level
 RvR_itexture *RvR_itexture_get(uint16_t id);  //Returned data is marked cache
 void         RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
-void         RvR_texture_create_free(uint16_t id);
+void         RvR_texture_free(uint16_t id);
 
 #endif

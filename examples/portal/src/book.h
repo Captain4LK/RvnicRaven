@@ -24,6 +24,8 @@ typedef struct
    uint8_t bcase;
    uint8_t shelf;
    uint8_t slot;
+
+   uint8_t tex[64];
 }Book;
 
 Book *book_get(uint16_t id);

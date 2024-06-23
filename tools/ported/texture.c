@@ -50,7 +50,7 @@ void texture_list_create()
    texture_list.data_used = 0;
    texture_sky = 0;
 
-   for(unsigned i = 0; i<UINT16_MAX; i++)
+   for(unsigned i = 0; i<=UINT16_MAX; i++)
    {
       char tmp[16];
       snprintf(tmp, 16, "TEX%05d", i);

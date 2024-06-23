@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "RvR/RvR.h"
 #include "RvR/RvR_portal.h"
 //-------------------------------------
@@ -18,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "config.h"
 #include "bookcase.h"
+#include "book.h"
 //-------------------------------------
 
 //#defines
@@ -42,7 +44,6 @@ uint16_t bookcase_insert(uint8_t id, uint8_t shelf, uint8_t slot, uint16_t book)
 
    uint16_t prev = bookcases[id].books[shelf*14+slot];
    bookcases[id].books[shelf*14+slot] = book;
-   bookcase_redraw(id);
 
    return prev;
 }
@@ -50,7 +51,6 @@ uint16_t bookcase_insert(uint8_t id, uint8_t shelf, uint8_t slot, uint16_t book)
 uint16_t bookcase_remove(uint8_t id, uint8_t shelf, uint8_t slot)
 {
    uint16_t book = bookcase_insert(id,shelf,slot,BOOK_INVALID);
-   bookcase_redraw(id);
    return book;
 }
 
@@ -74,8 +74,6 @@ void bookcase_clear(uint8_t id)
          bookcase_remove(id,i,j);
       }
    }
-
-   bookcase_redraw(id);
 }
 
 uint16_t bookcase_texture(uint8_t id)
@@ -83,12 +81,39 @@ uint16_t bookcase_texture(uint8_t id)
    if(id>=BOOKCASE_COUNT)
       return 0;
 
-   return UINT16_MAX-BOOKCASE_COUNT+id+1;
+   return UINT16_MAX-id;
 }
 
 void bookcase_redraw(uint8_t id)
 {
    if(id>=BOOKCASE_COUNT)
       return;
+
+   RvR_texture_create(bookcase_texture(id),64,128);
+   RvR_texture *new = RvR_texture_get(bookcase_texture(id));
+   RvR_texture *src = RvR_texture_get(1);
+   memcpy(new->data,src->data,sizeof(*src->data)*64*128);
+
+   for(int y = 0;y<3;y++)
+   {
+      for(int x = 0;x<14;x++)
+      {
+         uint16_t b = bookcase_at(id,y,x);
+         if(b==BOOK_INVALID)
+            continue;
+
+         Book *book = book_get(b);
+         if(book==NULL)
+            continue;
+
+         for(int ty = 0;ty<16;ty++)
+         {
+            for(int tx = 0;tx<4;tx++)
+            {
+               new->data[(x*4+4+tx)*64+y+4+ty] = book->tex[ty*4+x];
+            }
+         }
+      }
+   }
 }
 //-------------------------------------

@@ -77,6 +77,10 @@ static void book_load(uint16_t id)
    books[id]->bcase = RvR_rw_read_u8(&rw_pak);
    books[id]->shelf = RvR_rw_read_u8(&rw_pak);
    books[id]->slot = RvR_rw_read_u8(&rw_pak);
+   for(int i = 0;i<64;i++)
+   {
+      books[id]->tex[i] = RvR_rw_read_u8(&rw_pak);
+   }
    RvR_rw_close(&rw_pak);
 
    RvR_mem_tag_set(mem_pak, RVR_MALLOC_CACHE);

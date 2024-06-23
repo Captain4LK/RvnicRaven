@@ -21,5 +21,5 @@ done
 
 echo "obj= $obj"
 
-printf "book-tool: \$(obj)\n\tgcc -o ./book-tool $^ $CFLAGS ../../../../RvR/libRvR_sdl2.a -lSDL2\nclean:\n\trm -f \$(obj) ./book-tool \n"
+printf "book-tool: \$(obj)\n\tgcc -o ./book-tool $^ $CFLAGS ../../../../RvR/libRvR_sdl2.a -lSDL2 -lm\nclean:\n\trm -f \$(obj) ./book-tool \n"
 

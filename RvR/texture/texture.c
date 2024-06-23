@@ -218,14 +218,13 @@ RvR_err:
 
 void RvR_texture_create(uint16_t id, int width, int height)
 {
+   RvR_texture_free(id);
+
    if(rvr_textures==NULL)
    {
       rvr_textures = RvR_malloc(sizeof(*rvr_textures) * (UINT16_MAX + 1), "RvR texture cache");
       memset(rvr_textures, 0, sizeof(*rvr_textures) * (UINT16_MAX + 1));
    }
-
-   if(rvr_textures[id]!=NULL)
-      return;
 
    rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height, "RvR texture");
    rvr_textures[id]->width = width;
@@ -235,8 +234,11 @@ void RvR_texture_create(uint16_t id, int width, int height)
    rvr_textures[id]->anim_speed = 0;
 }
 
-void RvR_texture_create_free(uint16_t id)
+void RvR_texture_free(uint16_t id)
 {
+   if(rvr_textures==NULL||rvr_textures[id]==NULL)
+      return;
+
    RvR_free(rvr_textures[id]);
    rvr_textures[id] = NULL;
 }
