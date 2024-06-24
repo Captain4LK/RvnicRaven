@@ -11,15 +11,19 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "RvR/RvR.h"
 #include "RvR/RvR_portal.h"
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "state.h"
 #include "game.h"
 #include "gamestate.h"
 #include "player.h"
+#include "bookcase.h"
+#include "book.h"
 //-------------------------------------
 
 //#defines
@@ -58,10 +62,9 @@ void game_draw()
 {
    RvR_port_draw_begin(gamestate->map, &gamestate->cam);
 
-   RvR_port_selection select = {0};
-   select.x = RvR_xres()/2;
-   select.y = RvR_yres()/2;
-   RvR_port_draw_map(&select);
+   gamestate->select.x = RvR_xres()/2;
+   gamestate->select.y = RvR_yres()/2;
+   RvR_port_draw_map(&gamestate->select);
 
    for(int i = 0;i<gamestate->map->sprite_count;i++)
    {
@@ -72,6 +75,35 @@ void game_draw()
    RvR_port_draw_end(NULL);
 
    RvR_render_rectangle_fill(RvR_xres()/2-1,RvR_yres()/2-1,2,2,1);
+
+   //
+   uint16_t book_hover = BOOK_INVALID;
+   if((gamestate->select.type==RVR_PORT_SWALL_BOT))
+   {
+      RvR_port_wall *wall = gamestate->map->walls+gamestate->select.as.wall;
+      if(wall->tex_lower>(UINT16_MAX-BOOKCASE_COUNT)&&gamestate->select.depth<2048)
+      {
+         int tx = gamestate->select.tx;
+         int ty = gamestate->select.ty;
+
+         if(tx<4&&tx>=60)
+            book_hover = BOOK_INVALID;
+         else if(ty>=8&&ty<=24)
+            book_hover = bookcase_at(-(wall->tex_lower-UINT16_MAX),0,(tx-4)/4);
+         else if(ty>=28&&ty<=48)
+            book_hover = bookcase_at(-(wall->tex_lower-UINT16_MAX),1,(tx-4)/4);
+         else if(ty>=52&&ty<=72)
+            book_hover = bookcase_at(-(wall->tex_lower-UINT16_MAX),2,(tx-4)/4);
+      }
+   }
+
+   if(book_hover!=BOOK_INVALID)
+   {
+      Book *book = book_get(book_hover);
+      int len = strlen(book->title);
+      RvR_render_rectangle_fill(RvR_xres()/2-(len*5)/2-2,RvR_yres()-18,len*5+4,12,12);
+      RvR_render_string(RvR_xres()/2-(len*5)/2,RvR_yres()-16,1,book->title,1);
+   }
 
    /*RvR_render_texture(RvR_texture_get_mipmap(0,0),4,4);
    RvR_render_texture(RvR_texture_get_mipmap(0,1),72,4);

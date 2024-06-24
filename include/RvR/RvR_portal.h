@@ -115,9 +115,9 @@ typedef struct
 
    union
    {
-      int16_t wall;
-      int16_t sector;
-      int16_t sprite;
+      uint16_t wall;
+      uint16_t sector;
+      uint16_t sprite;
    }as;
 }RvR_port_selection;
 

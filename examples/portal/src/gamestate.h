@@ -67,6 +67,7 @@ typedef struct
 {
    RvR_port_map *map;
    RvR_port_cam cam;
+   RvR_port_selection select;
 
    Entity *entities;
    Player player;

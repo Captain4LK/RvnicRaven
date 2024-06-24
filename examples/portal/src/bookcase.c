@@ -110,7 +110,7 @@ void bookcase_redraw(uint8_t id)
          {
             for(int tx = 0;tx<4;tx++)
             {
-               new->data[(x*4+4+tx)*64+y+4+ty] = book->tex[ty*4+x];
+               new->data[(x*4+4+tx)*128+y*24+8+ty] = book->tex[ty*4+x];
             }
          }
       }

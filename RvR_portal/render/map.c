@@ -929,7 +929,7 @@ static void wall_draw_portal(RvR_port_selection *select, RvR_port_dwall *wall,
                select->as.wall = wall->wall;
                select->depth = depth;
                select->tx = u_lower%texture_lower->width;
-               select->ty = (((select->y-y0)*coord_step_scaled+texture_coord_scaled)>>16)&y_and;
+               select->ty = (((select->y-mid)*coord_step_scaled+texture_coord_scaled)>>16)&y_and;
             }
 
             const uint8_t * restrict tex = &texture_lower->data[(((uint32_t)u_lower)%texture_lower->width)*texture_lower->height];
@@ -1431,7 +1431,7 @@ static void wall_draw_portal_floor(RvR_port_selection *select, RvR_port_dwall *w
                select->as.wall = wall->wall;
                select->depth = depth;
                select->tx = u_lower%texture_lower->width;
-               select->ty = (((select->y-y0)*coord_step_scaled+texture_coord_scaled)>>16)&y_and;
+               select->ty = (((select->y-mid)*coord_step_scaled+texture_coord_scaled)>>16)&y_and;
             }
 
             const uint8_t * restrict tex = &texture_lower->data[(((uint32_t)u_lower)%texture_lower->width)*texture_lower->height];

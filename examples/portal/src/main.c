@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "config.h"
 #include "state.h"
+#include "bookcase.h"
 //-------------------------------------
 
 //#defines
@@ -58,6 +59,12 @@ int main(int argc, char **argv)
 
    state_init(STATE_GAME);
    state_set(STATE_GAME);
+
+   bookcase_clear(0);
+   bookcase_insert(0,0,3,0);
+   bookcase_insert(0,1,8,1);
+   bookcase_insert(0,2,0,0);
+   bookcase_redraw(0);
 
    while(RvR_running())
    {
