@@ -19,7 +19,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "config.h"
 #include "player.h"
 #include "entity.h"
+#include "gamestate.h"
 #include "collision.h"
+#include "book.h"
+#include "bookcase.h"
 //-------------------------------------
 
 //#defines
@@ -128,6 +131,48 @@ void player_update(Gamestate *state)
    state->cam.y = state->player.entity->pos[1];
    state->cam.sector = state->player.entity->sector;
 
-   //printf("%d %d %d %d\n", state->player.entity->pos[0], state->player.entity->pos[1], state->player.entity->pos[2],state->player.entity->dir);
+   //Hover book
+   int book_hover = 0;
+   uint8_t book_case;
+   uint8_t book_shelf;
+   uint8_t book_slot;
+   if((state->select.type==RVR_PORT_SWALL_BOT))
+   {
+      RvR_port_wall *wall = state->map->walls+state->select.as.wall;
+      if(wall->tex_lower>(UINT16_MAX-BOOKCASE_COUNT)&&state->select.depth<2048)
+      {
+         int tx = state->select.tx;
+         int ty = state->select.ty;
+         book_case = -(wall->tex_lower-UINT16_MAX);
+
+         if(tx<4||tx>=60)
+         {
+            book_hover = 0;
+         }
+         else if(ty>=8&&ty<=24)
+         {
+            book_shelf = 0;
+            book_slot = (tx-4)/4;
+            book_hover = 1;
+         }
+         else if(ty>=28&&ty<=48)
+         {
+            book_shelf = 1;
+            book_slot = (tx-4)/4;
+            book_hover = 1;
+         }
+         else if(ty>=52&&ty<=72)
+         {
+            book_shelf = 2;
+            book_slot = (tx-4)/4;
+            book_hover = 1;
+         }
+      }
+   }
+
+   if(book_hover)
+   {
+      //puts(book_get(bookcase_at(book_case,book_shelf,book_slot))->title);
+   }
 }
 //-------------------------------------

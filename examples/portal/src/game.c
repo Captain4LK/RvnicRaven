@@ -24,6 +24,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "player.h"
 #include "bookcase.h"
 #include "book.h"
+#include "color.h"
 //-------------------------------------
 
 //#defines
@@ -70,7 +71,6 @@ void game_draw()
    {
       RvR_port_draw_sprite(i,NULL);
    }
-   //printf("%d %d\n",select.tx,select.ty);
 
    RvR_port_draw_end(NULL);
 
@@ -86,7 +86,7 @@ void game_draw()
          int tx = gamestate->select.tx;
          int ty = gamestate->select.ty;
 
-         if(tx<4&&tx>=60)
+         if(tx<4||tx>=60)
             book_hover = BOOK_INVALID;
          else if(ty>=8&&ty<=24)
             book_hover = bookcase_at(-(wall->tex_lower-UINT16_MAX),0,(tx-4)/4);
@@ -101,16 +101,8 @@ void game_draw()
    {
       Book *book = book_get(book_hover);
       int len = strlen(book->title);
-      RvR_render_rectangle_fill(RvR_xres()/2-(len*5)/2-2,RvR_yres()-18,len*5+4,12,12);
-      RvR_render_string(RvR_xres()/2-(len*5)/2,RvR_yres()-16,1,book->title,1);
+      RvR_render_rectangle_fill(RvR_xres()/2-(len*5)/2-2,RvR_yres()-18,len*5+4,12,color_light_gray);
+      RvR_render_string(RvR_xres()/2-(len*5)/2,RvR_yres()-16,1,book->title,color_black);
    }
-
-   /*RvR_render_texture(RvR_texture_get_mipmap(0,0),4,4);
-   RvR_render_texture(RvR_texture_get_mipmap(0,1),72,4);
-   RvR_render_texture(RvR_texture_get_mipmap(0,2),108,4);
-   RvR_render_texture(RvR_texture_get_mipmap(0,3),128,4);
-   RvR_render_texture(RvR_texture_get_mipmap(0,4),140,4);
-   RvR_render_texture(RvR_texture_get_mipmap(0,5),148,4);
-   RvR_render_texture(RvR_texture_get_mipmap(0,6),153,4);*/
 }
 //-------------------------------------
