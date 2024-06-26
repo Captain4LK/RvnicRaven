@@ -49,6 +49,7 @@ struct Entity
    uint32_t col_flags;
    //-------------------------------------
 
+
    //Linked list
    Entity **prev_next;
    Entity *next;
