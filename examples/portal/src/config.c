@@ -38,6 +38,7 @@ RvR_key config_strafe_left = RVR_KEY_A;
 RvR_key config_strafe_right = RVR_KEY_D;
 RvR_key config_jump = RVR_KEY_SPACE;
 RvR_key config_use = RVR_BUTTON_RIGHT;
+RvR_key config_crouch = RVR_KEY_LCTRL;
 //-------------------------------------
 
 //Function prototypes
@@ -65,6 +66,7 @@ void config_read(const char *path)
    ini_read(ini, &config_strafe_right, CONFIG_KEY, "strafe_right");
    ini_read(ini, &config_jump, CONFIG_KEY, "jump");
    ini_read(ini, &config_use, CONFIG_KEY, "use");
+   ini_read(ini, &config_crouch, CONFIG_KEY, "crouch");
 
    RvR_free(ini);
 }
@@ -83,6 +85,7 @@ void config_write(const char *path)
    RvR_rw_printf(&rw, "strafe_right=%s\n", config_keytostr(config_strafe_right));
    RvR_rw_printf(&rw, "jump=%s\n", config_keytostr(config_jump));
    RvR_rw_printf(&rw, "use=%s\n", config_keytostr(config_use));
+   RvR_rw_printf(&rw, "crouch=%s\n", config_keytostr(config_crouch));
 
    RvR_rw_close(&rw);
 }

@@ -21,6 +21,7 @@ extern RvR_key config_strafe_left;
 extern RvR_key config_strafe_right;
 extern RvR_key config_jump;
 extern RvR_key config_use;
+extern RvR_key config_crouch;
 
 void config_read(const char *path);
 void config_write(const char *path);

@@ -55,6 +55,7 @@ void player_create_new(Gamestate *state)
    state->player.entity->height = 1636;
    state->player.entity->radius = 256;
    state->player.entity->step_height = 256;
+   state->player.entity->accel_mod = 1024;
 }
 
 void player_update(Gamestate *state)
@@ -88,8 +89,8 @@ void player_update(Gamestate *state)
 
    RvR_fix22 dirx = RvR_fix22_cos(state->player.entity->dir);
    RvR_fix22 diry = RvR_fix22_sin(state->player.entity->dir);
-   dirx *= 1;
-   diry *= 1;
+   dirx = RvR_fix22_mul(dirx,player->entity->accel_mod);
+   diry = RvR_fix22_mul(diry,player->entity->accel_mod);
 
    if(RvR_key_down(config_move_forward))
    {
@@ -119,10 +120,25 @@ void player_update(Gamestate *state)
    }
    state->player.entity->vel[2] -= 910;
 
+   //Crouching
+   if(RvR_key_pressed(config_crouch))
+   {
+      state->player.entity->pos[2]+=836;
+      state->player.entity->height = 800;
+      player->entity->accel_mod = 512;
+   }
+   else if(RvR_key_released(config_crouch))
+   {
+      state->player.entity->pos[2]-=836;
+      state->player.entity->height = 1636;
+      player->entity->accel_mod = 1024;
+   }
+
    collision_move(state, state->player.entity);
 
    player->vis_off_vel += RvR_fix22_mul(player->entity->vel[2] - player->vis_off_vel, 450);
-   RvR_fix22 dz = player->entity->pos[2] + 1436 - state->cam.z;
+   RvR_fix22 dz = player->entity->pos[2] + (player->entity->height-200) - state->cam.z;
+   //RvR_fix22 dz = player->entity->pos[2] + 1436 - state->cam.z;
    player->vis_off_vel += RvR_fix22_mul(dz * 64, 96);
    state->cam.z += player->vis_off_vel / 64;
 

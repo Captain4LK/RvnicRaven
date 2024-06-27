@@ -15,7 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 typedef enum
 {
    AI_NONE = 0,
-   AI_ITEM = 1,
+   AI_BOOK = 1,
 }AI_type;
 
 void ai_run(Entity *e);
@@ -23,6 +23,5 @@ void ai_free(Entity *e);
 void ai_init(Entity *e, uint32_t ai_type, const uint32_t args[4]);
 
 void ai_on_use(Entity *e, Entity *trigger);
-void ai_on_touch(Entity *e, Entity *trigger);
 
 #endif

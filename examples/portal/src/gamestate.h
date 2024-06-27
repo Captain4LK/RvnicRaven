@@ -44,11 +44,16 @@ struct Entity
    RvR_fix22 height;
    RvR_fix22 px;
    RvR_fix22 py;
+   RvR_fix22 accel_mod;
 
    //bit0: shootable
    uint32_t col_flags;
    //-------------------------------------
-
+   
+   //AI
+   uint32_t ai_type;
+   void *ai_data;
+   //-------------------------------------
 
    //Linked list
    Entity **prev_next;
