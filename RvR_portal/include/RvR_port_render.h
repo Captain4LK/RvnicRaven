@@ -17,7 +17,7 @@ typedef struct
    uint32_t flags;
    uint16_t sector;
    uint16_t texture;
-   uint16_t sprite;
+   //uint16_t sprite;
    uint8_t x_units;
    uint8_t y_units;
    void *ref;

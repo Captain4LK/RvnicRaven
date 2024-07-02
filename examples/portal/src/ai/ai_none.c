@@ -41,8 +41,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void ai_none_run(Entity *e)
 {
    e->ai_data = NULL;
-   e->radius = 0;
-   e->height = 0;
 }
 
 void ai_none_free(Entity *e)

@@ -69,7 +69,7 @@ void game_draw()
 
    for(int i = 0;i<gamestate->map->sprite_count;i++)
    {
-      RvR_port_draw_sprite(i,NULL);
+      RvR_port_draw_sprite(gamestate->map->sprites+i,NULL);
    }
 
    RvR_port_draw_end(NULL);

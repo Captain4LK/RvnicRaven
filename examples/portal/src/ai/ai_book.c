@@ -21,7 +21,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "entity.h"
 #include "ai.h"
 
-#include "ai/ai_none.h"
 #include "ai/ai_book.h"
 //-------------------------------------
 
@@ -29,6 +28,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
+typedef struct
+{
+}AI_book_state;
 //-------------------------------------
 
 //Variables
@@ -39,61 +41,22 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-void ai_run(Entity *e)
+void ai_book_run(Entity *e)
 {
-   if(e==NULL)
-      return;
-
-   switch(e->ai_type)
-   {
-   case AI_NONE: ai_none_run(e); break;
-   case AI_BOOK: ai_book_run(e); break;
-   }
+   e->ai_data = NULL;
+   e->radius = 0;
+   e->height = 0;
 }
 
-void ai_free(Entity *e)
+void ai_book_free(Entity *e)
 {
-   if(e==NULL)
-      return;
-
-   switch(e->ai_type)
-   {
-   case AI_NONE: ai_none_free(e); break;
-   case AI_BOOK: ai_book_free(e); break;
-   }
 }
 
-void ai_init(Entity *e, uint32_t ai_type, const uint32_t args[4])
+void ai_book_init(Entity *e, const uint32_t args[4])
 {
-   if(e==NULL)
-      return;
-
-   e->ai_type = ai_type;
-
-   switch(ai_type)
-   {
-   case AI_NONE: ai_none_init(e,args); break;
-   case AI_BOOK: ai_book_init(e,args); break;
-   }
 }
 
-void ai_on_use(Entity *e, Entity *trigger)
+void ai_book_on_use(Entity *e, Entity *trigger)
 {
-   if(e==NULL)
-      return;
-
-   switch(e->ai_type)
-   {
-   case AI_NONE: ai_none_on_use(e,trigger); break;
-   case AI_BOOK: ai_book_on_use(e,trigger); break;
-   }
-}
-
-uint32_t ai_type_from_tex(uint16_t tex)
-{
-   if(tex==57344)
-      return AI_BOOK;
-
-   return AI_NONE;
 }
 //-------------------------------------

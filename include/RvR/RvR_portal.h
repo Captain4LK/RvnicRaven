@@ -252,7 +252,7 @@ RvR_fix22 RvR_port_slope_height_at(const RvR_port_slope *slope, RvR_fix22 x, RvR
 void  RvR_port_draw_begin(const RvR_port_map *map, const RvR_port_cam *cam);
 void  RvR_port_draw_map(RvR_port_selection *select);
 void  RvR_port_draw_end(RvR_port_selection *select);
-void  RvR_port_draw_sprite(uint16_t sprite, void *ref);
+void  RvR_port_draw_sprite(RvR_port_sprite *spr, void *ref);
 void  RvR_port_draw_report(RvR_port_report *report);
 
 const RvR_port_depth_buffer_entry *RvR_port_depth_buffer_entry_floor(int x);

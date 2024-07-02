@@ -435,7 +435,7 @@ static void e3d_draw_view(void)
    RvR_port_draw_map(&world_selection);
 
    for(int i = 0; i<map->sprite_count; i++)
-      RvR_port_draw_sprite(i, NULL);
+      RvR_port_draw_sprite(map->sprites+i, NULL);
 
    RvR_port_draw_end(&world_selection);
 

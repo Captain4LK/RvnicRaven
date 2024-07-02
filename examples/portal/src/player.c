@@ -168,19 +168,19 @@ void player_update(Gamestate *state)
          else if(ty>=8&&ty<=24)
          {
             book_shelf = 0;
-            book_slot = (tx-4)/4;
+            book_slot = (uint8_t)(tx-4)/4;
             book_hover = 1;
          }
          else if(ty>=28&&ty<=48)
          {
             book_shelf = 1;
-            book_slot = (tx-4)/4;
+            book_slot = (uint8_t)(tx-4)/4;
             book_hover = 1;
          }
          else if(ty>=52&&ty<=72)
          {
             book_shelf = 2;
-            book_slot = (tx-4)/4;
+            book_slot = (uint8_t)(tx-4)/4;
             book_hover = 1;
          }
       }
@@ -188,7 +188,6 @@ void player_update(Gamestate *state)
 
    if(book_hover)
    {
-      //puts(book_get(bookcase_at(book_case,book_shelf,book_slot))->title);
    }
 }
 //-------------------------------------
