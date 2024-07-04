@@ -227,7 +227,7 @@ static Entity_documented *entity_doc_load(World *w, uint64_t id)
    RvR_rw_close(&rw);
 
    RvR_rw_init_const_mem(&rw_decomp, entity_doc_buffer, size);
-   int32_t size_out = 0;
+   size_t size_out = 0;
    mem_decomp = RvR_crush_decompress(&rw_decomp, &size_out);
    RvR_mem_tag_set(mem_decomp, RVR_MALLOC_STATIC);
    RvR_rw_close(&rw_decomp);

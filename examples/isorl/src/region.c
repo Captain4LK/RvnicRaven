@@ -188,7 +188,7 @@ Region *region_get(World *w, unsigned x, unsigned y)
    //Decompress and read region
    //-------------------------------------
    RvR_rw_init_const_mem(&rw_decomp, region_buffer, size);
-   int32_t size_out = 0;
+   size_t size_out = 0;
    mem_decomp = RvR_crush_decompress(&rw_decomp, &size_out);
    RvR_mem_tag_set(mem_decomp, RVR_MALLOC_STATIC);
    RvR_rw_close(&rw_decomp);

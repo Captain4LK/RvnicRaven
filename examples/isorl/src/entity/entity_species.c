@@ -54,7 +54,7 @@ RvR_err:
 static void entity_species_load(uint16_t id)
 {
    uint8_t *mem_pak = NULL;
-   unsigned size_in = 0;
+   size_t size_in = 0;
    RvR_rw rw = {0};
 
    if(entity_species==NULL)

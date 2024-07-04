@@ -58,6 +58,11 @@ void gamestate_map(Gamestate *s, uint16_t id)
       return;
 
    s->map = RvR_port_map_load(id);
+   for(int i = 0;i<s->map->sprite_count;i++)
+   {
+      RvR_port_sprite *sp = s->map->sprites+i;
+   }
+
    s->cam.x = s->player.entity->pos[0];
    s->cam.y = s->player.entity->pos[1];
    s->cam.z = s->player.entity->pos[2];
