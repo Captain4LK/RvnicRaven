@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -58,7 +58,7 @@ void astar_init(Area *a)
 {
    if(nodes!=NULL)
       RvR_free(nodes);
-   nodes = RvR_malloc(sizeof(*nodes) * a->dimx * 32 * a->dimy * 32 * a->dimz * 32, "A* nodes");
+   nodes = RvR_malloc(sizeof(*nodes) * AREA_DIM * 32 * AREA_DIM * 32 * AREA_DIM * 32, "A* nodes");
 
    if(heap==NULL)
       heap = RvR_malloc(sizeof(*heap) * ASTAR_HEAP_SIZE, "A* heap");
@@ -66,10 +66,10 @@ void astar_init(Area *a)
 
 uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t flags)
 {
-   memset(nodes, 0, sizeof(*nodes) * a->dimx * 32 * a->dimy * 32 * a->dimz * 32);
+   memset(nodes, 0, sizeof(*nodes) * AREA_DIM * 32 * AREA_DIM * 32 * AREA_DIM * 32);
    heap_count = 0;
    Point p = e->pos;
-   unsigned nindex = p.z * a->dimy * 32 * a->dimx * 32 + p.y * a->dimx * 32 + p.x;
+   unsigned nindex = p.z * AREA_DIM * 32 * AREA_DIM * 32 + p.y * AREA_DIM * 32 + p.x;
    AS_node *n = nodes + nindex;
    n->cost = 0;
    n->visited = 1;
@@ -82,9 +82,9 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
       n = nodes + nindex;
       as_heap_pop();
 
-      p.z = (int16_t)(nindex / (a->dimx * 32 * a->dimy * 32));
-      p.y = (int16_t)((nindex - p.z * a->dimx * 32 * a->dimy * 32) / (a->dimx * 32));
-      p.x = (int16_t)(nindex % (a->dimx * 32));
+      p.z = (int16_t)(nindex / (AREA_DIM * 32 * AREA_DIM * 32));
+      p.y = (int16_t)((nindex - p.z * AREA_DIM * 32 * AREA_DIM * 32) / (AREA_DIM * 32));
+      p.x = (int16_t)(nindex % (AREA_DIM * 32));
       if(point_equal(p, dst))
       {
          found = 1;
@@ -98,7 +98,7 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
 
          if(entity_pos_valid(a, e, next)||point_equal(next, dst))
          {
-            unsigned nnext_index = next.z * a->dimx * 32 * a->dimy * 32 + next.y * a->dimx * 32 + next.x;
+            unsigned nnext_index = next.z * AREA_DIM * 32 * AREA_DIM * 32 + next.y * AREA_DIM * 32 + next.x;
             AS_node *nnext = nodes + nnext_index;
             uint16_t cost = n->cost + 1;
 
@@ -124,7 +124,7 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
          {
             next.z--;
 
-            unsigned nnext_index = next.z * a->dimx * 32 * a->dimy * 32 + next.y * a->dimx * 32 + next.x;
+            unsigned nnext_index = next.z * AREA_DIM * 32 * AREA_DIM * 32 + next.y * AREA_DIM * 32 + next.x;
             AS_node *nnext = nodes + nnext_index;
             uint16_t cost = n->cost + 1;
 
@@ -150,7 +150,7 @@ uint8_t *astar_path(Area *a, Entity *e, Point dst, uint32_t *path_len, uint32_t 
          {
             next.z++;
 
-            unsigned nnext_index = next.z * a->dimx * 32 * a->dimy * 32 + next.y * a->dimx * 32 + next.x;
+            unsigned nnext_index = next.z * AREA_DIM * 32 * AREA_DIM * 32 + next.y * AREA_DIM * 32 + next.x;
             AS_node *nnext = nodes + nnext_index;
             uint16_t cost = n->cost + 1;
 
@@ -182,7 +182,7 @@ bail:
       while(!point_equal(p, e->pos))
       {
          p = point_sub_dir(p, n->dir);
-         n = nodes + (p.z * a->dimx * 32 * a->dimy * 32 + p.y * a->dimx * 32 + p.x);
+         n = nodes + (p.z * AREA_DIM * 32 * AREA_DIM * 32 + p.y * AREA_DIM * 32 + p.x);
          (*path_len)++;
       }
 
@@ -203,7 +203,7 @@ bail:
             dir_path -= 10;
          path[index--] = dir_path;
          p = point_sub_dir(p, n->dir);
-         n = nodes + (p.z * a->dimx * 32 * a->dimy * 32 + p.y * a->dimx * 32 + p.x);
+         n = nodes + (p.z * AREA_DIM * 32 * AREA_DIM * 32 + p.y * AREA_DIM * 32 + p.x);
       }
 
       return path;

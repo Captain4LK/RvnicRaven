@@ -31,10 +31,18 @@ typedef struct
    uint32_t tiles[32 * 32 * 32];
 }Chunk;
 
+//Currently loaded area
 typedef struct
 {
+   uint32_t tiles[32*32*32*AREA_DIM*AREA_DIM*AREA_DIM];
+
+   Entity *entities;
+   Entity **entity_grid;
+
+   Item *items;
+   Item **item_grid;
    //Dimensions in chunks (32x32x32)
-   uint8_t dimx;
+   /*uint8_t dimx;
    uint8_t dimy;
    uint8_t dimz;
 
@@ -49,7 +57,7 @@ typedef struct
    Entity **entity_grid;
 
    Item *items;
-   Item **item_grid;
+   Item **item_grid;*/
 }Area;
 
 typedef struct

@@ -55,6 +55,31 @@ static Chunk *chunk_gen(World *w, uint16_t cx, uint16_t cy, uint16_t cz)
    c->y = cy;
    c->z = cz;
 
+   for(int z = 0;z<32;z++)
+   {
+      for(int y = 0;y<32;y++)
+      {
+         for(int x = 0;x<32;x++)
+         {
+            int wx = cx*32+x;
+            int wy = cy*32+y;
+            int wz = cz*32+z;
+
+            if(wz>=0)
+               c->tiles[z*32*32+y*32+x] = tile_set_discovered(tile_make_wall(2,2),0,0);
+            else
+               c->tiles[z*32*32+y*32+x] = tile_set_discovered(tile_make_empty(),0,0);
+         }
+      }
+   }
+
+   return c;
+#if 0
+   Chunk *c = RvR_malloc(sizeof(*c), "Chunk");
+   c->x = cx;
+   c->y = cy;
+   c->z = cz;
+
    uint32_t seed = 0;
 
    int stridey = 3 * 32 + 1;
@@ -181,12 +206,24 @@ static Chunk *chunk_gen(World *w, uint16_t cx, uint16_t cy, uint16_t cz)
 #endif
    }
 
+   for(int z = 0;z<32;z++)
+   {
+      for(int y = 0;y<32;y++)
+      {
+         for(int x = 0;x<32;x++)
+         {
+         }
+      }
+   }
+
    RvR_free(elevation);
    RvR_free(temperature);
    RvR_free(rainfall);
    RvR_free(pcg);
 
    return c;
+
+#endif
 }
 
 static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var)
