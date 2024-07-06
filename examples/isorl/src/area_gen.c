@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "world_gen.h"
 #include "world.h"
 #include "area.h"
@@ -39,6 +40,7 @@ static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var);
 
 //Function implementations
 
+#if 0
 Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, uint8_t dimy, uint8_t dimz, uint16_t id)
 {
    //RvR_rand_pcg rand = {0};
@@ -256,6 +258,7 @@ Area *area_gen(World *w, uint32_t seed, uint16_t ax, uint16_t ay, uint8_t dimx, 
 
    return a;
 }
+#endif
 
 static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var)
 {

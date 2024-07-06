@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "world_defs.h"
 #include "entity_defs.h"
 #include "world.h"
@@ -83,22 +84,23 @@ void game_update()
          redraw = 1;
       if(res==ACTION_LEFT_MAP)
       {
-         Entity_documented pe = {0};
+         /*Entity_documented pe = {0};
          entity_doc_get(world, player.id, &pe);
 
          uint16_t mx = pe.mx - 1;
          uint16_t my = pe.my - 1;
-         if(pe.mx>=area->mx + area->dimx) mx = pe.mx;
-         else if(pe.mx<area->mx) mx = pe.mx - 2;
-         if(pe.my>=area->my + area->dimy) my = pe.my;
-         else if(pe.my<area->my) my = pe.my - 2;
+         if(pe.mx>=area->cx + AREA_DIM) mx = pe.mx;
+         else if(pe.mx<area->cx) mx = pe.mx - 2;
+         if(pe.my>=area->cy + AREA_DIM) my = pe.my;
+         else if(pe.my<area->cy) my = pe.my - 2;
 
-         area_exit(world, area);
-         area_free(world, area);
+         //area_exit(world, area);
+         //area_free(world, area);
          area = area_gen(world, 1, mx, my, 3, 3, 2, 0);
 
          player_add(world, area);
          state_set(STATE_GAME);
+         */
       }
 
       if(player.e->action_points>0)
@@ -162,14 +164,14 @@ void game_update()
    switch(player.cam.rotation)
    {
    case 0: player.cam.x = player.e->pos.x + 2; player.cam.y = player.e->pos.y - 22; break;
-   case 1: player.cam.x = player.e->pos.y + 2; player.cam.y = -player.e->pos.x + area->dimy * 32 - 1 - 22; break;
-   case 2: player.cam.x = -player.e->pos.x + area->dimx * 32 - 1 + 2; player.cam.y = -player.e->pos.y + area->dimy * 32 - 1 - 22; break;
-   case 3: player.cam.x = -player.e->pos.y + area->dimy * 32 - 1 + 2; player.cam.y = player.e->pos.x - 22; break;
+   case 1: player.cam.x = player.e->pos.y + 2; player.cam.y = -player.e->pos.x + AREA_DIM * 32 - 1 - 22; break;
+   case 2: player.cam.x = -player.e->pos.x + AREA_DIM * 32 - 1 + 2; player.cam.y = -player.e->pos.y + AREA_DIM * 32 - 1 - 22; break;
+   case 3: player.cam.x = -player.e->pos.y + AREA_DIM * 32 - 1 + 2; player.cam.y = player.e->pos.x - 22; break;
    }
    //-------------------------------------
 
-   if(RvR_key_pressed(RVR_KEY_P))
-      area_save(world, area);
+   //if(RvR_key_pressed(RVR_KEY_P))
+      //area_save(world, area);
 }
 
 void game_draw()

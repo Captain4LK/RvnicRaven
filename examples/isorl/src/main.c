@@ -12,6 +12,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include "RvR/RvR.h"
+//-------------------------------------
+
+//Internal includes
+#include "config.h"
 #include "color.h"
 #include "region.h"
 #include "area.h"
@@ -20,9 +24,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "state.h"
 #include "sprite.h"
 #include "defs.h"
-//-------------------------------------
-
-//Internal includes
 //-------------------------------------
 
 //#defines

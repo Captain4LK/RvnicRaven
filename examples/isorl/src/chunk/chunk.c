@@ -35,7 +35,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static Chunk *chunk_gen(World *w, uint16_t cx, uint16_t cy, uint16_t cz);
+static Chunk *chunk_gen(World *w, int cx, int cy, int cz);
 static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var);
 //-------------------------------------
 
@@ -48,8 +48,10 @@ Chunk *chunk_get(World *w, uint16_t x, uint16_t y, uint16_t z)
    return chunk_gen(w, x, y, z);
 }
 
-static Chunk *chunk_gen(World *w, uint16_t cx, uint16_t cy, uint16_t cz)
+static Chunk *chunk_gen(World *w, int cx, int cy, int cz)
 {
+   //TODO(Captain4LK): empty if out of bounds
+
    Chunk *c = RvR_malloc(sizeof(*c), "Chunk");
    c->x = cx;
    c->y = cy;
@@ -65,7 +67,7 @@ static Chunk *chunk_gen(World *w, uint16_t cx, uint16_t cy, uint16_t cz)
             int wy = cy*32+y;
             int wz = cz*32+z;
 
-            if(wz>=0)
+            if(wz>=1024)
                c->tiles[z*32*32+y*32+x] = tile_set_discovered(tile_make_wall(2,2),0,0);
             else
                c->tiles[z*32*32+y*32+x] = tile_set_discovered(tile_make_empty(),0,0);

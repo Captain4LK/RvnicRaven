@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "area_draw.h"
 #include "tile.h"
 #include "area.h"
@@ -95,7 +96,7 @@ void area_draw_end()
    int cx = cam->x * 16 + cam->y * 16;
    int cy = cam->z * 20 - 8 * cam->x + 8 * cam->y;
 
-   for(int z = area->dimz * 32 - 1; z>=0; z--)
+   for(int z = AREA_DIM * 32 - 1; z>=0; z--)
    {
       int origin_y = (16 * cam->y - 20 * (z - cam->z)) / 16;
       int origin_x = -origin_y + cam->x + cam->y;
@@ -113,9 +114,9 @@ void area_draw_end()
 
          min = RvR_max(0, min - 1);
          if(cam->rotation==1||cam->rotation==3)
-            max = RvR_min(area->dimy * 32, max + 2);
+            max = RvR_min(AREA_DIM * 32, max + 2);
          else
-            max = RvR_min(area->dimx * 32, max + 2);
+            max = RvR_min(AREA_DIM * 32, max + 2);
 
          for(int x = max; x>=min; x--)
          {
@@ -126,9 +127,9 @@ void area_draw_end()
             switch(cam->rotation)
             {
             case 0: tx = x; ty = y; txf = tx - 1; tyr = ty + 1; break;
-            case 1: tx = area->dimy * 32 - 1 - y; ty = x; txf = tx - 1; tyr = ty - 1; break;
-            case 2: tx = area->dimx * 32 - 1 - x; ty = area->dimy * 32 - 1 - y; txf = tx + 1; tyr = ty - 1; break;
-            case 3: tx = y; ty = area->dimy * 32 - 1 - x; txf = tx + 1; tyr = ty + 1; break;
+            case 1: tx = AREA_DIM * 32 - 1 - y; ty = x; txf = tx - 1; tyr = ty - 1; break;
+            case 2: tx = AREA_DIM * 32 - 1 - x; ty = AREA_DIM * 32 - 1 - y; txf = tx + 1; tyr = ty - 1; break;
+            case 3: tx = y; ty = AREA_DIM * 32 - 1 - x; txf = tx + 1; tyr = ty + 1; break;
             }
 
             //TODO(Captain4LK): rotate point function?
@@ -275,23 +276,23 @@ static void area_draw_sprite(Draw_sprite *s)
    if(cam->rotation==1)
    {
       dx = y;
-      dy = area->dimy * 32 - 1 - x;
+      dy = AREA_DIM * 32 - 1 - x;
    }
    else if(cam->rotation==2)
    {
-      dx = area->dimx * 32 - 1 - x;
-      dy = area->dimy * 32 - 1 - y;
+      dx = AREA_DIM * 32 - 1 - x;
+      dy = AREA_DIM * 32 - 1 - y;
    }
    else if(cam->rotation==3)
    {
-      dx = area->dimy * 32 - 1 - y;
+      dx = AREA_DIM * 32 - 1 - y;
       dy = x;
    }
 
    //Out of bounds
    if(x<0||y<0||z<0)
       return;
-   if(x>=area->dimx * 32||y>=area->dimy * 32||z>=area->dimz * 32)
+   if(x>=AREA_DIM * 32||y>=AREA_DIM * 32||z>=AREA_DIM * 32)
       return;
 
    //Outside of screen

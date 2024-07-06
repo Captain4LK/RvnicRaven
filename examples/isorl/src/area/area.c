@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "area.h"
 #include "tile.h"
 #include "world.h"
@@ -39,8 +40,79 @@ static int32_t area_buffer_size = 0;
 
 //Function implementations
 
-Area *area_create(World *w, uint16_t x, uint16_t y, uint8_t dimx, uint8_t dimy, uint8_t dimz, uint16_t id)
+Area *area_create(World *w, int16_t x, int16_t y, int16_t z)
 {
+   Area *a = NULL;
+   RvR_error_check(w!=NULL, "area_create", "world is null\n");
+
+   a = RvR_malloc(sizeof(*a), "Area struct");
+   a->cx = x;
+   a->cy = y;
+   a->cz = z;
+   a->items = NULL;
+   a->entities = NULL;
+   memset(a->item_grid, 0, sizeof(a->item_grid));
+   memset(a->entity_grid, 0, sizeof(a->entity_grid));
+
+   for(int i = 0; i<32*32*32*AREA_DIM*AREA_DIM*AREA_DIM;i++)
+      a->tiles[i] = tile_set_discovered(0, 0, 0);
+
+   return a;
+
+RvR_err:
+   if(a!=NULL)
+   {
+      RvR_free(a);
+   }
+
+   return NULL;
+}
+
+uint32_t area_tile(const Area *a, Point pos)
+{
+   if(pos.x<0||pos.y<0||pos.z<0)
+      return tile_set_discovered(0, 1, 1);
+
+   if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
+      return tile_set_discovered(0, 1, 1);
+
+   return a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x];
+}
+
+void area_set_tile(Area *a, Point pos, uint32_t tile)
+{
+   if(pos.x<0||pos.y<0||pos.z<0)
+      return;
+
+   if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
+      return;
+
+   a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x] = tile;
+}
+
+Entity *area_entity_at(Area * a, Point pos, Entity * not)
+{
+   if(pos.x<0||pos.y<0||pos.z<0)
+      return NULL;
+
+   if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
+      return NULL;
+
+   int gx = pos.x / 8;
+   int gy = pos.y / 8;
+   int gz = pos.z / 8;
+
+   Entity *cur = a->entity_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx];
+   for(; cur!=NULL; cur = cur->g_next)
+   {
+      if(point_equal(cur->pos, pos)&&cur!=not)
+         return cur;
+   }
+
+   return NULL;
+}
+
+#if 0
    Area *a = NULL;
 
    RvR_error_check(w!=NULL, "area_create", "world is null\n");
@@ -450,4 +522,5 @@ Entity *area_entity_at(Area *a, Point pos, Entity *not)
 
    return NULL;
 }
+#endif
 //-------------------------------------

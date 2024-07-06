@@ -12,6 +12,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _CHUNK_H_
 
-Chunk *chunk_get(World *w, uint16_t x, uint16_t y, uint16_t z);
+Chunk *chunk_get(World *w, int x, int y, int z);
 
 #endif

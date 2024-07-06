@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "player.h"
 #include "action.h"
 #include "color.h"
@@ -200,7 +201,7 @@ static int player_update_none()
       int gy = player.e->pos.y / 8;
       int gz = player.e->pos.z / 8;
 
-      Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx];
+      Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx];
       for(; cur!=NULL; cur = cur->g_next)
       {
          if(point_equal(cur->pos, player.e->pos))
@@ -338,7 +339,7 @@ static int player_update_none()
       int gy = player.e->pos.y / 8;
       int gz = player.e->pos.z / 8;
 
-      for(Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
+      for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
          if(point_equal(cur->pos, player.e->pos))
             RvR_array_push(player_menu_items, cur);
 
@@ -669,7 +670,7 @@ static int player_update_put0()
       int gz = player.e->pos.z / 8;
 
 
-      for(Item *cur = area->item_grid[gz * area->dimy * 4 * area->dimx * 4 + gy * area->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
+      for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
       {
          if(point_equal(cur->pos, player.e->pos)&&cur->def->tags & DEF_ITEM_SLOT_CONTAINER&&cur!=item_index_try(player_menu_put))
             RvR_array_push(player_menu_items, cur);

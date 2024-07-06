@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "world_defs.h"
 #include "world_gen.h"
 #include "area_gen.h"
@@ -81,9 +82,10 @@ void game_map_update()
 
    if(moved&&area!=NULL)
    {
-      area_exit(world, area);
-      area_free(world, area);
-      area = NULL;
+      //TODO
+      //area_exit(world, area);
+      //area_free(world, area);
+      //area = NULL;
    }
 
    entity_doc_modify(world, player.id, &pe);
@@ -92,7 +94,7 @@ void game_map_update()
    {
       if(area==NULL)
       {
-         area = area_gen(world, 1, pe.mx - 1, pe.my - 1, 3, 3, 2, 0);
+         area = area_create(world, pe.mx, pe.my,32);
          astar_init(area);
          player_add(world, area);
       }
