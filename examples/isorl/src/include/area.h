@@ -15,7 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 #include "point.h"
 
-Area *area_create(World *w, int16_t x, int16_t y, int16_t z);
+Area *area_create(World *w, int32_t x, int32_t y, int32_t z);
 uint32_t area_tile(const Area *a, Point pos);
 void area_set_tile(Area *a, Point pos, uint32_t tile);
 Entity *area_entity_at(Area * a, Point pos, Entity * not);

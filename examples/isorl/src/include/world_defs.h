@@ -25,9 +25,15 @@ typedef enum
 
 typedef struct
 {
-   uint16_t x;
-   uint16_t y;
-   uint16_t z;
+   int32_t x;
+   int32_t y;
+   int32_t z;
+
+   Entity *entities;
+   Item *items;
+   Entity *entity_grid[4*4*4];
+   Item *item_grid[4*4*4];
+
    uint32_t tiles[32 * 32 * 32];
 }Chunk;
 
@@ -35,16 +41,18 @@ typedef struct
 typedef struct
 {
    //Position of center chunk in chunks
-   int cx;
-   int cy;
-   int cz;
+   int32_t cx;
+   int32_t cy;
+   int32_t cz;
 
-   Entity *entities;
-   Item *items;
+   Chunk *chunks[AREA_DIM*AREA_DIM*AREA_DIM];
 
-   Entity *entity_grid[4*4*4*AREA_DIM*AREA_DIM*AREA_DIM];
-   Item *item_grid[4*4*4*AREA_DIM*AREA_DIM*AREA_DIM];
-   uint32_t tiles[32*32*32*AREA_DIM*AREA_DIM*AREA_DIM];
+   //Entity *entities;
+   //Item *items;
+
+   //Entity *entity_grid[4*4*4*AREA_DIM*AREA_DIM*AREA_DIM];
+   //Item *item_grid[4*4*4*AREA_DIM*AREA_DIM*AREA_DIM];
+   //uint32_t tiles[32*32*32*AREA_DIM*AREA_DIM*AREA_DIM];
    //Dimensions in chunks (32x32x32)
    /*uint8_t dimx;
    uint8_t dimy;

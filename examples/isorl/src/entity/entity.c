@@ -18,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "world_defs.h"
 #include "entity.h"
 #include "entity_documented.h"
@@ -96,41 +97,77 @@ void entity_add(Area *a, Entity *e)
 {
    if(e==NULL)
       return;
+   if(a==NULL)
+      return;
 
-   e->prev_next = &a->entities;
-   if(a->entities!=NULL)
-      a->entities->prev_next = &e->next;
-   e->next = a->entities;
-   a->entities = e;
+   int cx = (e->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (e->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (e->pos.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   if(cx<0||cy<0||cz<0)
+      return;
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+      return;
+
+   e->prev_next = &a->chunks[c]->entities;
+   if(a->chunks[c]->entities!=NULL)
+      a->chunks[c]->entities->prev_next = &e->next;
+   e->next = a->chunks[c]->entities;
+   a->chunks[c]->entities = e;
 }
 
 void entity_grid_add(Area *a, Entity *e)
 {
    if(e==NULL)
       return;
-   if(e->pos.x<0||e->pos.y<0||e->pos.z<0)
-      return;
-   if(e->pos.x>=a->dimx * 32||e->pos.y>=a->dimy * 32||e->pos.z>=a->dimz * 32)
+   if(a==NULL)
       return;
 
-   int gx = e->pos.x / 8;
-   int gy = e->pos.y / 8;
-   int gz = e->pos.z / 8;
-   size_t g_index = gz * (a->dimx * 4) * (a->dimy * 4) + gy * (a->dimx * 4) + gx;
-   e->g_prev_next = &a->entity_grid[g_index];
-   if(a->entity_grid[g_index]!=NULL)
-      a->entity_grid[g_index]->g_prev_next = &e->g_next;
-   e->g_next = a->entity_grid[g_index];
-   a->entity_grid[g_index] = e;
+   int cx = (e->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (e->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (e->pos.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   if(cx<0||cy<0||cz<0)
+      return;
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+      return;
+
+   //if(e->pos.x<0||e->pos.y<0||e->pos.z<0)
+      //return;
+   //if(e->pos.x>=AREA_DIM * 32||e->pos.y>=AREA_DIM * 32||e->pos.z>=AREA_DIM * 32)
+      //return;
+
+   int gx = (e->pos.x-(e->pos.x/32)*32) / 8;
+   int gy = (e->pos.y-(e->pos.y/32)*32) / 8;
+   int gz = (e->pos.z-(e->pos.z/32)*32) / 8;
+   //int gy = (e->pos.y / 8;
+   //int gz = (e->pos.z / 8;
+   int g = gz*4*4+gy*4+gx;
+
+   e->g_prev_next = &a->chunks[c]->entity_grid[g];
+   if(a->chunks[c]->entity_grid[g]!=NULL)
+      a->chunks[c]->entity_grid[g]->g_prev_next = &e->g_next;
+   e->g_next = a->chunks[c]->entity_grid[g];
+   a->chunks[c]->entity_grid[g] = e;
+
+   //size_t g_index = gz * (AREA_DIM * 4) * (AREA_DIM * 4) + gy * (AREA_DIM * 4) + gx;
+   //e->g_prev_next = &a->entity_grid[g_index];
+   //if(a->entity_grid[g_index]!=NULL)
+      //a->entity_grid[g_index]->g_prev_next = &e->g_next;
+   //e->g_next = a->entity_grid[g_index];
+   //a->entity_grid[g_index] = e;
 }
 
-void entity_update_pos(Area *a, Entity *e, Point new_pos)
+void entity_update_pos(Area *a, Entity *e, Point pos)
 {
    if(e==NULL)
       return;
+   if(a==NULL)
+      return;
+
    if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
       return;
-   if(new_pos.x>=a->dimx * 32||new_pos.y>=a->dimy * 32||new_pos.z>=a->dimz * 32)
+   if(new_pos.x>=AREA_DIM * 32||new_pos.y>=AREA_DIM * 32||new_pos.z>=AREA_DIM * 32)
       return;
 
    entity_grid_remove(e);
@@ -159,7 +196,7 @@ int entity_pos_valid(Area *a, Entity *e, Point pos)
    if(pos.x<0||pos.y<0||pos.z<0)
       return 0;
 
-   if(pos.x>=a->dimx * 32||pos.y>=a->dimy * 32||pos.z>=a->dimz * 32)
+   if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
       return 0;
 
    uint32_t block = area_tile(a, pos);
@@ -179,7 +216,7 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
    //Leave map
    //Update DocEnt if entity is documented
    Point n = point_add_dir(e->pos, dir);
-   if(n.x<0||n.y<0||n.x>=a->dimx * 32||n.y>=a->dimy * 32)
+   if(n.x<0||n.y<0||n.x>=AREA_DIM * 32||n.y>=AREA_DIM * 32)
    {
       if(entity_is_docent(e))
       {
@@ -558,7 +595,7 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
    int gy = e->pos.y / 8;
    int gz = e->pos.z / 8;
 
-   for(Item *cur = a->item_grid[gz * a->dimy * 4 * a->dimx * 4 + gy * a->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
+   for(Item *cur = a->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
       if(point_equal(cur->pos, e->pos)&&cur==container)
          contain = &container->container;
 
@@ -584,7 +621,7 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
    gx = e->pos.x / 8;
    gy = e->pos.y / 8;
    gz = e->pos.z / 8;
-   for(Item *cur = a->item_grid[gz * a->dimy * 4 * a->dimx * 4 + gy * a->dimx * 4 + gx]; cur!=NULL; cur = cur->g_next)
+   for(Item *cur = a->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
    {
       if(!(point_equal(cur->pos, e->pos)&&cur!=container))
          continue;

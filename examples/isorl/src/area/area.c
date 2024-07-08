@@ -22,6 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world.h"
 #include "entity.h"
 #include "entity_documented.h"
+#include "chunk.h"
 //-------------------------------------
 
 //#defines
@@ -40,7 +41,7 @@ static int32_t area_buffer_size = 0;
 
 //Function implementations
 
-Area *area_create(World *w, int16_t x, int16_t y, int16_t z)
+Area *area_create(World *w, int32_t x, int32_t y, int32_t z)
 {
    Area *a = NULL;
    RvR_error_check(w!=NULL, "area_create", "world is null\n");
@@ -49,13 +50,36 @@ Area *area_create(World *w, int16_t x, int16_t y, int16_t z)
    a->cx = x;
    a->cy = y;
    a->cz = z;
-   a->items = NULL;
-   a->entities = NULL;
-   memset(a->item_grid, 0, sizeof(a->item_grid));
-   memset(a->entity_grid, 0, sizeof(a->entity_grid));
+   memset(a->chunks, 0, sizeof(a->chunks));
 
-   for(int i = 0; i<32*32*32*AREA_DIM*AREA_DIM*AREA_DIM;i++)
-      a->tiles[i] = tile_set_discovered(0, 0, 0);
+   for(int cz = 0;cz<AREA_DIM;cz++)
+   {
+      for(int cy = 0;cy<AREA_DIM;cy++)
+      {
+         for(int cx = 0;cx<AREA_DIM;cx++)
+         {
+            a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = chunk_get(w,x-AREA_DIM/2+cx,y-AREA_DIM/2+cy,z-AREA_DIM/2+cz);
+         }
+      }
+   }
+   //a->items = NULL;
+   //a->entities = NULL;
+   //memset(a->item_grid, 0, sizeof(a->item_grid));
+   //memset(a->entity_grid, 0, sizeof(a->entity_grid));
+
+   //for(int i = 0; i<32*32*32*AREA_DIM*AREA_DIM*AREA_DIM;i++)
+      //a->tiles[i] = tile_set_discovered(0, 0, 0);
+
+   /*for(int cz = 0;cz<AREA_DIM;cz++)
+   {
+      for(int cy = 0;cy<AREA_DIM;cy++)
+      {
+         for(int cx = 0;cx<AREA_DIM;cx++)
+         {
+            Chunk *c = chunk_gen(w,x-AREA_DIM/2+cx
+         }
+      }
+   }*/
 
    return a;
 
@@ -76,7 +100,17 @@ uint32_t area_tile(const Area *a, Point pos)
    if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
       return tile_set_discovered(0, 1, 1);
 
-   return a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x];
+   int cx = pos.x/32;
+   int cy = pos.y/32;
+   int cz = pos.z/32;
+   int px = pos.x-cx*32;
+   int py = pos.y-cy*32;
+   int pz = pos.z-cz*32;
+
+   if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]==NULL)
+      return tile_set_discovered(0, 1, 1);
+   return a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]->tiles[pz*32*32+py*32+px];
+   //return a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x];
 }
 
 void area_set_tile(Area *a, Point pos, uint32_t tile)
@@ -87,7 +121,17 @@ void area_set_tile(Area *a, Point pos, uint32_t tile)
    if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
       return;
 
-   a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x] = tile;
+   int cx = pos.x/32;
+   int cy = pos.y/32;
+   int cz = pos.z/32;
+   int px = pos.x-cx*32;
+   int py = pos.y-cy*32;
+   int pz = pos.z-cz*32;
+
+   if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]==NULL)
+      return;
+   a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]->tiles[pz*32*32+py*32+px] = tile;
+   //a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x] = tile;
 }
 
 Entity *area_entity_at(Area * a, Point pos, Entity * not)
@@ -98,14 +142,26 @@ Entity *area_entity_at(Area * a, Point pos, Entity * not)
    if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
       return NULL;
 
-   int gx = pos.x / 8;
-   int gy = pos.y / 8;
-   int gz = pos.z / 8;
+   int cx = pos.x/32;
+   int cy = pos.y/32;
+   int cz = pos.z/32;
+   int px = pos.x-cx*32;
+   int py = pos.y-cy*32;
+   int pz = pos.z-cz*32;
+   int gx = pz / 8;
+   int gy = py / 8;
+   int gz = pz / 8;
 
-   Entity *cur = a->entity_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx];
+   if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]==NULL)
+      return NULL;
+
+   Point loc = point(gx,gy,gz);
+   Entity *cur = a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->entity_grid[gz*4*4+gy*4+gx];
+   //Entity *cur = a->entity_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx];
    for(; cur!=NULL; cur = cur->g_next)
    {
-      if(point_equal(cur->pos, pos)&&cur!=not)
+      //if(point_equal(cur->pos, pos)&&cur!=not)
+      if(point_equal(cur->pos, loc)&&cur!=not)
          return cur;
    }
 

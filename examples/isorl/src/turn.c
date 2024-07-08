@@ -73,20 +73,23 @@ void turn_start(World *w, Area *a)
    if(player.e->action_points>0)
       turn_heap_push(player.e);
 
-   for(Entity *next = NULL, *cur = a->entities; cur!=NULL; cur = next)
+   for(int c = 0;c<AREA_DIM*AREA_DIM*AREA_DIM;c++)
    {
-      next = cur->next;
+      for(Entity *next = NULL, *cur = a->chunks[c]->entities; cur!=NULL; cur = next)
+      {
+         next = cur->next;
 
-      Entity_index ind = entity_index_get(cur);
-      entity_turn(w, a, cur);
-      if(entity_index_try(ind)==NULL||cur==player.e)
-         continue;
+         Entity_index ind = entity_index_get(cur);
+         entity_turn(w, a, cur);
+         if(entity_index_try(ind)==NULL||cur==player.e)
+            continue;
 
-      cur->action_points += 128;
-      if(cur->action_points<=0)
-         continue;
+         cur->action_points += 128;
+         if(cur->action_points<=0)
+            continue;
 
-      turn_heap_push(cur);
+         turn_heap_push(cur);
+      }
    }
 }
 

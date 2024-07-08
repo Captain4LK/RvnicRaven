@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "world_gen.h"
 #include "world.h"
 #include "area.h"
@@ -41,11 +42,21 @@ static int32_t rand_offset(RvR_rand_pcg *rand, int level, int32_t var);
 
 //Function implementations
 
-Chunk *chunk_get(World *w, uint16_t x, uint16_t y, uint16_t z)
+Chunk *chunk_get(World *w, int x, int y, int z)
 {
    //TODO(Captian4LK): check if chunk in existing area
 
    return chunk_gen(w, x, y, z);
+}
+
+Point chunk_pos_to_area(const Area *a, const Chunk *c, Point pos)
+{
+   if(a==NULL||c==NULL)
+      return pos;
+
+   return point((c->x-a->cx+AREA_DIM/2)*32+pos.x,
+                (c->y-a->cy+AREA_DIM/2)*32+pos.y,
+                (c->z-a->cz+AREA_DIM/2)*32+pos.z);
 }
 
 static Chunk *chunk_gen(World *w, int cx, int cy, int cz)
@@ -56,6 +67,10 @@ static Chunk *chunk_gen(World *w, int cx, int cy, int cz)
    c->x = cx;
    c->y = cy;
    c->z = cz;
+   c->items = NULL;
+   c->entities = NULL;
+   memset(c->item_grid, 0, sizeof(c->item_grid));
+   memset(c->entity_grid, 0, sizeof(c->entity_grid));
 
    for(int z = 0;z<32;z++)
    {

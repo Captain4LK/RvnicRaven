@@ -21,6 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "world_defs.h"
 #include "entity_defs.h"
 #include "world.h"
+#include "chunk.h"
 #include "world_gen.h"
 #include "area_gen.h"
 #include "area_draw.h"
@@ -185,20 +186,25 @@ void game_draw()
    area_draw_begin(world, area, &player.cam);
 
    //Draw entities
-   for(Entity *e = area->entities; e!=NULL; e = e->next)
+   for(int c = 0;c<AREA_DIM*AREA_DIM*AREA_DIM;c++)
    {
-      //if(e->removed)
-      //continue;
-      area_draw_entity(e, e->pos);
+      for(Entity *e = area->chunks[c]->entities; e!=NULL; e = e->next)
+      {
+         //if(e->removed)
+         //continue;
+         area_draw_entity(e, chunk_pos_to_area(area,area->chunks[c],e->pos));
+      }
    }
 
    //Draw items
-   Item *it = area->items;
-   for(; it!=NULL; it = it->next)
+   for(int c = 0;c<AREA_DIM*AREA_DIM*AREA_DIM;c++)
    {
-      //if(it->removed)
-      //continue;
-      area_draw_item(it, it->pos);
+      for(Item *it = area->chunks[c]->items; it!=NULL; it = it->next)
+      {
+         //if(it->removed)
+         //continue;
+         area_draw_item(it, chunk_pos_to_area(area,area->chunks[c],it->pos));
+      }
    }
 
    area_draw_end();

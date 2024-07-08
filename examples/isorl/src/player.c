@@ -200,8 +200,12 @@ static int player_update_none()
       int gx = player.e->pos.x / 8;
       int gy = player.e->pos.y / 8;
       int gz = player.e->pos.z / 8;
+      int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
+      int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
+      int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
 
-      Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx];
+      Item *cur = area->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx];
+      //Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx];
       for(; cur!=NULL; cur = cur->g_next)
       {
          if(point_equal(cur->pos, player.e->pos))
@@ -338,8 +342,13 @@ static int player_update_none()
       int gx = player.e->pos.x / 8;
       int gy = player.e->pos.y / 8;
       int gz = player.e->pos.z / 8;
+      int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
+      int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
+      int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
 
-      for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
+      //Item *cur = area->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx];
+      //for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
+      for(Item *cur = area->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx]; cur!=NULL; cur = cur->g_next)
          if(point_equal(cur->pos, player.e->pos))
             RvR_array_push(player_menu_items, cur);
 
@@ -668,9 +677,12 @@ static int player_update_put0()
       int gx = player.e->pos.x / 8;
       int gy = player.e->pos.y / 8;
       int gz = player.e->pos.z / 8;
+      int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
+      int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
+      int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
 
-
-      for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
+      //for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
+      for(Item *cur = area->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx]; cur!=NULL; cur = cur->g_next)
       {
          if(point_equal(cur->pos, player.e->pos)&&cur->def->tags & DEF_ITEM_SLOT_CONTAINER&&cur!=item_index_try(player_menu_put))
             RvR_array_push(player_menu_items, cur);

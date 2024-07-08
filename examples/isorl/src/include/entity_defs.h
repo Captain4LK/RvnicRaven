@@ -61,7 +61,7 @@ typedef struct
 
 struct Entity
 {
-   Point pos;
+   Point pos; //Position in world
    uint16_t sprite;
 
    int speed;

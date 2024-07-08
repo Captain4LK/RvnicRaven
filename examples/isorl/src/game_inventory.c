@@ -24,6 +24,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "draw.h"
 #include "area_draw.h"
 #include "game_inventory.h"
+#include "chunk.h"
 //-------------------------------------
 
 //#defines
@@ -70,13 +71,18 @@ void game_inventory_draw()
    area_draw_begin(world, area, &player.cam);
 
    //Draw entities
-   for(Entity *e = area->entities; e!=NULL; e = e->next)
-      area_draw_entity(e, e->pos);
+   for(int c = 0;c<AREA_DIM*AREA_DIM*AREA_DIM;c++)
+   {
+      for(Entity *e = area->chunks[c]->entities; e!=NULL; e = e->next)
+         area_draw_entity(e, chunk_pos_to_area(area,area->chunks[c],e->pos));
+   }
 
    //Draw items
-   Item *i = area->items;
-   for(; i!=NULL; i = i->next)
-      area_draw_item(i, i->pos);
+   for(int c = 0;c<AREA_DIM*AREA_DIM*AREA_DIM;c++)
+   {
+      for(Item *i = area->chunks[c]->items; i!=NULL; i = i->next)
+         area_draw_item(i, chunk_pos_to_area(area,area->chunks[c],i->pos));
+   }
 
    area_draw_end();
 

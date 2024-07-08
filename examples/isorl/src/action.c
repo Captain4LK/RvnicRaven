@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "action.h"
 #include "area.h"
 #include "entity.h"

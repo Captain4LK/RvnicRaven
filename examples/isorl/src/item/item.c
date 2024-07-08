@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "item.h"
 #include "sprite.h"
 //-------------------------------------
@@ -111,7 +112,7 @@ void item_update_pos(Area *a, Item *i, Point new_pos)
       return;
    if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
       return;
-   if(new_pos.x>=a->dimx * 32||new_pos.y>=a->dimy * 32||new_pos.z>=a->dimz * 32)
+   if(new_pos.x>=AREA_DIM * 32||new_pos.y>=AREA_DIM * 32||new_pos.z>=AREA_DIM * 32)
       return;
 
    item_grid_remove(i);
@@ -125,13 +126,13 @@ void item_grid_add(Area *a, Item *i)
       return;
    if(i->pos.x<0||i->pos.y<0||i->pos.z<0)
       return;
-   if(i->pos.x>=a->dimx * 32||i->pos.y>=a->dimy * 32||i->pos.z>=a->dimz * 32)
+   if(i->pos.x>=AREA_DIM * 32||i->pos.y>=AREA_DIM * 32||i->pos.z>=AREA_DIM * 32)
       return;
 
    int gx = i->pos.x / 8;
    int gy = i->pos.y / 8;
    int gz = i->pos.z / 8;
-   size_t g_index = gz * (a->dimx * 4) * (a->dimy * 4) + gy * (a->dimx * 4) + gx;
+   size_t g_index = gz * (AREA_DIM * 4) * (AREA_DIM * 4) + gy * (AREA_DIM * 4) + gx;
    i->g_prev_next = &a->item_grid[g_index];
    if(a->item_grid[g_index]!=NULL)
       a->item_grid[g_index]->g_prev_next = &i->g_next;

@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _CHUNK_H_
 
+Point chunk_pos_to_area(const Area *a, const Chunk *c, Point pos);
 Chunk *chunk_get(World *w, int x, int y, int z);
 
 #endif

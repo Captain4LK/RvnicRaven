@@ -24,7 +24,7 @@ void entity_free(Entity *e);
 //void entity_remove(Entity *e);
 void entity_add(Area *a, Entity *e);
 
-void entity_update_pos(Area *a, Entity *e, Point new_pos);
+void entity_update_pos(Area *a, Entity *e, Point pos);
 void entity_grid_add(Area *a, Entity *e);
 void entity_grid_remove(Entity *e);
 

@@ -18,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "config.h"
 #include "entity_documented.h"
 #include "entity.h"
 #include "area.h"
@@ -150,15 +151,16 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
       return NULL;
 
    Entity_documented *de = w->doctable.arr[idx];
-   if(de->mx<a->mx||de->my<a->my||de->mx>=a->mx + a->dimx||de->my>=a->my + a->dimy)
+   //TODO
+   if(de->mx<a->cx||de->my<a->cy||de->mx>=a->cx + AREA_DIM||de->my>=a->cy + AREA_DIM)
       return NULL;
 
    Entity *e = entity_new(w);
    e->id = id;
-   e->pos.x = (int16_t)((de->mx - a->mx) * 32 + de->ax);
-   e->pos.y = (int16_t)((de->my - a->my) * 32 + de->ay);
-   e->pos.z = (int16_t)(a->dimz * 32 - 1);
-   for(int16_t z = 0; z<a->dimz * 32; z++)
+   e->pos.x = (int16_t)((de->mx - a->cx) * 32 + de->ax);
+   e->pos.y = (int16_t)((de->my - a->cy) * 32 + de->ay);
+   e->pos.z = (int16_t)(AREA_DIM * 32 - 1);
+   for(int16_t z = 0; z<AREA_DIM * 32; z++)
    {
       e->pos.z = z;
       if(tile_has_wall(area_tile(a, point(e->pos.x, e->pos.y, z + 1))))
@@ -182,8 +184,8 @@ void docent_from_entity(World *w, Area *a, Entity *e)
    Entity_documented de = {0};
    entity_doc_get(w, e->id, &de);
 
-   de.mx = (uint16_t)((a->mx * 32 + e->pos.x) / 32);
-   de.my = (uint16_t)((a->my * 32 + e->pos.y) / 32);
+   de.mx = (uint16_t)((a->cx * 32 + e->pos.x) / 32);
+   de.my = (uint16_t)((a->cy * 32 + e->pos.y) / 32);
    de.ax = e->pos.x & 31;
    de.ay = e->pos.y & 31;
 
