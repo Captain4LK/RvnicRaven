@@ -165,13 +165,22 @@ void entity_update_pos(Area *a, Entity *e, Point pos)
    if(a==NULL)
       return;
 
-   if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
+   int cx = (e->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (e->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (e->pos.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   if(cx<0||cy<0||cz<0)
       return;
-   if(new_pos.x>=AREA_DIM * 32||new_pos.y>=AREA_DIM * 32||new_pos.z>=AREA_DIM * 32)
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
       return;
 
+   //if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
+      //return;
+   //if(new_pos.x>=AREA_DIM * 32||new_pos.y>=AREA_DIM * 32||new_pos.z>=AREA_DIM * 32)
+      //return;
+
    entity_grid_remove(e);
-   e->pos = new_pos;
+   e->pos = pos;
    entity_grid_add(a, e);
 }
 
@@ -193,11 +202,20 @@ int entity_pos_valid(Area *a, Entity *e, Point pos)
    if(e==NULL)
       return 0;
 
-   if(pos.x<0||pos.y<0||pos.z<0)
+   int cx = (e->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (e->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (e->pos.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   if(cx<0||cy<0||cz<0)
+      return 0;
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
       return 0;
 
-   if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
-      return 0;
+   //if(pos.x<0||pos.y<0||pos.z<0)
+      //return 0;
+
+   //if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
+      //return 0;
 
    uint32_t block = area_tile(a, pos);
    uint32_t floor = area_tile(a, point(pos.x, pos.y, pos.z + 1));
@@ -216,7 +234,17 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
    //Leave map
    //Update DocEnt if entity is documented
    Point n = point_add_dir(e->pos, dir);
-   if(n.x<0||n.y<0||n.x>=AREA_DIM * 32||n.y>=AREA_DIM * 32)
+   int cx = (n.x/32)-a->cx+AREA_DIM/2;
+   int cy = (n.y/32)-a->cy+AREA_DIM/2;
+   int cz = (n.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   //int cx = (n.x/32)-a->cx+AREA_DIM/2;
+   //int cy = (n.y/32)-a->cy+AREA_DIM/2;
+   //int cz = (n.z/32)-a->cz+AREA_DIM/2;
+   //int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   printf("%d %d %d %d %d %d\n",n.x,n.y,n.z,a->cx,a->cy,a->cz);
+   if(cx<0||cy<0||cz<0||cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+   //if(n.x<0||n.y<0||n.x>=AREA_DIM * 32||n.y>=AREA_DIM * 32)
    {
       if(entity_is_docent(e))
       {
@@ -591,11 +619,17 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
 
    //Check if container accessible
    Item_slot *contain = NULL;
-   int gx = e->pos.x / 8;
-   int gy = e->pos.y / 8;
-   int gz = e->pos.z / 8;
+   int cx = (e->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (e->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (e->pos.z/32)-a->cz+AREA_DIM/2;
+   int gx = (e->pos.x-(e->pos.x/32)*32) / 8;
+   int gy = (e->pos.y-(e->pos.y/32)*32) / 8;
+   int gz = (e->pos.z-(e->pos.z/32)*32) / 8;
+   //int gx = e->pos.x / 8;
+   //int gy = e->pos.y / 8;
+   //int gz = e->pos.z / 8;
 
-   for(Item *cur = a->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
+   for(Item *cur = a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx]; cur!=NULL; cur = cur->g_next)
       if(point_equal(cur->pos, e->pos)&&cur==container)
          contain = &container->container;
 
@@ -618,10 +652,10 @@ void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
       return;
 
    //Check if item accessible
-   gx = e->pos.x / 8;
-   gy = e->pos.y / 8;
-   gz = e->pos.z / 8;
-   for(Item *cur = a->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
+   //gx = e->pos.x / 8;
+   //gy = e->pos.y / 8;
+   //gz = e->pos.z / 8;
+   for(Item *cur = a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx]; cur!=NULL; cur = cur->g_next)
    {
       if(!(point_equal(cur->pos, e->pos)&&cur!=container))
          continue;

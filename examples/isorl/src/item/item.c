@@ -99,21 +99,45 @@ void item_add(Area *a, Item *i)
    if(i==NULL)
       return;
 
-   i->prev_next = &a->items;
-   if(a->items!=NULL)
-      a->items->prev_next = &i->next;
-   i->next = a->items;
-   a->items = i;
+   int cx = (i->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (i->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (i->pos.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   int gx = (i->pos.x-(i->pos.x/32)*32) / 8;
+   int gy = (i->pos.y-(i->pos.y/32)*32) / 8;
+   int gz = (i->pos.z-(i->pos.z/32)*32) / 8;
+   if(cx>0||cy<0||cz<0)
+      return;
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+      return;
+
+   i->prev_next = &a->chunks[c]->items;
+   if(a->chunks[c]->items!=NULL)
+      a->chunks[c]->items->prev_next = &i->next;
+   i->next = a->chunks[c]->items;
+   a->chunks[c]->items = i;
 }
 
 void item_update_pos(Area *a, Item *i, Point new_pos)
 {
    if(i==NULL)
       return;
-   if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
+
+   int cx = (i->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (i->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (i->pos.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   int gx = (i->pos.x-(i->pos.x/32)*32) / 8;
+   int gy = (i->pos.y-(i->pos.y/32)*32) / 8;
+   int gz = (i->pos.z-(i->pos.z/32)*32) / 8;
+   if(cx>0||cy<0||cz<0)
       return;
-   if(new_pos.x>=AREA_DIM * 32||new_pos.y>=AREA_DIM * 32||new_pos.z>=AREA_DIM * 32)
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
       return;
+   //if(new_pos.x<0||new_pos.y<0||new_pos.z<0)
+      //return;
+   //if(new_pos.x>=AREA_DIM * 32||new_pos.y>=AREA_DIM * 32||new_pos.z>=AREA_DIM * 32)
+      //return;
 
    item_grid_remove(i);
    i->pos = new_pos;
@@ -124,20 +148,34 @@ void item_grid_add(Area *a, Item *i)
 {
    if(i==NULL)
       return;
-   if(i->pos.x<0||i->pos.y<0||i->pos.z<0)
-      return;
-   if(i->pos.x>=AREA_DIM * 32||i->pos.y>=AREA_DIM * 32||i->pos.z>=AREA_DIM * 32)
-      return;
 
-   int gx = i->pos.x / 8;
-   int gy = i->pos.y / 8;
-   int gz = i->pos.z / 8;
-   size_t g_index = gz * (AREA_DIM * 4) * (AREA_DIM * 4) + gy * (AREA_DIM * 4) + gx;
-   i->g_prev_next = &a->item_grid[g_index];
-   if(a->item_grid[g_index]!=NULL)
-      a->item_grid[g_index]->g_prev_next = &i->g_next;
-   i->g_next = a->item_grid[g_index];
-   a->item_grid[g_index] = i;
+   int cx = (i->pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (i->pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (i->pos.z/32)-a->cz+AREA_DIM/2;
+   int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+   int gx = (i->pos.x-(i->pos.x/32)*32) / 8;
+   int gy = (i->pos.y-(i->pos.y/32)*32) / 8;
+   int gz = (i->pos.z-(i->pos.z/32)*32) / 8;
+   int g = gz*4*4+gy*4+gx;
+   if(cx>0||cy<0||cz<0)
+      return;
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+      return;
+   //if(i->pos.x<0||i->pos.y<0||i->pos.z<0)
+      //return;
+   //if(i->pos.x>=AREA_DIM * 32||i->pos.y>=AREA_DIM * 32||i->pos.z>=AREA_DIM * 32)
+      //return;
+
+   //int gx = i->pos.x / 8;
+   //int gy = i->pos.y / 8;
+   //int gz = i->pos.z / 8;
+   //size_t g_index = gz * (AREA_DIM * 4) * (AREA_DIM * 4) + gy * (AREA_DIM * 4) + gx;
+
+   i->g_prev_next = &a->chunks[c]->item_grid[g];
+   if(a->chunks[c]->item_grid[g]!=NULL)
+      a->chunks[c]->item_grid[g]->g_prev_next = &i->g_next;
+   i->g_next = a->chunks[c]->item_grid[g];
+   a->chunks[c]->item_grid[g] = i;
 }
 
 void item_grid_remove(Item *i)

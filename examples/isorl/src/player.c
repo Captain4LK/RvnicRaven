@@ -97,7 +97,7 @@ void player_add(World *w, Area *a)
    entity_from_def(e, defs_get_entity("human"), 1);
    */
 
-   Item *i = item_new(w);
+   /*Item *i = item_new(w);
    i->pos = player.e->pos;
    item_set_material(i, defs_get_material("aurum"));
    item_from_def(i, defs_get_item("sword"));
@@ -119,7 +119,7 @@ void player_add(World *w, Area *a)
       item_from_def(i, defs_get_item("sword"));
       item_add(a, i);
       item_grid_add(a, i);
-   }
+   }*/
 }
 
 int player_update()
@@ -197,14 +197,22 @@ static int player_update_none()
       //Create list of items on same tile as player
       RvR_array_length_set(player_menu_items, 0);
 
-      int gx = player.e->pos.x / 8;
-      int gy = player.e->pos.y / 8;
-      int gz = player.e->pos.z / 8;
-      int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
-      int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
-      int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
+      //int gx = player.e->pos.x / 8;
+      //int gy = player.e->pos.y / 8;
+      //int gz = player.e->pos.z / 8;
+      //int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
+      //int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
+      //int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
 
-      Item *cur = area->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx];
+      int cx = (player.e->pos.x/32)-area->cx+AREA_DIM/2;
+      int cy = (player.e->pos.y/32)-area->cy+AREA_DIM/2;
+      int cz = (player.e->pos.z/32)-area->cz+AREA_DIM/2;
+      int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+      int gx = (player.e->pos.x-(player.e->pos.x/32)*32) / 8;
+      int gy = (player.e->pos.y-(player.e->pos.y/32)*32) / 8;
+      int gz = (player.e->pos.z-(player.e->pos.z/32)*32) / 8;
+
+      Item *cur = area->chunks[c]->item_grid[gz*4*4+gy*4+gx];
       //Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx];
       for(; cur!=NULL; cur = cur->g_next)
       {
@@ -339,12 +347,19 @@ static int player_update_none()
       //Create list of accessible items
       RvR_array_length_set(player_menu_items, 0);
 
-      int gx = player.e->pos.x / 8;
-      int gy = player.e->pos.y / 8;
-      int gz = player.e->pos.z / 8;
-      int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
-      int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
-      int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
+      int cx = (player.e->pos.x/32)-area->cx+AREA_DIM/2;
+      int cy = (player.e->pos.y/32)-area->cy+AREA_DIM/2;
+      int cz = (player.e->pos.z/32)-area->cz+AREA_DIM/2;
+      int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
+      int gx = (player.e->pos.x-(player.e->pos.x/32)*32) / 8;
+      int gy = (player.e->pos.y-(player.e->pos.y/32)*32) / 8;
+      int gz = (player.e->pos.z-(player.e->pos.z/32)*32) / 8;
+      //int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
+      //int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
+      //int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
+      //int gx = player.e->pos.x / 8;
+      //int gy = player.e->pos.y / 8;
+      //int gz = player.e->pos.z / 8;
 
       //Item *cur = area->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx];
       //for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
@@ -674,12 +689,19 @@ static int player_update_put0()
       //Create list of containers
       RvR_array_length_set(player_menu_items, 0);
 
-      int gx = player.e->pos.x / 8;
-      int gy = player.e->pos.y / 8;
-      int gz = player.e->pos.z / 8;
-      int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
-      int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
-      int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
+
+      int cx = (player.e->pos.x/32)-area->cx+AREA_DIM/2;
+      int cy = (player.e->pos.y/32)-area->cy+AREA_DIM/2;
+      int cz = (player.e->pos.z/32)-area->cz+AREA_DIM/2;
+      int gx = (player.e->pos.x-(player.e->pos.x/32)*32) / 8;
+      int gy = (player.e->pos.y-(player.e->pos.y/32)*32) / 8;
+      int gz = (player.e->pos.z-(player.e->pos.z/32)*32) / 8;
+      //int gx = player.e->pos.x / 8;
+      //int gy = player.e->pos.y / 8;
+      //int gz = player.e->pos.z / 8;
+      //int cx = player.e->wpos.x-area->cx+AREA_DIM/2;
+      //int cy = player.e->wpos.y-area->cy+AREA_DIM/2;
+      //int cz = player.e->wpos.z-area->cz+AREA_DIM/2;
 
       //for(Item *cur = area->item_grid[gz * AREA_DIM * 4 * AREA_DIM * 4 + gy * AREA_DIM * 4 + gx]; cur!=NULL; cur = cur->g_next)
       for(Item *cur = area->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->item_grid[gz*4*4+gy*4+gx]; cur!=NULL; cur = cur->g_next)

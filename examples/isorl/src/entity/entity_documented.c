@@ -159,10 +159,10 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
    e->id = id;
    e->pos.x = (int16_t)((de->mx - a->cx) * 32 + de->ax);
    e->pos.y = (int16_t)((de->my - a->cy) * 32 + de->ay);
-   e->pos.z = (int16_t)(AREA_DIM * 32 - 1);
+   e->pos.z = (int16_t)(a->cz* 32 - 1);
    for(int16_t z = 0; z<AREA_DIM * 32; z++)
    {
-      e->pos.z = z;
+      e->pos.z = z+((a->cz-AREA_DIM/2)*32);
       if(tile_has_wall(area_tile(a, point(e->pos.x, e->pos.y, z + 1))))
          break;
    }

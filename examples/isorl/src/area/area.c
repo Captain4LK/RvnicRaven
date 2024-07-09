@@ -62,24 +62,6 @@ Area *area_create(World *w, int32_t x, int32_t y, int32_t z)
          }
       }
    }
-   //a->items = NULL;
-   //a->entities = NULL;
-   //memset(a->item_grid, 0, sizeof(a->item_grid));
-   //memset(a->entity_grid, 0, sizeof(a->entity_grid));
-
-   //for(int i = 0; i<32*32*32*AREA_DIM*AREA_DIM*AREA_DIM;i++)
-      //a->tiles[i] = tile_set_discovered(0, 0, 0);
-
-   /*for(int cz = 0;cz<AREA_DIM;cz++)
-   {
-      for(int cy = 0;cy<AREA_DIM;cy++)
-      {
-         for(int cx = 0;cx<AREA_DIM;cx++)
-         {
-            Chunk *c = chunk_gen(w,x-AREA_DIM/2+cx
-         }
-      }
-   }*/
 
    return a;
 
@@ -94,28 +76,60 @@ RvR_err:
 
 uint32_t area_tile(const Area *a, Point pos)
 {
-   if(pos.x<0||pos.y<0||pos.z<0)
-      return tile_set_discovered(0, 1, 1);
+   int cx = (pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (pos.z/32)-a->cz+AREA_DIM/2;
 
-   if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
-      return tile_set_discovered(0, 1, 1);
-
-   int cx = pos.x/32;
-   int cy = pos.y/32;
-   int cz = pos.z/32;
-   int px = pos.x-cx*32;
-   int py = pos.y-cy*32;
-   int pz = pos.z-cz*32;
-
+   if(cx<0||cy<0||cz<0)
+      return tile_set_discovered(0,1,1);
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+      return tile_set_discovered(0,1,1);
    if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]==NULL)
-      return tile_set_discovered(0, 1, 1);
-   return a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]->tiles[pz*32*32+py*32+px];
-   //return a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x];
+      return tile_set_discovered(0,1,1);
+
+   int gx = (pos.x-(pos.x/32)*32);
+   int gy = (pos.y-(pos.y/32)*32);
+   int gz = (pos.z-(pos.z/32)*32);
+
+   return a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->tiles[gz*32*32+gy*32+gx];
+   //if(pos.x<0||pos.y<0||pos.z<0)
+      //return tile_set_discovered(0, 1, 1);
+
+   //if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
+      //return tile_set_discovered(0, 1, 1);
+
+   //int cx = pos.x/32;
+   //int cy = pos.y/32;
+   //int cz = pos.z/32;
+   //int px = pos.x-cx*32;
+   //int py = pos.y-cy*32;
+   //int pz = pos.z-cz*32;
+
+   //if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]==NULL)
+      //return tile_set_discovered(0, 1, 1);
+   //return a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]->tiles[pz*32*32+py*32+px];
 }
 
 void area_set_tile(Area *a, Point pos, uint32_t tile)
 {
-   if(pos.x<0||pos.y<0||pos.z<0)
+   int cx = (pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (pos.z/32)-a->cz+AREA_DIM/2;
+
+   if(cx<0||cy<0||cz<0)
+      return;
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+      return;
+   if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]==NULL)
+      return;
+
+   int gx = (pos.x-(pos.x/32)*32);
+   int gy = (pos.y-(pos.y/32)*32);
+   int gz = (pos.z-(pos.z/32)*32);
+
+   a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->tiles[gz*32*32+gy*32+gx] = tile;
+
+   /*if(pos.x<0||pos.y<0||pos.z<0)
       return;
 
    if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
@@ -131,12 +145,12 @@ void area_set_tile(Area *a, Point pos, uint32_t tile)
    if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]==NULL)
       return;
    a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]->tiles[pz*32*32+py*32+px] = tile;
-   //a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x] = tile;
+   //a->tiles[pos.z * AREA_DIM * 32 * AREA_DIM * 32 + pos.y * AREA_DIM * 32 + pos.x] = tile;*/
 }
 
 Entity *area_entity_at(Area * a, Point pos, Entity * not)
 {
-   if(pos.x<0||pos.y<0||pos.z<0)
+   /*if(pos.x<0||pos.y<0||pos.z<0)
       return NULL;
 
    if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
@@ -165,7 +179,7 @@ Entity *area_entity_at(Area * a, Point pos, Entity * not)
          return cur;
    }
 
-   return NULL;
+   return NULL;*/
 }
 
 #if 0

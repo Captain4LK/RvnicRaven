@@ -50,7 +50,6 @@ struct Item_slot
 struct Item
 {
    Point pos;
-   Point wpos;
 
    uint16_t sprite;
 
