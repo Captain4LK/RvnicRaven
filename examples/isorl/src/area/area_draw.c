@@ -95,8 +95,10 @@ void area_draw_end()
 
    int cx = cam->x * 16 + cam->y * 16;
    int cy = cam->z * 20 - 8 * cam->x + 8 * cam->y;
+   printf("%d\n",cam->z);
 
-   for(int z = AREA_DIM * 32 - 1; z>=0; z--)
+   for(int z = (area->cz+AREA_DIM/2)*32-1; z>=(area->cz-AREA_DIM/2)*32; z--)
+   //for(int z = AREA_DIM * 32 - 1; z>=0; z--)
    {
       int origin_y = (16 * cam->y - 20 * (z - cam->z)) / 16;
       int origin_x = -origin_y + cam->x + cam->y;
@@ -112,11 +114,13 @@ void area_draw_end()
          if(min>max)
             break;
 
-         min = RvR_max(0, min - 1);
+         min = RvR_max((area->cx-AREA_DIM/2)*32, min - 1);
          if(cam->rotation==1||cam->rotation==3)
-            max = RvR_min(AREA_DIM * 32, max + 2);
+            max = RvR_min((area->cy+AREA_DIM/2)*32, max + 2);
+            //max = RvR_min(AREA_DIM * 32, max + 2);
          else
-            max = RvR_min(AREA_DIM * 32, max + 2);
+            max = RvR_min((area->cx+AREA_DIM/2)*32, max + 2);
+            //max = RvR_min(AREA_DIM * 32, max + 2);
 
          for(int x = max; x>=min; x--)
          {
@@ -165,6 +169,7 @@ void area_draw_end()
             //Draw_sprites
             if(sprite_cur<sprite_max)
             {
+                  //puts("SPR");
                Draw_sprite *sp = sprites + sprite_cur;
                if(point_equal(sp->pos, point(tx, ty, z)))
                {
@@ -267,16 +272,17 @@ void area_draw_end()
 
 static void area_draw_sprite(Draw_sprite *s)
 {
-   int16_t x = s->pos.x;
-   int16_t y = s->pos.y;
-   int16_t z = s->pos.z;
+   int x = s->pos.x;
+   int y = s->pos.y;
+   int z = s->pos.z;
 
    int dx = x;
    int dy = y;
    if(cam->rotation==1)
    {
       dx = y;
-      dy = AREA_DIM * 32 - 1 - x;
+      dy = (area->cy+AREA_DIM/2)*32 - 1 - x;
+      //dy = AREA_DIM * 32 - 1 - x;
    }
    else if(cam->rotation==2)
    {
@@ -290,9 +296,12 @@ static void area_draw_sprite(Draw_sprite *s)
    }
 
    //Out of bounds
-   if(x<0||y<0||z<0)
+   int chx = (x/32)-area->cx+AREA_DIM/2;
+   int chy = (y/32)-area->cy+AREA_DIM/2;
+   int chz = (z/32)-area->cz+AREA_DIM/2;
+   if(chx<0||chy<0||chz<0)
       return;
-   if(x>=AREA_DIM * 32||y>=AREA_DIM * 32||z>=AREA_DIM * 32)
+   if(chx>=AREA_DIM||chy>=AREA_DIM||chz>=AREA_DIM )
       return;
 
    //Outside of screen

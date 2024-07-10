@@ -150,6 +150,30 @@ void area_set_tile(Area *a, Point pos, uint32_t tile)
 
 Entity *area_entity_at(Area * a, Point pos, Entity * not)
 {
+   int cx = (pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (pos.z/32)-a->cz+AREA_DIM/2;
+
+   if(cx<0||cy<0||cz<0)
+      return NULL;
+   if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
+      return NULL;
+   if(a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cz]==NULL)
+      return NULL;
+
+   int gx = (pos.x-(pos.x/32)*32)/8;
+   int gy = (pos.y-(pos.y/32)*32)/8;
+   int gz = (pos.z-(pos.z/32)*32)/8;
+
+   Point loc = point(gx,gy,gz);
+   Entity *cur = a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]->entity_grid[gz*4*4+gy*4+gx];
+   for(;cur!=NULL;cur = cur->g_next)
+   {
+      if(point_equal(cur->pos, loc)&&cur!=not)
+         return cur;
+   }
+   return NULL;
+
    /*if(pos.x<0||pos.y<0||pos.z<0)
       return NULL;
 

@@ -211,18 +211,13 @@ int entity_pos_valid(Area *a, Entity *e, Point pos)
    if(cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
       return 0;
 
-   //if(pos.x<0||pos.y<0||pos.z<0)
-      //return 0;
-
-   //if(pos.x>=AREA_DIM * 32||pos.y>=AREA_DIM * 32||pos.z>=AREA_DIM * 32)
-      //return 0;
-
    uint32_t block = area_tile(a, pos);
    uint32_t floor = area_tile(a, point(pos.x, pos.y, pos.z + 1));
    if(area_entity_at(a, pos, e)!=NULL)
       return 0;
    if(!tile_has_wall(block)&&(tile_has_floor(floor)||tile_is_slope(floor)))
       return 1;
+
    return 0;
 }
 
@@ -242,7 +237,7 @@ unsigned entity_try_move(World *w, Area *a, Entity *e, uint8_t dir)
    //int cy = (n.y/32)-a->cy+AREA_DIM/2;
    //int cz = (n.z/32)-a->cz+AREA_DIM/2;
    //int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
-   printf("%d %d %d %d %d %d\n",n.x,n.y,n.z,a->cx,a->cy,a->cz);
+   //printf("%d %d %d\n",cx,cy,cz);
    if(cx<0||cy<0||cz<0||cx>=AREA_DIM||cy>=AREA_DIM||cz>=AREA_DIM)
    //if(n.x<0||n.y<0||n.x>=AREA_DIM * 32||n.y>=AREA_DIM * 32)
    {

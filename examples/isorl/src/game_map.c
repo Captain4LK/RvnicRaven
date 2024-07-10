@@ -94,7 +94,7 @@ void game_map_update()
    {
       if(area==NULL)
       {
-         area = area_create(world, pe.mx, pe.my,32);
+         area = area_create(world, pe.mx, pe.my,31);
          astar_init(area);
          player_add(world, area);
       }

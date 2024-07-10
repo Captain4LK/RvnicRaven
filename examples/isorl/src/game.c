@@ -192,7 +192,7 @@ void game_draw()
       {
          //if(e->removed)
          //continue;
-         area_draw_entity(e, chunk_pos_to_area(area,area->chunks[c],e->pos));
+         area_draw_entity(e, e->pos);
       }
    }
 
@@ -203,7 +203,7 @@ void game_draw()
       {
          //if(it->removed)
          //continue;
-         area_draw_item(it, chunk_pos_to_area(area,area->chunks[c],it->pos));
+         area_draw_item(it, it->pos);
       }
    }
 
@@ -235,12 +235,22 @@ void game_init()
 void game_set()
 {
    fov_player(area, player.e, player.e->pos);
+
    redraw = 1;
    while(turn_heap_peek_max()!=player.e)
    {
       turns_do_until(world, area, player.e);
       if(turn_heap_peek_max()==NULL)
          turn_start(world, area);
+   }
+
+   player.cam.z = player.e->pos.z;
+   switch(player.cam.rotation)
+   {
+   case 0: player.cam.x = player.e->pos.x + 2; player.cam.y = player.e->pos.y - 22; break;
+   case 1: player.cam.x = player.e->pos.y + 2; player.cam.y = -player.e->pos.x + AREA_DIM * 32 - 1 - 22; break;
+   case 2: player.cam.x = -player.e->pos.x + AREA_DIM * 32 - 1 + 2; player.cam.y = -player.e->pos.y + AREA_DIM * 32 - 1 - 22; break;
+   case 3: player.cam.x = -player.e->pos.y + AREA_DIM * 32 - 1 + 2; player.cam.y = player.e->pos.x - 22; break;
    }
 }
 //-------------------------------------

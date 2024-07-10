@@ -1,7 +1,7 @@
 /*
 RvnicRaven - iso roguelike
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -157,13 +157,16 @@ Entity *entity_from_docent(World *w, Area *a, uint64_t id)
 
    Entity *e = entity_new(w);
    e->id = id;
-   e->pos.x = (int16_t)((de->mx - a->cx) * 32 + de->ax);
-   e->pos.y = (int16_t)((de->my - a->cy) * 32 + de->ay);
-   e->pos.z = (int16_t)(a->cz* 32 - 1);
-   for(int16_t z = 0; z<AREA_DIM * 32; z++)
+   e->pos.x = de->mx*32+de->ax;
+   e->pos.y = de->my*32+de->ay;
+   e->pos.z = (a->cz* 32 - 1);
+   //e->pos.x = (int16_t)((de->mx - a->cx) * 32 + de->ax);
+   //e->pos.y = (int16_t)((de->my - a->cy) * 32 + de->ay);
+   //e->pos.z = (int16_t)(a->cz* 32 - 1);
+   for(int z = 0; z<AREA_DIM * 32; z++)
    {
       e->pos.z = z+((a->cz-AREA_DIM/2)*32);
-      if(tile_has_wall(area_tile(a, point(e->pos.x, e->pos.y, z + 1))))
+      if(tile_has_wall(area_tile(a, point(e->pos.x, e->pos.y, e->pos.z+ 1))))
          break;
    }
 
@@ -184,8 +187,10 @@ void docent_from_entity(World *w, Area *a, Entity *e)
    Entity_documented de = {0};
    entity_doc_get(w, e->id, &de);
 
-   de.mx = (uint16_t)((a->cx * 32 + e->pos.x) / 32);
-   de.my = (uint16_t)((a->cy * 32 + e->pos.y) / 32);
+   de.mx = e->pos.x/32;
+   de.my = e->pos.y/32;
+   //de.mx = (uint16_t)((a->cx * 32 + e->pos.x) / 32);
+   //de.my = (uint16_t)((a->cy * 32 + e->pos.y) / 32);
    de.ax = e->pos.x & 31;
    de.ay = e->pos.y & 31;
 
