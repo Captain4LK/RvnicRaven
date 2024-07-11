@@ -74,6 +74,174 @@ RvR_err:
    return NULL;
 }
 
+void area_move_x(World *w, Area *a, int sign)
+{
+   if(sign==0)
+      return;
+
+   sign = RvR_max(-1,RvR_min(1,sign));
+
+   a->cx-=sign;
+   if(sign<0)
+   {
+      //Free old
+      for(int cz = 0;cz<AREA_DIM;cz++)
+      {
+         for(int cy = 0;cy<AREA_DIM;cy++)
+         {
+            chunk_unload(w,a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM]);
+            a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM] = NULL;
+         }
+      }
+
+      //Move existing
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cy = 0;cy<AREA_DIM;cy++)
+            for(int cx = 0;cx<AREA_DIM-1;cx++)
+               a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx+1];
+
+      //Create new
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cy = 0;cy<AREA_DIM;cy++)
+            a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+AREA_DIM-1] = chunk_get(w,a->cx-AREA_DIM/2+AREA_DIM-1,a->cy-AREA_DIM/2+cy,a->cz-AREA_DIM/2+cz);
+   }
+   else
+   {
+      //Free old
+      for(int cz = 0;cz<AREA_DIM;cz++)
+      {
+         for(int cy = 0;cy<AREA_DIM;cy++)
+         {
+            chunk_unload(w,a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+AREA_DIM-1]);
+            a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+AREA_DIM-1] = NULL;
+         }
+      }
+
+      //Move existing
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cy = 0;cy<AREA_DIM;cy++)
+            for(int cx = AREA_DIM-1;cx>=1;cx--)
+               a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx-1];
+
+      //Create new
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cy = 0;cy<AREA_DIM;cy++)
+            a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM] = chunk_get(w,a->cx-AREA_DIM/2,a->cy-AREA_DIM/2+cy,a->cz-AREA_DIM/2+cz);
+   }
+}
+
+void area_move_y(World *w, Area *a, int sign)
+{
+   if(sign==0)
+      return;
+
+   sign = RvR_max(-1,RvR_min(1,sign));
+
+   a->cy-=sign;
+   if(sign<0)
+   {
+      //Free old
+      for(int cz = 0;cz<AREA_DIM;cz++)
+      {
+         for(int cx = 0;cx<AREA_DIM;cx++)
+         {
+            chunk_unload(w,a->chunks[cz*AREA_DIM*AREA_DIM+cx]);
+            a->chunks[cz*AREA_DIM*AREA_DIM+cx] = NULL;
+         }
+      }
+
+      //Move existing
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cy = 0;cy<AREA_DIM-1;cy++)
+            for(int cx = 0;cx<AREA_DIM;cx++)
+               a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = a->chunks[cz*AREA_DIM*AREA_DIM+(cy+1)*AREA_DIM+cx];
+
+      //Create new
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cx = 0;cx<AREA_DIM;cx++)
+            a->chunks[cz*AREA_DIM*AREA_DIM+(AREA_DIM-1)*AREA_DIM+cx] = chunk_get(w,a->cx-AREA_DIM/2+cx,a->cy-AREA_DIM/2+AREA_DIM-1,a->cz-AREA_DIM/2+cz);
+   }
+   else
+   {
+      //Free old
+      for(int cz = 0;cz<AREA_DIM;cz++)
+      {
+         for(int cx = 0;cx<AREA_DIM;cx++)
+         {
+            chunk_unload(w,a->chunks[cz*AREA_DIM*AREA_DIM+(AREA_DIM-1)*AREA_DIM+cx]);
+            a->chunks[cz*AREA_DIM*AREA_DIM+(AREA_DIM-1)*AREA_DIM+cx] = NULL;
+         }
+      }
+
+      //Move existing
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cy = AREA_DIM-1;cy>=1;cy--)
+            for(int cx = 0;cx<AREA_DIM;cx++)
+               a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = a->chunks[cz*AREA_DIM*AREA_DIM+(cy-1)*AREA_DIM+cx];
+
+      //Create new
+      for(int cz = 0;cz<AREA_DIM;cz++)
+         for(int cx = 0;cx<AREA_DIM;cx++)
+            a->chunks[cz*AREA_DIM*AREA_DIM+cx] = chunk_get(w,a->cx-AREA_DIM/2+cx,a->cy-AREA_DIM/2,a->cz-AREA_DIM/2+cz);
+   }
+}
+
+void area_move_z(World *w, Area *a, int sign)
+{
+   if(sign==0)
+      return;
+
+   sign = RvR_max(-1,RvR_min(1,sign));
+
+   a->cz-=sign;
+   if(sign<0)
+   {
+      //Free old
+      for(int cy = 0;cy<AREA_DIM;cy++)
+      {
+         for(int cx = 0;cx<AREA_DIM;cx++)
+         {
+            chunk_unload(w,a->chunks[cy*AREA_DIM+cx]);
+            a->chunks[cy*AREA_DIM+cx] = NULL;
+         }
+      }
+
+      //Move existing
+      for(int cz = 0;cz<AREA_DIM-1;cz++)
+         for(int cy = 0;cy<AREA_DIM;cy++)
+            for(int cx = 0;cx<AREA_DIM;cx++)
+               a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = a->chunks[(cz+1)*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx];
+
+      //Create new
+      for(int cy = 0;cy<AREA_DIM;cy++)
+         for(int cx = 0;cx<AREA_DIM;cx++)
+            a->chunks[(AREA_DIM-1)*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = chunk_get(w,a->cx-AREA_DIM/2+cx,a->cy-AREA_DIM/2+cy,a->cz-AREA_DIM/2+AREA_DIM-1);
+   }
+   else
+   {
+      //Free old
+      for(int cy = 0;cy<AREA_DIM;cy++)
+      {
+         for(int cx = 0;cx<AREA_DIM;cx++)
+         {
+            chunk_unload(w,a->chunks[(AREA_DIM-1)*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx]);
+            a->chunks[(AREA_DIM-1)*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = NULL;
+         }
+      }
+
+      //Move existing
+      for(int cz = AREA_DIM-1;cz>=1;cz--)
+         for(int cy = 0;cy<AREA_DIM;cy++)
+            for(int cx = 0;cx<AREA_DIM;cx++)
+               a->chunks[cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx] = a->chunks[(cz-1)*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx];
+
+      //Create new
+      for(int cy = 0;cy<AREA_DIM;cy++)
+         for(int cx = 0;cx<AREA_DIM;cx++)
+            a->chunks[cy*AREA_DIM+cx] = chunk_get(w,a->cx-AREA_DIM/2+cx,a->cy-AREA_DIM/2+cy,a->cz-AREA_DIM/2);
+   }
+}
+
 uint32_t area_tile(const Area *a, Point pos)
 {
    int cx = (pos.x/32)-a->cx+AREA_DIM/2;

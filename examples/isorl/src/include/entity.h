@@ -21,7 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 Entity *entity_new(World *w);
 void entity_free(Entity *e);
 
-//void entity_remove(Entity *e);
+void entity_remove(Entity *e);
 void entity_add(Area *a, Entity *e);
 
 void entity_update_pos(Area *a, Entity *e, Point pos);
@@ -53,8 +53,8 @@ int entity_store_item(World *w, Area *a, Entity *e, Item *it);
 int entity_can_equip(World *w, Area *a, Entity *e, Item *it, int check_space);
 void entity_equip(World *w, Area *a, Entity *e, Item *it);
 
-void entity_remove(World *w, Area *a, Entity *e, Item *it);
-void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container);
+void entity_remove_item(World *w, Area *a, Entity *e, Item *it);
+void entity_put_item(World *w, Area *a, Entity *e, Item *it, Item *container);
 
 inline Entity_index entity_index_get(Entity *e) {
    if(e==NULL)

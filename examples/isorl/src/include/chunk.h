@@ -14,5 +14,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 Point chunk_pos_to_area(const Area *a, const Chunk *c, Point pos);
 Chunk *chunk_get(World *w, int x, int y, int z);
+void chunk_unload(World *w, Chunk *c); //frees chunk
 
 #endif

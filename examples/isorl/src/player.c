@@ -178,17 +178,47 @@ static int player_update_none()
 
    //Ascend/Descend
    if(RvR_key_pressed(RVR_KEY_COMMA)&&RvR_key_down(RVR_KEY_LSHIFT))
+   {
+      if(player.e->pos.z>area->cz*32+48)
+         area_move_z(world,area,-1);
       action_set_descend(player.e);
+   }
    if(RvR_key_pressed(RVR_KEY_PERIOD)&&RvR_key_down(RVR_KEY_LSHIFT))
+   {
+      if(player.e->pos.z<area->cz*32-16)
+         area_move_z(world,area,1);
       action_set_ascend(player.e);
+   }
 
    if(dir!=-1)
    {
       //Check for attack target
       if(area_entity_at(area, point_add_dir(player.e->pos, dir), player.e)!=NULL)
+      {
+         //int gx = (player.e->pos.x-(player.e->pos.x/32)*32);
+         //int gy = (player.e->pos.y-(player.e->pos.y/32)*32);
+         //int gz = (player.e->pos.z-(player.e->pos.z/32)*32);
+         //if(gx>=28)
+
          action_set_attack(player.e, dir);
+      }
       else
+      {
+         if(player.e->pos.x>area->cx*32+48)
+            area_move_x(world,area,-1);
+         else if(player.e->pos.x<area->cx*32-16)
+            area_move_x(world,area,1);
+         if(player.e->pos.y>area->cy*32+48)
+            area_move_y(world,area,-1);
+         else if(player.e->pos.y<area->cy*32-16)
+            area_move_y(world,area,1);
+         if(player.e->pos.z>area->cz*32+48)
+            area_move_z(world,area,-1);
+         else if(player.e->pos.z<area->cz*32-16)
+            area_move_z(world,area,1);
+
          action_set_move(player.e, dir);
+      }
    }
 
    //Pickup

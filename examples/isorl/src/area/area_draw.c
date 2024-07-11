@@ -95,7 +95,6 @@ void area_draw_end()
 
    int cx = cam->x * 16 + cam->y * 16;
    int cy = cam->z * 20 - 8 * cam->x + 8 * cam->y;
-   printf("%d\n",cam->z);
 
    for(int z = (area->cz+AREA_DIM/2)*32-1; z>=(area->cz-AREA_DIM/2)*32; z--)
    //for(int z = AREA_DIM * 32 - 1; z>=0; z--)

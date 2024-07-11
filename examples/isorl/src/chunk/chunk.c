@@ -20,6 +20,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "config.h"
 #include "world_gen.h"
 #include "world.h"
+#include "entity.h"
+#include "item.h"
 #include "area.h"
 #include "tile.h"
 #include "region.h"
@@ -47,6 +49,30 @@ Chunk *chunk_get(World *w, int x, int y, int z)
    //TODO(Captian4LK): check if chunk in existing area
 
    return chunk_gen(w, x, y, z);
+}
+
+void chunk_unload(World *w, Chunk *c)
+{
+   if(w==NULL||c==NULL)
+      return;
+
+   Entity *e = c->entities;
+   while(e!=NULL)
+   {
+      Entity *next = e->next;
+      entity_free(e);
+      e = next;
+   }
+
+   Item *i = c->items;
+   while(i!=NULL)
+   {
+      Item *next = i->next;
+      item_free(i);
+      i = next;
+   }
+
+   RvR_free(c);
 }
 
 Point chunk_pos_to_area(const Area *a, const Chunk *c, Point pos)

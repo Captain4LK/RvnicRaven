@@ -522,7 +522,7 @@ static int action_remove(World *w, Area *a, Entity *e)
 
    Item *it = item_index_try(act->as.remove.item);
 
-   entity_remove(w, a, e, it);
+   entity_remove_item(w, a, e, it);
 
    return ACTION_FINISHED;
 }
@@ -535,7 +535,7 @@ static int action_put(World *w, Area *a, Entity *e)
    Item *it = item_index_try(act->as.put.item);
    Item *con = item_index_try(act->as.put.container);
 
-   entity_put(w, a, e, it, con);
+   entity_put_item(w, a, e, it, con);
 
    return ACTION_FINISHED;
 }

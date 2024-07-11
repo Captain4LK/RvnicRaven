@@ -85,9 +85,7 @@ void entity_free(Entity *e)
    entity_grid_remove(e);
    e->id = UINT64_MAX;
 
-   *e->prev_next = e->next;
-   if(e->next != NULL)
-      e->next->prev_next = e->prev_next;
+   entity_remove(e);
 
    e->next = entity_pool;
    entity_pool = e;
@@ -114,6 +112,13 @@ void entity_add(Area *a, Entity *e)
       a->chunks[c]->entities->prev_next = &e->next;
    e->next = a->chunks[c]->entities;
    a->chunks[c]->entities = e;
+}
+
+void entity_remove(Entity *e)
+{
+   *e->prev_next = e->next;
+   if(e->next != NULL)
+      e->next->prev_next = e->prev_next;
 }
 
 void entity_grid_add(Area *a, Entity *e)
@@ -165,9 +170,9 @@ void entity_update_pos(Area *a, Entity *e, Point pos)
    if(a==NULL)
       return;
 
-   int cx = (e->pos.x/32)-a->cx+AREA_DIM/2;
-   int cy = (e->pos.y/32)-a->cy+AREA_DIM/2;
-   int cz = (e->pos.z/32)-a->cz+AREA_DIM/2;
+   int cx = (pos.x/32)-a->cx+AREA_DIM/2;
+   int cy = (pos.y/32)-a->cy+AREA_DIM/2;
+   int cz = (pos.z/32)-a->cz+AREA_DIM/2;
    int c = cz*AREA_DIM*AREA_DIM+cy*AREA_DIM+cx;
    if(cx<0||cy<0||cz<0)
       return;
@@ -180,8 +185,10 @@ void entity_update_pos(Area *a, Entity *e, Point pos)
       //return;
 
    entity_grid_remove(e);
+   entity_remove(e);
    e->pos = pos;
    entity_grid_add(a, e);
+   entity_add(a, e);
 }
 
 void entity_grid_remove(Entity *e)
@@ -541,7 +548,7 @@ void entity_equip(World *w, Area *a, Entity *e, Item *it)
    }
 }
 
-void entity_remove(World *w, Area *a, Entity *e, Item *it)
+void entity_remove_item(World *w, Area *a, Entity *e, Item *it)
 {
    //Search for free slot
    Item_slot *hand = NULL;
@@ -601,7 +608,7 @@ void entity_remove(World *w, Area *a, Entity *e, Item *it)
    }
 }
 
-void entity_put(World *w, Area *a, Entity *e, Item *it, Item *container)
+void entity_put_item(World *w, Area *a, Entity *e, Item *it, Item *container)
 {
    if(it==NULL||container==NULL)
       return;
