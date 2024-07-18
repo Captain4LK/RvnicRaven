@@ -82,7 +82,7 @@ int main(int argc, char **argv)
    ui_construct();
 
    //Init RvnicRaven core
-   RvR_init("Ported", 0);
+   RvR_init("RvnicRaven - ported", 0);
    RvR_mouse_relative(0);
    //RvR_mouse_show(0);
    RvR_key_repeat(1);

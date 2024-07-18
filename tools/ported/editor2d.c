@@ -322,7 +322,7 @@ static void e2d_update_view(void)
             if(mx>=x0 - 3&&mx<=x0 + 3&&my>=y0 - 3&&my<=y0 + 3)
             {
                wall_move = (uint16_t)i;
-               undo_track_wall_move(wall_move, p0->x, p0->y);
+               //undo_track_wall_move(wall_move, p0->x, p0->y);
                state = STATE2D_WALL_MOVE;
                break;
             }

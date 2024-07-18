@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -18,7 +18,8 @@ void undo(void);
 void redo(void);
 
 //For writing undo/redo entries
-void undo_track_wall_move(int16_t wall, RvR_fix22 px, RvR_fix22 py);
-void undo_track_sector(int16_t sector);
+void undo_track_wall_shade(uint32_t wall, int8_t shade);
+//void undo_track_wall_move(int16_t wall, RvR_fix22 px, RvR_fix22 py);
+//void undo_track_sector(int16_t sector);
 
 #endif

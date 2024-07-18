@@ -26,6 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "editor.h"
 #include "editor2d.h"
 #include "draw.h"
+#include "undo.h"
 //-------------------------------------
 
 //#defines
@@ -59,8 +60,6 @@ static RvR_port_selection world_selection;
 //-------------------------------------
 
 //Function prototypes
-static Map_sprite *sprite_selected();
-
 static void e3d_update_view(void);
 static void e3d_draw_view(void);
 static void e3d_update_tex_recent(void);
@@ -99,11 +98,6 @@ void editor3d_draw(void)
    }
 }
 
-static Map_sprite *sprite_selected()
-{
-   return NULL;
-}
-
 static void e3d_update_view(void)
 {
    camera_update();
@@ -120,7 +114,10 @@ static void e3d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_NP_ADD))
    {
       if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+      {
+         undo_track_wall_shade(world_selection.as.wall,map->walls[world_selection.as.wall].shade_offset);
          map->walls[world_selection.as.wall].shade_offset++;
+      }
       else if(world_selection.type==RVR_PORT_SFLOOR)
          map->sectors[world_selection.as.sector].shade_floor++;
       else if(world_selection.type==RVR_PORT_SCEILING)

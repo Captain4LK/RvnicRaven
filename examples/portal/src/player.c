@@ -186,7 +186,7 @@ void player_update(Gamestate *state)
       }
    }
 
-   if(book_hover)
+   if(book_hover&&bookcase_at(book_case,book_shelf,book_slot)!=BOOK_INVALID)
    {
    }
 }

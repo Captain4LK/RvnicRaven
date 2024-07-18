@@ -39,7 +39,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 RvR_port_map *map = NULL;
-Map_sprite *map_sprites = NULL;
+//Map_sprite *map_sprites = NULL;
 
 /*static struct
 {
@@ -49,8 +49,6 @@ Map_sprite *map_sprites = NULL;
 } path_list = {0};*/
 //static Map_list map_list = {0};
 static char map_path[128];
-
-static Map_sprite *map_sprite_pool = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -62,8 +60,8 @@ static void map_list_add(const char *path);
 void map_load(const char *path)
 {
    //Free old sprites
-   while(map_sprites!=NULL)
-      map_sprite_free(map_sprites);
+   //while(map_sprites!=NULL)
+      //map_sprite_free(map_sprites);
 
    map_set_path(path);
    map = RvR_port_map_load_path(map_path);
@@ -99,8 +97,8 @@ void map_load(const char *path)
 void map_new()
 {
    //Free old sprites
-   while(map_sprites!=NULL)
-      map_sprite_free(map_sprites);
+   //while(map_sprites!=NULL)
+      //map_sprite_free(map_sprites);
 
    map_path[0] = '\0';
    //snprintf(map_path, 127, "map%" PRIu64 ".map", (uint64_t)time(NULL));
@@ -154,13 +152,13 @@ void map_save()
 {
    //Save sprites
    //count
-   int sprite_count = 0;
-   Map_sprite *s = map_sprites;
-   while(s!=NULL)
-   {
-      s = s->next;
-      sprite_count++;
-   }
+   //int sprite_count = 0;
+   //Map_sprite *s = map_sprites;
+   //while(s!=NULL)
+   //{
+      //s = s->next;
+      //sprite_count++;
+   //}
    /*map->sprite_count = sprite_count;
    map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count, "RvR_ray map sprites grow");
    s = map_sprites;
@@ -269,47 +267,4 @@ static void map_list_add(const char *path)
 
    return &map_list;
 }*/
-
-Map_sprite *map_sprite_new()
-{
-   if(map_sprite_pool==NULL)
-   {
-      Map_sprite *ms = RvR_malloc(sizeof(*ms) * 256, "rayed map sprite pool");
-      memset(ms, 0, sizeof(*ms) * 256);
-
-      for(int i = 0; i<255; i++)
-         ms[i].next = &ms[i + 1];
-      map_sprite_pool = &ms[0];
-   }
-
-   Map_sprite *ms = map_sprite_pool;
-   map_sprite_pool = ms->next;
-   ms->next = NULL;
-   ms->prev_next = NULL;
-
-   return ms;
-}
-
-void map_sprite_add(Map_sprite *sp)
-{
-   sp->prev_next = &map_sprites;
-   if(map_sprites!=NULL)
-      map_sprites->prev_next = &sp->next;
-
-   sp->next = map_sprites;
-   map_sprites = sp;
-}
-
-void map_sprite_free(Map_sprite *sp)
-{
-   if(sp==NULL)
-      return;
-
-   *sp->prev_next = sp->next;
-   if(sp->next!=NULL)
-      sp->next->prev_next = sp->prev_next;
-
-   sp->next = map_sprite_pool;
-   map_sprite_pool = sp;
-}
 //-------------------------------------
