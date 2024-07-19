@@ -18,8 +18,19 @@ void undo(void);
 void redo(void);
 
 //For writing undo/redo entries
-void undo_track_wall_shade(uint32_t wall, int8_t shade);
-//void undo_track_wall_move(int16_t wall, RvR_fix22 px, RvR_fix22 py);
-//void undo_track_sector(int16_t sector);
+void undo_track_wall_shade(uint32_t wall);
+void undo_track_floor_shade(uint32_t sector);
+void undo_track_ceiling_shade(uint32_t sector);
+void undo_track_sector_flag(uint32_t sector);
+void undo_track_sprite_flag(uint32_t sprite);
+void undo_track_sprite_dir(uint32_t sprite);
+void undo_track_wall_flag(uint32_t wall);
+void undo_track_wall_units(uint32_t wall);
+void undo_track_sector_units(uint32_t sector);
+void undo_track_sprite_units(uint32_t sprite);
+void undo_track_wall_offsets(uint32_t wall);
+void undo_track_sector_offsets(uint32_t sector);
+void undo_track_sector_slope(uint32_t sector);
+void undo_track_sector_height(uint32_t sector);
 
 #endif

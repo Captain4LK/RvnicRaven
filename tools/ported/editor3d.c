@@ -115,22 +115,37 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
       {
-         undo_track_wall_shade(world_selection.as.wall,map->walls[world_selection.as.wall].shade_offset);
+         undo_track_wall_shade(world_selection.as.wall);
          map->walls[world_selection.as.wall].shade_offset++;
       }
       else if(world_selection.type==RVR_PORT_SFLOOR)
+      {
+         undo_track_floor_shade(world_selection.as.sector);
          map->sectors[world_selection.as.sector].shade_floor++;
+      }
       else if(world_selection.type==RVR_PORT_SCEILING)
+      {
+         undo_track_ceiling_shade(world_selection.as.sector);
          map->sectors[world_selection.as.sector].shade_ceiling++;
+      }
    }
    if(RvR_key_pressed(RVR_KEY_NP_SUB))
    {
       if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+      {
+         undo_track_wall_shade(world_selection.as.wall);
          map->walls[world_selection.as.wall].shade_offset--;
+      }
       else if(world_selection.type==RVR_PORT_SFLOOR)
+      {
+         undo_track_floor_shade(world_selection.as.sector);
          map->sectors[world_selection.as.sector].shade_floor--;
+      }
       else if(world_selection.type==RVR_PORT_SCEILING)
+      {
+         undo_track_ceiling_shade(world_selection.as.sector);
          map->sectors[world_selection.as.sector].shade_ceiling--;
+      }
    }
 
    //Parallax
@@ -138,10 +153,12 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_SFLOOR)
       {
+         undo_track_sector_flag(world_selection.as.sector);
          map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_PARALLAX_FLOOR;
       }
       else if(world_selection.type==RVR_PORT_SCEILING)
       {
+         undo_track_sector_flag(world_selection.as.sector);
          map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_PARALLAX_CEILING;
       }
    }
@@ -151,6 +168,7 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
       {
+         undo_track_sprite_flag(world_selection.as.sprite);
          if(map->sprites[world_selection.as.sprite].flags & RVR_PORT_SPRITE_TRANS0)
             map->sprites[world_selection.as.sprite].flags = (map->sprites[world_selection.as.sprite].flags ^ RVR_PORT_SPRITE_TRANS0) | RVR_PORT_SPRITE_TRANS1;
          else if(map->sprites[world_selection.as.sprite].flags & RVR_PORT_SPRITE_TRANS1)
@@ -164,12 +182,18 @@ static void e3d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_PERIOD))
    {
       if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+      {
+         undo_track_sprite_dir(world_selection.as.sprite);
          map->sprites[world_selection.as.sprite].dir -= RvR_key_down(RVR_KEY_LSHIFT)?16:64;
+      }
    }
    if(RvR_key_pressed(RVR_KEY_COMMA))
    {
       if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+      {
+         undo_track_sprite_dir(world_selection.as.sprite);
          map->sprites[world_selection.as.sprite].dir += RvR_key_down(RVR_KEY_LSHIFT)?16:64;
+      }
    }
 
    //Sprite placement
@@ -182,6 +206,7 @@ static void e3d_update_view(void)
    {
       if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
       {
+         undo_track_wall_flag(world_selection.as.wall);
          uint16_t wall = world_selection.as.wall;
          uint32_t wflags = map->walls[wall].flags & RVR_PORT_WALL;
          uint32_t one = RVR_PORT_WALL & (-(int32_t)RVR_PORT_WALL);
@@ -191,6 +216,7 @@ static void e3d_update_view(void)
       }
       else if(world_selection.type==RVR_PORT_SFLOOR)
       {
+         undo_track_sector_flag(world_selection.as.sector);
          uint16_t sector = world_selection.as.sector;
          uint32_t fflags = map->sectors[sector].flags & RVR_PORT_SECTOR_FLOOR;
          uint32_t one = RVR_PORT_SECTOR_FLOOR & (-(int32_t)RVR_PORT_SECTOR_FLOOR);
@@ -200,6 +226,7 @@ static void e3d_update_view(void)
       }
       else if(world_selection.type==RVR_PORT_SCEILING)
       {
+         undo_track_sector_flag(world_selection.as.sector);
          uint16_t sector = world_selection.as.sector;
          uint32_t cflags = map->sectors[sector].flags & RVR_PORT_SECTOR_CEILING;
          uint32_t one = RVR_PORT_SECTOR_CEILING & (-(int32_t)RVR_PORT_SECTOR_CEILING);
@@ -215,18 +242,33 @@ static void e3d_update_view(void)
       if(RvR_key_down(RVR_KEY_LSHIFT))
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_units(world_selection.as.wall);
             map->walls[world_selection.as.wall].x_units--;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_units(world_selection.as.sector);
             map->sectors[world_selection.as.sector].x_units--;
+         }
          else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+         {
+            undo_track_sprite_units(world_selection.as.sprite);
             map->sprites[world_selection.as.sprite].x_units--;
+         }
       }
       else
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_offsets(world_selection.as.wall);
             map->walls[world_selection.as.wall].x_off++;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_offsets(world_selection.as.sector);
             map->sectors[world_selection.as.sector].x_off++;
+         }
       }
    }
    if(RvR_key_pressed(RVR_KEY_NP6))
@@ -234,18 +276,33 @@ static void e3d_update_view(void)
       if(RvR_key_down(RVR_KEY_LSHIFT))
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_units(world_selection.as.wall);
             map->walls[world_selection.as.wall].x_units++;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_units(world_selection.as.sector);
             map->sectors[world_selection.as.sector].x_units++;
+         }
          else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+         {
+            undo_track_sprite_units(world_selection.as.sprite);
             map->sprites[world_selection.as.sprite].x_units++;
+         }
       }
       else
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_offsets(world_selection.as.wall);
             map->walls[world_selection.as.wall].x_off--;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_offsets(world_selection.as.sector);
             map->sectors[world_selection.as.sector].x_off--;
+         }
       }
    }
    if(RvR_key_pressed(RVR_KEY_NP8))
@@ -253,18 +310,33 @@ static void e3d_update_view(void)
       if(RvR_key_down(RVR_KEY_LSHIFT))
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_units(world_selection.as.wall);
             map->walls[world_selection.as.wall].y_units++;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_units(world_selection.as.sector);
             map->sectors[world_selection.as.sector].y_units++;
+         }
          else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+         {
+            undo_track_sprite_units(world_selection.as.sprite);
             map->sprites[world_selection.as.sprite].y_units++;
+         }
       }
       else
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_offsets(world_selection.as.wall);
             map->walls[world_selection.as.wall].y_off++;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_offsets(world_selection.as.sector);
             map->sectors[world_selection.as.sector].y_off--;
+         }
       }
    }
    if(RvR_key_pressed(RVR_KEY_NP2))
@@ -272,34 +344,64 @@ static void e3d_update_view(void)
       if(RvR_key_down(RVR_KEY_LSHIFT))
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_units(world_selection.as.wall);
             map->walls[world_selection.as.wall].y_units--;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_units(world_selection.as.sector);
             map->sectors[world_selection.as.sector].y_units--;
+         }
          else if(world_selection.type==RVR_PORT_SSPRITE_BILL||world_selection.type==RVR_PORT_SSPRITE_WALL||world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+         {
+            undo_track_sprite_units(world_selection.as.sprite);
             map->sprites[world_selection.as.sprite].y_units--;
+         }
       }
       else
       {
          if(world_selection.type==RVR_PORT_SWALL_BOT||world_selection.type==RVR_PORT_SWALL_TOP)
+         {
+            undo_track_wall_offsets(world_selection.as.wall);
             map->walls[world_selection.as.wall].y_off--;
+         }
          else if(world_selection.type==RVR_PORT_SFLOOR||world_selection.type==RVR_PORT_SCEILING)
+         {
+            undo_track_sector_offsets(world_selection.as.sector);
             map->sectors[world_selection.as.sector].y_off++;
+         }
       }
    }
 
    //Floor/Ceiling align
-   if(RvR_key_pressed(RVR_KEY_R))
+   if(RvR_key_pressed(RVR_KEY_R)&&!RvR_key_down(RVR_KEY_LCTRL))
    {
       if(world_selection.type==RVR_PORT_SFLOOR)
+      {
+         undo_track_sector_flag(world_selection.as.sector);
          map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_ALIGN_FLOOR;
+      }
       else if(world_selection.type==RVR_PORT_SCEILING)
+      {
+         undo_track_sector_flag(world_selection.as.sector);
          map->sectors[world_selection.as.sector].flags ^= RVR_PORT_SECTOR_ALIGN_CEILING;
+      }
       else if(world_selection.type==RVR_PORT_SSPRITE_BILL)
+      {
+         undo_track_sprite_flag(world_selection.as.sprite);
          map->sprites[world_selection.as.sprite].flags |= RVR_PORT_SPRITE_WALL;
+      }
       else if(world_selection.type==RVR_PORT_SSPRITE_WALL)
+      {
+         undo_track_sprite_flag(world_selection.as.sprite);
          map->sprites[world_selection.as.sprite].flags = (map->sprites[world_selection.as.sprite].flags ^ RVR_PORT_SPRITE_WALL) | RVR_PORT_SPRITE_FLOOR;
+      }
       else if(world_selection.type==RVR_PORT_SSPRITE_FLOOR)
+      {
+         undo_track_sprite_flag(world_selection.as.sprite);
          map->sprites[world_selection.as.sprite].flags ^= RVR_PORT_SPRITE_FLOOR;
+      }
    }
 
    //Slope
@@ -307,17 +409,29 @@ static void e3d_update_view(void)
    {
       int count = RvR_key_down(RVR_KEY_LSHIFT)?1:16;
       if(world_selection.type==RVR_PORT_SFLOOR)
+      {
+         undo_track_sector_slope(world_selection.as.sector);
          map->sectors[world_selection.as.sector].slope_floor -= count;
+      }
       else if(world_selection.type==RVR_PORT_SCEILING)
+      {
+         undo_track_sector_slope(world_selection.as.sector);
          map->sectors[world_selection.as.sector].slope_ceiling -= count;
+      }
    }
    if(RvR_key_pressed(RVR_KEY_9))
    {
       int count = RvR_key_down(RVR_KEY_LSHIFT)?1:16;
       if(world_selection.type==RVR_PORT_SFLOOR)
+      {
+         undo_track_sector_slope(world_selection.as.sector);
          map->sectors[world_selection.as.sector].slope_floor += count;
+      }
       else if(world_selection.type==RVR_PORT_SCEILING)
+      {
+         undo_track_sector_slope(world_selection.as.sector);
          map->sectors[world_selection.as.sector].slope_ceiling += count;
+      }
    }
 
    if(RvR_key_pressed(RVR_KEY_PGUP))

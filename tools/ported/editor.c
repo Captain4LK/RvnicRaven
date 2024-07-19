@@ -89,7 +89,7 @@ void editor_draw(void)
    if(RvR_key_pressed(RVR_KEY_U))
       undo();
 
-   if(RvR_key_pressed(RVR_KEY_R))
+   if(RvR_key_pressed(RVR_KEY_R)&&RvR_key_down(RVR_KEY_LCTRL))
       redo();
 }
 
