@@ -32,7 +32,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define undo_read8(var,pos) do { var = undo_buffer[pos]; pos =  WRAP(pos-1); } while(0)
 #define undo_read16(var,pos) do { uint16_t lo16,hi16; undo_read8(hi16,pos); undo_read8(lo16,pos); var = (uint16_t)(hi16*0x100+lo16); } while(0)
-#define undo_read32(var,pos) do { uint32_t lo32,hi32; undo_read16(hi32,pos); undo_read16(lo32,pos); var = (uint32_t)(hi32*0x1000f+lo32); } while(0)
+#define undo_read32(var,pos) do { uint32_t lo32,hi32; undo_read16(hi32,pos); undo_read16(lo32,pos); var = (uint32_t)(hi32*0x10000+lo32); } while(0)
 #define undo_read64(var,pos) do { uint64_t lo64,hi64; undo_read32(hi64,pos); undo_read32(lo64,pos); var = (uint64_t)(hi64*0x100000000+lo64); } while(0)
 
 #define redo_read8(var,pos) do { var = undo_buffer[pos]; pos = WRAP(pos+1); } while(0)
@@ -57,6 +57,11 @@ typedef enum
    ED_WALL_OFFSETS,
    ED_SECTOR_OFFSETS,
    ED_SECTOR_SLOPE,
+   ED_SECTOR_HEIGHT,
+   ED_SPRITE_POS,
+   ED_SPRITE_TEX,
+   ED_WALL_TEX,
+   ED_SECTOR_TEX,
 }Ed_action;
 //-------------------------------------
 
@@ -109,6 +114,16 @@ static void undo_sector_offsets(int pos, int endpos);
 static void redo_sector_offsets(int pos, int endpos);
 static void undo_sector_slope(int pos, int endpos);
 static void redo_sector_slope(int pos, int endpos);
+static void undo_sector_height(int pos, int endpos);
+static void redo_sector_height(int pos, int endpos);
+static void undo_sprite_pos(int pos, int endpos);
+static void redo_sprite_pos(int pos, int endpos);
+static void undo_sprite_tex(int pos, int endpos);
+static void redo_sprite_tex(int pos, int endpos);
+static void undo_wall_tex(int pos, int endpos);
+static void redo_wall_tex(int pos, int endpos);
+static void undo_sector_tex(int pos, int endpos);
+static void redo_sector_tex(int pos, int endpos);
 //-------------------------------------
 
 //Function implementations
@@ -178,6 +193,11 @@ void undo(void)
    case ED_WALL_OFFSETS: undo_wall_offsets(pos,endpos); break;
    case ED_SECTOR_OFFSETS: undo_sector_offsets(pos,endpos); break;
    case ED_SECTOR_SLOPE: undo_sector_slope(pos,endpos); break;
+   case ED_SECTOR_HEIGHT: undo_sector_height(pos,endpos); break;
+   case ED_SPRITE_POS: undo_sprite_pos(pos,endpos); break;
+   case ED_SPRITE_TEX: undo_sprite_tex(pos,endpos); break;
+   case ED_WALL_TEX: undo_wall_tex(pos,endpos); break;
+   case ED_SECTOR_TEX: undo_sector_tex(pos,endpos); break;
    }
 
    redo_write32(len);
@@ -229,6 +249,11 @@ void redo(void)
    case ED_WALL_OFFSETS: redo_wall_offsets(pos,endpos); break;
    case ED_SECTOR_OFFSETS: redo_sector_offsets(pos,endpos); break;
    case ED_SECTOR_SLOPE: redo_sector_slope(pos,endpos); break;
+   case ED_SECTOR_HEIGHT: redo_sector_height(pos,endpos); break;
+   case ED_SPRITE_POS: redo_sprite_pos(pos,endpos); break;
+   case ED_SPRITE_TEX: redo_sprite_tex(pos,endpos); break;
+   case ED_WALL_TEX: redo_wall_tex(pos,endpos); break;
+   case ED_SECTOR_TEX: redo_sector_tex(pos,endpos); break;
    }
 
    undo_write32(len);
@@ -892,5 +917,265 @@ static void redo_sector_slope(int pos, int endpos)
 
 void undo_track_sector_height(uint32_t sector)
 {
+   undo_begin(ED_SECTOR_HEIGHT);
+   undo_write32(sector);
+   undo_write32(map->sectors[sector].floor);
+   undo_write32(map->sectors[sector].ceiling);
+   printf("%d %d\n",map->sectors[sector].floor,map->sectors[sector].ceiling);
+   undo_end();
+}
+
+static void undo_sector_height(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector;
+      uint32_t floor;
+      uint32_t ceiling;
+      undo_read32(ceiling,pos);
+      undo_read32(floor,pos);
+      undo_read32(sector,pos);
+
+      redo_write32(sector);
+      redo_write32(map->sectors[sector].floor);
+      redo_write32(map->sectors[sector].ceiling);
+
+      map->sectors[sector].floor = floor;
+      map->sectors[sector].ceiling = ceiling;
+   }
+}
+
+static void redo_sector_height(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector;
+      uint32_t floor;
+      uint32_t ceiling;
+      redo_read32(ceiling,pos);
+      redo_read32(floor,pos);
+      redo_read32(sector,pos);
+
+      undo_write32(sector);
+      undo_write32(map->sectors[sector].floor);
+      undo_write32(map->sectors[sector].ceiling);
+
+      map->sectors[sector].floor = floor;
+      map->sectors[sector].ceiling = ceiling;
+   }
+}
+
+void undo_track_sprite_pos(uint32_t sprite)
+{
+   undo_begin(ED_SPRITE_POS);
+   undo_write32(sprite);
+   undo_write32(map->sprites[sprite].x);
+   undo_write32(map->sprites[sprite].y);
+   undo_write32(map->sprites[sprite].z);
+   undo_write32(map->sprites[sprite].sector);
+   undo_end();
+}
+
+static void undo_sprite_pos(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sprite;
+      uint32_t x;
+      uint32_t y;
+      uint32_t z;
+      uint32_t sector;
+      undo_read32(sector,pos);
+      undo_read32(z,pos);
+      undo_read32(y,pos);
+      undo_read32(x,pos);
+      undo_read32(sprite,pos);
+
+      redo_write32(sprite);
+      redo_write32(map->sprites[sprite].x);
+      redo_write32(map->sprites[sprite].y);
+      redo_write32(map->sprites[sprite].z);
+      redo_write32(map->sprites[sprite].sector);
+
+      map->sprites[sprite].x = x;
+      map->sprites[sprite].y = y;
+      map->sprites[sprite].z = z;
+      map->sprites[sprite].sector = sector;
+   }
+}
+
+static void redo_sprite_pos(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sprite;
+      uint32_t x;
+      uint32_t y;
+      uint32_t z;
+      uint32_t sector;
+      redo_read32(sector,pos);
+      redo_read32(z,pos);
+      redo_read32(y,pos);
+      redo_read32(x,pos);
+      redo_read32(sprite,pos);
+
+      undo_write32(sprite);
+      undo_write32(map->sprites[sprite].x);
+      undo_write32(map->sprites[sprite].y);
+      undo_write32(map->sprites[sprite].z);
+      undo_write32(map->sprites[sprite].sector);
+
+      map->sprites[sprite].x = x;
+      map->sprites[sprite].y = y;
+      map->sprites[sprite].z = z;
+      map->sprites[sprite].sector = sector;
+   }
+}
+
+void undo_track_sprite_tex(uint32_t sprite)
+{
+   undo_begin(ED_SPRITE_TEX);
+   undo_write32(sprite);
+   undo_write16(map->sprites[sprite].tex);
+   undo_end();
+}
+
+static void undo_sprite_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sprite;
+      uint16_t tex;
+      undo_read16(tex,pos);
+      undo_read32(sprite,pos);
+
+      redo_write32(sprite);
+      redo_write16(map->sprites[sprite].tex);
+
+      map->sprites[sprite].tex = tex;
+   }
+}
+
+static void redo_sprite_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sprite;
+      uint16_t tex;
+      redo_read16(tex,pos);
+      redo_read32(sprite,pos);
+
+      undo_write32(sprite);
+      undo_write16(map->sprites[sprite].tex);
+
+      map->sprites[sprite].tex = tex;
+   }
+}
+
+void undo_track_wall_tex(uint32_t wall)
+{
+   undo_begin(ED_WALL_TEX);
+   undo_write32(wall);
+   undo_write16(map->walls[wall].tex_upper);
+   undo_write16(map->walls[wall].tex_lower);
+   undo_write16(map->walls[wall].tex_mid);
+   undo_end();
+}
+
+static void undo_wall_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t wall;
+      uint16_t tex_upper;
+      uint16_t tex_lower;
+      uint16_t tex_mid;
+      undo_read16(tex_mid,pos);
+      undo_read16(tex_lower,pos);
+      undo_read16(tex_upper,pos);
+      undo_read32(wall,pos);
+
+      redo_write32(wall);
+      redo_write16(map->walls[wall].tex_upper);
+      redo_write16(map->walls[wall].tex_lower);
+      redo_write16(map->walls[wall].tex_mid);
+
+      map->walls[wall].tex_upper = tex_upper;
+      map->walls[wall].tex_lower = tex_lower;
+      map->walls[wall].tex_mid = tex_mid;
+   }
+}
+
+static void redo_wall_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t wall;
+      uint16_t tex_upper;
+      uint16_t tex_lower;
+      uint16_t tex_mid;
+      redo_read16(tex_mid,pos);
+      redo_read16(tex_lower,pos);
+      redo_read16(tex_upper,pos);
+      redo_read32(wall,pos);
+
+      undo_write32(wall);
+      undo_write16(map->walls[wall].tex_upper);
+      undo_write16(map->walls[wall].tex_lower);
+      undo_write16(map->walls[wall].tex_mid);
+
+      map->walls[wall].tex_upper = tex_upper;
+      map->walls[wall].tex_lower = tex_lower;
+      map->walls[wall].tex_mid = tex_mid;
+   }
+}
+
+void undo_track_sector_tex(uint32_t sector)
+{
+   undo_begin(ED_SECTOR_TEX);
+   undo_write32(sector);
+   undo_write16(map->sectors[sector].floor_tex);
+   undo_write16(map->sectors[sector].ceiling_tex);
+   undo_end();
+}
+
+static void undo_sector_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector;
+      uint16_t tex_floor;
+      uint16_t tex_ceiling;
+      undo_read16(tex_ceiling,pos);
+      undo_read16(tex_floor,pos);
+      undo_read32(sector,pos);
+
+      redo_write32(sector);
+      redo_write16(map->sectors[sector].floor_tex);
+      redo_write16(map->sectors[sector].ceiling_tex);
+
+      map->sectors[sector].floor_tex = tex_floor;
+      map->sectors[sector].ceiling_tex = tex_ceiling;
+   }
+}
+
+static void redo_sector_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector;
+      uint16_t tex_floor;
+      uint16_t tex_ceiling;
+      redo_read16(tex_ceiling,pos);
+      redo_read16(tex_floor,pos);
+      redo_read32(sector,pos);
+
+      undo_write32(sector);
+      undo_write16(map->sectors[sector].floor_tex);
+      undo_write16(map->sectors[sector].ceiling_tex);
+
+      map->sectors[sector].floor_tex = tex_floor;
+      map->sectors[sector].ceiling_tex = tex_ceiling;
+   }
 }
 //-------------------------------------

@@ -32,5 +32,9 @@ void undo_track_wall_offsets(uint32_t wall);
 void undo_track_sector_offsets(uint32_t sector);
 void undo_track_sector_slope(uint32_t sector);
 void undo_track_sector_height(uint32_t sector);
+void undo_track_sprite_pos(uint32_t sprite);
+void undo_track_sprite_tex(uint32_t sprite);
+void undo_track_wall_tex(uint32_t wall);
+void undo_track_sector_tex(uint32_t sector);
 
 #endif
