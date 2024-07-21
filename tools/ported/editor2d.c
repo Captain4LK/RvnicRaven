@@ -53,6 +53,8 @@ static uint16_t sprite_sel = RVR_PORT_SPRITE_INVALID;
 static uint16_t sprite_move = RVR_PORT_SPRITE_INVALID;
 
 static uint16_t wall_move = RVR_PORT_WALL_INVALID;
+static RvR_fix22 wall_move_x = 0;
+static RvR_fix22 wall_move_y = 0;
 static uint16_t hover = RVR_PORT_WALL_INVALID;
 
 static State2D state = STATE2D_VIEW;
@@ -287,14 +289,17 @@ static void e2d_update_view(void)
 
    if(RvR_key_pressed(RVR_KEY_COMMA)&&sprite_sel!=RVR_PORT_SPRITE_INVALID)
    {
+      undo_track_sprite_dir(sprite_sel);
       map->sprites[sprite_sel].dir += RvR_key_down(RVR_KEY_LSHIFT)?16:64;
    }
    if(RvR_key_pressed(RVR_KEY_PERIOD)&&sprite_sel!=RVR_PORT_SPRITE_INVALID)
    {
+      undo_track_sprite_dir(sprite_sel);
       map->sprites[sprite_sel].dir -= RvR_key_down(RVR_KEY_LSHIFT)?16:64;
    }
    if(RvR_key_pressed(RVR_KEY_DEL)&&sprite_sel!=RVR_PORT_SPRITE_INVALID)
    {
+      undo_track_sprite_del(sprite_sel);
       //TODO(Captain4LK): update references to sprites, once these are implemented
       map->sprites[sprite_sel] = map->sprites[map->sprite_count - 1];
       map->sprite_count--;
@@ -306,6 +311,7 @@ static void e2d_update_view(void)
    {
       if(sprite_sel!=RVR_PORT_SPRITE_INVALID)
       {
+         undo_track_sprite_pos(sprite_sel);
          sprite_move = sprite_sel;
          state = STATE2D_SPRITE_MOVE;
       }
@@ -322,7 +328,8 @@ static void e2d_update_view(void)
             if(mx>=x0 - 3&&mx<=x0 + 3&&my>=y0 - 3&&my<=y0 + 3)
             {
                wall_move = (uint16_t)i;
-               //undo_track_wall_move(wall_move, p0->x, p0->y);
+               wall_move_x = p0->x;
+               wall_move_y = p0->y;
                state = STATE2D_WALL_MOVE;
                break;
             }
@@ -336,6 +343,7 @@ static void e2d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_G))
       draw_grid = (draw_grid + 1) & 7;
 
+   //TODO
    if(RvR_key_pressed(RVR_KEY_SPACE))
    {
       RvR_fix22 x = ((mx + scroll_x) * zoom);
@@ -540,9 +548,20 @@ static void e2d_update_wall_move(void)
    int mx, my;
    RvR_mouse_pos(&mx, &my);
 
+   if(wall_move==RVR_PORT_WALL_INVALID)
+   {
+      state = STATE2D_VIEW;
+      return;
+   }
+
    if(RvR_key_released(RVR_BUTTON_LEFT))
    {
       //TODO(Captain4LK): delete walls if adjacent ones overlap after moving
+      RvR_fix22 x = map->walls[wall_move].x;
+      RvR_fix22 y = map->walls[wall_move].y;
+      RvR_port_wall_move(map, wall_move, wall_move_x, wall_move_y);
+      undo_track_wall_move(wall_move);
+      RvR_port_wall_move(map, wall_move, x,y);
       wall_move = RVR_PORT_WALL_INVALID;
       state = STATE2D_VIEW;
    }

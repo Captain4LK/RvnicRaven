@@ -36,5 +36,11 @@ void undo_track_sprite_pos(uint32_t sprite);
 void undo_track_sprite_tex(uint32_t sprite);
 void undo_track_wall_tex(uint32_t wall);
 void undo_track_sector_tex(uint32_t sector);
+void undo_track_sprite_del(uint32_t sprite);
+void undo_track_wall_move(uint32_t wall);
+void undo_track_sector_add(uint32_t sector);
+void undo_track_sector_add_inner(uint32_t sector);
+void undo_track_sector_add_overlap(uint32_t sector);
+void undo_track_sector_split(uint32_t sector);
 
 #endif

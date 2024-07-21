@@ -15,7 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define CAMERA_SHEAR_SPEED 3
 #define CAMERA_SHEAR_MAX (512 * 64)
 
-#define UNDO_BUFFER_SIZE (1 << 22)
+#define UNDO_BUFFER_SIZE (1 << 21)
 #define TEXTURE_MRU_SIZE (1 << 7)
 
 #define CAMERA_COLL_RADIUS (256 * 64)

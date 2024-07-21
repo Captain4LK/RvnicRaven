@@ -190,6 +190,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          {
             //Add new sector
             uint16_t sector = map->sector_count++;
+            undo_track_sector_add(sector);
+
             map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
             memset(map->sectors + sector, 0, sizeof(*map->sectors));
             map->sectors[sector].wall_count = (uint16_t)RvR_array_length(sd_walls);
@@ -219,6 +221,7 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          //Inner sector
          else
          {
+            undo_track_sector_add_inner(sector_inside);
             //Add to existing sector
             map->wall_count += (uint16_t)RvR_array_length(sd_walls);
             map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
@@ -233,8 +236,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             for(int i = 0; i<map->wall_count; i++)
             {
                RvR_port_wall *wall = map->walls + i;
-               if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=insert)
-                  wall->portal += count;
+               //if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=insert)
+                  //wall->portal += count;
                if(wall->p2>=insert)
                   wall->p2 += count;
                if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
@@ -270,6 +273,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
       {
          //Add new sector
          uint16_t sector = map->sector_count++;
+         undo_track_sector_add_overlap(sector);
+
          map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
          memset(map->sectors + sector, 0, sizeof(*map->sectors));
          map->sectors[sector].wall_count = (uint16_t)RvR_array_length(sd_walls);

@@ -35,7 +35,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define undo_read32(var,pos) do { uint32_t lo32,hi32; undo_read16(hi32,pos); undo_read16(lo32,pos); var = (uint32_t)(hi32*0x10000+lo32); } while(0)
 #define undo_read64(var,pos) do { uint64_t lo64,hi64; undo_read32(hi64,pos); undo_read32(lo64,pos); var = (uint64_t)(hi64*0x100000000+lo64); } while(0)
 
-#define redo_read8(var,pos) do { var = undo_buffer[pos]; pos = WRAP(pos+1); } while(0)
+#define redo_read8(var,pos) do { var = redo_buffer[pos]; pos = WRAP(pos-1); } while(0)
 #define redo_read16(var,pos) do { uint16_t lo16,hi16; redo_read8(hi16,pos); redo_read8(lo16,pos); var = (uint16_t)(hi16*0x100+lo16); } while(0)
 #define redo_read32(var,pos) do { uint32_t lo32,hi32; redo_read16(hi32,pos); redo_read16(lo32,pos); var = (uint32_t)(hi32*0x10000+lo32); } while(0)
 #define redo_read64(var,pos) do { uint64_t lo64,hi64; redo_read32(hi64,pos); redo_read32(lo64,pos); var = (uint64_t)(hi64*0x100000000+lo64); } while(0)
@@ -62,15 +62,24 @@ typedef enum
    ED_SPRITE_TEX,
    ED_WALL_TEX,
    ED_SECTOR_TEX,
+   ED_SPRITE_DEL,
+   ED_WALL_MOVE,
+   ED_SECTOR_ADD,
+   ED_SECTOR_ADD_INNER,
+   ED_SECTOR_ADD_OVERLAP,
+   ED_SECTOR_SPLIT,
 }Ed_action;
 //-------------------------------------
 
 //Variables
 static uint8_t *undo_buffer = NULL;
+static uint8_t *redo_buffer = NULL;
 static int undo_len = 0;
 static int undo_pos = 0;
+static int redo_pos = 0;
 static int redo_len = 0;
 static uint32_t undo_entry_len = 0;
+static uint32_t redo_entry_len = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -124,6 +133,18 @@ static void undo_wall_tex(int pos, int endpos);
 static void redo_wall_tex(int pos, int endpos);
 static void undo_sector_tex(int pos, int endpos);
 static void redo_sector_tex(int pos, int endpos);
+static void undo_sprite_del(int pos, int endpos);
+static void redo_sprite_del(int pos, int endpos);
+static void undo_wall_move(int pos, int endpos);
+static void redo_wall_move(int pos, int endpos);
+static void undo_sector_add(int pos, int endpos);
+static void redo_sector_add(int pos, int endpos);
+static void undo_sector_add_inner(int pos, int endpos);
+static void redo_sector_add_inner(int pos, int endpos);
+static void undo_sector_add_overlap(int pos, int endpos);
+static void redo_sector_add_overlap(int pos, int endpos);
+static void undo_sector_split(int pos, int endpos);
+static void redo_sector_split(int pos, int endpos);
 //-------------------------------------
 
 //Function implementations
@@ -132,6 +153,8 @@ void undo_init(void)
 {
    undo_buffer = RvR_malloc(sizeof(*undo_buffer) * UNDO_BUFFER_SIZE, "ported undo buffer");
    memset(undo_buffer, 0, sizeof(*undo_buffer) * UNDO_BUFFER_SIZE);
+   redo_buffer = RvR_malloc(sizeof(*redo_buffer) * UNDO_BUFFER_SIZE, "ported redo buffer");
+   memset(redo_buffer, 0, sizeof(*redo_buffer) * UNDO_BUFFER_SIZE);
 }
 
 void undo_reset(void)
@@ -139,6 +162,7 @@ void undo_reset(void)
    undo_len = 0;
    undo_pos = 0;
    redo_len = 0;
+   redo_pos = 0;
 }
 
 void undo(void)
@@ -147,8 +171,11 @@ void undo(void)
    uint32_t len = 0;
    Ed_action action;
 
+   //printf("Start: %d\n",undo_pos);
+
    if(undo_buffer[undo_pos]!=JUNK_RECORD)
       return;
+   //puts("UNDO");
    pos = WRAP(pos-1);
    undo_read32(len,pos);
    int endpos = WRAP(pos-len);
@@ -167,6 +194,7 @@ void undo(void)
    //endpos = WRAP(endpos);
    //pos = WRAP(undo_pos - 3);
 
+   //printf("%d %d\n",pos,endpos);
    if(pos==endpos)
       return;
 
@@ -176,6 +204,7 @@ void undo(void)
    //New redo entry
    redo_write8(REDO_RECORD);
    redo_write16(action);
+   redo_entry_len = 0;
 
    //Apply undoes
    switch(action)
@@ -198,27 +227,35 @@ void undo(void)
    case ED_SPRITE_TEX: undo_sprite_tex(pos,endpos); break;
    case ED_WALL_TEX: undo_wall_tex(pos,endpos); break;
    case ED_SECTOR_TEX: undo_sector_tex(pos,endpos); break;
+   case ED_SPRITE_DEL: undo_sprite_del(pos,endpos); break;
+   case ED_WALL_MOVE: undo_wall_move(pos,endpos); break;
+   case ED_SECTOR_ADD: undo_sector_add(pos,endpos); break;
+   case ED_SECTOR_ADD_INNER: undo_sector_add_inner(pos,endpos); break;
+   case ED_SECTOR_ADD_OVERLAP: undo_sector_add_overlap(pos,endpos); break;
+   case ED_SECTOR_SPLIT: undo_sector_split(pos,endpos); break;
    }
 
-   redo_write32(len);
+   redo_write32(redo_entry_len);
+   redo_buffer[redo_pos] = JUNK_RECORD;
+   undo_pos = WRAP(undo_pos-len-7);
    undo_buffer[undo_pos] = JUNK_RECORD;
 }
 
 void redo(void)
 {
-   int pos = undo_pos;
+   int pos = redo_pos;
    uint32_t len = 0;
    Ed_action action;
 
-   if(undo_buffer[undo_pos]!=JUNK_RECORD)
+   if(redo_buffer[redo_pos]!=JUNK_RECORD)
       return;
    if(redo_len<=0)
       return;
-   pos = WRAP(pos+1);
+   pos = WRAP(pos-1);
    redo_read32(len,pos);
-   int endpos = WRAP(pos+len);
+   int endpos = WRAP(pos-len);
    redo_read16(action,endpos);
-   endpos = WRAP(endpos-2);
+   endpos = WRAP(endpos+2);
    //int endpos = redo_find_end(&len);
    //if(endpos<0)
       //return;
@@ -232,6 +269,7 @@ void redo(void)
    //New undo entry
    undo_write8(UNDO_RECORD);
    undo_write16(action);
+   undo_entry_len = 0;
 
    //Apply redoes
    switch(action)
@@ -254,12 +292,20 @@ void redo(void)
    case ED_SPRITE_TEX: redo_sprite_tex(pos,endpos); break;
    case ED_WALL_TEX: redo_wall_tex(pos,endpos); break;
    case ED_SECTOR_TEX: redo_sector_tex(pos,endpos); break;
+   case ED_SPRITE_DEL: redo_sprite_del(pos,endpos); break;
+   case ED_WALL_MOVE: redo_wall_move(pos,endpos); break;
+   case ED_SECTOR_ADD: redo_sector_add(pos,endpos); break;
+   case ED_SECTOR_ADD_INNER: redo_sector_add_inner(pos,endpos); break;
+   case ED_SECTOR_ADD_OVERLAP: redo_sector_add_overlap(pos,endpos); break;
+   case ED_SECTOR_SPLIT: redo_sector_split(pos,endpos); break;
    }
 
-   undo_write32(len);
+   undo_write32(undo_entry_len);
    //undo_write16((len >> 16) & UINT16_MAX);
    //undo_write16(len & UINT16_MAX);
    undo_buffer[undo_pos] = JUNK_RECORD;
+   redo_pos = WRAP(redo_pos-len-7);
+   redo_buffer[redo_pos] = JUNK_RECORD;
 }
 
 static void undo_write8(uint8_t val)
@@ -268,7 +314,7 @@ static void undo_write8(uint8_t val)
    undo_buffer[pos] = val;
    undo_pos = WRAP(pos + 1);
    undo_len += (undo_len<UNDO_BUFFER_SIZE - 2);
-   redo_len -= (redo_len>0);
+   //redo_len -= (redo_len>0);
    undo_entry_len++;
 }
 
@@ -292,11 +338,19 @@ static void undo_write64(uint64_t val)
 
 static void redo_write8(uint8_t val)
 {
-   int pos = undo_pos;
-   undo_buffer[pos] = val;
-   undo_pos = WRAP(pos - 1);
+   int pos = redo_pos;
+   redo_buffer[pos] = val;
+   redo_pos = WRAP(pos + 1);
    redo_len += (redo_len<UNDO_BUFFER_SIZE - 2);
-   undo_len -= (undo_len>0);
+   //undo_len -= (undo_len>0);
+   redo_entry_len++;
+
+   //int pos = undo_pos;
+   //undo_buffer[pos] = val;
+   //undo_pos = WRAP(pos - 1);
+   //redo_len += (redo_len<UNDO_BUFFER_SIZE - 2);
+   //undo_len -= (undo_len>0);
+   //redo_entry_len++;
 }
 
 static void redo_write16(uint16_t val)
@@ -320,6 +374,7 @@ static void redo_write64(uint64_t val)
 static void undo_begin(Ed_action action)
 {
    redo_len = 0;
+   redo_pos = 0;
    undo_write8(UNDO_RECORD);
    undo_write16(action);
    undo_entry_len = 0;
@@ -1177,5 +1232,814 @@ static void redo_sector_tex(int pos, int endpos)
       map->sectors[sector].floor_tex = tex_floor;
       map->sectors[sector].ceiling_tex = tex_ceiling;
    }
+}
+
+void undo_track_sprite_del(uint32_t sprite)
+{
+   undo_begin(ED_SPRITE_DEL);
+   undo_write32(sprite);
+   undo_write32(map->sprites[sprite].x);
+   undo_write32(map->sprites[sprite].y);
+   undo_write32(map->sprites[sprite].z);
+   undo_write32(map->sprites[sprite].dir);
+   undo_write16(map->sprites[sprite].sector);
+   undo_write16(map->sprites[sprite].tex);
+   undo_write32(map->sprites[sprite].flags);
+   undo_write8(map->sprites[sprite].x_units);
+   undo_write8(map->sprites[sprite].y_units);
+   undo_end();
+}
+
+static void undo_sprite_del(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sprite;
+      uint32_t x;
+      uint32_t y;
+      uint32_t z;
+      uint32_t dir;
+      uint16_t sector;
+      uint16_t tex;
+      uint32_t flags;
+      uint8_t x_units;
+      uint8_t y_units;
+
+      undo_read8(y_units,pos);
+      undo_read8(x_units,pos);
+      undo_read32(flags,pos);
+      undo_read16(tex,pos);
+      undo_read16(sector,pos);
+      undo_read32(dir,pos);
+      undo_read32(z,pos);
+      undo_read32(y,pos);
+      undo_read32(x,pos);
+      undo_read32(sprite,pos);
+
+      redo_write32(sprite);
+
+      map->sprite_count++;
+      map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count,"Map sprites grow");
+      map->sprites[map->sprite_count-1] = map->sprites[sprite];
+      map->sprites[sprite].x = x;
+      map->sprites[sprite].y = y;
+      map->sprites[sprite].z = z;
+      map->sprites[sprite].dir = dir;
+      map->sprites[sprite].sector = sector;
+      map->sprites[sprite].tex = tex;
+      map->sprites[sprite].flags = flags;
+      map->sprites[sprite].x_units = x_units;
+      map->sprites[sprite].y_units = y_units;
+      //redo_write32(map->sprites[sprite].x);
+      //redo_write32(map->sprites[sprite].y);
+      //redo_write32(map->sprites[sprite].z);
+      //redo_write32(map->sprites[sprite].dir);
+      //redo_write16(map->sprites[sprite].sector);
+      //redo_write16(map->sprites[sprite].tex);
+      //redo_write32(map->sprites[sprite].flags);
+      //redo_write8(map->sprites[sprite].x_units);
+      //redo_write8(map->sprites[sprite].y_units);
+
+   }
+}
+
+static void redo_sprite_del(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sprite;
+
+      redo_read32(sprite,pos);
+
+      undo_write32(sprite);
+      undo_write32(map->sprites[sprite].x);
+      undo_write32(map->sprites[sprite].y);
+      undo_write32(map->sprites[sprite].z);
+      undo_write32(map->sprites[sprite].dir);
+      undo_write16(map->sprites[sprite].sector);
+      undo_write16(map->sprites[sprite].tex);
+      undo_write32(map->sprites[sprite].flags);
+      undo_write8(map->sprites[sprite].x_units);
+      undo_write8(map->sprites[sprite].y_units);
+
+      map->sprites[sprite] = map->sprites[map->sprite_count-1];
+      map->sprite_count--;
+      map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count,"Map sprites grow");
+   }
+}
+
+void undo_track_wall_move(uint32_t wall)
+{
+   undo_begin(ED_WALL_MOVE);
+   undo_write32(wall);
+   undo_write32(map->walls[wall].x);
+   undo_write32(map->walls[wall].y);
+   undo_end();
+}
+
+static void undo_wall_move(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t wall;
+      uint32_t x;
+      uint32_t y;
+      undo_read32(y,pos);
+      undo_read32(x,pos);
+      undo_read32(wall,pos);
+
+      redo_write32(wall);
+      redo_write32(map->walls[wall].x);
+      redo_write32(map->walls[wall].y);
+
+      RvR_port_wall_move(map, wall, x, y);
+   }
+}
+
+static void redo_wall_move(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t wall;
+      uint32_t x;
+      uint32_t y;
+      redo_read32(y,pos);
+      redo_read32(x,pos);
+      redo_read32(wall,pos);
+
+      undo_write32(wall);
+      undo_write32(map->walls[wall].x);
+      undo_write32(map->walls[wall].y);
+
+      RvR_port_wall_move(map, wall, x, y);
+   }
+}
+
+void undo_track_sector_add(uint32_t sector)
+{
+   undo_begin(ED_SECTOR_ADD);
+   undo_write32(sector);
+   undo_end();
+}
+
+static void undo_sector_add(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector;
+      undo_read32(sector,pos);
+
+      if(sector!=map->sector_count-1)
+         RvR_log("Mismatch in undo_sector_add\n");
+
+      redo_write32(sector);
+      for(int i = 0;i<map->sectors[sector].wall_count;i++)
+      {
+         uint32_t wall = map->sectors[sector].wall_first+i;
+         redo_write32(map->walls[wall].x);
+         redo_write32(map->walls[wall].y);
+         redo_write32(map->walls[wall].flags);
+         redo_write32(map->walls[wall].p2);
+         redo_write32(map->walls[wall].portal);
+         redo_write32(map->walls[wall].portal_wall);
+         redo_write16(map->walls[wall].tex_lower);
+         redo_write16(map->walls[wall].tex_upper);
+         redo_write16(map->walls[wall].tex_mid);
+         redo_write8(map->walls[wall].shade_offset);
+         redo_write16(map->walls[wall].x_off);
+         redo_write16(map->walls[wall].y_off);
+         redo_write8(map->walls[wall].x_units);
+         redo_write8(map->walls[wall].y_units);
+      }
+      redo_write32(map->sectors[sector].wall_count);
+      redo_write32(map->sectors[sector].wall_first);
+      redo_write32(map->sectors[sector].flags);
+      redo_write32(map->sectors[sector].floor);
+      redo_write32(map->sectors[sector].ceiling);
+      redo_write16(map->sectors[sector].floor_tex);
+      redo_write16(map->sectors[sector].ceiling_tex);
+      redo_write8(map->sectors[sector].shade_floor);
+      redo_write8(map->sectors[sector].shade_ceiling);
+      redo_write16(map->sectors[sector].slope_floor);
+      redo_write16(map->sectors[sector].slope_ceiling);
+      redo_write16(map->sectors[sector].x_off);
+      redo_write16(map->sectors[sector].y_off);
+      redo_write8(map->sectors[sector].x_units);
+      redo_write8(map->sectors[sector].y_units);
+      
+      map->wall_count-=map->sectors[map->sector_count-1].wall_count;
+      map->sector_count--;
+      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+   }
+}
+
+static void redo_sector_add(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector_id;
+      RvR_port_sector sector;
+
+      redo_read8(sector.y_units,pos);
+      redo_read8(sector.x_units,pos);
+      redo_read16(sector.y_off,pos);
+      redo_read16(sector.x_off,pos);
+      redo_read16(sector.slope_ceiling,pos);
+      redo_read16(sector.slope_floor,pos);
+      redo_read8(sector.shade_ceiling,pos);
+      redo_read8(sector.shade_floor,pos);
+      redo_read16(sector.ceiling_tex,pos);
+      redo_read16(sector.floor_tex,pos);
+      redo_read32(sector.ceiling,pos);
+      redo_read32(sector.floor,pos);
+      redo_read32(sector.flags,pos);
+      redo_read32(sector.wall_first,pos);
+      redo_read32(sector.wall_count,pos);
+
+      map->sector_count++;
+      map->wall_count+=sector.wall_count;
+      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+      map->sectors[map->sector_count-1] = sector;
+
+      for(int i = 0;i<sector.wall_count;i++)
+      {
+         RvR_port_wall wall;
+         redo_read8(wall.y_units,pos);
+         redo_read8(wall.x_units,pos);
+         redo_read16(wall.y_off,pos);
+         redo_read16(wall.x_off,pos);
+         redo_read8(wall.shade_offset,pos);
+         redo_read16(wall.tex_mid,pos);
+         redo_read16(wall.tex_upper,pos);
+         redo_read16(wall.tex_lower,pos);
+         redo_read32(wall.portal_wall,pos);
+         redo_read32(wall.portal,pos);
+         redo_read32(wall.p2,pos);
+         redo_read32(wall.flags,pos);
+         redo_read32(wall.y,pos);
+         redo_read32(wall.x,pos);
+         map->walls[map->wall_count-1-i] = wall;
+         //redo_write32(map->walls[wall].x);
+         //redo_write32(map->walls[wall].y);
+         //redo_write32(map->walls[wall].flags);
+         //redo_write32(map->walls[wall].p2);
+         //redo_write32(map->walls[wall].portal);
+         //redo_write32(map->walls[wall].portal_wall);
+         //redo_write16(map->walls[wall].tex_lower);
+         //redo_write16(map->walls[wall].tex_upper);
+         //redo_write16(map->walls[wall].tex_mid);
+         //redo_write8(map->walls[wall].shade_offset);
+         //redo_write16(map->walls[wall].x_off);
+         //redo_write16(map->walls[wall].y_off);
+         //redo_write8(map->walls[wall].x_units);
+         //redo_write8(map->walls[wall].y_units);
+      }
+
+      redo_read32(sector_id,pos);
+      if(sector_id!=map->sector_count-1)
+         RvR_log("mismatch in redo_sector_add\n");
+
+      undo_write32(sector_id);
+
+      //redo_write32(sector);
+      //redo_write16(map->sectors[sector].wall_count);
+      //redo_write16(map->sectors[sector].wall_first);
+      //redo_write32(map->sectors[sector].flags);
+      //redo_write32(map->sectors[sector].floor);
+      //redo_write32(map->sectors[sector].ceiling);
+      //redo_write16(map->sectors[sector].floor_tex);
+      //redo_write16(map->sectors[sector].ceiling_tex);
+      //redo_write8(map->sectors[sector].shade_floor);
+      //redo_write8(map->sectors[sector].shade_ceiling);
+      //redo_write16(map->sectors[sector].slope_floor);
+      //redo_write16(map->sectors[sector].slope_ceiling);
+      //redo_write16(map->sectors[sector].x_off);
+      //redo_write16(map->sectors[sector].y_off);
+      //redo_write8(map->sectors[sector].x_units);
+      //redo_write8(map->sectors[sector].y_units);
+   }
+}
+
+void undo_track_sector_add_inner(uint32_t sector)
+{
+   undo_begin(ED_SECTOR_ADD_INNER);
+   for(int i = 0;i<map->sectors[sector].wall_count;i++)
+   {
+      uint32_t wall = map->sectors[sector].wall_first+i;
+      undo_write32(map->walls[wall].x);
+      undo_write32(map->walls[wall].y);
+      undo_write32(map->walls[wall].flags);
+      undo_write32(map->walls[wall].p2);
+      undo_write32(map->walls[wall].portal);
+      undo_write32(map->walls[wall].portal_wall);
+      undo_write16(map->walls[wall].tex_lower);
+      undo_write16(map->walls[wall].tex_upper);
+      undo_write16(map->walls[wall].tex_mid);
+      undo_write8(map->walls[wall].shade_offset);
+      undo_write16(map->walls[wall].x_off);
+      undo_write16(map->walls[wall].y_off);
+      undo_write8(map->walls[wall].x_units);
+      undo_write8(map->walls[wall].y_units);
+   }
+   undo_write32(map->sectors[sector].wall_count);
+   undo_write32(map->sectors[sector].wall_first);
+   undo_write32(map->sectors[sector].flags);
+   undo_write32(map->sectors[sector].floor);
+   undo_write32(map->sectors[sector].ceiling);
+   undo_write16(map->sectors[sector].floor_tex);
+   undo_write16(map->sectors[sector].ceiling_tex);
+   undo_write8(map->sectors[sector].shade_floor);
+   undo_write8(map->sectors[sector].shade_ceiling);
+   undo_write16(map->sectors[sector].slope_floor);
+   undo_write16(map->sectors[sector].slope_ceiling);
+   undo_write16(map->sectors[sector].x_off);
+   undo_write16(map->sectors[sector].y_off);
+   undo_write8(map->sectors[sector].x_units);
+   undo_write8(map->sectors[sector].y_units);
+   undo_write32(sector);
+   undo_end();
+}
+
+static void undo_sector_add_inner(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector_id;
+      RvR_port_sector sector;
+
+      undo_read32(sector_id,pos);
+      undo_read8(sector.y_units,pos);
+      undo_read8(sector.x_units,pos);
+      undo_read16(sector.y_off,pos);
+      undo_read16(sector.x_off,pos);
+      undo_read16(sector.slope_ceiling,pos);
+      undo_read16(sector.slope_floor,pos);
+      undo_read8(sector.shade_ceiling,pos);
+      undo_read8(sector.shade_floor,pos);
+      undo_read16(sector.ceiling_tex,pos);
+      undo_read16(sector.floor_tex,pos);
+      undo_read32(sector.ceiling,pos);
+      undo_read32(sector.floor,pos);
+      undo_read32(sector.flags,pos);
+      undo_read32(sector.wall_first,pos);
+      undo_read32(sector.wall_count,pos);
+
+      for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
+      {
+         uint32_t wall = map->sectors[sector_id].wall_first+i;
+         redo_write32(map->walls[wall].x);
+         redo_write32(map->walls[wall].y);
+         redo_write32(map->walls[wall].flags);
+         redo_write32(map->walls[wall].p2);
+         redo_write32(map->walls[wall].portal);
+         redo_write32(map->walls[wall].portal_wall);
+         redo_write16(map->walls[wall].tex_lower);
+         redo_write16(map->walls[wall].tex_upper);
+         redo_write16(map->walls[wall].tex_mid);
+         redo_write8(map->walls[wall].shade_offset);
+         redo_write16(map->walls[wall].x_off);
+         redo_write16(map->walls[wall].y_off);
+         redo_write8(map->walls[wall].x_units);
+         redo_write8(map->walls[wall].y_units);
+      }
+      redo_write32(map->sectors[sector_id].wall_count);
+      redo_write32(map->sectors[sector_id].wall_first);
+      redo_write32(map->sectors[sector_id].flags);
+      redo_write32(map->sectors[sector_id].floor);
+      redo_write32(map->sectors[sector_id].ceiling);
+      redo_write16(map->sectors[sector_id].floor_tex);
+      redo_write16(map->sectors[sector_id].ceiling_tex);
+      redo_write8(map->sectors[sector_id].shade_floor);
+      redo_write8(map->sectors[sector_id].shade_ceiling);
+      redo_write16(map->sectors[sector_id].slope_floor);
+      redo_write16(map->sectors[sector_id].slope_ceiling);
+      redo_write16(map->sectors[sector_id].x_off);
+      redo_write16(map->sectors[sector_id].y_off);
+      redo_write8(map->sectors[sector_id].x_units);
+      redo_write8(map->sectors[sector_id].y_units);
+      redo_write32(sector_id);
+
+      int diff = map->sectors[sector_id].wall_count-sector.wall_count;
+
+      uint32_t remove = map->sectors[sector_id].wall_first+sector.wall_count;
+      uint32_t count = diff;
+      //uint32_t insert = map->sectors[sector_id]
+
+      //Move existing walls to left
+      for(int w = remove;w<map->wall_count-count;w++)
+         map->walls[w] = map->walls[w + count];
+      
+      //Fix indices
+      for(int w = 0; w<map->wall_count; w++)
+      {
+         RvR_port_wall *wall = map->walls+w;
+         if(wall->p2>=remove)
+            wall->p2-=count;
+         if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=remove)
+            wall->portal_wall-=count;
+         /*
+         RvR_port_wall *wall = map->walls + i;
+         if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=insert)
+            wall->portal += count;
+         if(wall->p2>=insert)
+            wall->p2 += count;
+         if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
+            wall->portal_wall += count;
+         */
+      }
+
+      //Update sectors first walls
+      for(int s = 0;s<map->sector_count;s++)
+      {
+         RvR_port_sector *sct = map->sectors+s;
+         if(sct->wall_first>=remove)
+            sct->wall_first-=count;
+      }
+
+      map->wall_count-=diff;
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+      map->sectors[sector_id] = sector;
+      for(int i = 0;i<sector.wall_count;i++)
+      {
+         RvR_port_wall wall;
+         undo_read8(wall.y_units,pos);
+         undo_read8(wall.x_units,pos);
+         undo_read16(wall.y_off,pos);
+         undo_read16(wall.x_off,pos);
+         undo_read8(wall.shade_offset,pos);
+         undo_read16(wall.tex_mid,pos);
+         undo_read16(wall.tex_upper,pos);
+         undo_read16(wall.tex_lower,pos);
+         undo_read32(wall.portal_wall,pos);
+         undo_read32(wall.portal,pos);
+         undo_read32(wall.p2,pos);
+         undo_read32(wall.flags,pos);
+         undo_read32(wall.y,pos);
+         undo_read32(wall.x,pos);
+         map->walls[map->sectors[sector_id].wall_first+map->sectors[sector_id].wall_count-1-i] = wall;
+      }
+   }
+}
+
+static void redo_sector_add_inner(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector_id;
+      RvR_port_sector sector;
+
+      redo_read32(sector_id,pos);
+      redo_read8(sector.y_units,pos);
+      redo_read8(sector.x_units,pos);
+      redo_read16(sector.y_off,pos);
+      redo_read16(sector.x_off,pos);
+      redo_read16(sector.slope_ceiling,pos);
+      redo_read16(sector.slope_floor,pos);
+      redo_read8(sector.shade_ceiling,pos);
+      redo_read8(sector.shade_floor,pos);
+      redo_read16(sector.ceiling_tex,pos);
+      redo_read16(sector.floor_tex,pos);
+      redo_read32(sector.ceiling,pos);
+      redo_read32(sector.floor,pos);
+      redo_read32(sector.flags,pos);
+      redo_read32(sector.wall_first,pos);
+      redo_read32(sector.wall_count,pos);
+
+      for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
+      {
+         uint32_t wall = map->sectors[sector_id].wall_first+i;
+         undo_write32(map->walls[wall].x);
+         undo_write32(map->walls[wall].y);
+         undo_write32(map->walls[wall].flags);
+         undo_write32(map->walls[wall].p2);
+         undo_write32(map->walls[wall].portal);
+         undo_write32(map->walls[wall].portal_wall);
+         undo_write16(map->walls[wall].tex_lower);
+         undo_write16(map->walls[wall].tex_upper);
+         undo_write16(map->walls[wall].tex_mid);
+         undo_write8(map->walls[wall].shade_offset);
+         undo_write16(map->walls[wall].x_off);
+         undo_write16(map->walls[wall].y_off);
+         undo_write8(map->walls[wall].x_units);
+         undo_write8(map->walls[wall].y_units);
+      }
+      undo_write32(map->sectors[sector_id].wall_count);
+      undo_write32(map->sectors[sector_id].wall_first);
+      undo_write32(map->sectors[sector_id].flags);
+      undo_write32(map->sectors[sector_id].floor);
+      undo_write32(map->sectors[sector_id].ceiling);
+      undo_write16(map->sectors[sector_id].floor_tex);
+      undo_write16(map->sectors[sector_id].ceiling_tex);
+      undo_write8(map->sectors[sector_id].shade_floor);
+      undo_write8(map->sectors[sector_id].shade_ceiling);
+      undo_write16(map->sectors[sector_id].slope_floor);
+      undo_write16(map->sectors[sector_id].slope_ceiling);
+      undo_write16(map->sectors[sector_id].x_off);
+      undo_write16(map->sectors[sector_id].y_off);
+      undo_write8(map->sectors[sector_id].x_units);
+      undo_write8(map->sectors[sector_id].y_units);
+      undo_write32(sector_id);
+
+      int diff = sector.wall_count-map->sectors[sector_id].wall_count;
+      uint32_t insert = map->sectors[sector_id].wall_first+map->sectors[sector_id].wall_count;
+      uint32_t count = diff;
+
+      //Move existing walls to right
+      for(int w = map->wall_count - 1; w>insert; w--)
+         map->walls[w] = map->walls[w - count];
+
+      //Fix indices
+      for(int i = 0; i<map->wall_count; i++)
+      {
+         RvR_port_wall *wall = map->walls + i;
+         //if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=insert)
+            //wall->portal += count;
+         if(wall->p2>=insert)
+            wall->p2 += count;
+         if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
+            wall->portal_wall += count;
+      }
+
+      //Update sectors first wall
+      for(int i = 0; i<map->sector_count; i++)
+      {
+         RvR_port_sector *sect = map->sectors + i;
+         if(sect->wall_first>=insert)
+            sect->wall_first += count;
+      }
+
+      map->wall_count+=diff;
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+      map->sectors[sector_id] = sector;
+      for(int i = 0;i<sector.wall_count;i++)
+      {
+         RvR_port_wall wall;
+         redo_read8(wall.y_units,pos);
+         redo_read8(wall.x_units,pos);
+         redo_read16(wall.y_off,pos);
+         redo_read16(wall.x_off,pos);
+         redo_read8(wall.shade_offset,pos);
+         redo_read16(wall.tex_mid,pos);
+         redo_read16(wall.tex_upper,pos);
+         redo_read16(wall.tex_lower,pos);
+         redo_read32(wall.portal_wall,pos);
+         redo_read32(wall.portal,pos);
+         redo_read32(wall.p2,pos);
+         redo_read32(wall.flags,pos);
+         redo_read32(wall.y,pos);
+         redo_read32(wall.x,pos);
+         map->walls[map->sectors[sector_id].wall_first+map->sectors[sector_id].wall_count-1-i] = wall;
+      }
+   }
+}
+
+void undo_track_sector_add_overlap(uint32_t sector)
+{
+   undo_begin(ED_SECTOR_ADD_OVERLAP);
+   undo_write32(sector);
+   undo_end();
+}
+
+static void undo_sector_add_overlap(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector;
+      undo_read32(sector,pos);
+
+      if(sector!=map->sector_count-1)
+         RvR_log("Mismatch in undo_sector_add\n");
+
+      redo_write32(sector);
+      for(int i = 0;i<map->sectors[sector].wall_count;i++)
+      {
+         uint32_t wall = map->sectors[sector].wall_first+i;
+         redo_write32(map->walls[wall].x);
+         redo_write32(map->walls[wall].y);
+         redo_write32(map->walls[wall].flags);
+         redo_write32(map->walls[wall].p2);
+         redo_write32(map->walls[wall].portal);
+         redo_write32(map->walls[wall].portal_wall);
+         redo_write16(map->walls[wall].tex_lower);
+         redo_write16(map->walls[wall].tex_upper);
+         redo_write16(map->walls[wall].tex_mid);
+         redo_write8(map->walls[wall].shade_offset);
+         redo_write16(map->walls[wall].x_off);
+         redo_write16(map->walls[wall].y_off);
+         redo_write8(map->walls[wall].x_units);
+         redo_write8(map->walls[wall].y_units);
+      }
+      redo_write32(map->sectors[sector].wall_count);
+      redo_write32(map->sectors[sector].wall_first);
+      redo_write32(map->sectors[sector].flags);
+      redo_write32(map->sectors[sector].floor);
+      redo_write32(map->sectors[sector].ceiling);
+      redo_write16(map->sectors[sector].floor_tex);
+      redo_write16(map->sectors[sector].ceiling_tex);
+      redo_write8(map->sectors[sector].shade_floor);
+      redo_write8(map->sectors[sector].shade_ceiling);
+      redo_write16(map->sectors[sector].slope_floor);
+      redo_write16(map->sectors[sector].slope_ceiling);
+      redo_write16(map->sectors[sector].x_off);
+      redo_write16(map->sectors[sector].y_off);
+      redo_write8(map->sectors[sector].x_units);
+      redo_write8(map->sectors[sector].y_units);
+
+      for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
+      {
+         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&
+            map->walls[map->walls[wall].portal_wall].portal_wall==wall)
+         {
+            map->walls[map->walls[wall].portal_wall].portal_wall = RVR_PORT_WALL_INVALID;
+            map->walls[map->walls[wall].portal_wall].portal = RVR_PORT_SECTOR_INVALID;
+         }
+      }
+      
+      map->wall_count-=map->sectors[map->sector_count-1].wall_count;
+      map->sector_count--;
+      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+   }
+}
+
+static void redo_sector_add_overlap(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector_id;
+      RvR_port_sector sector;
+
+      redo_read8(sector.y_units,pos);
+      redo_read8(sector.x_units,pos);
+      redo_read16(sector.y_off,pos);
+      redo_read16(sector.x_off,pos);
+      redo_read16(sector.slope_ceiling,pos);
+      redo_read16(sector.slope_floor,pos);
+      redo_read8(sector.shade_ceiling,pos);
+      redo_read8(sector.shade_floor,pos);
+      redo_read16(sector.ceiling_tex,pos);
+      redo_read16(sector.floor_tex,pos);
+      redo_read32(sector.ceiling,pos);
+      redo_read32(sector.floor,pos);
+      redo_read32(sector.flags,pos);
+      redo_read32(sector.wall_first,pos);
+      redo_read32(sector.wall_count,pos);
+
+      map->sector_count++;
+      map->wall_count+=sector.wall_count;
+      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+      map->sectors[map->sector_count-1] = sector;
+
+      for(int i = 0;i<sector.wall_count;i++)
+      {
+         RvR_port_wall wall;
+         redo_read8(wall.y_units,pos);
+         redo_read8(wall.x_units,pos);
+         redo_read16(wall.y_off,pos);
+         redo_read16(wall.x_off,pos);
+         redo_read8(wall.shade_offset,pos);
+         redo_read16(wall.tex_mid,pos);
+         redo_read16(wall.tex_upper,pos);
+         redo_read16(wall.tex_lower,pos);
+         redo_read32(wall.portal_wall,pos);
+         redo_read32(wall.portal,pos);
+         redo_read32(wall.p2,pos);
+         redo_read32(wall.flags,pos);
+         redo_read32(wall.y,pos);
+         redo_read32(wall.x,pos);
+         map->walls[map->wall_count-1-i] = wall;
+      }
+
+      redo_read32(sector_id,pos);
+      if(sector_id!=map->sector_count-1)
+         RvR_log("mismatch in redo_sector_add\n");
+
+      for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
+      {
+         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+         {
+            map->walls[map->walls[wall].portal_wall].portal_wall = wall;
+            map->walls[map->walls[wall].portal_wall].portal = map->sector_count-1;
+         }
+      }
+
+      undo_write32(sector_id);
+   }
+}
+
+void undo_track_sector_split(uint32_t sector)
+{
+   undo_begin(ED_SECTOR_SPLIT);
+   for(int i = 0;i<map->sectors[sector].wall_count;i++)
+   {
+      uint32_t wall = map->sectors[sector].wall_first+i;
+      undo_write32(map->walls[wall].x);
+      undo_write32(map->walls[wall].y);
+      undo_write32(map->walls[wall].flags);
+      undo_write32(map->walls[wall].p2);
+      undo_write32(map->walls[wall].portal);
+      undo_write32(map->walls[wall].portal_wall);
+      undo_write16(map->walls[wall].tex_lower);
+      undo_write16(map->walls[wall].tex_upper);
+      undo_write16(map->walls[wall].tex_mid);
+      undo_write8(map->walls[wall].shade_offset);
+      undo_write16(map->walls[wall].x_off);
+      undo_write16(map->walls[wall].y_off);
+      undo_write8(map->walls[wall].x_units);
+      undo_write8(map->walls[wall].y_units);
+   }
+   undo_write32(map->sectors[sector].wall_count);
+   undo_write32(map->sectors[sector].wall_first);
+   undo_write32(map->sectors[sector].flags);
+   undo_write32(map->sectors[sector].floor);
+   undo_write32(map->sectors[sector].ceiling);
+   undo_write16(map->sectors[sector].floor_tex);
+   undo_write16(map->sectors[sector].ceiling_tex);
+   undo_write8(map->sectors[sector].shade_floor);
+   undo_write8(map->sectors[sector].shade_ceiling);
+   undo_write16(map->sectors[sector].slope_floor);
+   undo_write16(map->sectors[sector].slope_ceiling);
+   undo_write16(map->sectors[sector].x_off);
+   undo_write16(map->sectors[sector].y_off);
+   undo_write8(map->sectors[sector].x_units);
+   undo_write8(map->sectors[sector].y_units);
+   undo_write32(sector);
+   undo_end();
+}
+
+static void undo_sector_split(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t sector_id;
+      RvR_port_sector sector;
+
+      undo_read32(sector_id,pos);
+      redo_read32(sector_id,pos);
+      redo_read8(sector.y_units,pos);
+      redo_read8(sector.x_units,pos);
+      redo_read16(sector.y_off,pos);
+      redo_read16(sector.x_off,pos);
+      redo_read16(sector.slope_ceiling,pos);
+      redo_read16(sector.slope_floor,pos);
+      redo_read8(sector.shade_ceiling,pos);
+      redo_read8(sector.shade_floor,pos);
+      redo_read16(sector.ceiling_tex,pos);
+      redo_read16(sector.floor_tex,pos);
+      redo_read32(sector.ceiling,pos);
+      redo_read32(sector.floor,pos);
+      redo_read32(sector.flags,pos);
+      redo_read32(sector.wall_first,pos);
+      redo_read32(sector.wall_count,pos);
+
+      /*redo_write32(sector);
+      for(int i = 0;i<map->sectors[sector].wall_count;i++)
+      {
+         uint32_t wall = map->sectors[sector].wall_first+i;
+         redo_write32(map->walls[wall].x);
+         redo_write32(map->walls[wall].y);
+         redo_write32(map->walls[wall].flags);
+         redo_write32(map->walls[wall].p2);
+         redo_write32(map->walls[wall].portal);
+         redo_write32(map->walls[wall].portal_wall);
+         redo_write16(map->walls[wall].tex_lower);
+         redo_write16(map->walls[wall].tex_upper);
+         redo_write16(map->walls[wall].tex_mid);
+         redo_write8(map->walls[wall].shade_offset);
+         redo_write16(map->walls[wall].x_off);
+         redo_write16(map->walls[wall].y_off);
+         redo_write8(map->walls[wall].x_units);
+         redo_write8(map->walls[wall].y_units);
+      }
+      redo_write32(map->sectors[sector].wall_count);
+      redo_write32(map->sectors[sector].wall_first);
+      redo_write32(map->sectors[sector].flags);
+      redo_write32(map->sectors[sector].floor);
+      redo_write32(map->sectors[sector].ceiling);
+      redo_write16(map->sectors[sector].floor_tex);
+      redo_write16(map->sectors[sector].ceiling_tex);
+      redo_write8(map->sectors[sector].shade_floor);
+      redo_write8(map->sectors[sector].shade_ceiling);
+      redo_write16(map->sectors[sector].slope_floor);
+      redo_write16(map->sectors[sector].slope_ceiling);
+      redo_write16(map->sectors[sector].x_off);
+      redo_write16(map->sectors[sector].y_off);
+      redo_write8(map->sectors[sector].x_units);
+      redo_write8(map->sectors[sector].y_units);
+      
+      map->wall_count-=map->sectors[map->sector_count-1].wall_count;
+      map->sector_count--;
+      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");*/
+   }
+}
+
+static void redo_sector_split(int pos, int endpos)
+{
 }
 //-------------------------------------
