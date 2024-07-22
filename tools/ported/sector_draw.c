@@ -485,6 +485,8 @@ void sector_draw_draw(RvR_fix22 x, RvR_fix22 y, RvR_fix22 zoom)
 
 static int sector_draw_split()
 {
+   undo_track_sector_split(sd_split_sector);
+
    //Remove last wall, will be added again
    RvR_array_length_set(sd_walls, RvR_array_length(sd_walls) - 1);
    uint16_t old_length = (uint16_t)RvR_array_length(sd_walls);
