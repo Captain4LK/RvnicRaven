@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "RvR/RvR.h"
 #include "RvR/RvR_portal.h"
@@ -206,6 +207,7 @@ void undo(void)
    redo_write16(action);
    redo_entry_len = 0;
 
+
    //Apply undoes
    switch(action)
    {
@@ -270,6 +272,7 @@ void redo(void)
    undo_write8(UNDO_RECORD);
    undo_write16(action);
    undo_entry_len = 0;
+   printf("%d\n",action);
 
    //Apply redoes
    switch(action)
@@ -1390,7 +1393,7 @@ static void undo_sector_add(int pos, int endpos)
       undo_read32(sector,pos);
 
       if(sector!=map->sector_count-1)
-         RvR_log("Mismatch in undo_sector_add\n");
+         RvR_log_line("undo_sector_add","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
       redo_write32(sector);
       for(int i = 0;i<map->sectors[sector].wall_count;i++)
@@ -1481,44 +1484,13 @@ static void redo_sector_add(int pos, int endpos)
          redo_read32(wall.y,pos);
          redo_read32(wall.x,pos);
          map->walls[map->wall_count-1-i] = wall;
-         //redo_write32(map->walls[wall].x);
-         //redo_write32(map->walls[wall].y);
-         //redo_write32(map->walls[wall].flags);
-         //redo_write32(map->walls[wall].p2);
-         //redo_write32(map->walls[wall].portal);
-         //redo_write32(map->walls[wall].portal_wall);
-         //redo_write16(map->walls[wall].tex_lower);
-         //redo_write16(map->walls[wall].tex_upper);
-         //redo_write16(map->walls[wall].tex_mid);
-         //redo_write8(map->walls[wall].shade_offset);
-         //redo_write16(map->walls[wall].x_off);
-         //redo_write16(map->walls[wall].y_off);
-         //redo_write8(map->walls[wall].x_units);
-         //redo_write8(map->walls[wall].y_units);
       }
 
       redo_read32(sector_id,pos);
       if(sector_id!=map->sector_count-1)
-         RvR_log("mismatch in redo_sector_add\n");
+         RvR_log_line("redo_sector_add","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
       undo_write32(sector_id);
-
-      //redo_write32(sector);
-      //redo_write16(map->sectors[sector].wall_count);
-      //redo_write16(map->sectors[sector].wall_first);
-      //redo_write32(map->sectors[sector].flags);
-      //redo_write32(map->sectors[sector].floor);
-      //redo_write32(map->sectors[sector].ceiling);
-      //redo_write16(map->sectors[sector].floor_tex);
-      //redo_write16(map->sectors[sector].ceiling_tex);
-      //redo_write8(map->sectors[sector].shade_floor);
-      //redo_write8(map->sectors[sector].shade_ceiling);
-      //redo_write16(map->sectors[sector].slope_floor);
-      //redo_write16(map->sectors[sector].slope_ceiling);
-      //redo_write16(map->sectors[sector].x_off);
-      //redo_write16(map->sectors[sector].y_off);
-      //redo_write8(map->sectors[sector].x_units);
-      //redo_write8(map->sectors[sector].y_units);
    }
 }
 
@@ -1625,7 +1597,6 @@ static void undo_sector_add_inner(int pos, int endpos)
 
       uint32_t remove = map->sectors[sector_id].wall_first+sector.wall_count;
       uint32_t count = diff;
-      //uint32_t insert = map->sectors[sector_id]
 
       //Move existing walls to left
       for(int w = remove;w<map->wall_count-count;w++)
@@ -1639,15 +1610,6 @@ static void undo_sector_add_inner(int pos, int endpos)
             wall->p2-=count;
          if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=remove)
             wall->portal_wall-=count;
-         /*
-         RvR_port_wall *wall = map->walls + i;
-         if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=insert)
-            wall->portal += count;
-         if(wall->p2>=insert)
-            wall->p2 += count;
-         if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
-            wall->portal_wall += count;
-         */
       }
 
       //Update sectors first walls
@@ -1658,7 +1620,7 @@ static void undo_sector_add_inner(int pos, int endpos)
             sct->wall_first-=count;
       }
 
-      map->wall_count-=diff;
+      map->wall_count-=count;
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
       map->sectors[sector_id] = sector;
       for(int i = 0;i<sector.wall_count;i++)
@@ -1756,8 +1718,6 @@ static void redo_sector_add_inner(int pos, int endpos)
       for(int i = 0; i<map->wall_count; i++)
       {
          RvR_port_wall *wall = map->walls + i;
-         //if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=insert)
-            //wall->portal += count;
          if(wall->p2>=insert)
             wall->p2 += count;
          if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
@@ -1810,7 +1770,7 @@ static void undo_sector_add_overlap(int pos, int endpos)
       undo_read32(sector,pos);
 
       if(sector!=map->sector_count-1)
-         RvR_log("Mismatch in undo_sector_add\n");
+         RvR_log_line("undo_sector_add_overlap","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
       redo_write32(sector);
       for(int i = 0;i<map->sectors[sector].wall_count;i++)
@@ -1916,7 +1876,7 @@ static void redo_sector_add_overlap(int pos, int endpos)
 
       redo_read32(sector_id,pos);
       if(sector_id!=map->sector_count-1)
-         RvR_log("mismatch in redo_sector_add\n");
+         RvR_log_line("redo_sector_add_overlap","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
       {
@@ -2106,22 +2066,19 @@ static void undo_sector_split(int pos, int endpos)
             wall->portal++;
       }
 
-      //int diff = sector.wall_count-map->sectors[sector_id].wall_count;
       uint32_t insert = sector.wall_first;
       uint32_t count = sector.wall_count;
       map->wall_count+=count;
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
 
       //Move existing walls to right
-      for(int w = map->wall_count - 1; w>insert+count; w--)
+      for(int w = map->wall_count - 1; w>insert+count-1; w--)
          map->walls[w] = map->walls[w - count];
 
       //Fix indices
       for(int i = 0; i<map->wall_count; i++)
       {
          RvR_port_wall *wall = map->walls + i;
-         //if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=insert)
-            //wall->portal += count;
          if(wall->p2>=insert)
             wall->p2 += count;
          if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
@@ -2165,46 +2122,6 @@ static void undo_sector_split(int pos, int endpos)
             map->walls[map->walls[wall].portal_wall].portal = sector_id;
          }
       }
-
-      /*redo_write32(sector);
-      for(int i = 0;i<map->sectors[sector].wall_count;i++)
-      {
-         uint32_t wall = map->sectors[sector].wall_first+i;
-         redo_write32(map->walls[wall].x);
-         redo_write32(map->walls[wall].y);
-         redo_write32(map->walls[wall].flags);
-         redo_write32(map->walls[wall].p2);
-         redo_write32(map->walls[wall].portal);
-         redo_write32(map->walls[wall].portal_wall);
-         redo_write16(map->walls[wall].tex_lower);
-         redo_write16(map->walls[wall].tex_upper);
-         redo_write16(map->walls[wall].tex_mid);
-         redo_write8(map->walls[wall].shade_offset);
-         redo_write16(map->walls[wall].x_off);
-         redo_write16(map->walls[wall].y_off);
-         redo_write8(map->walls[wall].x_units);
-         redo_write8(map->walls[wall].y_units);
-      }
-      redo_write32(map->sectors[sector].wall_count);
-      redo_write32(map->sectors[sector].wall_first);
-      redo_write32(map->sectors[sector].flags);
-      redo_write32(map->sectors[sector].floor);
-      redo_write32(map->sectors[sector].ceiling);
-      redo_write16(map->sectors[sector].floor_tex);
-      redo_write16(map->sectors[sector].ceiling_tex);
-      redo_write8(map->sectors[sector].shade_floor);
-      redo_write8(map->sectors[sector].shade_ceiling);
-      redo_write16(map->sectors[sector].slope_floor);
-      redo_write16(map->sectors[sector].slope_ceiling);
-      redo_write16(map->sectors[sector].x_off);
-      redo_write16(map->sectors[sector].y_off);
-      redo_write8(map->sectors[sector].x_units);
-      redo_write8(map->sectors[sector].y_units);
-      
-      map->wall_count-=map->sectors[map->sector_count-1].wall_count;
-      map->sector_count--;
-      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
-      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");*/
    }
 }
 
@@ -2232,7 +2149,7 @@ static void redo_sector_split(int pos, int endpos)
       redo_read32(sector0.flags,pos);
       redo_read32(sector0.wall_first,pos);
       redo_read32(sector0.wall_count,pos);
-      undo_read8(sector1.y_units,pos);
+      redo_read8(sector1.y_units,pos);
       redo_read8(sector1.x_units,pos);
       redo_read16(sector1.y_off,pos);
       redo_read16(sector1.x_off,pos);
@@ -2328,7 +2245,7 @@ static void redo_sector_split(int pos, int endpos)
          if(map->walls[w].portal!=RVR_PORT_SECTOR_INVALID&&map->walls[w].portal>=sector_id)
             map->walls[w].portal--;
       }
-      map->wall_count-=map->sectors[sector_id].wall_count;
+      map->wall_count-=count;
       map->sector_count-=1;
       map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
@@ -2398,5 +2315,9 @@ static void redo_sector_split(int pos, int endpos)
          }
       }
    }
+}
+
+void undo_track_sector_connect(uint32_t sector)
+{
 }
 //-------------------------------------
