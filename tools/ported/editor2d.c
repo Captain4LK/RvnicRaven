@@ -343,7 +343,6 @@ static void e2d_update_view(void)
    if(RvR_key_pressed(RVR_KEY_G))
       draw_grid = (draw_grid + 1) & 7;
 
-   //TODO
    if(RvR_key_pressed(RVR_KEY_SPACE))
    {
       RvR_fix22 x = ((mx + scroll_x) * zoom);
@@ -401,6 +400,7 @@ static void e2d_update_view(void)
 
       hover = (uint16_t)i;
 
+      //TODO
       if(RvR_key_pressed(RVR_KEY_INS))
       {
          int16_t nwall = RvR_port_wall_insert(map, (uint16_t)i, x, y);
