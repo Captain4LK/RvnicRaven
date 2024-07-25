@@ -400,10 +400,10 @@ static void e2d_update_view(void)
 
       hover = (uint16_t)i;
 
-      //TODO
       if(RvR_key_pressed(RVR_KEY_INS))
       {
-         int16_t nwall = RvR_port_wall_insert(map, (uint16_t)i, x, y);
+         uint16_t nwall = RvR_port_wall_insert(map, (uint16_t)i, x, y);
+         undo_track_wall_insert(nwall);
 
          RvR_fix22 dgrid = 1 << draw_grid_sizes[draw_grid];
          int nx = x + dgrid / 2;
@@ -415,6 +415,7 @@ static void e2d_update_view(void)
          break;
       }
 
+      //TODO
       if(RvR_key_down(RVR_KEY_LCTRL))
       {
          if(RvR_key_pressed(RVR_KEY_DEL))

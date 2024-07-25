@@ -231,6 +231,7 @@ int RvR_port_wall_inside(const RvR_port_map *map, uint16_t wall, RvR_fix22 x, Rv
 int     RvR_port_wall_subsector(const RvR_port_map *map, uint16_t sector, uint16_t wall);
 uint16_t RvR_port_subsector_length(const RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_subsector_first(const RvR_port_map *map, uint16_t wall);
+void     RvR_port_wall_delete(RvR_port_map *map, uint16_t wall);
 //TODO(Captain4LK): find a proper name for this
 uint16_t RvR_port_wall_next_onesided(const RvR_port_map *map, uint16_t wall);
 uint16_t RvR_port_wall_onesided_length(const RvR_port_map *map, uint16_t wall);

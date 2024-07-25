@@ -444,6 +444,82 @@ uint16_t RvR_port_wall_onesided_length(const RvR_port_map *map, uint16_t wall)
    return len;
 }
 
+void RvR_port_wall_delete(RvR_port_map *map, uint16_t wall)
+{
+   uint16_t sector = RvR_port_wall_sector(map,wall);
+   uint16_t portal = map->walls[wall].portal_wall;
+   uint16_t sector_portal = RVR_PORT_SECTOR_INVALID;
+   if(portal!=RVR_PORT_WALL_INVALID)
+      sector_portal = RvR_port_wall_sector(map,portal);
+
+   //Subsector too small, use sector_delete instead
+   if(RvR_port_subsector_length(map,wall)<=3)
+      return;
+   if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&RvR_port_subsector_length(map,map->walls[wall].portal_wall)<=3)
+      return;
+
+   uint16_t prev = RvR_port_wall_previous(map,wall);
+   map->walls[prev].p2 = map->walls[wall].p2;
+   if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+   {
+      prev = RvR_port_wall_previous(map,map->walls[wall].portal_wall);
+      map->walls[prev].p2 = map->walls[map->walls[wall].portal_wall].p2;
+   }
+
+   //Move existing walls to left
+   for(int w = wall;w<map->wall_count-1;w++)
+      map->walls[w] = map->walls[w+1];
+
+   //Update indices
+   for(int w = 0;w<map->wall_count;w++)
+   {
+      if(map->walls[w].p2>=wall)
+         map->walls[w].p2--;
+      if(map->walls[w].portal_wall!=RVR_PORT_WALL_INVALID&&map->walls[w].portal_wall>=wall)
+         map->walls[w].portal_wall--;
+   }
+   if(portal!=RVR_PORT_WALL_INVALID&&portal>=wall)
+      portal--;
+
+   //Update sector references
+   for(int s = 0;s<map->sector_count;s++)
+   {
+      if(map->sectors[s].wall_first>=wall)
+         map->sectors[s].wall_first--;
+   }
+   
+   map->wall_count--;
+   map->sectors[sector].wall_count--;
+
+   if(portal!=RVR_PORT_WALL_INVALID)
+   {
+      //Move existing walls to left
+      for(int w = portal;w<map->wall_count-1;w++)
+         map->walls[w] = map->walls[w+1];
+
+      //Update indices
+      for(int w = 0;w<map->wall_count;w++)
+      {
+         if(map->walls[w].p2>=portal)
+            map->walls[w].p2--;
+         if(map->walls[w].portal_wall!=RVR_PORT_WALL_INVALID&&map->walls[w].portal_wall>=portal)
+            map->walls[w].portal_wall--;
+      }
+
+      //Update sector references
+      for(int s = 0;s<map->sector_count;s++)
+      {
+         if(map->sectors[s].wall_first>=portal)
+            map->sectors[s].wall_first--;
+      }
+      
+      map->wall_count--;
+      map->sectors[sector_portal].wall_count--;
+   }
+
+   map->walls = RvR_realloc(map->walls,sizeof(*map->walls)*map->wall_count,"Map walls grow");
+}
+
 static int port_point_on_line(RvR_fix22 x, RvR_fix22 y, RvR_fix22 x0, RvR_fix22 y0, RvR_fix22 x1, RvR_fix22 y1)
 {
    //If 2d cross product is zero, point is on line

@@ -70,6 +70,7 @@ typedef enum
    ED_SECTOR_ADD_OVERLAP,
    ED_SECTOR_SPLIT,
    ED_SECTOR_CONNECT,
+   ED_WALL_INSERT,
 }Ed_action;
 //-------------------------------------
 
@@ -149,6 +150,8 @@ static void undo_sector_split(int pos, int endpos);
 static void redo_sector_split(int pos, int endpos);
 static void undo_sector_connect(int pos, int endpos);
 static void redo_sector_connect(int pos, int endpos);
+static void undo_wall_insert(int pos, int endpos);
+static void redo_wall_insert(int pos, int endpos);
 //-------------------------------------
 
 //Function implementations
@@ -239,6 +242,7 @@ void undo(void)
    case ED_SECTOR_ADD_OVERLAP: undo_sector_add_overlap(pos,endpos); break;
    case ED_SECTOR_SPLIT: undo_sector_split(pos,endpos); break;
    case ED_SECTOR_CONNECT: undo_sector_connect(pos,endpos); break;
+   case ED_WALL_INSERT: undo_wall_insert(pos,endpos); break;
    }
 
    redo_write32(redo_entry_len);
@@ -306,6 +310,7 @@ void redo(void)
    case ED_SECTOR_ADD_OVERLAP: redo_sector_add_overlap(pos,endpos); break;
    case ED_SECTOR_SPLIT: redo_sector_split(pos,endpos); break;
    case ED_SECTOR_CONNECT: redo_sector_connect(pos,endpos); break;
+   case ED_WALL_INSERT: redo_wall_insert(pos,endpos); break;
    }
 
    undo_write32(undo_entry_len);
@@ -2656,6 +2661,45 @@ static void redo_sector_connect(int pos, int endpos)
             map->walls[map->walls[wall].portal_wall].portal = map->sector_count-1;
          }
       }
+   }
+}
+
+void undo_track_wall_insert(uint16_t wall)
+{
+   undo_begin(ED_WALL_INSERT);
+   undo_write32(wall);
+   undo_end();
+}
+
+static void undo_wall_insert(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t wall;
+      undo_read32(wall,pos);
+
+      redo_write32(wall-1);
+      redo_write32(map->walls[wall].x);
+      redo_write32(map->walls[wall].y);
+
+      RvR_port_wall_delete(map,wall);
+   }
+}
+
+static void redo_wall_insert(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint32_t wall;
+      RvR_fix22 x;
+      RvR_fix22 y;
+
+      redo_read32(y,pos);
+      redo_read32(x,pos);
+      redo_read32(wall,pos);
+      
+      uint32_t nwall = RvR_port_wall_insert(map,wall,x,y);
+      undo_write32(nwall);
    }
 }
 //-------------------------------------
