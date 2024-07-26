@@ -420,6 +420,7 @@ static void e2d_update_view(void)
       {
          if(RvR_key_pressed(RVR_KEY_DEL))
          {
+            undo_track_sector_delete(RvR_port_wall_sector(map,i));
             RvR_port_sector_delete(map, RvR_port_wall_sector(map, i));
             break;
          }

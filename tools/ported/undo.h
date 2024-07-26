@@ -44,5 +44,6 @@ void undo_track_sector_add_overlap(uint32_t sector);
 void undo_track_sector_split(uint32_t sector);
 void undo_track_sector_connect(uint32_t sector);
 void undo_track_wall_insert(uint16_t wall);
+void undo_track_sector_delete(uint16_t sector);
 
 #endif
