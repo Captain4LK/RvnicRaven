@@ -18,11 +18,11 @@ void undo(void);
 void redo(void);
 
 //For writing undo/redo entries
-void undo_track_wall_shade(uint32_t wall);
-void undo_track_floor_shade(uint32_t sector);
-void undo_track_ceiling_shade(uint32_t sector);
-void undo_track_sector_flag(uint32_t sector);
-void undo_track_sprite_flag(uint32_t sprite);
+void undo_track_wall_shade(uint16_t wall);
+void undo_track_floor_shade(uint16_t sector);
+void undo_track_ceiling_shade(uint16_t sector);
+void undo_track_sector_flag(uint16_t sector);
+void undo_track_sprite_flag(uint16_t sprite);
 void undo_track_sprite_dir(uint32_t sprite);
 void undo_track_wall_flag(uint32_t wall);
 void undo_track_wall_units(uint32_t wall);
@@ -43,7 +43,9 @@ void undo_track_sector_add_inner(uint32_t sector);
 void undo_track_sector_add_overlap(uint32_t sector);
 void undo_track_sector_split(uint32_t sector);
 void undo_track_sector_connect(uint32_t sector);
-void undo_track_wall_insert(uint16_t wall);
-void undo_track_sector_delete(uint16_t sector);
+void undo_track_wall_insert(uint32_t wall);
+void undo_track_sector_delete(uint32_t sector);
+void undo_track_sector_make_inner(uint32_t wall);
+void undo_track_wall_make_first(uint32_t wall, uint32_t portal_wall);
 
 #endif

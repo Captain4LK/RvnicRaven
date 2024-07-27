@@ -415,7 +415,6 @@ static void e2d_update_view(void)
          break;
       }
 
-      //TODO
       if(RvR_key_down(RVR_KEY_LCTRL))
       {
          if(RvR_key_pressed(RVR_KEY_DEL))
@@ -435,13 +434,16 @@ static void e2d_update_view(void)
                break;
 
             //Make inner
+            undo_track_sector_make_inner(i);
             RvR_port_sector_make_inner(map, (uint16_t)i);
 
             break;
          }
+         //TODO
          else if(RvR_key_pressed(RVR_KEY_F))
          {
             //TODO(Captain4LK): select wall based on mouse position relative to wall
+            undo_track_wall_make_first(i,map->walls[i].portal_wall);
             if(map->walls[i].portal!=RVR_PORT_WALL_INVALID)
             {
                RvR_port_wall_make_first(map, (uint16_t)i);
@@ -481,7 +483,7 @@ static void e2d_update_view(void)
       }
    }
 
-   if(RvR_key_pressed(RVR_KEY_S))
+   if(!RvR_key_down(RVR_KEY_LALT)&&!RvR_key_down(RVR_KEY_LCTRL)&&RvR_key_pressed(RVR_KEY_S))
    {
       x = ((mx + scroll_x) * zoom);
       y = ((my + scroll_y) * zoom);

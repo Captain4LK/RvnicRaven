@@ -95,6 +95,9 @@ void RvR_port_wall_move(RvR_port_map *map, uint16_t wall, RvR_fix22 x, RvR_fix22
 
 uint16_t RvR_port_wall_make_first(RvR_port_map *map, uint16_t wall)
 {
+   if(wall==RVR_PORT_WALL_INVALID)
+      return wall;
+
    uint16_t first = RvR_port_subsector_first(map,wall);
    uint16_t len = RvR_port_subsector_length(map,wall);
    uint16_t sector = RvR_port_wall_sector(map,wall);
@@ -149,6 +152,9 @@ uint16_t RvR_port_wall_make_first(RvR_port_map *map, uint16_t wall)
 
 uint16_t RvR_port_wall_first(const RvR_port_map *map, uint16_t wall)
 {
+   if(wall==RVR_PORT_WALL_INVALID)
+      return wall;
+
    uint16_t cur = wall;
    for(;;)
    {
