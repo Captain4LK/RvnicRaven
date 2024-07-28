@@ -592,7 +592,7 @@ static void redo_shade_wall(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       int8_t shade;
       redo_read8(shade,pos);
       redo_read16(wall,pos);
@@ -804,10 +804,10 @@ static void redo_sprite_dir(int pos, int endpos)
    }
 }
 
-void undo_track_wall_flag(uint32_t wall)
+void undo_track_wall_flag(uint16_t wall)
 {
    undo_begin(ED_WALL_FLAG);
-   undo_write32(wall);
+   undo_write16(wall);
    undo_write32(map->walls[wall].flags);
    undo_end();
 }
@@ -816,12 +816,12 @@ static void undo_wall_flag(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint32_t flag;
       undo_read32(flag,pos);
-      undo_read32(wall,pos);
+      undo_read16(wall,pos);
 
-      redo_write32(wall);
+      redo_write16(wall);
       redo_write32(map->walls[wall].flags);
 
       map->walls[wall].flags = flag;
@@ -832,22 +832,22 @@ static void redo_wall_flag(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint32_t flag;
       redo_read32(flag,pos);
-      redo_read32(wall,pos);
+      redo_read16(wall,pos);
 
-      undo_write32(wall);
+      undo_write16(wall);
       undo_write32(map->walls[wall].flags);
 
       map->walls[wall].flags = flag;
    }
 }
 
-void undo_track_wall_units(uint32_t wall)
+void undo_track_wall_units(uint16_t wall)
 {
    undo_begin(ED_WALL_UNITS);
-   undo_write32(wall);
+   undo_write16(wall);
    undo_write8(map->walls[wall].x_units);
    undo_write8(map->walls[wall].y_units);
    undo_end();
@@ -857,14 +857,14 @@ static void undo_wall_units(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint8_t xunits;
       uint8_t yunits;
       undo_read8(yunits,pos);
       undo_read8(xunits,pos);
-      undo_read32(wall,pos);
+      undo_read16(wall,pos);
 
-      redo_write32(wall);
+      redo_write16(wall);
       redo_write8(map->walls[wall].x_units);
       redo_write8(map->walls[wall].y_units);
 
@@ -877,14 +877,14 @@ static void redo_wall_units(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint8_t xunits;
       uint8_t yunits;
       redo_read8(yunits,pos);
       redo_read8(xunits,pos);
-      redo_read32(wall,pos);
+      redo_read16(wall,pos);
 
-      undo_write32(wall);
+      undo_write16(wall);
       undo_write8(map->walls[wall].x_units);
       undo_write8(map->walls[wall].y_units);
 
@@ -893,10 +893,10 @@ static void redo_wall_units(int pos, int endpos)
    }
 }
 
-void undo_track_sector_units(uint32_t sector)
+void undo_track_sector_units(uint16_t sector)
 {
    undo_begin(ED_SECTOR_UNITS);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_write8(map->sectors[sector].x_units);
    undo_write8(map->sectors[sector].y_units);
    undo_end();
@@ -906,14 +906,14 @@ static void undo_sector_units(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint8_t xunits;
       uint8_t yunits;
       undo_read8(yunits,pos);
       undo_read8(xunits,pos);
-      undo_read32(sector,pos);
+      undo_read16(sector,pos);
 
-      redo_write32(sector);
+      redo_write16(sector);
       redo_write8(map->sectors[sector].x_units);
       redo_write8(map->sectors[sector].y_units);
 
@@ -926,14 +926,14 @@ static void redo_sector_units(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint8_t xunits;
       uint8_t yunits;
       redo_read8(yunits,pos);
       redo_read8(xunits,pos);
-      redo_read32(sector,pos);
+      redo_read16(sector,pos);
 
-      undo_write32(sector);
+      undo_write16(sector);
       undo_write8(map->sectors[sector].x_units);
       undo_write8(map->sectors[sector].y_units);
 
@@ -942,10 +942,10 @@ static void redo_sector_units(int pos, int endpos)
    }
 }
 
-void undo_track_sprite_units(uint32_t sprite)
+void undo_track_sprite_units(uint16_t sprite)
 {
    undo_begin(ED_SPRITE_UNITS);
-   undo_write32(sprite);
+   undo_write16(sprite);
    undo_write8(map->sprites[sprite].x_units);
    undo_write8(map->sprites[sprite].y_units);
    undo_end();
@@ -955,14 +955,14 @@ static void undo_sprite_units(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
       uint8_t xunits;
       uint8_t yunits;
       undo_read8(yunits,pos);
       undo_read8(xunits,pos);
-      undo_read32(sprite,pos);
+      undo_read16(sprite,pos);
 
-      redo_write32(sprite);
+      redo_write16(sprite);
       redo_write8(map->sprites[sprite].x_units);
       redo_write8(map->sprites[sprite].y_units);
 
@@ -975,14 +975,14 @@ static void redo_sprite_units(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
       uint8_t xunits;
       uint8_t yunits;
       redo_read8(yunits,pos);
       redo_read8(xunits,pos);
-      redo_read32(sprite,pos);
+      redo_read16(sprite,pos);
 
-      undo_write32(sprite);
+      undo_write16(sprite);
       undo_write8(map->sprites[sprite].x_units);
       undo_write8(map->sprites[sprite].y_units);
 
@@ -991,10 +991,10 @@ static void redo_sprite_units(int pos, int endpos)
    }
 }
 
-void undo_track_wall_offsets(uint32_t wall)
+void undo_track_wall_offsets(uint16_t wall)
 {
    undo_begin(ED_WALL_OFFSETS);
-   undo_write32(wall);
+   undo_write16(wall);
    undo_write16(map->walls[wall].x_off);
    undo_write16(map->walls[wall].y_off);
    undo_end();
@@ -1004,14 +1004,14 @@ static void undo_wall_offsets(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint16_t xoff;
       uint16_t yoff;
       undo_read16(yoff,pos);
       undo_read16(xoff,pos);
-      undo_read32(wall,pos);
+      undo_read16(wall,pos);
 
-      redo_write32(wall);
+      redo_write16(wall);
       redo_write16(map->walls[wall].x_off);
       redo_write16(map->walls[wall].y_off);
 
@@ -1024,14 +1024,14 @@ static void redo_wall_offsets(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint16_t xoff;
       uint16_t yoff;
       redo_read16(yoff,pos);
       redo_read16(xoff,pos);
-      redo_read32(wall,pos);
+      redo_read16(wall,pos);
 
-      undo_write32(wall);
+      undo_write16(wall);
       undo_write16(map->walls[wall].x_off);
       undo_write16(map->walls[wall].y_off);
 
@@ -1040,10 +1040,10 @@ static void redo_wall_offsets(int pos, int endpos)
    }
 }
 
-void undo_track_sector_offsets(uint32_t sector)
+void undo_track_sector_offsets(uint16_t sector)
 {
    undo_begin(ED_SECTOR_OFFSETS);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_write16(map->sectors[sector].x_off);
    undo_write16(map->sectors[sector].y_off);
    undo_end();
@@ -1053,14 +1053,14 @@ static void undo_sector_offsets(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint16_t xoff;
       uint16_t yoff;
       undo_read16(yoff,pos);
       undo_read16(xoff,pos);
-      undo_read32(sector,pos);
+      undo_read16(sector,pos);
 
-      redo_write32(sector);
+      redo_write16(sector);
       redo_write16(map->sectors[sector].x_off);
       redo_write16(map->sectors[sector].y_off);
 
@@ -1073,14 +1073,14 @@ static void redo_sector_offsets(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint16_t xoff;
       uint16_t yoff;
       redo_read16(yoff,pos);
       redo_read16(xoff,pos);
-      redo_read32(sector,pos);
+      redo_read16(sector,pos);
 
-      undo_write32(sector);
+      undo_write16(sector);
       undo_write16(map->sectors[sector].x_off);
       undo_write16(map->sectors[sector].y_off);
 
@@ -1089,10 +1089,10 @@ static void redo_sector_offsets(int pos, int endpos)
    }
 }
 
-void undo_track_sector_slope(uint32_t sector)
+void undo_track_sector_slope(uint16_t sector)
 {
    undo_begin(ED_SECTOR_SLOPE);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_write16(map->sectors[sector].slope_floor);
    undo_write16(map->sectors[sector].slope_ceiling);
    undo_end();
@@ -1102,14 +1102,14 @@ static void undo_sector_slope(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint16_t slope_floor;
       uint16_t slope_ceiling;
       undo_read16(slope_ceiling,pos);
       undo_read16(slope_floor,pos);
-      undo_read32(sector,pos);
+      undo_read16(sector,pos);
 
-      redo_write32(sector);
+      redo_write16(sector);
       redo_write16(map->sectors[sector].slope_floor);
       redo_write16(map->sectors[sector].slope_ceiling);
 
@@ -1122,14 +1122,14 @@ static void redo_sector_slope(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint16_t slope_floor;
       uint16_t slope_ceiling;
       redo_read16(slope_ceiling,pos);
       redo_read16(slope_floor,pos);
-      redo_read32(sector,pos);
+      redo_read16(sector,pos);
 
-      undo_write32(sector);
+      undo_write16(sector);
       undo_write16(map->sectors[sector].slope_floor);
       undo_write16(map->sectors[sector].slope_ceiling);
 
@@ -1138,13 +1138,12 @@ static void redo_sector_slope(int pos, int endpos)
    }
 }
 
-void undo_track_sector_height(uint32_t sector)
+void undo_track_sector_height(uint16_t sector)
 {
    undo_begin(ED_SECTOR_HEIGHT);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_write32(map->sectors[sector].floor);
    undo_write32(map->sectors[sector].ceiling);
-   printf("%d %d\n",map->sectors[sector].floor,map->sectors[sector].ceiling);
    undo_end();
 }
 
@@ -1152,14 +1151,14 @@ static void undo_sector_height(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint32_t floor;
       uint32_t ceiling;
       undo_read32(ceiling,pos);
       undo_read32(floor,pos);
-      undo_read32(sector,pos);
+      undo_read16(sector,pos);
 
-      redo_write32(sector);
+      redo_write16(sector);
       redo_write32(map->sectors[sector].floor);
       redo_write32(map->sectors[sector].ceiling);
 
@@ -1172,14 +1171,14 @@ static void redo_sector_height(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint32_t floor;
       uint32_t ceiling;
       redo_read32(ceiling,pos);
       redo_read32(floor,pos);
-      redo_read32(sector,pos);
+      redo_read16(sector,pos);
 
-      undo_write32(sector);
+      undo_write16(sector);
       undo_write32(map->sectors[sector].floor);
       undo_write32(map->sectors[sector].ceiling);
 
@@ -1188,14 +1187,14 @@ static void redo_sector_height(int pos, int endpos)
    }
 }
 
-void undo_track_sprite_pos(uint32_t sprite)
+void undo_track_sprite_pos(uint16_t sprite)
 {
    undo_begin(ED_SPRITE_POS);
-   undo_write32(sprite);
+   undo_write16(sprite);
    undo_write32(map->sprites[sprite].x);
    undo_write32(map->sprites[sprite].y);
    undo_write32(map->sprites[sprite].z);
-   undo_write32(map->sprites[sprite].sector);
+   undo_write16(map->sprites[sprite].sector);
    undo_end();
 }
 
@@ -1203,22 +1202,22 @@ static void undo_sprite_pos(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
       uint32_t x;
       uint32_t y;
       uint32_t z;
-      uint32_t sector;
-      undo_read32(sector,pos);
+      uint16_t sector;
+      undo_read16(sector,pos);
       undo_read32(z,pos);
       undo_read32(y,pos);
       undo_read32(x,pos);
-      undo_read32(sprite,pos);
+      undo_read16(sprite,pos);
 
-      redo_write32(sprite);
+      redo_write16(sprite);
       redo_write32(map->sprites[sprite].x);
       redo_write32(map->sprites[sprite].y);
       redo_write32(map->sprites[sprite].z);
-      redo_write32(map->sprites[sprite].sector);
+      redo_write16(map->sprites[sprite].sector);
 
       map->sprites[sprite].x = x;
       map->sprites[sprite].y = y;
@@ -1231,22 +1230,22 @@ static void redo_sprite_pos(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
       uint32_t x;
       uint32_t y;
       uint32_t z;
-      uint32_t sector;
-      redo_read32(sector,pos);
+      uint16_t sector;
+      redo_read16(sector,pos);
       redo_read32(z,pos);
       redo_read32(y,pos);
       redo_read32(x,pos);
-      redo_read32(sprite,pos);
+      redo_read16(sprite,pos);
 
-      undo_write32(sprite);
+      undo_write16(sprite);
       undo_write32(map->sprites[sprite].x);
       undo_write32(map->sprites[sprite].y);
       undo_write32(map->sprites[sprite].z);
-      undo_write32(map->sprites[sprite].sector);
+      undo_write16(map->sprites[sprite].sector);
 
       map->sprites[sprite].x = x;
       map->sprites[sprite].y = y;
@@ -1255,10 +1254,10 @@ static void redo_sprite_pos(int pos, int endpos)
    }
 }
 
-void undo_track_sprite_tex(uint32_t sprite)
+void undo_track_sprite_tex(uint16_t sprite)
 {
    undo_begin(ED_SPRITE_TEX);
-   undo_write32(sprite);
+   undo_write16(sprite);
    undo_write16(map->sprites[sprite].tex);
    undo_end();
 }
@@ -1267,12 +1266,12 @@ static void undo_sprite_tex(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
       uint16_t tex;
       undo_read16(tex,pos);
-      undo_read32(sprite,pos);
+      undo_read16(sprite,pos);
 
-      redo_write32(sprite);
+      redo_write16(sprite);
       redo_write16(map->sprites[sprite].tex);
 
       map->sprites[sprite].tex = tex;
@@ -1283,22 +1282,22 @@ static void redo_sprite_tex(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
       uint16_t tex;
       redo_read16(tex,pos);
-      redo_read32(sprite,pos);
+      redo_read16(sprite,pos);
 
-      undo_write32(sprite);
+      undo_write16(sprite);
       undo_write16(map->sprites[sprite].tex);
 
       map->sprites[sprite].tex = tex;
    }
 }
 
-void undo_track_wall_tex(uint32_t wall)
+void undo_track_wall_tex(uint16_t wall)
 {
    undo_begin(ED_WALL_TEX);
-   undo_write32(wall);
+   undo_write16(wall);
    undo_write16(map->walls[wall].tex_upper);
    undo_write16(map->walls[wall].tex_lower);
    undo_write16(map->walls[wall].tex_mid);
@@ -1309,16 +1308,16 @@ static void undo_wall_tex(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint16_t tex_upper;
       uint16_t tex_lower;
       uint16_t tex_mid;
       undo_read16(tex_mid,pos);
       undo_read16(tex_lower,pos);
       undo_read16(tex_upper,pos);
-      undo_read32(wall,pos);
+      undo_read16(wall,pos);
 
-      redo_write32(wall);
+      redo_write16(wall);
       redo_write16(map->walls[wall].tex_upper);
       redo_write16(map->walls[wall].tex_lower);
       redo_write16(map->walls[wall].tex_mid);
@@ -1333,16 +1332,16 @@ static void redo_wall_tex(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint16_t tex_upper;
       uint16_t tex_lower;
       uint16_t tex_mid;
       redo_read16(tex_mid,pos);
       redo_read16(tex_lower,pos);
       redo_read16(tex_upper,pos);
-      redo_read32(wall,pos);
+      redo_read16(wall,pos);
 
-      undo_write32(wall);
+      undo_write16(wall);
       undo_write16(map->walls[wall].tex_upper);
       undo_write16(map->walls[wall].tex_lower);
       undo_write16(map->walls[wall].tex_mid);
@@ -1353,10 +1352,10 @@ static void redo_wall_tex(int pos, int endpos)
    }
 }
 
-void undo_track_sector_tex(uint32_t sector)
+void undo_track_sector_tex(uint16_t sector)
 {
    undo_begin(ED_SECTOR_TEX);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_write16(map->sectors[sector].floor_tex);
    undo_write16(map->sectors[sector].ceiling_tex);
    undo_end();
@@ -1366,14 +1365,14 @@ static void undo_sector_tex(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint16_t tex_floor;
       uint16_t tex_ceiling;
       undo_read16(tex_ceiling,pos);
       undo_read16(tex_floor,pos);
-      undo_read32(sector,pos);
+      undo_read16(sector,pos);
 
-      redo_write32(sector);
+      redo_write16(sector);
       redo_write16(map->sectors[sector].floor_tex);
       redo_write16(map->sectors[sector].ceiling_tex);
 
@@ -1386,14 +1385,14 @@ static void redo_sector_tex(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
+      uint16_t sector;
       uint16_t tex_floor;
       uint16_t tex_ceiling;
       redo_read16(tex_ceiling,pos);
       redo_read16(tex_floor,pos);
-      redo_read32(sector,pos);
+      redo_read16(sector,pos);
 
-      undo_write32(sector);
+      undo_write16(sector);
       undo_write16(map->sectors[sector].floor_tex);
       undo_write16(map->sectors[sector].ceiling_tex);
 
@@ -1402,10 +1401,10 @@ static void redo_sector_tex(int pos, int endpos)
    }
 }
 
-void undo_track_sprite_del(uint32_t sprite)
+void undo_track_sprite_del(uint16_t sprite)
 {
    undo_begin(ED_SPRITE_DEL);
-   undo_write32(sprite);
+   undo_write16(sprite);
    undo_write32(map->sprites[sprite].x);
    undo_write32(map->sprites[sprite].y);
    undo_write32(map->sprites[sprite].z);
@@ -1422,7 +1421,7 @@ static void undo_sprite_del(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
       uint32_t x;
       uint32_t y;
       uint32_t z;
@@ -1442,9 +1441,9 @@ static void undo_sprite_del(int pos, int endpos)
       undo_read32(z,pos);
       undo_read32(y,pos);
       undo_read32(x,pos);
-      undo_read32(sprite,pos);
+      undo_read16(sprite,pos);
 
-      redo_write32(sprite);
+      redo_write16(sprite);
 
       map->sprite_count++;
       map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count,"Map sprites grow");
@@ -1475,11 +1474,11 @@ static void redo_sprite_del(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sprite;
+      uint16_t sprite;
 
-      redo_read32(sprite,pos);
+      redo_read16(sprite,pos);
 
-      undo_write32(sprite);
+      undo_write16(sprite);
       undo_write32(map->sprites[sprite].x);
       undo_write32(map->sprites[sprite].y);
       undo_write32(map->sprites[sprite].z);
@@ -1496,10 +1495,10 @@ static void redo_sprite_del(int pos, int endpos)
    }
 }
 
-void undo_track_wall_move(uint32_t wall)
+void undo_track_wall_move(uint16_t wall)
 {
    undo_begin(ED_WALL_MOVE);
-   undo_write32(wall);
+   undo_write16(wall);
    undo_write32(map->walls[wall].x);
    undo_write32(map->walls[wall].y);
    undo_end();
@@ -1509,14 +1508,14 @@ static void undo_wall_move(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint32_t x;
       uint32_t y;
       undo_read32(y,pos);
       undo_read32(x,pos);
-      undo_read32(wall,pos);
+      undo_read16(wall,pos);
 
-      redo_write32(wall);
+      redo_write16(wall);
       redo_write32(map->walls[wall].x);
       redo_write32(map->walls[wall].y);
 
@@ -1528,14 +1527,14 @@ static void redo_wall_move(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       uint32_t x;
       uint32_t y;
       redo_read32(y,pos);
       redo_read32(x,pos);
-      redo_read32(wall,pos);
+      redo_read16(wall,pos);
 
-      undo_write32(wall);
+      undo_write16(wall);
       undo_write32(map->walls[wall].x);
       undo_write32(map->walls[wall].y);
 
@@ -1543,10 +1542,10 @@ static void redo_wall_move(int pos, int endpos)
    }
 }
 
-void undo_track_sector_add(uint32_t sector)
+void undo_track_sector_add(uint16_t sector)
 {
    undo_begin(ED_SECTOR_ADD);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_end();
 }
 
@@ -1554,13 +1553,13 @@ static void undo_sector_add(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
-      undo_read32(sector,pos);
+      uint16_t sector;
+      undo_read16(sector,pos);
 
       if(sector!=map->sector_count-1)
          RvR_log_line("undo_sector_add","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
-      redo_write32(sector);
+      redo_write16(sector);
       for(int i = 0;i<map->sectors[sector].wall_count;i++)
          redo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
       redo_write_sector(map->sectors[sector]);
@@ -1576,7 +1575,7 @@ static void redo_sector_add(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector;
 
       redo_read_sector(sector,pos);
@@ -1594,21 +1593,21 @@ static void redo_sector_add(int pos, int endpos)
          map->walls[map->wall_count-1-i] = wall;
       }
 
-      redo_read32(sector_id,pos);
+      redo_read16(sector_id,pos);
       if(sector_id!=map->sector_count-1)
          RvR_log_line("redo_sector_add","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
-      undo_write32(sector_id);
+      undo_write16(sector_id);
    }
 }
 
-void undo_track_sector_add_inner(uint32_t sector)
+void undo_track_sector_add_inner(uint16_t sector)
 {
    undo_begin(ED_SECTOR_ADD_INNER);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
    undo_write_sector(map->sectors[sector]);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_end();
 }
 
@@ -1616,21 +1615,21 @@ static void undo_sector_add_inner(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector;
 
-      undo_read32(sector_id,pos);
+      undo_read16(sector_id,pos);
       undo_read_sector(sector,pos);
 
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
          redo_write_wall(map->walls[map->sectors[sector_id].wall_first+i]);
       redo_write_sector(map->sectors[sector_id]);
-      redo_write32(sector_id);
+      redo_write16(sector_id);
 
-      int diff = map->sectors[sector_id].wall_count-sector.wall_count;
+      uint16_t diff = map->sectors[sector_id].wall_count-sector.wall_count;
 
-      uint32_t remove = map->sectors[sector_id].wall_first+sector.wall_count;
-      uint32_t count = diff;
+      uint16_t remove = map->sectors[sector_id].wall_first+sector.wall_count;
+      uint16_t count = diff;
 
       //Move existing walls to left
       for(int w = remove;w<map->wall_count-count;w++)
@@ -1670,20 +1669,20 @@ static void redo_sector_add_inner(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector;
 
-      redo_read32(sector_id,pos);
+      redo_read16(sector_id,pos);
       redo_read_sector(sector,pos);
 
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
          undo_write_wall(map->walls[map->sectors[sector_id].wall_first+i]);
       undo_write_sector(map->sectors[sector_id]);
-      undo_write32(sector_id);
+      undo_write16(sector_id);
 
-      int diff = sector.wall_count-map->sectors[sector_id].wall_count;
-      uint32_t insert = map->sectors[sector_id].wall_first+map->sectors[sector_id].wall_count;
-      uint32_t count = diff;
+      uint16_t diff = sector.wall_count-map->sectors[sector_id].wall_count;
+      uint16_t insert = map->sectors[sector_id].wall_first+map->sectors[sector_id].wall_count;
+      uint16_t count = diff;
       map->wall_count+=diff;
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
 
@@ -1719,10 +1718,10 @@ static void redo_sector_add_inner(int pos, int endpos)
    }
 }
 
-void undo_track_sector_add_overlap(uint32_t sector)
+void undo_track_sector_add_overlap(uint16_t sector)
 {
    undo_begin(ED_SECTOR_ADD_OVERLAP);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_end();
 }
 
@@ -1730,20 +1729,20 @@ static void undo_sector_add_overlap(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
-      undo_read32(sector,pos);
+      uint16_t sector;
+      undo_read16(sector,pos);
 
       if(sector!=map->sector_count-1)
          RvR_log_line("undo_sector_add_overlap","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
-      redo_write32(sector);
+      redo_write16(sector);
       for(int i = 0;i<map->sectors[sector].wall_count;i++)
          redo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
       redo_write_sector(map->sectors[sector]);
 
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-1].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&
             map->walls[map->walls[wall].portal_wall].portal_wall==wall)
          {
@@ -1763,7 +1762,7 @@ static void redo_sector_add_overlap(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector;
 
       redo_read_sector(sector,pos);
@@ -1781,13 +1780,13 @@ static void redo_sector_add_overlap(int pos, int endpos)
          map->walls[map->wall_count-1-i] = wall;
       }
 
-      redo_read32(sector_id,pos);
+      redo_read16(sector_id,pos);
       if(sector_id!=map->sector_count-1)
          RvR_log_line("redo_sector_add_overlap","Sector mismatch, expected sector '%"PRIu32"', got '%"PRIu32"'\n",map->sector_count-1,sector);
 
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-1].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
@@ -1795,17 +1794,17 @@ static void redo_sector_add_overlap(int pos, int endpos)
          }
       }
 
-      undo_write32(sector_id);
+      undo_write16(sector_id);
    }
 }
 
-void undo_track_sector_split(uint32_t sector)
+void undo_track_sector_split(uint16_t sector)
 {
    undo_begin(ED_SECTOR_SPLIT);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
    undo_write_sector(map->sectors[sector]);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_end();
 }
 
@@ -1813,10 +1812,10 @@ static void undo_sector_split(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector;
 
-      undo_read32(sector_id,pos);
+      undo_read16(sector_id,pos);
       undo_read_sector(sector,pos);
 
       for(int i = 0;i<map->sectors[map->sector_count-2].wall_count;i++)
@@ -1825,13 +1824,13 @@ static void undo_sector_split(int pos, int endpos)
          redo_write_wall(map->walls[map->sectors[map->sector_count-1].wall_first+i]);
       redo_write_sector(map->sectors[map->sector_count-2]);
       redo_write_sector(map->sectors[map->sector_count-1]);
-      redo_write32(sector_id);
+      redo_write16(sector_id);
 
       //Remove old sectors
       //-------------------------------------
       for(int i = 0;i<map->sectors[map->sector_count-2].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-2].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-2].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&
             map->walls[map->walls[wall].portal_wall].portal_wall==wall)
          {
@@ -1841,7 +1840,7 @@ static void undo_sector_split(int pos, int endpos)
       }
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-1].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&
             map->walls[map->walls[wall].portal_wall].portal_wall==wall)
          {
@@ -1849,7 +1848,7 @@ static void undo_sector_split(int pos, int endpos)
             map->walls[map->walls[wall].portal_wall].portal = RVR_PORT_SECTOR_INVALID;
          }
       }
-      map->wall_count-=map->sectors[map->sector_count-2].wall_count+map->sectors[map->sector_count-1].wall_count;
+      map->wall_count-=(uint16_t)(map->sectors[map->sector_count-2].wall_count+map->sectors[map->sector_count-1].wall_count);
       map->sector_count-=2;
       map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
@@ -1869,8 +1868,8 @@ static void undo_sector_split(int pos, int endpos)
             wall->portal++;
       }
 
-      uint32_t insert = sector.wall_first;
-      uint32_t count = sector.wall_count;
+      uint16_t insert = sector.wall_first;
+      uint16_t count = sector.wall_count;
       map->wall_count+=count;
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
 
@@ -1905,7 +1904,7 @@ static void undo_sector_split(int pos, int endpos)
       }
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
       {
-         uint32_t wall = map->sectors[sector_id].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[sector_id].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
@@ -1919,23 +1918,23 @@ static void redo_sector_split(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector0;
       RvR_port_sector sector1;
 
-      redo_read32(sector_id,pos);
+      redo_read16(sector_id,pos);
       redo_read_sector(sector0,pos);
       redo_read_sector(sector1,pos);
 
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
          undo_write_wall(map->walls[map->sectors[sector_id].wall_first+i]);
       undo_write_sector(map->sectors[sector_id]);
-      undo_write32(sector_id);
+      undo_write16(sector_id);
 
       //Remove old sector
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
       {
-         uint32_t wall = map->sectors[sector_id].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[sector_id].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&
             map->walls[map->walls[wall].portal_wall].portal_wall==wall)
          {
@@ -1945,8 +1944,8 @@ static void redo_sector_split(int pos, int endpos)
       }
 
       //Move walls after deleted sector to left
-      uint32_t count = map->sectors[sector_id].wall_count;
-      uint32_t remove = map->sectors[sector_id].wall_first;
+      uint16_t count = map->sectors[sector_id].wall_count;
+      uint16_t remove = map->sectors[sector_id].wall_first;
       for(int w = remove;w<map->wall_count-count;w++)
          map->walls[w] = map->walls[w+count];
 
@@ -1983,7 +1982,7 @@ static void redo_sector_split(int pos, int endpos)
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
 
       map->sector_count+=2;
-      map->wall_count+=sector0.wall_count+sector1.wall_count;
+      map->wall_count+=(uint16_t)(sector0.wall_count+sector1.wall_count);
       map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
       map->sectors[map->sector_count-1] = sector0;
@@ -2004,7 +2003,7 @@ static void redo_sector_split(int pos, int endpos)
 
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-1].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
@@ -2013,7 +2012,7 @@ static void redo_sector_split(int pos, int endpos)
       }
       for(int i = 0;i<map->sectors[map->sector_count-2].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-2].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-2].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
@@ -2023,13 +2022,13 @@ static void redo_sector_split(int pos, int endpos)
    }
 }
 
-void undo_track_sector_connect(uint32_t sector)
+void undo_track_sector_connect(uint16_t sector)
 {
    undo_begin(ED_SECTOR_CONNECT);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
    undo_write_sector(map->sectors[sector]);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_end();
 }
 
@@ -2037,22 +2036,22 @@ static void undo_sector_connect(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector;
 
-      undo_read32(sector_id,pos);
+      undo_read16(sector_id,pos);
       undo_read_sector(sector,pos);
 
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
          redo_write_wall(map->walls[map->sectors[map->sector_count-1].wall_first+i]);
       redo_write_sector(map->sectors[map->sector_count-1]);
-      redo_write32(sector_id);
+      redo_write16(sector_id);
 
       //Remove old sectors
       //-------------------------------------
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-1].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&
             map->walls[map->walls[wall].portal_wall].portal_wall==wall)
          {
@@ -2080,8 +2079,8 @@ static void undo_sector_connect(int pos, int endpos)
             wall->portal++;
       }
 
-      uint32_t insert = sector.wall_first;
-      uint32_t count = sector.wall_count;
+      uint16_t insert = sector.wall_first;
+      uint16_t count = sector.wall_count;
       map->wall_count+=count;
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
 
@@ -2116,7 +2115,7 @@ static void undo_sector_connect(int pos, int endpos)
       }
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
       {
-         uint32_t wall = map->sectors[sector_id].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[sector_id].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
@@ -2130,21 +2129,21 @@ static void redo_sector_connect(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector0;
 
-      redo_read32(sector_id,pos);
+      redo_read16(sector_id,pos);
       redo_read_sector(sector0,pos);
 
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
          undo_write_wall(map->walls[map->sectors[sector_id].wall_first+i]);
       undo_write_sector(map->sectors[sector_id]);
-      undo_write32(sector_id);
+      undo_write16(sector_id);
 
       //Remove old sector
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
       {
-         uint32_t wall = map->sectors[sector_id].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[sector_id].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&
             map->walls[map->walls[wall].portal_wall].portal_wall==wall)
          {
@@ -2154,8 +2153,8 @@ static void redo_sector_connect(int pos, int endpos)
       }
 
       //Move walls after deleted sector to left
-      uint32_t count = map->sectors[sector_id].wall_count;
-      uint32_t remove = map->sectors[sector_id].wall_first;
+      uint16_t count = map->sectors[sector_id].wall_count;
+      uint16_t remove = map->sectors[sector_id].wall_first;
       for(int w = remove;w<map->wall_count-count;w++)
          map->walls[w] = map->walls[w+count];
 
@@ -2206,7 +2205,7 @@ static void redo_sector_connect(int pos, int endpos)
 
       for(int i = 0;i<map->sectors[map->sector_count-1].wall_count;i++)
       {
-         uint32_t wall = map->sectors[map->sector_count-1].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[map->sector_count-1].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
@@ -2216,10 +2215,10 @@ static void redo_sector_connect(int pos, int endpos)
    }
 }
 
-void undo_track_wall_insert(uint32_t wall)
+void undo_track_wall_insert(uint16_t wall)
 {
    undo_begin(ED_WALL_INSERT);
-   undo_write32(wall);
+   undo_write16(wall);
    undo_end();
 }
 
@@ -2227,10 +2226,10 @@ static void undo_wall_insert(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
-      undo_read32(wall,pos);
+      uint16_t wall;
+      undo_read16(wall,pos);
 
-      redo_write32(wall-1);
+      redo_write16(wall-1);
       redo_write32(map->walls[wall].x);
       redo_write32(map->walls[wall].y);
 
@@ -2242,27 +2241,26 @@ static void redo_wall_insert(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
       RvR_fix22 x;
       RvR_fix22 y;
 
       redo_read32(y,pos);
       redo_read32(x,pos);
-      redo_read32(wall,pos);
+      redo_read16(wall,pos);
       
-      uint32_t nwall = RvR_port_wall_insert(map,wall,x,y);
-      undo_write32(nwall);
+      uint16_t nwall = RvR_port_wall_insert(map,wall,x,y);
+      undo_write16(nwall);
    }
 }
 
-void undo_track_sector_delete(uint32_t sector)
+void undo_track_sector_delete(uint16_t sector)
 {
    undo_begin(ED_SECTOR_DELETE);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
-   undo_write32(map->sectors[sector].wall_count);
    undo_write_sector(map->sectors[sector]);
-   undo_write32(sector);
+   undo_write16(sector);
    undo_end();
 }
 
@@ -2270,13 +2268,13 @@ static void undo_sector_delete(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector_id;
+      uint16_t sector_id;
       RvR_port_sector sector;
 
-      undo_read32(sector_id,pos);
+      undo_read16(sector_id,pos);
       undo_read_sector(sector,pos);
 
-      redo_write32(sector_id);
+      redo_write16(sector_id);
 
       //Move sectors to right
       map->sector_count+=1;
@@ -2292,8 +2290,8 @@ static void undo_sector_delete(int pos, int endpos)
             wall->portal++;
       }
 
-      uint32_t insert = sector.wall_first;
-      uint32_t count = sector.wall_count;
+      uint16_t insert = sector.wall_first;
+      uint16_t count = sector.wall_count;
       map->wall_count+=count;
       map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
 
@@ -2328,7 +2326,7 @@ static void undo_sector_delete(int pos, int endpos)
       }
       for(int i = 0;i<map->sectors[sector_id].wall_count;i++)
       {
-         uint32_t wall = map->sectors[sector_id].wall_first+i;
+         uint16_t wall = (uint16_t)(map->sectors[sector_id].wall_first+i);
          if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
@@ -2342,22 +2340,22 @@ static void redo_sector_delete(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t sector;
-      redo_read32(sector,pos);
+      uint16_t sector;
+      redo_read16(sector,pos);
 
       for(int i = 0;i<map->sectors[sector].wall_count;i++)
          undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
       undo_write_sector(map->sectors[sector]);
-      undo_write32(sector);
+      undo_write16(sector);
 
       RvR_port_sector_delete(map, sector);
    }
 }
 
-void undo_track_sector_make_inner(uint32_t wall)
+void undo_track_sector_make_inner(uint16_t wall)
 {
    undo_begin(ED_SECTOR_MAKE_INNER);
-   undo_write32(wall);
+   undo_write16(wall);
    undo_end();
 }
 
@@ -2365,10 +2363,10 @@ static void undo_sector_make_inner(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
 
-      undo_read32(wall,pos);
-      redo_write32(wall);
+      undo_read16(wall,pos);
+      redo_write16(wall);
 
       RvR_port_sector_delete(map,map->walls[wall].portal);
    }
@@ -2378,16 +2376,16 @@ static void redo_sector_make_inner(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
+      uint16_t wall;
 
-      redo_read32(wall,pos);
-      undo_write32(wall);
+      redo_read16(wall,pos);
+      undo_write16(wall);
 
       RvR_port_sector_make_inner(map,wall);
    }
 }
 
-void undo_track_wall_make_first(uint32_t wall, uint32_t portal_wall)
+void undo_track_wall_make_first(uint16_t wall, uint16_t portal_wall)
 {
    undo_begin(ED_WALL_MAKE_FIRST);
    for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,wall)].wall_count;i++)
@@ -2397,8 +2395,8 @@ void undo_track_wall_make_first(uint32_t wall, uint32_t portal_wall)
       for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_count;i++)
          undo_write_wall(map->walls[map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_first+i]);
    }
-   undo_write32(wall);
-   undo_write32(portal_wall);
+   undo_write16(wall);
+   undo_write16(portal_wall);
    undo_end();
 }
 
@@ -2406,10 +2404,10 @@ static void undo_wall_make_first(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
-      uint32_t portal_wall;
-      undo_read32(portal_wall,pos);
-      undo_read32(wall,pos);
+      uint16_t wall;
+      uint16_t portal_wall;
+      undo_read16(portal_wall,pos);
+      undo_read16(wall,pos);
 
       for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,wall)].wall_count;i++)
          redo_write_wall(map->walls[map->sectors[RvR_port_wall_sector(map,wall)].wall_first+i]);
@@ -2418,12 +2416,12 @@ static void undo_wall_make_first(int pos, int endpos)
          for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_count;i++)
             redo_write_wall(map->walls[map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_first+i]);
       }
-      redo_write32(wall);
-      redo_write32(portal_wall);
+      redo_write16(wall);
+      redo_write16(portal_wall);
 
       if(portal_wall!=RVR_PORT_WALL_INVALID)
       {
-         uint32_t sec_port = RvR_port_wall_sector(map,portal_wall);
+         uint16_t sec_port = RvR_port_wall_sector(map,portal_wall);
          for(int i = 0;i<map->sectors[sec_port].wall_count;i++)
          {
             RvR_port_wall w;
@@ -2432,7 +2430,7 @@ static void undo_wall_make_first(int pos, int endpos)
          }
          for(int i = 0;i<map->sectors[sec_port].wall_count;i++)
          {
-            int w = map->sectors[sec_port].wall_first+i;
+            uint16_t w = (uint16_t)(map->sectors[sec_port].wall_first+i);
             if(map->walls[w].portal_wall!=RVR_PORT_WALL_INVALID)
             {
                map->walls[map->walls[w].portal_wall].portal_wall = w;
@@ -2440,7 +2438,7 @@ static void undo_wall_make_first(int pos, int endpos)
             }
          }
       }
-      uint32_t sec = RvR_port_wall_sector(map,wall);
+      uint16_t sec = RvR_port_wall_sector(map,wall);
       for(int i = 0;i<map->sectors[sec].wall_count;i++)
       {
          RvR_port_wall w;
@@ -2449,7 +2447,7 @@ static void undo_wall_make_first(int pos, int endpos)
       }
       for(int i = 0;i<map->sectors[sec].wall_count;i++)
       {
-         int w = map->sectors[sec].wall_first+i;
+         uint16_t w = (uint16_t)(map->sectors[sec].wall_first+i);
          if(map->walls[w].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[w].portal_wall].portal_wall = w;
@@ -2463,10 +2461,10 @@ static void redo_wall_make_first(int pos, int endpos)
 {
    while(pos!=endpos)
    {
-      uint32_t wall;
-      uint32_t portal_wall;
-      redo_read32(portal_wall,pos);
-      redo_read32(wall,pos);
+      uint16_t wall;
+      uint16_t portal_wall;
+      redo_read16(portal_wall,pos);
+      redo_read16(wall,pos);
 
       for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,wall)].wall_count;i++)
          undo_write_wall(map->walls[map->sectors[RvR_port_wall_sector(map,wall)].wall_first+i]);
@@ -2475,12 +2473,12 @@ static void redo_wall_make_first(int pos, int endpos)
          for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_count;i++)
             undo_write_wall(map->walls[map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_first+i]);
       }
-      redo_write32(wall);
-      redo_write32(portal_wall);
+      redo_write16(wall);
+      redo_write16(portal_wall);
 
       if(portal_wall!=RVR_PORT_WALL_INVALID)
       {
-         uint32_t sec_port = RvR_port_wall_sector(map,portal_wall);
+         uint16_t sec_port = RvR_port_wall_sector(map,portal_wall);
          for(int i = 0;i<map->sectors[sec_port].wall_count;i++)
          {
             RvR_port_wall w;
@@ -2489,7 +2487,7 @@ static void redo_wall_make_first(int pos, int endpos)
          }
          for(int i = 0;i<map->sectors[sec_port].wall_count;i++)
          {
-            int w = map->sectors[sec_port].wall_first+i;
+            uint16_t w = (uint16_t)(map->sectors[sec_port].wall_first+i);
             if(map->walls[w].portal_wall!=RVR_PORT_WALL_INVALID)
             {
                map->walls[map->walls[w].portal_wall].portal_wall = w;
@@ -2497,7 +2495,7 @@ static void redo_wall_make_first(int pos, int endpos)
             }
          }
       }
-      uint32_t sec = RvR_port_wall_sector(map,wall);
+      uint16_t sec = RvR_port_wall_sector(map,wall);
       for(int i = 0;i<map->sectors[sec].wall_count;i++)
       {
          RvR_port_wall w;
@@ -2506,7 +2504,7 @@ static void redo_wall_make_first(int pos, int endpos)
       }
       for(int i = 0;i<map->sectors[sec].wall_count;i++)
       {
-         int w = map->sectors[sec].wall_first+i;
+         uint16_t w = (uint16_t)(map->sectors[sec].wall_first+i);
          if(map->walls[w].portal_wall!=RVR_PORT_WALL_INVALID)
          {
             map->walls[map->walls[w].portal_wall].portal_wall = w;

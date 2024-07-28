@@ -36,6 +36,9 @@ static int port_point_on_line(RvR_fix22 x, RvR_fix22 y, RvR_fix22 x0, RvR_fix22 
 //--> speed up RvR_port_wall_previous() by using RvR_port_wall_sector()
 uint16_t RvR_port_wall_sector(const RvR_port_map *map, uint16_t wall)
 {
+   if(wall==RVR_PORT_WALL_INVALID)
+      return RVR_PORT_SECTOR_INVALID;
+
    for(int i = 0;i<map->sector_count;i++)
       if(wall>=map->sectors[i].wall_first&&wall<map->sectors[i].wall_first+map->sectors[i].wall_count)
          return (uint16_t)i;
