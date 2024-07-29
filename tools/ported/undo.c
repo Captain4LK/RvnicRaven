@@ -214,6 +214,8 @@ typedef enum
    ED_SECTOR_DELETE,
    ED_SECTOR_MAKE_INNER,
    ED_WALL_MAKE_FIRST,
+   ED_SECTOR_JOIN,
+   ED_SPRITE_ADD,
 }Ed_action;
 //-------------------------------------
 
@@ -301,6 +303,10 @@ static void undo_sector_make_inner(int pos, int endpos);
 static void redo_sector_make_inner(int pos, int endpos);
 static void undo_wall_make_first(int pos, int endpos);
 static void redo_wall_make_first(int pos, int endpos);
+static void undo_sector_join(int pos, int endpos);
+static void redo_sector_join(int pos, int endpos);
+static void undo_sprite_add(int pos, int endpos);
+static void redo_sprite_add(int pos, int endpos);
 //-------------------------------------
 
 //Function implementations
@@ -395,6 +401,8 @@ void undo(void)
    case ED_SECTOR_DELETE: undo_sector_delete(pos,endpos); break;
    case ED_SECTOR_MAKE_INNER: undo_sector_make_inner(pos,endpos); break;
    case ED_WALL_MAKE_FIRST: undo_wall_make_first(pos,endpos); break;
+   case ED_SECTOR_JOIN: undo_sector_join(pos,endpos); break;
+   case ED_SPRITE_ADD: undo_sprite_add(pos,endpos); break;
    }
 
    redo_write32(redo_entry_len);
@@ -466,6 +474,8 @@ void redo(void)
    case ED_SECTOR_DELETE: redo_sector_delete(pos,endpos); break;
    case ED_SECTOR_MAKE_INNER: redo_sector_make_inner(pos,endpos); break;
    case ED_WALL_MAKE_FIRST: redo_wall_make_first(pos,endpos); break;
+   case ED_SECTOR_JOIN: redo_sector_join(pos,endpos); break;
+   case ED_SPRITE_ADD: redo_sprite_add(pos,endpos); break;
    }
 
    undo_write32(undo_entry_len);
@@ -2473,8 +2483,8 @@ static void redo_wall_make_first(int pos, int endpos)
          for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_count;i++)
             undo_write_wall(map->walls[map->sectors[RvR_port_wall_sector(map,portal_wall)].wall_first+i]);
       }
-      redo_write16(wall);
-      redo_write16(portal_wall);
+      undo_write16(wall);
+      undo_write16(portal_wall);
 
       if(portal_wall!=RVR_PORT_WALL_INVALID)
       {
@@ -2512,5 +2522,210 @@ static void redo_wall_make_first(int pos, int endpos)
          }
       }
    }
+}
+
+void undo_track_sector_join(uint16_t sector0, uint16_t sector1)
+{
+   undo_begin(ED_SECTOR_JOIN);
+   if(sector0<sector1)
+   {
+      for(int i = 0;i<map->sectors[sector1].wall_count;i++)
+         undo_write_wall(map->walls[map->sectors[sector1].wall_first+i]);
+      for(int i = 0;i<map->sectors[sector0].wall_count;i++)
+         undo_write_wall(map->walls[map->sectors[sector0].wall_first+i]);
+      undo_write_sector(map->sectors[sector1]);
+      undo_write_sector(map->sectors[sector0]);
+      undo_write16(sector1);
+      undo_write16(sector0);
+   }
+   else
+   {
+      for(int i = 0;i<map->sectors[sector0].wall_count;i++)
+         undo_write_wall(map->walls[map->sectors[sector0].wall_first+i]);
+      for(int i = 0;i<map->sectors[sector1].wall_count;i++)
+         undo_write_wall(map->walls[map->sectors[sector1].wall_first+i]);
+      undo_write_sector(map->sectors[sector0]);
+      undo_write_sector(map->sectors[sector1]);
+      undo_write16(sector0);
+      undo_write16(sector1);
+   }
+   undo_end();
+}
+
+static void undo_sector_join(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t sector0_id;
+      uint16_t sector1_id;
+      RvR_port_sector sector0;
+      RvR_port_sector sector1;
+      undo_read16(sector0_id,pos);
+      undo_read16(sector1_id,pos);
+      undo_read_sector(sector0,pos);
+      undo_read_sector(sector1,pos);
+
+      redo_write16(sector1_id);
+      redo_write16(sector0_id);
+
+      RvR_port_sector_delete(map,map->sector_count-1);
+
+      //First sector
+      //-------------------------------------
+      //Move sectors to right
+      map->sector_count+=1;
+      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+      for(int s = map->sector_count-1;s>sector0_id;s--)
+         map->sectors[s] = map->sectors[s-1];
+
+      //Fix portals
+      for(int w = 0;w<map->wall_count;w++)
+      {
+         RvR_port_wall *wall = map->walls+w;
+         if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=sector0_id)
+            wall->portal++;
+      }
+
+      uint16_t insert = sector0.wall_first;
+      uint16_t count = sector0.wall_count;
+      map->wall_count+=count;
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+
+      //Move existing walls to right
+      for(int w = map->wall_count - 1; w>insert+count-1; w--)
+         map->walls[w] = map->walls[w - count];
+
+      //Fix indices
+      for(int i = 0; i<map->wall_count; i++)
+      {
+         RvR_port_wall *wall = map->walls + i;
+         if(wall->p2>=insert)
+            wall->p2 += count;
+         if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
+            wall->portal_wall += count;
+      }
+
+      //Update sectors first wall
+      for(int i = 0; i<map->sector_count; i++)
+      {
+         RvR_port_sector *sect = map->sectors + i;
+         if(sect->wall_first>=insert)
+            sect->wall_first += count;
+      }
+
+      map->sectors[sector0_id] = sector0;
+      for(int i = 0;i<sector0.wall_count;i++)
+      {
+         RvR_port_wall wall;
+         undo_read_wall(wall,pos);
+         map->walls[map->sectors[sector0_id].wall_first+map->sectors[sector0_id].wall_count-1-i] = wall;
+      }
+      for(int i = 0;i<map->sectors[sector0_id].wall_count;i++)
+      {
+         uint16_t wall = (uint16_t)(map->sectors[sector0_id].wall_first+i);
+         if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+         {
+            map->walls[map->walls[wall].portal_wall].portal_wall = wall;
+            map->walls[map->walls[wall].portal_wall].portal = sector0_id;
+         }
+      }
+      //-------------------------------------
+
+      //Second sector
+      //-------------------------------------
+      //Move sectors to right
+      map->sector_count+=1;
+      map->sectors = RvR_realloc(map->sectors, sizeof(*map->sectors) * map->sector_count, "Map sectors grow");
+      for(int s = map->sector_count-1;s>sector1_id;s--)
+         map->sectors[s] = map->sectors[s-1];
+
+      //Fix portals
+      for(int w = 0;w<map->wall_count;w++)
+      {
+         RvR_port_wall *wall = map->walls+w;
+         if(wall->portal!=RVR_PORT_SECTOR_INVALID&&wall->portal>=sector1_id)
+            wall->portal++;
+      }
+
+      insert = sector1.wall_first;
+      count = sector1.wall_count;
+      map->wall_count+=count;
+      map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+
+      //Move existing walls to right
+      for(int w = map->wall_count - 1; w>insert+count-1; w--)
+         map->walls[w] = map->walls[w - count];
+
+      //Fix indices
+      for(int i = 0; i<map->wall_count; i++)
+      {
+         RvR_port_wall *wall = map->walls + i;
+         if(wall->p2>=insert)
+            wall->p2 += count;
+         if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
+            wall->portal_wall += count;
+      }
+
+      //Update sectors first wall
+      for(int i = 0; i<map->sector_count; i++)
+      {
+         RvR_port_sector *sect = map->sectors + i;
+         if(sect->wall_first>=insert)
+            sect->wall_first += count;
+      }
+
+      map->sectors[sector1_id] = sector1;
+      for(int i = 0;i<sector1.wall_count;i++)
+      {
+         RvR_port_wall wall;
+         undo_read_wall(wall,pos);
+         map->walls[map->sectors[sector1_id].wall_first+map->sectors[sector1_id].wall_count-1-i] = wall;
+      }
+      for(int i = 0;i<map->sectors[sector1_id].wall_count;i++)
+      {
+         uint16_t wall = (uint16_t)(map->sectors[sector1_id].wall_first+i);
+         if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+         {
+            map->walls[map->walls[wall].portal_wall].portal_wall = wall;
+            map->walls[map->walls[wall].portal_wall].portal = sector1_id;
+         }
+      }
+      //-------------------------------------
+   }
+}
+
+static void redo_sector_join(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t sector0;
+      uint16_t sector1;
+
+      redo_read16(sector0,pos);
+      redo_read16(sector1,pos);
+
+      for(int i = 0;i<map->sectors[sector1].wall_count;i++)
+         undo_write_wall(map->walls[map->sectors[sector1].wall_first+i]);
+      for(int i = 0;i<map->sectors[sector0].wall_count;i++)
+         undo_write_wall(map->walls[map->sectors[sector0].wall_first+i]);
+      undo_write_sector(map->sectors[sector1]);
+      undo_write_sector(map->sectors[sector0]);
+      undo_write16(sector1);
+      undo_write16(sector0);
+
+      RvR_port_sector_join(map, sector0, sector1);
+   }
+}
+
+void undo_track_sprite_add(uint16_t sprite)
+{
+}
+
+static void undo_sprite_add(int pos, int endpos)
+{
+}
+
+static void redo_sprite_add(int pos, int endpos)
+{
 }
 //-------------------------------------

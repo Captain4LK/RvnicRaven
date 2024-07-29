@@ -439,7 +439,6 @@ static void e2d_update_view(void)
 
             break;
          }
-         //TODO
          else if(RvR_key_pressed(RVR_KEY_F))
          {
             //TODO(Captain4LK): select wall based on mouse position relative to wall
@@ -477,12 +476,14 @@ static void e2d_update_view(void)
          }
          else
          {
+            undo_track_sector_join(sector_join,sector);
             RvR_port_sector_join(map, sector_join, sector);
             sector_join = RVR_PORT_SECTOR_INVALID;
          }
       }
    }
 
+   //TODO
    if(!RvR_key_down(RVR_KEY_LALT)&&!RvR_key_down(RVR_KEY_LCTRL)&&RvR_key_pressed(RVR_KEY_S))
    {
       x = ((mx + scroll_x) * zoom);

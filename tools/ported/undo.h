@@ -47,5 +47,7 @@ void undo_track_wall_insert(uint16_t wall);
 void undo_track_sector_delete(uint16_t sector);
 void undo_track_sector_make_inner(uint16_t wall);
 void undo_track_wall_make_first(uint16_t wall, uint16_t portal_wall);
+void undo_track_sector_join(uint16_t sector0, uint16_t sector1);
+void undo_track_sprite_add(uint16_t sprite);
 
 #endif
