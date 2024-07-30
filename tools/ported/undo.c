@@ -440,7 +440,7 @@ void redo(void)
    undo_write8(UNDO_RECORD);
    undo_write16(action);
    undo_entry_len = 0;
-   printf("%d\n",action);
+   //printf("%d\n",action);
 
    //Apply redoes
    switch(action)
@@ -2719,13 +2719,76 @@ static void redo_sector_join(int pos, int endpos)
 
 void undo_track_sprite_add(uint16_t sprite)
 {
+   undo_begin(ED_SPRITE_ADD);
+   undo_write16(sprite);
+   undo_end();
 }
 
 static void undo_sprite_add(int pos, int endpos)
 {
+   while(pos!=endpos)
+   {
+      uint16_t sprite;
+
+      undo_read16(sprite,pos);
+
+      redo_write16(sprite);
+      redo_write32(map->sprites[sprite].x);
+      redo_write32(map->sprites[sprite].y);
+      redo_write32(map->sprites[sprite].z);
+      redo_write32(map->sprites[sprite].dir);
+      redo_write16(map->sprites[sprite].sector);
+      redo_write16(map->sprites[sprite].tex);
+      redo_write32(map->sprites[sprite].flags);
+      redo_write8(map->sprites[sprite].x_units);
+      redo_write8(map->sprites[sprite].y_units);
+
+      map->sprites[sprite] = map->sprites[map->sprite_count-1];
+      map->sprite_count--;
+      map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count,"Map sprites grow");
+   }
 }
 
 static void redo_sprite_add(int pos, int endpos)
 {
+   while(pos!=endpos)
+   {
+      uint16_t sprite;
+      uint32_t x;
+      uint32_t y;
+      uint32_t z;
+      uint32_t dir;
+      uint16_t sector;
+      uint16_t tex;
+      uint32_t flags;
+      uint8_t x_units;
+      uint8_t y_units;
+
+      redo_read8(y_units,pos);
+      redo_read8(x_units,pos);
+      redo_read32(flags,pos);
+      redo_read16(tex,pos);
+      redo_read16(sector,pos);
+      redo_read32(dir,pos);
+      redo_read32(z,pos);
+      redo_read32(y,pos);
+      redo_read32(x,pos);
+      redo_read16(sprite,pos);
+
+      undo_write16(sprite);
+
+      map->sprite_count++;
+      map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count,"Map sprites grow");
+      map->sprites[map->sprite_count-1] = map->sprites[sprite];
+      map->sprites[sprite].x = x;
+      map->sprites[sprite].y = y;
+      map->sprites[sprite].z = z;
+      map->sprites[sprite].dir = dir;
+      map->sprites[sprite].sector = sector;
+      map->sprites[sprite].tex = tex;
+      map->sprites[sprite].flags = flags;
+      map->sprites[sprite].x_units = x_units;
+      map->sprites[sprite].y_units = y_units;
+   }
 }
 //-------------------------------------

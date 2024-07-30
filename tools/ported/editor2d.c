@@ -490,6 +490,7 @@ static void e2d_update_view(void)
       y = ((my + scroll_y) * zoom);
 
       uint16_t sprite = map->sprite_count++;
+      undo_track_sprite_add(sprite);
       map->sprites = RvR_realloc(map->sprites, sizeof(*map->sprites) * map->sprite_count, "Map sprites grow");
       memset(map->sprites + sprite, 0, sizeof(*map->sprites));
       map->sprites[sprite].x = x;
