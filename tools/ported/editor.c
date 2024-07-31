@@ -85,12 +85,6 @@ void editor_draw(void)
       editor2d_draw();
    else
       editor3d_draw();
-
-   if(RvR_key_pressed(RVR_KEY_U))
-      undo();
-
-   if(RvR_key_pressed(RVR_KEY_R)&&RvR_key_down(RVR_KEY_LCTRL))
-      redo();
 }
 
 void camera_update()

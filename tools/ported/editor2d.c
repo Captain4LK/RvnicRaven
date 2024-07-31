@@ -96,6 +96,19 @@ void editor2d_update(void)
    case STATE2D_SPRITE_MOVE: e2d_update_sprite_move(); break;
    case STATE2D_SECTOR: e2d_update_sector(); break;
    }
+
+   //Only allow undo in the default state
+   switch(state)
+   {
+   case STATE2D_VIEW:
+      if(RvR_key_pressed(RVR_KEY_U))
+         undo();
+      if(RvR_key_pressed(RVR_KEY_R)&&RvR_key_down(RVR_KEY_LCTRL))
+         redo();
+      break;
+   default:
+      break;
+   }
 }
 
 void editor2d_draw(void)

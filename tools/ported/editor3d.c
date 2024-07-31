@@ -96,6 +96,19 @@ void editor3d_draw(void)
    case STATE3D_TEX_ALL: e3d_draw_tex_all(); break;
    case STATE3D_TEX_ALL_GO: e3d_draw_tex_all_go(); break;
    }
+
+   //Only allow undo in the default state
+   switch(state)
+   {
+   case STATE3D_VIEW:
+      if(RvR_key_pressed(RVR_KEY_U))
+         undo();
+      if(RvR_key_pressed(RVR_KEY_R)&&RvR_key_down(RVR_KEY_LCTRL))
+         redo();
+      break;
+   default:
+      break;
+   }
 }
 
 static void e3d_update_view(void)

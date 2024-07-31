@@ -1467,16 +1467,6 @@ static void undo_sprite_del(int pos, int endpos)
       map->sprites[sprite].flags = flags;
       map->sprites[sprite].x_units = x_units;
       map->sprites[sprite].y_units = y_units;
-      //redo_write32(map->sprites[sprite].x);
-      //redo_write32(map->sprites[sprite].y);
-      //redo_write32(map->sprites[sprite].z);
-      //redo_write32(map->sprites[sprite].dir);
-      //redo_write16(map->sprites[sprite].sector);
-      //redo_write16(map->sprites[sprite].tex);
-      //redo_write32(map->sprites[sprite].flags);
-      //redo_write8(map->sprites[sprite].x_units);
-      //redo_write8(map->sprites[sprite].y_units);
-
    }
 }
 
