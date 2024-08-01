@@ -479,10 +479,6 @@ static void e2d_update_view(void)
       uint16_t sector = RvR_port_sector_update(map, RVR_PORT_SECTOR_INVALID, x, y);
       if(sector!=RVR_PORT_SECTOR_INVALID)
       {
-         RvR_port_slope slope;
-         RvR_port_slope_from_floor(map, sector, &slope);
-         printf("%d\n", RvR_port_slope_height_at(&slope, x, y));
-
          if(sector_join==RVR_PORT_SECTOR_INVALID)
          {
             sector_join = sector;

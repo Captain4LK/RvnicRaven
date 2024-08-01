@@ -44,6 +44,9 @@ void  RvR_port_draw_sprite(RvR_port_sprite *spr, void *ref)
    if(s->flags & RVR_PORT_SPRITE_INVISIBLE)
       return;
 
+   if(s->sector==RVR_PORT_SECTOR_INVALID||s->sector>=port_map->sector_count)
+      return;
+
    //sector not visited
    if(!port_map->sectors[s->sector].visited)
       return;

@@ -212,7 +212,7 @@ static void e3d_update_view(void)
    //Sprite placement
    if(RvR_key_pressed(RVR_KEY_S))
    {
-      //TODO(Captain4LK): place wall at location, wall aligned if pointing at walls
+      //TODO(Captain4LK): place sprite at location, wall aligned if pointing at walls
    }
 
    if(RvR_key_pressed(RVR_KEY_F))
@@ -447,6 +447,7 @@ static void e3d_update_view(void)
       }
    }
 
+   //Floor/Ceiling/Sprite height
    if(RvR_key_pressed(RVR_KEY_PGUP))
    {
       if(world_selection.type==RVR_PORT_SWALL_BOT)
@@ -535,6 +536,7 @@ static void e3d_update_view(void)
    if(RvR_key_released(RVR_BUTTON_LEFT))
       painting = 0;
 
+   //TODO(Captain4LK): maybe continously track all changes and only write one undo entry while holding done?
    if(painting)
    {
       if(world_selection.type==RVR_PORT_SWALL_BOT&&map->walls[world_selection.as.wall].tex_lower!=texture_selected)
@@ -569,13 +571,6 @@ static void e3d_draw_view(void)
    RvR_mouse_pos(&mx, &my);
 
    RvR_port_draw_begin(map, &camera);
-   /*Map_sprite *s = map_sprites;
-   while(s!=NULL)
-   {
-      //TODO
-      RvR_ray_draw_sprite(&camera, s->x, s->y, s->z, s->direction, s->texture, s->flags);
-      s = s->next;
-   }*/
 
    world_selection.x = mx;
    world_selection.y = my;

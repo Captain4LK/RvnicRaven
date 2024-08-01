@@ -10,6 +10,7 @@ CFLAGS  = %s
 LDFLAGS =
 LDLIBS  = 
 all: ported
+.PHONY: ported 
 " "$CFLAGS"
 
 obj=""

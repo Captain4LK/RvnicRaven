@@ -284,6 +284,8 @@ static int dwall_can_front(const RvR_port_dwall *wa, const RvR_port_dwall *wb)
 
 static void port_collect_walls(uint16_t start)
 {
+   if(start==RVR_PORT_WALL_INVALID||start>=port_map->sector_count)
+      return;
    int xres = RvR_xres();
    RvR_fix22 fovx = RvR_fix22_tan(port_cam->fov/2);
    RvR_fix22 sin = RvR_fix22_sin(port_cam->dir);
