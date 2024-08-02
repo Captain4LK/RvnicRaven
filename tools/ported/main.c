@@ -100,28 +100,10 @@ int main(int argc, char **argv)
    char path[512];
    path_pop(argv[0], path, NULL);
    strcat(path, "/");
-   //map_path_add(path);
    path_pop(argv[1], path, NULL);
    strcat(path, "/");
-   //map_path_add(path);
 
    editor_init();
-
-   /*while(RvR_running())
-   {
-      RvR_update();
-
-      editor_update();
-      editor_draw();
-
-      if(RvR_key_pressed(RVR_KEY_M))
-         RvR_malloc_report();
-
-      RvR_render_present();
-   }
-
-   map_set_path("autosave.map");
-   map_save();*/
 
    return HLH_gui_message_loop();
 }
@@ -193,7 +175,10 @@ static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
       if(m->index==0)
       {
          //ask user if sure
-         ui_construct_ask_new();
+         if(map_modified)
+            ui_construct_ask_new();
+         else
+            map_new();
       }
       //Save
       else if(m->index==1)
@@ -228,7 +213,10 @@ static int menu_file_msg(HLH_gui_element *e, HLH_gui_msg msg, int di, void *dp)
       else if(m->index==3)
       {
          //ask user if sure
-         ui_construct_ask_load();
+         if(map_modified)
+            ui_construct_ask_load();
+         else
+            util_load_map();
       }
    }
    return 0;

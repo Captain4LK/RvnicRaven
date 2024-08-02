@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _MAP_H_
 
 extern RvR_port_map *map;
+extern int map_modified;
 
 void map_load(const char *path);
 void map_new(void);

@@ -39,15 +39,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 RvR_port_map *map = NULL;
-//Map_sprite *map_sprites = NULL;
+int map_modified = 0;
 
-/*static struct
-{
-   char (*data)[128];
-   unsigned data_used;
-   unsigned data_size;
-} path_list = {0};*/
-//static Map_list map_list = {0};
 static char map_path[128];
 //-------------------------------------
 
@@ -65,6 +58,7 @@ void map_load(const char *path)
 
    map_set_path(path);
    map = RvR_port_map_load_path(map_path);
+   map_modified = 0;
 
    /*//Load sprites
    printf("%d Sprites\n", map->sprite_count);
@@ -103,6 +97,7 @@ void map_new()
    map_path[0] = '\0';
    //snprintf(map_path, 127, "map%" PRIu64 ".map", (uint64_t)time(NULL));
    map = RvR_port_map_create();
+   map_modified = 0;
    //printf("%d\n",texture_sky);
 
    camera.x = 0;
@@ -167,6 +162,7 @@ void map_save()
 
    puts(map_path);
    RvR_port_map_save(map, map_path);
+   map_modified = 0;
 }
 
 void map_set_path(const char *path)
