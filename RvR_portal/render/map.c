@@ -557,13 +557,13 @@ static void wall_draw_solid(RvR_port_selection *select, RvR_port_dwall *wall, Rv
 
          RvR_fix22 height = port_map->sectors[wall->sector].ceiling-port_cam->z;
          RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(yres*2);
-         RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
          texture = RvR_texture_get_mipmap(port_map->walls[wall->wall].tex_lower,RvR_max(RvR_log2(RvR_abs(coord_step_scaled>>17)),mip));
-         //texture = RvR_texture_get_mipmap(port_map->walls[wall->wall].tex_lower,coord_step_scaled>>17);
-         coord_step_scaled>>=texture->exp;
-         texture_coord_scaled>>=texture->exp;
+         coord_step_scaled/=(1<<texture->exp);
+         RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+         texture_coord_scaled/=(1<<texture->exp);
+         texture_coord_scaled+=(y0-middle_row)*coord_step_scaled;
          RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
-         u>>=texture->exp;
+         u/=(1<<texture->exp);
 
          if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=y1&&select->depth>depth)
          {
@@ -791,12 +791,13 @@ static void wall_draw_portal(RvR_port_selection *select, RvR_port_dwall *wall,
 
             RvR_fix22 height = port_map->sectors[portal].ceiling-port_cam->z;
             RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(yres*2);
-            RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(y0-middle_row)*coord_step_scaled+((int32_t)port_map->walls[wall->wall].y_off)*65536;
             texture_upper = RvR_texture_get_mipmap(port_map->walls[wall->wall].tex_lower,RvR_max(RvR_log2(RvR_abs(coord_step_scaled>>17)),mip_upper));
+            coord_step_scaled/=(1<<texture_upper->exp);
+            RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+            texture_coord_scaled/=(1<<texture_upper->exp);
+            texture_coord_scaled+=(y0-middle_row)*coord_step_scaled;
             RvR_fix22 y_and = (1<<RvR_log2(texture_upper->height))-1;
-            coord_step_scaled>>=texture_upper->exp;
-            texture_coord_scaled>>=texture_upper->exp;
-            u_upper>>=texture_upper->exp;
+            u_upper/=(1<<texture_upper->exp);
 
             if(select!=NULL&&select->x==x&&select->y>=y0&&select->y<=mid&&select->depth>depth)
             {
@@ -918,12 +919,13 @@ static void wall_draw_portal(RvR_port_selection *select, RvR_port_dwall *wall,
 
             RvR_fix22 height = port_map->sectors[portal].floor-port_cam->z;
             RvR_fix22 coord_step_scaled = (port_map->walls[wall->wall].y_units*fovy*depth)/(yres*2);
-            RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+(mid-middle_row)*coord_step_scaled+coord_step_scaled/2+((int32_t)port_map->walls[wall->wall].y_off)*65536;
             texture_lower = RvR_texture_get_mipmap(port_map->walls[wall->wall].tex_lower,RvR_max(RvR_log2(RvR_abs(coord_step_scaled>>17)),mip_lower));
+            coord_step_scaled/=(1<<texture_lower->exp);
+            RvR_fix22 texture_coord_scaled = height*256*port_map->walls[wall->wall].y_units+((int32_t)port_map->walls[wall->wall].y_off)*65536;
+            texture_coord_scaled/=(1<<texture_lower->exp);
+            texture_coord_scaled+=(mid-middle_row)*coord_step_scaled+coord_step_scaled/2;
             RvR_fix22 y_and = (1<<RvR_log2(texture_lower->height))-1;
-            coord_step_scaled>>=texture_lower->exp;
-            texture_coord_scaled>>=texture_lower->exp;
-            u_lower>>=texture_lower->exp;
+            u_lower/=(1<<texture_lower->exp);
 
             if(select!=NULL&&select->x==x&&select->y>=mid&&select->y<=y1&&select->depth>depth)
             {
