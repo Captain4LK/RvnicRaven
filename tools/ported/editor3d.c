@@ -54,6 +54,7 @@ static int brush = 0;
 static char menu_input[512] = {0};
 
 static int painting = 0;
+static int camera_mode = 0;
 
 static State3D state = STATE3D_VIEW;
 static RvR_port_selection world_selection;
@@ -113,7 +114,12 @@ void editor3d_draw(void)
 
 static void e3d_update_view(void)
 {
-   camera_update();
+   if(camera_mode==0)
+      camera_update();
+   else
+      camera_update_collision();
+   if(RvR_key_pressed(RVR_KEY_TAB))
+      camera_mode = !camera_mode;
 
    if(RvR_key_pressed(RVR_KEY_V))
    {

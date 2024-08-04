@@ -551,6 +551,8 @@ static void redo_write64(uint64_t val)
 
 static void undo_begin(Ed_action action)
 {
+   map_modified = 1;
+
    redo_len = 0;
    redo_pos = 0;
    undo_write8(UNDO_RECORD);
@@ -576,8 +578,6 @@ static void undo_end()
 
 void undo_track_wall_shade(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_SHADE);
    undo_write16(wall);
    undo_write8(map->walls[wall].shade_offset);
@@ -618,8 +618,6 @@ static void redo_shade_wall(int pos, int endpos)
 
 void undo_track_floor_shade(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_FLOOR_SHADE);
    undo_write16(sector);
    undo_write8(map->sectors[sector].shade_floor);
@@ -660,8 +658,6 @@ static void redo_shade_floor(int pos, int endpos)
 
 void undo_track_ceiling_shade(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_CEILING_SHADE);
    undo_write16(sector);
    undo_write8(map->sectors[sector].shade_ceiling);
@@ -702,8 +698,6 @@ static void redo_shade_ceiling(int pos, int endpos)
 
 void undo_track_sector_flag(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_FLAG);
    undo_write16(sector);
    undo_write32(map->sectors[sector].flags);
@@ -744,8 +738,6 @@ static void redo_sector_flag(int pos, int endpos)
 
 void undo_track_sprite_flag(uint16_t sprite)
 {
-   map_modified = 1;
-
    undo_begin(ED_SPRITE_FLAG);
    undo_write16(sprite);
    undo_write32(map->sprites[sprite].flags);
@@ -786,8 +778,6 @@ static void redo_sprite_flag(int pos, int endpos)
 
 void undo_track_sprite_dir(uint16_t sprite)
 {
-   map_modified = 1;
-
    undo_begin(ED_SPRITE_DIR);
    undo_write16(sprite);
    undo_write32(map->sprites[sprite].dir);
@@ -828,8 +818,6 @@ static void redo_sprite_dir(int pos, int endpos)
 
 void undo_track_wall_flag(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_FLAG);
    undo_write16(wall);
    undo_write32(map->walls[wall].flags);
@@ -870,8 +858,6 @@ static void redo_wall_flag(int pos, int endpos)
 
 void undo_track_wall_units(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_UNITS);
    undo_write16(wall);
    undo_write8(map->walls[wall].x_units);
@@ -921,8 +907,6 @@ static void redo_wall_units(int pos, int endpos)
 
 void undo_track_sector_units(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_UNITS);
    undo_write16(sector);
    undo_write8(map->sectors[sector].x_units);
@@ -972,8 +956,6 @@ static void redo_sector_units(int pos, int endpos)
 
 void undo_track_sprite_units(uint16_t sprite)
 {
-   map_modified = 1;
-
    undo_begin(ED_SPRITE_UNITS);
    undo_write16(sprite);
    undo_write8(map->sprites[sprite].x_units);
@@ -1023,8 +1005,6 @@ static void redo_sprite_units(int pos, int endpos)
 
 void undo_track_wall_offsets(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_OFFSETS);
    undo_write16(wall);
    undo_write16(map->walls[wall].x_off);
@@ -1074,8 +1054,6 @@ static void redo_wall_offsets(int pos, int endpos)
 
 void undo_track_sector_offsets(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_OFFSETS);
    undo_write16(sector);
    undo_write16(map->sectors[sector].x_off);
@@ -1125,8 +1103,6 @@ static void redo_sector_offsets(int pos, int endpos)
 
 void undo_track_sector_slope(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_SLOPE);
    undo_write16(sector);
    undo_write16(map->sectors[sector].slope_floor);
@@ -1176,8 +1152,6 @@ static void redo_sector_slope(int pos, int endpos)
 
 void undo_track_sector_height(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_HEIGHT);
    undo_write16(sector);
    undo_write32(map->sectors[sector].floor);
@@ -1227,8 +1201,6 @@ static void redo_sector_height(int pos, int endpos)
 
 void undo_track_sprite_pos(uint16_t sprite)
 {
-   map_modified = 1;
-
    undo_begin(ED_SPRITE_POS);
    undo_write16(sprite);
    undo_write32(map->sprites[sprite].x);
@@ -1296,8 +1268,6 @@ static void redo_sprite_pos(int pos, int endpos)
 
 void undo_track_sprite_tex(uint16_t sprite)
 {
-   map_modified = 1;
-
    undo_begin(ED_SPRITE_TEX);
    undo_write16(sprite);
    undo_write16(map->sprites[sprite].tex);
@@ -1338,8 +1308,6 @@ static void redo_sprite_tex(int pos, int endpos)
 
 void undo_track_wall_tex(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_TEX);
    undo_write16(wall);
    undo_write16(map->walls[wall].tex_upper);
@@ -1398,8 +1366,6 @@ static void redo_wall_tex(int pos, int endpos)
 
 void undo_track_sector_tex(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_TEX);
    undo_write16(sector);
    undo_write16(map->sectors[sector].floor_tex);
@@ -1449,8 +1415,6 @@ static void redo_sector_tex(int pos, int endpos)
 
 void undo_track_sprite_del(uint16_t sprite)
 {
-   map_modified = 1;
-
    undo_begin(ED_SPRITE_DEL);
    undo_write16(sprite);
    undo_write32(map->sprites[sprite].x);
@@ -1535,8 +1499,6 @@ static void redo_sprite_del(int pos, int endpos)
 
 void undo_track_wall_move(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_MOVE);
    undo_write16(wall);
    undo_write32(map->walls[wall].x);
@@ -1584,8 +1546,6 @@ static void redo_wall_move(int pos, int endpos)
 
 void undo_track_sector_add(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_ADD);
    undo_write16(sector);
    undo_end();
@@ -1645,8 +1605,6 @@ static void redo_sector_add(int pos, int endpos)
 
 void undo_track_sector_add_inner(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_ADD_INNER);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
@@ -1764,8 +1722,6 @@ static void redo_sector_add_inner(int pos, int endpos)
 
 void undo_track_sector_add_overlap(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_ADD_OVERLAP);
    undo_write16(sector);
    undo_end();
@@ -1846,8 +1802,6 @@ static void redo_sector_add_overlap(int pos, int endpos)
 
 void undo_track_sector_split(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_SPLIT);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
@@ -2072,8 +2026,6 @@ static void redo_sector_split(int pos, int endpos)
 
 void undo_track_sector_connect(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_CONNECT);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
@@ -2267,8 +2219,6 @@ static void redo_sector_connect(int pos, int endpos)
 
 void undo_track_wall_insert(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_INSERT);
    undo_write16(wall);
    undo_end();
@@ -2308,8 +2258,6 @@ static void redo_wall_insert(int pos, int endpos)
 
 void undo_track_sector_delete(uint16_t sector)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_DELETE);
    for(int i = 0;i<map->sectors[sector].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[sector].wall_first+i]);
@@ -2408,8 +2356,6 @@ static void redo_sector_delete(int pos, int endpos)
 
 void undo_track_sector_make_inner(uint16_t wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_MAKE_INNER);
    undo_write16(wall);
    undo_end();
@@ -2443,8 +2389,6 @@ static void redo_sector_make_inner(int pos, int endpos)
 
 void undo_track_wall_make_first(uint16_t wall, uint16_t portal_wall)
 {
-   map_modified = 1;
-
    undo_begin(ED_WALL_MAKE_FIRST);
    for(int i = 0;i<map->sectors[RvR_port_wall_sector(map,wall)].wall_count;i++)
       undo_write_wall(map->walls[map->sectors[RvR_port_wall_sector(map,wall)].wall_first+i]);
@@ -2574,8 +2518,6 @@ static void redo_wall_make_first(int pos, int endpos)
 
 void undo_track_sector_join(uint16_t sector0, uint16_t sector1)
 {
-   map_modified = 1;
-
    undo_begin(ED_SECTOR_JOIN);
    if(sector0<sector1)
    {
@@ -2769,8 +2711,6 @@ static void redo_sector_join(int pos, int endpos)
 
 void undo_track_sprite_add(uint16_t sprite)
 {
-   map_modified = 1;
-
    undo_begin(ED_SPRITE_ADD);
    undo_write16(sprite);
    undo_end();
