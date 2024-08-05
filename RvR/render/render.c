@@ -1,7 +1,7 @@
 /*
 RvnicRaven - rendering
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "RvR_config.h"
 #include "RvR/RvR_app.h"
+#include "RvR/RvR_log.h"
 #include "RvR/RvR_math.h"
 #include "RvR/RvR_fix24.h"
 #include "RvR/RvR_texture.h"
@@ -40,13 +41,12 @@ static void draw(int x, int y, uint8_t index);
 
 void RvR_render_clear(uint8_t index)
 {
-   memset(RvR_framebuffer(), index, RVR_XRES * RVR_YRES);
+   memset(RvR_framebuffer(), index, RvR_xres() * RvR_yres());
 }
 
 void RvR_render_texture(RvR_texture *t, int x, int y)
 {
-   if(t==NULL)
-      return;
+   RvR_error_check(t!=NULL,"RvR_render_texture","texture must be non-null\n");
 
    //Clip source texture
    int draw_start_y = 0;
@@ -57,30 +57,32 @@ void RvR_render_texture(RvR_texture *t, int x, int y)
       draw_start_x = -x;
    if(y<0)
       draw_start_y = -y;
-   if(x + draw_end_x>RVR_XRES)
-      draw_end_x = t->width + (RVR_XRES - x - draw_end_x);
-   if(y + draw_end_y>RVR_YRES)
-      draw_end_y = t->height + (RVR_YRES - y - draw_end_y);
+   if(x + draw_end_x>RvR_xres())
+      draw_end_x = t->width + (RvR_xres() - x - draw_end_x);
+   if(y + draw_end_y>RvR_yres())
+      draw_end_y = t->height + (RvR_yres() - y - draw_end_y);
 
    //Clip dst sprite
    x = x<0?0:x;
    y = y<0?0:y;
 
    const uint8_t *src = &t->data[draw_start_x + draw_start_y * t->width];
-   uint8_t *dst = &RvR_framebuffer()[x + y * RVR_XRES];
+   uint8_t *dst = &RvR_framebuffer()[x + y * RvR_xres()];
    int src_step = -(draw_end_x - draw_start_x) + t->width;
-   int dst_step = RVR_XRES - (draw_end_x - draw_start_x);
+   int dst_step = RvR_xres() - (draw_end_x - draw_start_x);
 
    for(int y1 = draw_start_y; y1<draw_end_y; y1++, dst += dst_step, src += src_step)
       for(int x1 = draw_start_x; x1<draw_end_x; x1++, src++, dst++)
          *dst = *src?*src:*dst;
+
+RvR_err:
+   return;
 }
 
 void RvR_render_texture2(RvR_texture *t, int x, int y)
 {
    //This function is awfull...
-   if(t==NULL)
-      return;
+   RvR_error_check(t!=NULL,"RvR_render_texture2","texture must be non-null\n");
 
    //Clip source texture
    int draw_start_y = 0;
@@ -91,19 +93,19 @@ void RvR_render_texture2(RvR_texture *t, int x, int y)
       draw_start_x = -x;
    if(y<0)
       draw_start_y = -y;
-   if(x + draw_end_x>RVR_XRES)
-      draw_end_x = t->width * 2 + (RVR_XRES - x - draw_end_x);
-   if(y + draw_end_y>RVR_YRES)
-      draw_end_y = t->height * 2 + (RVR_YRES - y - draw_end_y);
+   if(x + draw_end_x>RvR_xres())
+      draw_end_x = t->width * 2 + (RvR_xres() - x - draw_end_x);
+   if(y + draw_end_y>RvR_yres())
+      draw_end_y = t->height * 2 + (RvR_yres() - y - draw_end_y);
 
    //Clip dst sprite
    x = x<0?0:x;
    y = y<0?0:y;
 
    const uint8_t *src = &t->data[draw_start_x / 2 + (draw_start_y / 2) * t->width];
-   uint8_t *dst = &RvR_framebuffer()[x + y * RVR_XRES];
+   uint8_t *dst = &RvR_framebuffer()[x + y * RvR_xres()];
    int src_step = -((draw_end_x - draw_start_x) / 2) + t->width;
-   int dst_step = RVR_XRES - (draw_end_x - draw_start_x);
+   int dst_step = RvR_xres() - (draw_end_x - draw_start_x);
    int next = !(draw_start_x & 1);
 
    for(int y1 = draw_start_y; y1<draw_end_y; y1++, dst += dst_step)
@@ -127,6 +129,9 @@ void RvR_render_texture2(RvR_texture *t, int x, int y)
          src += src_step;
       next = !next;
    }
+
+RvR_err:
+   return;
 }
 
 void RvR_render_rectangle(int x, int y, int width, int height, uint8_t index)
@@ -149,17 +154,17 @@ void RvR_render_rectangle_fill(int x, int y, int width, int height, uint8_t inde
       draw_start_x = -x;
    if(y<0)
       draw_start_y = -y;
-   if(x + draw_end_x>RVR_XRES)
-      draw_end_x = width + (RVR_XRES - x - draw_end_x);
-   if(y + draw_end_y>RVR_YRES)
-      draw_end_y = height + (RVR_YRES - y - draw_end_y);
+   if(x + draw_end_x>RvR_xres())
+      draw_end_x = width + (RvR_xres() - x - draw_end_x);
+   if(y + draw_end_y>RvR_yres())
+      draw_end_y = height + (RvR_yres() - y - draw_end_y);
 
    //Clip dst rect
    x = x<0?0:x;
    y = y<0?0:y;
 
-   uint8_t *dst = &RvR_framebuffer()[x + y * RVR_XRES];
-   int dst_step = RVR_XRES - (draw_end_x - draw_start_x);
+   uint8_t *dst = &RvR_framebuffer()[x + y * RvR_xres()];
+   int dst_step = RvR_xres() - (draw_end_x - draw_start_x);
 
    for(int y1 = draw_start_y; y1<draw_end_y; y1++, dst += dst_step)
       for(int x1 = draw_start_x; x1<draw_end_x; x1++, dst++)
@@ -210,6 +215,7 @@ void RvR_render_font_set(uint16_t id)
 
 void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index)
 {
+   RvR_error_check(text!=NULL,"RvR_render_string","text must be non-null\n");
    RvR_texture *draw_font = RvR_texture_get(rvr_render_font_id);
 
    int x_dim = draw_font->width / 16;
@@ -249,6 +255,9 @@ void RvR_render_string(int x, int y, int scale, const char *text, uint8_t index)
       }
       sx += x_dim * scale;
    }
+
+RvR_err:
+   return;
 }
 
 void RvR_render_vertical_line(int x, int y0, int y1, uint8_t index)
@@ -260,17 +269,17 @@ void RvR_render_vertical_line(int x, int y0, int y1, uint8_t index)
       y1 = t;
    }
 
-   if(x<0||x>=RVR_XRES||y0>=RVR_YRES||y1<0)
+   if(x<0||x>=RvR_xres()||y0>=RvR_yres()||y1<0)
       return;
 
    if(y0<0)
       y0 = 0;
-   if(y1>=RVR_YRES)
-      y1 = RVR_YRES - 1;
+   if(y1>=RvR_yres())
+      y1 = RvR_yres() - 1;
 
    uint8_t *buff = RvR_framebuffer();
    for(int y = y0; y<=y1; y++)
-      buff[y * RVR_XRES + x] = index;
+      buff[y * RvR_xres() + x] = index;
 }
 
 void RvR_render_horizontal_line(int x0, int x1, int y, uint8_t index)
@@ -282,15 +291,15 @@ void RvR_render_horizontal_line(int x0, int x1, int y, uint8_t index)
       x1 = t;
    }
 
-   if(y<0||y>=RVR_YRES||x0>=RVR_XRES||x1<0)
+   if(y<0||y>=RvR_yres()||x0>=RvR_xres()||x1<0)
       return;
 
    if(x0<0)
       x0 = 0;
-   if(x1>=RVR_XRES)
-      x1 = RVR_XRES - 1;
+   if(x1>=RvR_xres())
+      x1 = RvR_xres() - 1;
 
-   uint8_t *dst = &RvR_framebuffer()[y * RVR_XRES + x0];
+   uint8_t *dst = &RvR_framebuffer()[y * RvR_xres() + x0];
    for(int x = x0; x<=x1; x++, dst++)
       *dst = index;
 }

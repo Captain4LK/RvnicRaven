@@ -47,10 +47,14 @@ typedef struct
    uint8_t data[];
 }RvR_itexture;
 
+//All *texture_get* functions will NEVER return NULL
+//When a texture doesn't exist, an empty 1x1 texture will be returned
+//If you are out of memory, the program will crash instead
 RvR_texture *RvR_texture_get(uint16_t id); //Returned data is marked cache, to set static, set the itexture as static. Texture is only valid until next get of same id
 RvR_texture *RvR_texture_get_mipmap(uint16_t id, uint32_t level); //Same as RvR_texture_get(), but tries to find specified mipmap level
 RvR_itexture *RvR_itexture_get(uint16_t id);  //Returned data is marked cache
-void         RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
+
+void         RvR_texture_create(uint16_t id, int32_t width, int32_t height); //These textures need to be manually managed
 void         RvR_texture_free(uint16_t id);
 
 #endif

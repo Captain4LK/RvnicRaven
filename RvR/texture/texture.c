@@ -1,7 +1,7 @@
 /*
 RvnicRaven - texture managment
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -10,6 +10,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 //-------------------------------------
@@ -119,6 +120,7 @@ RvR_itexture *RvR_itexture_get(uint16_t id)
    if(rvr_textures==NULL||rvr_textures[id]==NULL)
       rvr_texture_load(id);
 
+   RvR_error_check_fatal(rvr_textures[id]!=NULL, "RvR_itexture_get", "not enough memory to store texture, aborting\n");
    return rvr_textures[id];
 }
 
@@ -127,6 +129,8 @@ static void rvr_texture_load(uint16_t id)
    if(rvr_textures==NULL)
    {
       rvr_textures = RvR_malloc(sizeof(*rvr_textures) * (UINT16_MAX + 1), "RvR texture ptr array");
+      RvR_error_check_fatal(rvr_textures!=NULL, "rvr_texture_load", "failed to allocate memory for texture array, aborting\n");
+
       memset(rvr_textures, 0, sizeof(*rvr_textures) * (UINT16_MAX + 1));
    }
 
@@ -141,7 +145,7 @@ static void rvr_texture_load(uint16_t id)
    uint8_t *mem_decomp = NULL;
    mem_pak = RvR_lump_get(tmp, &size_in);
 
-   RvR_error_check(size_in!=0, "RvR_texture_get", "TEX%05d not found\n", id);
+   RvR_error_check(size_in!=0, "rvr_texture_load", "TEX%05d not found\n", id);
 
    RvR_mem_tag_set(mem_pak, RVR_MALLOC_STATIC);
    RvR_rw rw_decomp = {0};
@@ -155,7 +159,7 @@ static void rvr_texture_load(uint16_t id)
    RvR_rw_init_const_mem(&rw, mem_decomp, size_out);
 
    uint16_t version = RvR_rw_read_u16(&rw);
-   RvR_error_check(version==1, "RvR_texture_get", "'TEX%05d' has invalid version %d, expected version 1\n", id, version);
+   RvR_error_check(version==1, "rvr_texture_load", "'TEX%05d' has invalid version %d, expected version 1\n", id, version);
 
    int32_t width = RvR_rw_read_u32(&rw);
    int32_t height = RvR_rw_read_u32(&rw);
@@ -175,7 +179,12 @@ static void rvr_texture_load(uint16_t id)
    default: break;
    }
 
+   RvR_error_check(width>0,"rvr_texture_load","texture width must be greater than zero\n");
+   RvR_error_check(height>0,"rvr_texture_load","texture height must be greater than zero\n");
+   RvR_error_check(data_size>0,"rvr_texture_load","texture data size must be greater than zero\n");
+
    rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * data_size, "RvR texture");
+   RvR_error_check(rvr_textures[id]!=NULL,"rvr_texture_load","failed to allocate memory for texture '%d' of size %d by %d\n",id,width,height);
    rvr_textures[id]->width = width;
    rvr_textures[id]->height = height;
    rvr_textures[id]->flags = flags;
@@ -185,10 +194,10 @@ static void rvr_texture_load(uint16_t id)
    rvr_textures[id]->anim_speed = anim_speed;
    for(size_t i = 0; i<data_size; i++)
       rvr_textures[id]->data[i] = RvR_rw_read_u8(&rw);
-   RvR_mem_tag_set(rvr_textures[id], RVR_MALLOC_CACHE);
-   RvR_mem_usr_set(rvr_textures[id], (void **)&rvr_textures[id]);
    if(flags&RVR_TEXTURE_MIPMAP)
       rvr_textures[id]->miplevels = RvR_min(RvR_log2(width),RvR_log2(height));
+   RvR_mem_tag_set(rvr_textures[id], RVR_MALLOC_CACHE);
+   RvR_mem_usr_set(rvr_textures[id], (void **)&rvr_textures[id]);
 
    RvR_rw_close(&rw);
 
@@ -204,6 +213,9 @@ RvR_err:
       RvR_mem_tag_set(mem_pak, RVR_MALLOC_CACHE);
 
    rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data), "RvR texture");
+   if(rvr_textures[id]==NULL)
+      return;
+
    rvr_textures[id]->width = 1;
    rvr_textures[id]->height = 1;
    rvr_textures[id]->flags = 0;
@@ -216,22 +228,32 @@ RvR_err:
    RvR_mem_usr_set(rvr_textures[id], (void **)&rvr_textures[id]);
 }
 
-void RvR_texture_create(uint16_t id, int width, int height)
+void RvR_texture_create(uint16_t id, int32_t width, int32_t height)
 {
+   RvR_error_check(width>0,"RvR_texture_create","texture width must be greater than zero\n");
+   RvR_error_check(height>0,"RvR_texture_create","texture height must be greater than zero\n");
+
    RvR_texture_free(id);
 
    if(rvr_textures==NULL)
    {
       rvr_textures = RvR_malloc(sizeof(*rvr_textures) * (UINT16_MAX + 1), "RvR texture cache");
+      RvR_error_check_fatal(rvr_textures!=NULL, "RvR_texture_create", "failed to allocate memory for texture array, aborting\n");
+
       memset(rvr_textures, 0, sizeof(*rvr_textures) * (UINT16_MAX + 1));
    }
 
    rvr_textures[id] = RvR_malloc(sizeof(*rvr_textures[id]) + sizeof(*rvr_textures[id]->data) * width * height, "RvR texture");
+   RvR_error_check(rvr_textures[id]!=NULL,"RvR_texture_create","failed to allocate memory for texture '%d' of size %d by %d\n",id,width,height);
+
    rvr_textures[id]->width = width;
    rvr_textures[id]->height = height;
    rvr_textures[id]->flags = 0;
    rvr_textures[id]->anim_frames = 0;
    rvr_textures[id]->anim_speed = 0;
+
+RvR_err:
+   return;
 }
 
 void RvR_texture_free(uint16_t id)

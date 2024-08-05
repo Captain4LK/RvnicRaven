@@ -1,7 +1,7 @@
 /*
 RvnicRaven - palette and color luts
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "RvR_config.h"
 #include "RvR/RvR_rw.h"
+#include "RvR/RvR_log.h"
 #include "RvR/RvR_malloc.h"
 #include "RvR/RvR_math.h"
 #include "RvR/RvR_pak.h"
@@ -49,7 +50,10 @@ void RvR_palette_load(uint16_t id)
 
    //Allocate palette if it isn't yet
    if(rvr_palette==NULL)
+   {
       rvr_palette = RvR_malloc(sizeof(*rvr_palette) * 256, "RvR palette");
+      RvR_error_check_fatal(rvr_palette!=NULL, "RvR_palette_load", "failed to allocate memory for palette, aborting\n");
+   }
 
    //Format lump name
    //Palettes must be named in this exact way (e.g. PAL00000)
@@ -58,6 +62,7 @@ void RvR_palette_load(uint16_t id)
 
    //Read palette from lump and create rw stream
    mem_pak = RvR_lump_get(tmp, &size_in);
+   RvR_error_check(size_in!=0, "RvR_palette_load", "PAL%05d not found\n", id);
    RvR_mem_tag_set(mem_pak, RVR_MALLOC_STATIC);
    RvR_rw_init_mem(&rw, mem_pak, size_in, size_in);
 
@@ -75,13 +80,20 @@ void RvR_palette_load(uint16_t id)
    RvR_rw_close(&rw);
    RvR_mem_tag_set(mem_pak, RVR_MALLOC_CACHE);
 
+RvR_err:
+   if(mem_pak!=NULL)
+      RvR_mem_tag_set(mem_pak, RVR_MALLOC_CACHE);
+
    return;
 }
 
 static void rvr_pal_calculate_colormap()
 {
    if(rvr_pal_shade_table==NULL)
+   {
       rvr_pal_shade_table = RvR_malloc(sizeof(*rvr_pal_shade_table) * 256 * 64, "RvR palette shade table");
+      RvR_error_check_fatal(rvr_pal_shade_table!=NULL, "rvr_pal_calculate_colormap", "failed to allocate memory for colormap, aborting\n");
+   }
 
    //Distance fading
    for(int x = 0; x<256; x++)

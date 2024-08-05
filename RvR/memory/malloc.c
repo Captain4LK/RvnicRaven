@@ -1,7 +1,7 @@
 /*
 RvnicRaven - memory allocation
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -18,12 +18,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "RvR_config.h"
-#if RVR_ASAN
-#include "sanitizer/asan_interface.h"
-#else
-#define ASAN_POISON_MEMORY_REGION(a, b)
-#define ASAN_UNPOISON_MEMORY_REGION(a, b)
-#endif
 
 #include "RvR/RvR_app.h"
 #include "RvR/RvR_log.h"
@@ -82,7 +76,6 @@ void RvR_malloc_init(void *buffer, size_t size)
    rvr_malloc_size = size;
 
    rvr_malloc_init = 1;
-   ASAN_POISON_MEMORY_REGION(rvr_malloc_first + 1, rvr_malloc_first->size);
 
    RvR_log_line("RvR_malloc_init", "allocated %zu bytes for allocator\n", size);
 
@@ -123,12 +116,10 @@ void *RvR_malloc(size_t size, const char *reason)
 
       if(cur->tag==RVR_MALLOC_FREE&&cur->size>=size)
       {
-         ASAN_UNPOISON_MEMORY_REGION(cur + 1, size);
          //Split block if possible
          if(cur->size - size>sizeof(rvr_malloc_node) + sizeof(void *))
          {
             rvr_malloc_node *p = (rvr_malloc_node *)((char *)cur + sizeof(rvr_malloc_node) + size);
-            ASAN_UNPOISON_MEMORY_REGION(p, sizeof(*p));
 
             p->next = cur->next;
             p->next->prev = p;
@@ -164,7 +155,7 @@ RvR_err:
 
 void *RvR_malloc_inane(size_t size)
 {
-   return RvR_malloc(size, "Lazy dev");
+   return RvR_malloc(size, "lazy dev smh");
 }
 
 void RvR_free(void *ptr)
@@ -183,7 +174,6 @@ void RvR_free(void *ptr)
       *n->usr = NULL;
 
    n->tag = RVR_MALLOC_FREE;
-   ASAN_POISON_MEMORY_REGION(n + 1, n->size);
 
    //Merge with previous
    if(n!=rvr_malloc_first)
@@ -198,7 +188,6 @@ void RvR_free(void *ptr)
          prev->size += n->size + sizeof(rvr_malloc_node);
          n = prev;
 
-         ASAN_POISON_MEMORY_REGION(prev + 1, prev->size);
       }
    }
 
@@ -211,7 +200,6 @@ void RvR_free(void *ptr)
       n->next = next->next;
       n->next->prev = n;
       n->size += next->size + sizeof(rvr_malloc_node);
-      ASAN_POISON_MEMORY_REGION(n + 1, n->size);
    }
 
 RvR_err:

@@ -1,7 +1,7 @@
 /*
 RvnicRaven - rendering: lines
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -39,7 +39,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uint8_t index)
 {
-   if(!RvR_clip_line(0, 0, RVR_XRES * 256 - 1, RVR_YRES * 256 - 1, &x0, &y0, &x1, &y1))
+   if(!RvR_clip_line(0, 0, RvR_xres()* 256 - 1, RvR_yres()* 256 - 1, &x0, &y0, &x1, &y1))
       return;
 
    RvR_fix24 dx = x1 - x0;
@@ -68,7 +68,7 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
          togob = togox;
          togos = togoy;
          stepb = 1;
-         steps = RVR_XRES;
+         steps = RvR_xres();
       }
       else
       {
@@ -79,7 +79,7 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
          togob = togox;
          togos = -togoy;
          stepb = 1;
-         steps = -RVR_XRES;
+         steps = -RvR_xres();
       }
    }
    else
@@ -93,7 +93,7 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
          togob = -togox;
          togos = togoy;
          stepb = -1;
-         steps = RVR_XRES;
+         steps = RvR_xres();
       }
       else
       {
@@ -104,7 +104,7 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
          togob = -togox;
          togos = -togoy;
          stepb = -1;
-         steps = -RVR_XRES;
+         steps = -RvR_xres();
       }
    }
 
@@ -117,7 +117,7 @@ void RvR_render_line(RvR_fix24 x0, RvR_fix24 y0, RvR_fix24 x1, RvR_fix24 y1, uin
       tmp = stepb; stepb = steps; steps = tmp;
    }
 
-   uint8_t * restrict dst = &RvR_framebuffer()[y * RVR_XRES + x];
+   uint8_t * restrict dst = &RvR_framebuffer()[y * RvR_xres()+ x];
    RvR_fix24 dist = RvR_fix24_mul(fracs - 128, db) - RvR_fix24_mul(fracb - 128, ds);
    int togo = togob;
    while(togo>0)
