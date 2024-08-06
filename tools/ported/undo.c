@@ -2612,15 +2612,6 @@ static void undo_sector_join(int pos, int endpos)
          undo_read_wall(wall,pos);
          map->walls[map->sectors[sector0_id].wall_first+map->sectors[sector0_id].wall_count-1-i] = wall;
       }
-      for(int i = 0;i<map->sectors[sector0_id].wall_count;i++)
-      {
-         uint16_t wall = (uint16_t)(map->sectors[sector0_id].wall_first+i);
-         if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
-         {
-            map->walls[map->walls[wall].portal_wall].portal_wall = wall;
-            map->walls[map->walls[wall].portal_wall].portal = sector0_id;
-         }
-      }
       //-------------------------------------
 
       //Second sector
@@ -2680,6 +2671,15 @@ static void undo_sector_join(int pos, int endpos)
          {
             map->walls[map->walls[wall].portal_wall].portal_wall = wall;
             map->walls[map->walls[wall].portal_wall].portal = sector1_id;
+         }
+      }
+      for(int i = 0;i<map->sectors[sector0_id].wall_count;i++)
+      {
+         uint16_t wall = (uint16_t)(map->sectors[sector0_id].wall_first+i);
+         if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+         {
+            map->walls[map->walls[wall].portal_wall].portal_wall = wall;
+            map->walls[map->walls[wall].portal_wall].portal = sector0_id;
          }
       }
       //-------------------------------------

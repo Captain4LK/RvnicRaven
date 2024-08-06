@@ -341,6 +341,12 @@ RvR_err:
 
 uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sector1)
 {
+   if(sector0>sector1)
+   {
+      uint16_t tmp = sector0;
+      sector0 = sector1;
+      sector1 = tmp;
+   }
    //Count shared walls
    uint16_t shared = 0;
    for(int i = 0;i<map->sectors[sector0].wall_count;i++)
@@ -406,6 +412,9 @@ uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sect
       }while(!collected[cur_sector][cur-map->sectors[sectors[cur_sector]].wall_first]&&map->walls[cur].portal!=sectors[!cur_sector]);
 
       map->walls[next_wall-1].p2 = first_wall;
+
+      wall->portal_wall = RVR_PORT_WALL_INVALID;
+      wall->portal = RVR_PORT_SECTOR_INVALID;
    }
 
    //Sector1
@@ -444,6 +453,9 @@ uint16_t RvR_port_sector_join(RvR_port_map *map, uint16_t sector0, uint16_t sect
       }while(!collected[cur_sector][cur-map->sectors[sectors[cur_sector]].wall_first]&&map->walls[cur].portal!=sectors[!cur_sector]);
 
       map->walls[next_wall-1].p2 = first_wall;
+
+      wall->portal_wall = RVR_PORT_WALL_INVALID;
+      wall->portal = RVR_PORT_SECTOR_INVALID;
    }
 
    //Fix subsector ordering

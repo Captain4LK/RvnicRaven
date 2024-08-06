@@ -198,8 +198,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
             map->sectors[sector].wall_first = map->wall_count;
             map->sectors[sector].floor = 0;
             map->sectors[sector].ceiling = 2 * 1024;
-            map->sectors[sector].floor_tex = 15;
-            map->sectors[sector].ceiling_tex = 15;
+            map->sectors[sector].floor_tex = 0;
+            map->sectors[sector].ceiling_tex = 0;
             map->sectors[sector].x_units = 16;
             map->sectors[sector].y_units = 16;
             map->wall_count += (uint16_t)RvR_array_length(sd_walls);
@@ -281,8 +281,8 @@ int sector_draw_add(RvR_fix22 x, RvR_fix22 y)
          map->sectors[sector].wall_first = map->wall_count;
          map->sectors[sector].floor = 0;
          map->sectors[sector].ceiling = 2 * 1024;
-         map->sectors[sector].floor_tex = 15;
-         map->sectors[sector].ceiling_tex = 15;
+         map->sectors[sector].floor_tex = 0;
+         map->sectors[sector].ceiling_tex = 0;
          map->sectors[sector].x_units = 16;
          map->sectors[sector].y_units = 16;
          map->wall_count += (uint16_t)RvR_array_length(sd_walls);
