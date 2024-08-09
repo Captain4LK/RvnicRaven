@@ -1,7 +1,7 @@
 /*
 RvnicRaven - data (de-)compression: ppp
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "RvR/RvR_rw.h"
+#include "RvR/RvR_log.h"
 #include "RvR/RvR_compress.h"
 //-------------------------------------
 
@@ -35,16 +36,24 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void RvR_ppp_compress_init(RvR_ppp_ccontext *c, RvR_rw *dst)
 {
+   RvR_error_check(c!=NULL,"RvR_ppp_compress_init","context must be non-NULL\n");
+   RvR_error_check(dst!=NULL,"RvR_ppp_compress_init","dst must be non-NULL\n");
+
    memset(c->guess_table, 0, sizeof(c->guess_table));
    c->dst = dst;
 
    c->hash = 0;
    c->flag = 0;
    c->byte = 0;
+
+RvR_err:
+   return;
 }
 
 void RvR_ppp_compress_push(RvR_ppp_ccontext *c, uint8_t byte)
 {
+   RvR_error_check(c!=NULL,"RvR_ppp_compress_push","context must be non-NULL");
+
    //Incorrect guess --> update hash table and add byte to buffer
    if(c->guess_table[c->hash]!=byte)
    {
@@ -73,27 +82,43 @@ void RvR_ppp_compress_push(RvR_ppp_ccontext *c, uint8_t byte)
       c->byte = 0;
       c->flag = 0;
    }
+
+RvR_err:
+   return;
 }
 
 void RvR_ppp_compress_flush(RvR_ppp_ccontext *c, uint8_t pad)
 {
+   RvR_error_check(c!=NULL,"RvR_ppp_compress_flush","context must be non-NULL");
+
    //write pad bytes until the buffer is flushed
    while(c->byte!=0)
       RvR_ppp_compress_push(c, pad);
+
+RvR_err:
+   return;
 }
 
 void RvR_ppp_decompress_init(RvR_ppp_dcontext *c, RvR_rw *src)
 {
+   RvR_error_check(c!=NULL,"RvR_ppp_decompress_init","context must be non-NULL\n");
+   RvR_error_check(src!=NULL,"RvR_ppp_decompress_init","src must be non-NULL\n");
+
    memset(c->guess_table, 0, sizeof(c->guess_table));
    c->src = src;
 
    c->hash = 0;
    c->flag = 0;
    c->byte = 0;
+
+RvR_err:
+   return;
 }
 
 int16_t RvR_ppp_decompress_pop(RvR_ppp_dcontext *c)
 {
+   RvR_error_check(c!=NULL,"RvR_ppp_decompress_pop","context must be non-NULL\n");
+
    //Every eight bytes read, update the flag byte
    if(c->byte==0)
    {
@@ -118,5 +143,8 @@ int16_t RvR_ppp_decompress_pop(RvR_ppp_dcontext *c)
       c->byte = 0;
 
    return byte;
+
+RvR_err:
+   return 0;
 }
 //-------------------------------------

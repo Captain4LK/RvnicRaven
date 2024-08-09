@@ -1,7 +1,7 @@
 /*
 RvnicRaven - 2d line clipping
 
-Written in 2023 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2023,2024 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -9,6 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdlib.h>
 #include <stdint.h>
 //-------------------------------------
 
@@ -17,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR/RvR_math.h"
 #include "RvR/RvR_fix24.h"
 #include "RvR/RvR_clip.h"
+#include "RvR/RvR_log.h"
 //-------------------------------------
 
 //#defines
@@ -37,6 +39,11 @@ uint8_t outcode(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 x,
 //Cohen–Sutherland line clipping
 int RvR_clip_line(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 *x0, RvR_fix24 *y0, RvR_fix24 *x1, RvR_fix24 *y1)
 {
+   RvR_error_check(x0!=NULL,"RvR_clip_line","x0 must be non-NULL\n");
+   RvR_error_check(y0!=NULL,"RvR_clip_line","y0 must be non-NULL\n");
+   RvR_error_check(x1!=NULL,"RvR_clip_line","x1 must be non-NULL\n");
+   RvR_error_check(y1!=NULL,"RvR_clip_line","y1 must be non-NULL\n");
+
    uint8_t code0 = outcode(l, u, r, d, *x0, *y0);
    uint8_t code1 = outcode(l, u, r, d, *x1, *y1);
 
@@ -55,23 +62,23 @@ int RvR_clip_line(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 
 
       if(code_out & 8)
       {
-         x = *x0 + RvR_fix24_div(RvR_fix24_mul(dx, d - *y0), dy);
+         x = *x0 + RvR_fix24_div(RvR_fix24_mul(dx, d - *y0), RvR_non_zero(dy));
          y = d;
       }
       else if(code_out & 4)
       {
-         x = *x0 + RvR_fix24_div(RvR_fix24_mul(dx, u - *y0), dy);
+         x = *x0 + RvR_fix24_div(RvR_fix24_mul(dx, u - *y0), RvR_non_zero(dy));
          y = u;
       }
       else if(code_out & 2)
       {
          x = r;
-         y = *y0 + RvR_fix24_div(RvR_fix24_mul(dy, r - *x0), dx);
+         y = *y0 + RvR_fix24_div(RvR_fix24_mul(dy, r - *x0), RvR_non_zero(dx));
       }
       else
       {
          x = l;
-         y = *y0 + RvR_fix24_div(RvR_fix24_mul(dy, l - *x0), dx);
+         y = *y0 + RvR_fix24_div(RvR_fix24_mul(dy, l - *x0), RvR_non_zero(dx));
       }
 
       if(code_out==code0)
@@ -88,6 +95,7 @@ int RvR_clip_line(RvR_fix24 l, RvR_fix24 u, RvR_fix24 r, RvR_fix24 d, RvR_fix24 
       }
    }
 
+RvR_err:
    return 0;
 }
 
