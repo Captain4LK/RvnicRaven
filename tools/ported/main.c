@@ -77,7 +77,7 @@ int main(int argc, char **argv)
    }
 
    //Init memory manager
-   RvR_malloc_init(mem, MEM_SIZE);
+   //RvR_malloc_init(mem, MEM_SIZE);
 
    ui_construct();
 

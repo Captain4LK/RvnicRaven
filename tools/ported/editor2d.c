@@ -575,8 +575,27 @@ static void e2d_update_wall_move(void)
       RvR_fix22 x = map->walls[wall_move].x;
       RvR_fix22 y = map->walls[wall_move].y;
       RvR_port_wall_move(map, wall_move, wall_move_x, wall_move_y);
-      undo_track_wall_move(wall_move);
-      RvR_port_wall_move(map, wall_move, x,y);
+
+      uint16_t p2 = RvR_port_wall_next(map,wall_move);
+      uint16_t prev = RvR_port_wall_previous(map,wall_move);
+      if(p2!=RVR_PORT_WALL_INVALID&&map->walls[p2].x==x&&map->walls[p2].y==y)
+      {
+         undo_track_wall_delete(wall_move);
+         RvR_port_wall_delete(map,wall_move);
+         puts("H");
+      }
+      else if(prev!=RVR_PORT_WALL_INVALID&&map->walls[prev].x==x&&map->walls[prev].y==y)
+      {
+         undo_track_wall_delete(wall_move);
+         RvR_port_wall_delete(map,wall_move);
+         puts("I");
+      }
+      else
+      {
+         undo_track_wall_move(wall_move);
+         RvR_port_wall_move(map, wall_move, x,y);
+      }
+
       wall_move = RVR_PORT_WALL_INVALID;
       state = STATE2D_VIEW;
    }

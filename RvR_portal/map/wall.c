@@ -456,7 +456,9 @@ uint16_t RvR_port_wall_onesided_length(const RvR_port_map *map, uint16_t wall)
 void RvR_port_wall_delete(RvR_port_map *map, uint16_t wall)
 {
    uint16_t sector = RvR_port_wall_sector(map,wall);
-   uint16_t other = map->walls[map->walls[wall].portal_wall].p2;
+   uint16_t other = RVR_PORT_WALL_INVALID;
+   if(other!=RVR_PORT_WALL_INVALID)
+      other = map->walls[map->walls[wall].portal_wall].p2;
    uint16_t sector_portal = RVR_PORT_SECTOR_INVALID;
    if(other!=RVR_PORT_WALL_INVALID)
       sector_portal = RvR_port_wall_sector(map,other);
@@ -488,7 +490,7 @@ void RvR_port_wall_delete(RvR_port_map *map, uint16_t wall)
    //Update sector references
    for(int s = 0;s<map->sector_count;s++)
    {
-      if(map->sectors[s].wall_first>=wall)
+      if(map->sectors[s].wall_first>wall)
          map->sectors[s].wall_first--;
    }
    
@@ -516,7 +518,7 @@ void RvR_port_wall_delete(RvR_port_map *map, uint16_t wall)
       //Update sector references
       for(int s = 0;s<map->sector_count;s++)
       {
-         if(map->sectors[s].wall_first>=other)
+         if(map->sectors[s].wall_first>other)
             map->sectors[s].wall_first--;
       }
       

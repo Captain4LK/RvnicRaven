@@ -2,7 +2,7 @@
 set -e
 
 # -isystem to not list all RvR headers
-CFLAGS="-Wall -Wextra -Wshadow -std=c99 -Wno-sign-compare -Wconversion -Wno-sign-conversion -O3 -g -I./ -isystem ../../include -I../../external/ -fno-omit-frame-pointer"
+CFLAGS="-Wall -Wextra -Wshadow -std=c99 -Wno-sign-compare -Wconversion -Wno-sign-conversion -O3 -g -I./ -isystem ../../include -I../../external/ -fno-omit-frame-pointer -fsanitize=undefined,address"
 printf "
 .POSIX:
 CC      = gcc

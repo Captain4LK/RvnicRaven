@@ -216,6 +216,7 @@ typedef enum
    ED_WALL_MAKE_FIRST,
    ED_SECTOR_JOIN,
    ED_SPRITE_ADD,
+   ED_WALL_DELETE,
 }Ed_action;
 //-------------------------------------
 
@@ -307,6 +308,8 @@ static void undo_sector_join(int pos, int endpos);
 static void redo_sector_join(int pos, int endpos);
 static void undo_sprite_add(int pos, int endpos);
 static void redo_sprite_add(int pos, int endpos);
+static void undo_wall_delete(int pos, int endpos);
+static void redo_wall_delete(int pos, int endpos);
 //-------------------------------------
 
 //Function implementations
@@ -403,6 +406,7 @@ void undo(void)
    case ED_WALL_MAKE_FIRST: undo_wall_make_first(pos,endpos); break;
    case ED_SECTOR_JOIN: undo_sector_join(pos,endpos); break;
    case ED_SPRITE_ADD: undo_sprite_add(pos,endpos); break;
+   case ED_WALL_DELETE: undo_wall_delete(pos,endpos); break;
    }
 
    redo_write32(redo_entry_len);
@@ -476,6 +480,7 @@ void redo(void)
    case ED_WALL_MAKE_FIRST: redo_wall_make_first(pos,endpos); break;
    case ED_SECTOR_JOIN: redo_sector_join(pos,endpos); break;
    case ED_SPRITE_ADD: redo_sprite_add(pos,endpos); break;
+   case ED_WALL_DELETE: redo_wall_delete(pos,endpos); break;
    }
 
    undo_write32(undo_entry_len);
@@ -2781,6 +2786,266 @@ static void redo_sprite_add(int pos, int endpos)
       map->sprites[sprite].flags = flags;
       map->sprites[sprite].x_units = x_units;
       map->sprites[sprite].y_units = y_units;
+   }
+}
+
+void undo_track_wall_delete(uint16_t wall)
+{
+   if(RvR_port_subsector_length(map,wall)<=3)
+      return;
+   if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID&&RvR_port_subsector_length(map,map->walls[wall].portal_wall)<=3)
+      return;
+
+   undo_begin(ED_WALL_DELETE);
+
+   uint16_t sec0 = RvR_port_wall_sector(map,wall);
+   uint16_t sec1 = RvR_port_wall_sector(map,map->walls[wall].portal_wall);
+
+   if(sec1!=RVR_PORT_SECTOR_INVALID)
+   {
+      if(sec0<sec1)
+      {
+         for(int i = 0;i<map->sectors[sec1].wall_count;i++)
+            undo_write_wall(map->walls[map->sectors[sec1].wall_first+i]);
+         for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+            undo_write_wall(map->walls[map->sectors[sec0].wall_first+i]);
+         undo_write16(map->walls[wall].portal_wall);
+         undo_write16(wall);
+         undo_write16(sec1);
+         undo_write16(sec0);
+      }
+      else
+      {
+         for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+            undo_write_wall(map->walls[map->sectors[sec0].wall_first+i]);
+         for(int i = 0;i<map->sectors[sec1].wall_count;i++)
+            undo_write_wall(map->walls[map->sectors[sec1].wall_first+i]);
+         undo_write16(wall);
+         undo_write16(map->walls[wall].portal_wall);
+         undo_write16(sec0);
+         undo_write16(sec1);
+      }
+   }
+   else
+   {
+      for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+         undo_write_wall(map->walls[map->sectors[sec0].wall_first+i]);
+      undo_write16(map->walls[wall].portal_wall);
+      undo_write16(wall);
+      undo_write16(sec1);
+      undo_write16(sec0);
+   }
+
+   undo_end();
+}
+
+static void undo_wall_delete(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t sec0;
+      uint16_t sec1;
+      uint16_t w0;
+      uint16_t w1;
+
+      undo_read16(sec0,pos);
+      undo_read16(sec1,pos);
+      undo_read16(w0,pos);
+      undo_read16(w1,pos);
+
+      redo_write16(w0);
+      redo_write16(w1);
+
+      if(sec1==RVR_PORT_SECTOR_INVALID)
+      {
+         map->sectors[sec0].wall_count++;
+         map->wall_count++;
+         map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+
+         uint16_t insert = map->sectors[sec0].wall_first;
+
+         //Move existing walls to right
+         for(int w = map->wall_count - 1; w>insert; w--)
+            map->walls[w] = map->walls[w - 1];
+
+         //Fix indices
+         for(int i = 0; i<map->wall_count; i++)
+         {
+            RvR_port_wall *wall = map->walls + i;
+            if(wall->p2>=insert)
+               wall->p2 += 1;
+            if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
+               wall->portal_wall += 1;
+         }
+
+         //Update sectors first wall
+         for(int i = 0; i<map->sector_count; i++)
+         {
+            RvR_port_sector *sect = map->sectors + i;
+            if(sect->wall_first>insert)
+               sect->wall_first += 1;
+         }
+
+         for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+         {
+            RvR_port_wall wall;
+            undo_read_wall(wall,pos);
+            map->walls[map->sectors[sec0].wall_first+map->sectors[sec0].wall_count-1-i] = wall;
+         }
+
+         for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+         {
+            uint16_t wall = (uint16_t)(map->sectors[sec0].wall_first+i);
+            if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+            {
+               map->walls[map->walls[wall].portal_wall].portal_wall = wall;
+               map->walls[map->walls[wall].portal_wall].portal = sec0;
+            }
+         }
+      }
+      else
+      {
+         map->sectors[sec0].wall_count++;
+         map->wall_count++;
+         map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+
+         uint16_t insert = map->sectors[sec0].wall_first;
+
+         //Move existing walls to right
+         for(int w = map->wall_count - 1; w>insert; w--)
+            map->walls[w] = map->walls[w - 1];
+
+         //Fix indices
+         for(int i = 0; i<map->wall_count; i++)
+         {
+            RvR_port_wall *wall = map->walls + i;
+            if(wall->p2>=insert)
+               wall->p2 += 1;
+            if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
+               wall->portal_wall += 1;
+         }
+
+         //Update sectors first wall
+         for(int i = 0; i<map->sector_count; i++)
+         {
+            RvR_port_sector *sect = map->sectors + i;
+            if(sect->wall_first>insert)
+               sect->wall_first += 1;
+         }
+
+         for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+         {
+            RvR_port_wall wall;
+            undo_read_wall(wall,pos);
+            map->walls[map->sectors[sec0].wall_first+map->sectors[sec0].wall_count-1-i] = wall;
+         }
+
+         map->sectors[sec1].wall_count++;
+         map->wall_count++;
+         map->walls = RvR_realloc(map->walls, sizeof(*map->walls) * map->wall_count, "Map walls grow");
+
+         insert = map->sectors[sec1].wall_first;
+
+         //Move existing walls to right
+         for(int w = map->wall_count - 1; w>insert; w--)
+            map->walls[w] = map->walls[w - 1];
+
+         //Fix indices
+         for(int i = 0; i<map->wall_count; i++)
+         {
+            RvR_port_wall *wall = map->walls + i;
+            if(wall->p2>=insert)
+               wall->p2 += 1;
+            if(wall->portal_wall!=RVR_PORT_WALL_INVALID&&wall->portal_wall>=insert)
+               wall->portal_wall += 1;
+         }
+
+         //Update sectors first wall
+         for(int i = 0; i<map->sector_count; i++)
+         {
+            RvR_port_sector *sect = map->sectors + i;
+            if(sect->wall_first>insert)
+               sect->wall_first += 1;
+         }
+
+         for(int i = 0;i<map->sectors[sec1].wall_count;i++)
+         {
+            RvR_port_wall wall;
+            undo_read_wall(wall,pos);
+            map->walls[map->sectors[sec1].wall_first+map->sectors[sec1].wall_count-1-i] = wall;
+         }
+
+         for(int i = 0;i<map->sectors[sec1].wall_count;i++)
+         {
+            uint16_t wall = (uint16_t)(map->sectors[sec1].wall_first+i);
+            if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+            {
+               map->walls[map->walls[wall].portal_wall].portal_wall = wall;
+               map->walls[map->walls[wall].portal_wall].portal = sec1;
+            }
+         }
+         for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+         {
+            uint16_t wall = (uint16_t)(map->sectors[sec0].wall_first+i);
+            if(map->walls[wall].portal_wall!=RVR_PORT_WALL_INVALID)
+            {
+               map->walls[map->walls[wall].portal_wall].portal_wall = wall;
+               map->walls[map->walls[wall].portal_wall].portal = sec0;
+            }
+         }
+      }
+   }
+}
+
+static void redo_wall_delete(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t w0;
+      uint16_t w1;
+
+      redo_read16(w1,pos);
+      redo_read16(w0,pos);
+
+      uint16_t sec0 = RvR_port_wall_sector(map,w0);
+      uint16_t sec1 = RvR_port_wall_sector(map,map->walls[w0].portal_wall);
+
+      if(sec1!=RVR_PORT_SECTOR_INVALID)
+      {
+         if(sec0<sec1)
+         {
+            for(int i = 0;i<map->sectors[sec1].wall_count;i++)
+               undo_write_wall(map->walls[map->sectors[sec1].wall_first+i]);
+            for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+               undo_write_wall(map->walls[map->sectors[sec0].wall_first+i]);
+            undo_write16(map->walls[w0].portal_wall);
+            undo_write16(w0);
+            undo_write16(sec1);
+            undo_write16(sec0);
+         }
+         else
+         {
+            for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+               undo_write_wall(map->walls[map->sectors[sec0].wall_first+i]);
+            for(int i = 0;i<map->sectors[sec1].wall_count;i++)
+               undo_write_wall(map->walls[map->sectors[sec1].wall_first+i]);
+            undo_write16(w0);
+            undo_write16(map->walls[w0].portal_wall);
+            undo_write16(sec0);
+            undo_write16(sec1);
+         }
+      }
+      else
+      {
+         for(int i = 0;i<map->sectors[sec0].wall_count;i++)
+            undo_write_wall(map->walls[map->sectors[sec0].wall_first+i]);
+         undo_write16(map->walls[w0].portal_wall);
+         undo_write16(w0);
+         undo_write16(sec1);
+         undo_write16(sec0);
+      }
+
+      RvR_port_wall_delete(map,w0);
    }
 }
 //-------------------------------------
