@@ -6,8 +6,15 @@ makefile
 #executables
 palette-tool
 texture-tool
+texture-viewer
 rayed
+ported
+book-tool
 a.out
+defc
+iso
+port
+port_all
 *.exe
 
 #compiler output
@@ -19,3 +26,15 @@ a.out
 
 *.png
 *.prof
+*.jpg
+*.pal
+*.bdef
+*.callgrind
+perf.*
+
+# Ressource files
+*.rvr
+*.map
+*.cop
+*.csv
+*.bok
